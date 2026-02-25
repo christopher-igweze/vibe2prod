@@ -137,7 +137,7 @@ class DeterministicIndexer:
         github_token: str | None,
         scan_id: UUID | None,
     ) -> dict:
-        workspace_root = Path("/tmp") / "clarity-check" / "tier1" / str(scan_id or uuid4())
+        workspace_root = Path("/tmp") / "vibe2prod" / "tier1" / str(scan_id or uuid4())
         repo_dir = workspace_root / "repo"
 
         shutil.rmtree(workspace_root, ignore_errors=True)
