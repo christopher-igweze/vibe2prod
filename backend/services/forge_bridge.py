@@ -1,8 +1,7 @@
 """FORGE bridge — triggers FORGE remediation via AgentField control plane.
 
-This is the integration layer that the existing clarity-check backend
-uses to trigger FORGE runs. Follows the same pattern as
-orchestrator_bridge.py for SWE-AF.
+This is the integration layer that the vibe2prod backend uses
+to trigger FORGE engine runs via AgentField HTTP API.
 
 Usage:
     from services.forge_bridge import trigger_forge_scan, trigger_forge_remediate
