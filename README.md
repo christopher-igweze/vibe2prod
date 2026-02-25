@@ -17,6 +17,7 @@ vibe2prod/
 │   ├── services/            # Supabase, GitHub, OpenRouter, FORGE bridge
 │   └── models/              # Pydantic data models
 ├── supabase/                # Database migrations & config
+├── doc/                     # FORGE engine integration context
 └── docker-compose.yml
 ```
 
