@@ -7,7 +7,7 @@ from pydantic import Field
 
 
 class Settings(BaseSettings):
-    """Central configuration for the Vibe-to-Production backend."""
+    """Central configuration for the Vibe2Prod backend."""
 
     # --- API Server ---
     host: str = "0.0.0.0"
@@ -35,19 +35,9 @@ class Settings(BaseSettings):
     # --- Daytona (sandbox) ---
     daytona_api_key: str = Field(..., description="Daytona API key")
     daytona_api_url: str = "https://app.daytona.io/api"
-    # Optional. If unset, Daytona will use the account/org default target.
-    # Some organizations may not have all regions enabled (e.g. "us").
     daytona_target: str | None = None
 
-    # --- Model Selection (OpenRouter model identifiers) ---
-    model_scanner: str = "google/gemini-2.5-pro"
-    model_planner: str = "anthropic/claude-sonnet-4.5"
-    model_builder: str = "deepseek/deepseek-chat"
-    model_security: str = "deepseek/deepseek-chat"
-    model_educator: str = "anthropic/claude-sonnet-4.5"
-
     # --- LLM Runtime Limits ---
-    # Keep this conservative to avoid OpenRouter credit/max_token failures.
     llm_max_output_tokens: int = 4096
 
     # --- Sandbox Limits ---
@@ -68,12 +58,13 @@ class Settings(BaseSettings):
     # --- Rate Limiting ---
     rate_limit_per_minute: int = 10
 
-    # --- Program Control-Plane Hardening ---
-    # Optional filesystem snapshot for program_store durability.
-    # Leave unset in local dev/tests for purely in-memory behavior.
-    program_store_state_path: str | None = None
-    # Maximum age for idempotency entries to avoid unbounded growth.
-    idempotency_ttl_seconds: int = 86400
+    # --- FORGE Engine ---
+    forge_enabled: bool = False
+    forge_agentfield_url: str = "http://localhost:8080"
+    forge_default_model: str = "minimax/minimax-m2.5"
+    forge_runtime: str = "open_code"
+    forge_max_inner_retries: int = 3
+    forge_max_outer_replans: int = 1
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
