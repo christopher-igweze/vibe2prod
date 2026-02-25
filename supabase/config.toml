@@ -1,4 +1,1 @@
 project_id = "YOUR_PROJECT_REF"
-
-[functions.deep-probe]
-verify_jwt = true
