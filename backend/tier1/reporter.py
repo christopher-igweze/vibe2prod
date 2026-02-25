@@ -151,7 +151,7 @@ class Tier1Reporter:
         }
 
         prompt = (
-            "You are Clarity Check's educational CTO assistant. "
+            "You are Vibe2Prod's educational CTO assistant. "
             "Return ONLY valid JSON with keys: executive_summary, educational_moments (array of short strings), risk_narrative. "
             "Keep it concise and directly actionable.\n\n"
             f"{json.dumps(prompt_payload)[:22000]}"
@@ -239,7 +239,7 @@ class Tier1Reporter:
         finding_word = "finding" if finding_count == 1 else "findings"
 
         lines: list[str] = [
-            f"# Clarity Check Report: {product_summary}",
+            f"# Vibe2Prod Report: {product_summary}",
             "",
             "## Executive Summary",
         ]
@@ -787,7 +787,7 @@ class Tier1Reporter:
         product_summary = intake_context.get("product_summary", "Unknown project")
         target_users = intake_context.get("target_users", "Unknown users")
 
-        _write_heading(f"Clarity Check Report: {product_summary}")
+        _write_heading(f"Vibe2Prod Report: {product_summary}")
         _write_wrapped(f"Audience: {target_users}")
         _write_wrapped(f"Launch recommendation: {launch_guidance.get('decision')} - {launch_guidance.get('reason')}")
         _write_wrapped(

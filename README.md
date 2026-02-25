@@ -1,85 +1,71 @@
-# Clarity Check (Clerk + Supabase)
+# Vibe2Prod
 
-This app now uses:
-- **Clerk** for frontend authentication
-- **Supabase** for database + edge functions
-- Optional FastAPI backend at `VITE_API_BASE_URL` for audit orchestration
+AI-powered code audit and production-hardening platform. Turns vibe-coded MVPs into production-ready software.
 
-## 1) Create Your Own Supabase Project
+## Architecture
 
-1. Create a new project in Supabase.
-2. Copy:
-   - Project URL
-   - Anon/Public key
-3. Set env values in `.env.local` (copy from `.env.example`):
+```
+vibe2prod/
+├── backend/
+│   ├── main.py              # FastAPI entry point
+│   ├── config.py            # Pydantic settings (env-driven)
+│   ├── api/
+│   │   ├── routes/          # 7 core route modules
+│   │   └── middleware/      # Auth (Supabase JWT), rate limiting
+│   ├── tier1/               # Free deterministic scanner (no LLM cost)
+│   ├── sandbox/             # Daytona SDK — ephemeral container management
+│   ├── services/            # Supabase, GitHub, OpenRouter, FORGE bridge
+│   └── models/              # Pydantic data models
+├── supabase/                # Database migrations & config
+├── doc/                     # Architecture decisions & planning
+└── docker-compose.yml
+```
+
+## Two Execution Tiers
+
+| Tier | What | Cost | How |
+|------|------|------|-----|
+| **Free (Tier 1)** | Deterministic code scan — security, quality, architecture | $0 | `POST /api/audit` with `tier1_only=true` |
+| **Pro (FORGE)** | 12-agent AI remediation — finds AND fixes issues | $2-5/run | FORGE engine via AgentField in Daytona sandbox |
+
+## Quick Start
 
 ```bash
-VITE_SUPABASE_URL="https://YOUR_PROJECT_REF.supabase.co"
-VITE_SUPABASE_PUBLISHABLE_KEY="YOUR_SUPABASE_ANON_KEY"
+# 1. Set up environment
+cp backend/.env.example backend/.env
+# Edit .env with your keys (Supabase, OpenRouter, Daytona)
+
+# 2. Install dependencies
+cd backend && pip install -r requirements.txt
+
+# 3. Run
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-4. Set your project ref in `supabase/config.toml`:
+## API Endpoints
 
-```toml
-project_id = "YOUR_PROJECT_REF"
-```
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/api/audit` | Start a code audit (Tier 1 or FORGE) |
+| `GET` | `/api/status/{scan_id}` | SSE stream of audit progress |
+| `POST` | `/api/fix` | Trigger auto-fix (FORGE) |
+| `POST` | `/api/github/oauth/callback` | GitHub OAuth flow |
+| `POST` | `/api/webhook/github` | GitHub push/PR webhooks |
+| `GET` | `/health` | Health check |
 
-5. Apply schema migrations:
+## FORGE Engine (Separate Repo)
 
+The 12-agent remediation engine lives at [`christopher-igweze/forge-engine`](https://github.com/christopher-igweze/forge-engine). It runs as an AgentField node in Daytona sandboxes and is called via HTTP from this backend's `forge_bridge` service.
+
+For local CLI usage (code stays on your machine):
 ```bash
-supabase link --project-ref YOUR_PROJECT_REF
-supabase db push
+pip install vibe2prod
+vibe2prod scan ./my-app
 ```
 
-## 2) Create Your Own Clerk App
+## Infrastructure
 
-1. Create a Clerk application.
-2. Enable the auth providers you want (Google, etc).
-3. Set frontend env:
-
-```bash
-VITE_CLERK_PUBLISHABLE_KEY="pk_test_xxx"
-```
-
-## 3) Connect Clerk Tokens to Supabase RLS
-
-This repo is configured for Clerk-compatible RLS using JWT `sub`.
-
-- SQL policies use `auth.jwt()->>'sub'` through `public.requesting_user_id()`.
-- `user_id` columns are stored as `TEXT` to match Clerk user IDs.
-
-### Supabase auth configuration
-
-In your **Supabase project dashboard**, configure JWT verification for Clerk (follow Clerk's Supabase guide). The database policies in this repo assume the incoming JWT has a `sub` claim equal to the Clerk user id.
-
-### Optional fallback template
-
-If you use a Clerk JWT template instead of native third-party auth wiring, set:
-
-```bash
-VITE_CLERK_SUPABASE_TEMPLATE="your_template_name"
-```
-
-Otherwise keep it empty.
-
-## 4) Run Locally
-
-```bash
-npm install
-npm run dev
-```
-
-Open:
-- http://localhost:5173
-
-Protected routes redirect to `/sign-in` (Clerk-hosted UI component).
-
-## 5) Notes
-
-- `AuthContext` now bootstraps a `profiles` row automatically after Clerk login.
-- Supabase requests include Clerk bearer tokens via `createClient(..., { accessToken })`.
-- If API calls still fail auth locally, set `VITE_LOCAL_DEV_BEARER_TOKEN` temporarily.
-
-## Backend
-
-If you want to run the FastAPI backend included in this repo, see `backend/README.md`.
+- **Database**: Supabase (PostgreSQL + RLS + JWT auth)
+- **Sandboxes**: Daytona (ephemeral Linux containers)
+- **LLM routing**: OpenRouter (model-agnostic)
+- **CI/CD**: GitHub Actions
