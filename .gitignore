@@ -23,7 +23,6 @@ backend/.env.*
 *.sw?
 
 # Generated artifacts
-doc/runs/
 backend/e2e_*.txt
 
 # Local testing
@@ -33,10 +32,13 @@ backend/.local-test/
 # Supabase
 supabase/.temp/
 
-# Node (legacy, kept for safety)
+# Node
 node_modules/
 dist/
 dist-ssr/
+
+# Binary documents
+*.docx
 
 # Logs
 *.log
