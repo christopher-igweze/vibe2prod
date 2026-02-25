@@ -1,8 +1,8 @@
-"""Tier-aware audit routes.
+"""Audit routes.
 
-`POST /api/audit` starts either:
-- Tier 1 deterministic pipeline (free tier), or
-- existing deep multi-agent pipeline (feature-flag fallback).
+`POST /api/audit` runs the Tier 1 deterministic pipeline (free).
+FORGE engine integration for AI-driven remediation is triggered
+separately via the /api/fix route.
 """
 
 from __future__ import annotations
@@ -13,7 +13,6 @@ from uuid import UUID, uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Request, HTTPException, Query
 
-from agents.orchestrator import AuditOrchestrator
 from api.middleware.rate_limit import limiter, rate_limit_string
 from api.routes._sse import event_buses
 from config import settings
@@ -60,45 +59,6 @@ async def _maybe_cleanup_tier1() -> None:
     _scan_start_counter += 1
     if _scan_start_counter % _CLEANUP_EVERY_N_SCANS == 0:
         await cleanup_tier1_expired()
-
-
-async def _run_deep_audit(
-    scan_id: UUID,
-    project_id: UUID,
-    request: AuditRequest,
-    user_id: str,
-    github_token: str | None = None,
-) -> None:
-    """Background task that runs the existing deep audit pipeline."""
-    bus = event_buses.get(scan_id)
-
-    def emit(entry: AgentLogEntry) -> None:
-        if bus is not None:
-            bus.append(entry)
-
-    try:
-        await db.update_scan_status(scan_id, ScanStatus.scanning)
-
-        orchestrator = AuditOrchestrator(
-            scan_id=scan_id,
-            repo_url=str(request.repo_url),
-            emit=emit,
-            vibe_prompt=request.vibe_prompt,
-            project_charter=request.project_charter,
-            project_intake=request.project_intake,
-            primer=request.primer,
-            github_token=github_token,
-        )
-
-        report = await orchestrator.run()
-
-        await db.save_report(scan_id, report, scan_tier="deep")
-        await db.save_findings(scan_id, project_id, user_id, report.findings)
-        await db.save_action_items(scan_id, project_id, user_id, report.action_items)
-        await db.save_education(scan_id, project_id, user_id, report.education_cards)
-    except Exception:
-        logger.exception("Deep audit background task failed for scan %s", scan_id)
-        await db.update_scan_status(scan_id, ScanStatus.failed)
 
 
 async def _run_tier1_audit(
@@ -327,83 +287,52 @@ async def start_audit(
     try:
         github_token = await db.get_github_access_token(user_id)
 
-        if settings.tier1_enabled:
-            await _maybe_cleanup_tier1()
-            preflight = await _tier1_preflight(request_body, user_id, github_token)
+        await _maybe_cleanup_tier1()
+        preflight = await _tier1_preflight(request_body, user_id, github_token)
 
-            project_id = (
-                UUID(preflight["existing_project"]["id"])
-                if preflight["existing_project"]
-                else await db.get_or_create_project(
-                    user_id=user_id,
-                    repo_url=str(request_body.repo_url),
-                    repo_name=preflight["repo_name"],
-                    vibe_prompt=request_body.vibe_prompt,
-                    project_charter=request_body.project_charter,
-                    latest_scan_tier="free",
-                )
-            )
-
-            await db.create_scan_report(
-                scan_id=scan_id,
-                project_id=project_id,
+        project_id = (
+            UUID(preflight["existing_project"]["id"])
+            if preflight["existing_project"]
+            else await db.get_or_create_project(
                 user_id=user_id,
-                scan_tier="free",
-                project_intake=request_body.project_intake.model_dump(mode="json"),
-                primer_summary=(request_body.primer.summary if request_body.primer else None),
-                audit_confidence=(request_body.primer.confidence if request_body.primer else None),
+                repo_url=str(request_body.repo_url),
+                repo_name=preflight["repo_name"],
+                vibe_prompt=request_body.vibe_prompt,
+                project_charter=request_body.project_charter,
+                latest_scan_tier="free",
             )
-
-            background_tasks.add_task(
-                _run_tier1_audit,
-                scan_id,
-                project_id,
-                request_body,
-                user_id,
-                preflight["month_key"],
-                github_token,
-            )
-
-            return AuditResponse(
-                scan_id=scan_id,
-                tier="free",
-                quota_remaining=preflight["reports_remaining"],
-            )
-
-        # Fallback: existing deep pipeline
-        project_id = await db.get_or_create_project(
-            user_id=user_id,
-            repo_url=str(request_body.repo_url),
-            vibe_prompt=request_body.vibe_prompt,
-            project_charter=request_body.project_charter,
         )
 
         await db.create_scan_report(
             scan_id=scan_id,
             project_id=project_id,
             user_id=user_id,
-            scan_tier="deep",
+            scan_tier="free",
             project_intake=request_body.project_intake.model_dump(mode="json"),
             primer_summary=(request_body.primer.summary if request_body.primer else None),
             audit_confidence=(request_body.primer.confidence if request_body.primer else None),
         )
+
+        background_tasks.add_task(
+            _run_tier1_audit,
+            scan_id,
+            project_id,
+            request_body,
+            user_id,
+            preflight["month_key"],
+            github_token,
+        )
+
+        return AuditResponse(
+            scan_id=scan_id,
+            tier="free",
+            quota_remaining=preflight["reports_remaining"],
+        )
     except HTTPException:
-        # preserve machine-readable limit code payload
         raise
     except Exception:
         logger.exception("Failed to create scan report row")
         raise HTTPException(status_code=500, detail="Failed to create scan")
-
-    background_tasks.add_task(
-        _run_deep_audit,
-        scan_id,
-        project_id,
-        request_body,
-        user_id,
-        github_token,
-    )
-
-    return AuditResponse(scan_id=scan_id, tier="deep")
 
 
 @router.get("/limits")
@@ -454,13 +383,13 @@ async def get_report_artifact(
 
     mime_type = "text/markdown"
     content_encoding = "utf-8"
-    filename = f"clarity-check-report-{scan_id}.md"
+    filename = f"vibe2prod-report-{scan_id}.md"
     if artifact_type == "agent_markdown":
-        filename = f"clarity-check-agent-{scan_id}.md"
+        filename = f"vibe2prod-agent-{scan_id}.md"
     elif artifact_type == "pdf":
         mime_type = "application/pdf"
         content_encoding = "base64"
-        filename = f"clarity-check-report-{scan_id}.pdf"
+        filename = f"vibe2prod-report-{scan_id}.pdf"
 
     return {
         "scan_id": str(scan_id),

@@ -1,4 +1,4 @@
-"""Vibe-to-Production API — FastAPI application entry point.
+"""Vibe2Prod API — FastAPI application entry point.
 
 Start with:
     uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -26,11 +26,6 @@ from api.routes import (
     onboarding,
     github_oauth,
     webhook,
-    vision_intake,
-    builds,
-    runtime,
-    validation,
-    program,
 )
 from config import settings
 
@@ -44,22 +39,21 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Clarity Check API starting up...")
+    logger.info("Vibe2Prod API starting up...")
     if settings.tier1_enabled:
         await audit.cleanup_tier1_expired()
     yield
-    logger.info("Clarity Check API shutting down.")
+    logger.info("Vibe2Prod API shutting down.")
 
 
 app = FastAPI(
-    title="Clarity Check API",
+    title="Vibe2Prod API",
     description=(
-        "AI-powered code audit API. Hermes orchestrates specialist agents "
-        "(Primer → Scanner → Evolution → Builder → Security → Planner → Educator) "
-        "to analyze a GitHub repository and produce a prioritised remediation "
-        "report with real-time SSE streaming."
+        "AI-powered code audit and production-hardening API. "
+        "Tier 1 deterministic scanning (free) with FORGE engine "
+        "integration for AI-driven remediation."
     ),
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -70,7 +64,6 @@ app = FastAPI(
 # ------------------------------------------------------------------ #
 app.add_middleware(
     CORSMiddleware,
-    # Dev-friendly: allow any localhost port (Vite will hop ports if one is taken).
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
@@ -99,11 +92,6 @@ app.include_router(primer.router, prefix="/api", tags=["primer"])
 app.include_router(onboarding.router, prefix="/api", tags=["onboarding"])
 app.include_router(github_oauth.router, prefix="/api", tags=["github"])
 app.include_router(webhook.router, prefix="/api", tags=["webhook"])
-app.include_router(vision_intake.router, prefix="/api", tags=["vision-intake"])
-app.include_router(builds.router, tags=["builds"])
-app.include_router(runtime.router, tags=["runtime"])
-app.include_router(validation.router, tags=["validation"])
-app.include_router(program.router, tags=["program"])
 
 
 # ------------------------------------------------------------------ #
@@ -111,7 +99,7 @@ app.include_router(program.router, tags=["program"])
 # ------------------------------------------------------------------ #
 @app.get("/", tags=["meta"])
 async def root():
-    return {"service": "Clarity Check API", "status": "ok", "version": "1.0.0"}
+    return {"service": "Vibe2Prod API", "status": "ok", "version": "2.0.0"}
 
 
 @app.get("/health", tags=["meta"])
