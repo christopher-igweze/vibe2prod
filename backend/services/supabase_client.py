@@ -139,6 +139,21 @@ async def update_scan_status(scan_id: UUID, status: ScanStatus) -> None:
     ).execute()
 
 
+async def update_scan_with_discovery(
+    scan_id: UUID,
+    discovery_report: dict,
+) -> None:
+    """Store FORGE discovery report data in scan_reports.report_data."""
+    client = _client()
+    client.table("scan_reports").update(
+        {
+            "status": ScanStatus.completed.value,
+            "report_data": {"discovery_report": discovery_report},
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+        }
+    ).eq("id", str(scan_id)).execute()
+
+
 async def save_report(
     scan_id: UUID,
     report: AuditReport,

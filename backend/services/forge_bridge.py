@@ -51,6 +51,7 @@ class ForgeRunResult:
     readiness_score: int = 0
     pr_url: str = ""
     raw_result: dict = field(default_factory=dict)
+    discovery_report: dict = field(default_factory=dict)
 
 
 # ── HTTP helpers (sync, stdlib — no external deps) ────────────────────
@@ -274,6 +275,7 @@ def _parse_forge_result(execution_id: str, raw: dict) -> ForgeRunResult:
         readiness_score=_extract_readiness_score(output),
         pr_url=output.get("pr_url", ""),
         raw_result=raw,
+        discovery_report=output.get("discovery_report") or {},
     )
 
 
