@@ -8,7 +8,7 @@ separately via the /api/fix route.
 from __future__ import annotations
 
 import logging
-from datetime import date, timezone
+from datetime import date, datetime, timezone
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Request, HTTPException, Query
@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 _LIMIT_STATUS = 403
-_CLEANUP_EVERY_N_SCANS = 5
-_scan_start_counter = 0
+_CLEANUP_INTERVAL_SECONDS = 1800  # 30 minutes between cleanup runs
+_last_cleanup_at: datetime | None = None
 
 
 def _limit_exception(code: str, message: str, extra: dict | None = None) -> HTTPException:
@@ -55,9 +55,10 @@ async def cleanup_tier1_expired() -> None:
 
 
 async def _maybe_cleanup_tier1() -> None:
-    global _scan_start_counter
-    _scan_start_counter += 1
-    if _scan_start_counter % _CLEANUP_EVERY_N_SCANS == 0:
+    global _last_cleanup_at
+    now = datetime.now(timezone.utc)
+    if _last_cleanup_at is None or (now - _last_cleanup_at).total_seconds() >= _CLEANUP_INTERVAL_SECONDS:
+        _last_cleanup_at = now
         await cleanup_tier1_expired()
 
 
