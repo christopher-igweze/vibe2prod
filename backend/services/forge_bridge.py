@@ -21,11 +21,12 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import os
 import urllib.request
 import urllib.error
 from dataclasses import dataclass, field
 from typing import Any, Sequence
+
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -136,11 +137,8 @@ async def trigger_forge_scan(
 
     Returns a ForgeRunResult with findings and readiness score.
     """
-    agentfield_url = agentfield_url_override or os.environ.get(
-        "FORGE_AGENTFIELD_URL",
-        os.environ.get("AGENTFIELD_URL", "http://localhost:8080"),
-    )
-    api_key = os.environ.get("AGENTFIELD_API_KEY", "")
+    agentfield_url = agentfield_url_override or settings.forge_agentfield_url
+    api_key = settings.agentfield_api_key
 
     config: dict[str, Any] = {
         "mode": "discovery",
@@ -182,11 +180,8 @@ async def trigger_forge_remediate(
         agentfield_url_override: Override AgentField URL.
         github_token: GitHub token for PR creation.
     """
-    agentfield_url = agentfield_url_override or os.environ.get(
-        "FORGE_AGENTFIELD_URL",
-        os.environ.get("AGENTFIELD_URL", "http://localhost:8080"),
-    )
-    api_key = os.environ.get("AGENTFIELD_API_KEY", "")
+    agentfield_url = agentfield_url_override or settings.forge_agentfield_url
+    api_key = settings.agentfield_api_key
 
     config: dict[str, Any] = {"mode": mode}
     if model_override:
@@ -221,7 +216,7 @@ async def _trigger_forge(
     timeout: int,
 ) -> ForgeRunResult:
     """Internal: trigger a FORGE reasoner and wait for result."""
-    node_id = os.environ.get("FORGE_NODE_ID", "forge-engine")
+    node_id = settings.forge_node_id
     url = f"{agentfield_url}/api/v1/execute/async/{node_id}.{reasoner}"
 
     logger.info("Triggering FORGE %s at %s", reasoner, url)
