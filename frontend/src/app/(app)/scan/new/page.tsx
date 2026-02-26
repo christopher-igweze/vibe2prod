@@ -172,8 +172,6 @@ export default function NewScanPage() {
             setSubmitError("You have used all your free scans this month. Quota resets next month.");
           } else if (code === "limit_projects_exceeded") {
             setSubmitError("You have reached the free tier project limit.");
-          } else if (code === "limit_loc_exceeded") {
-            setSubmitError("This repository exceeds the free tier LOC limit (50,000 lines).");
           } else {
             setSubmitError(
               (detail as { message?: string })?.message || err.detail || "Access denied"
