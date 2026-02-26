@@ -136,6 +136,15 @@ async def trigger_fix(
             },
         )
 
+    if project.get("user_id") != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "forbidden",
+                "message": "You do not have access to this project.",
+            },
+        )
+
     repo_url = project["repo_url"]
 
     # Pull tier1 findings from the scan report to enrich FORGE context
