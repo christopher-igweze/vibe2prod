@@ -1,0 +1,3027 @@
+[
+  {
+    "id": "SEC-001",
+    "title": "Information Disclosure - Unauthenticated Scan Status Access",
+    "description": "The GET /status/{scan_id} SSE endpoint verifies that the scan_id exists in event_buses but does NOT verify that the requesting user owns or has access to the scan. Any authenticated user can monitor the real-time progress of any other user's scans by knowing the scan_id, exposing sensitive audit details, findings, and agent logs.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/status.py",
+        "line_start": 44,
+        "line_end": 53,
+        "snippet": "async def stream_status(scan_id: UUID, request: Request):\n    \"\"\"Stream audit events for a given scan via SSE.\"\"\"\n    if scan_id not in event_buses:\n        raise HTTPException(status_code=404, detail=\"Scan not found\")\n\n    return EventSourceResponse(\n        _event_generator(scan_id),\n        media_type=\"text/event-stream\",\n    )"
+      }
+    ],
+    "suggested_fix": "Add authorization check: verify that request.state.user_id owns the scan by querying the database for the scan_report and validating ownership before streaming any events.",
+    "confidence": 0.9,
+    "cwe_id": "CWE-639",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-002",
+    "title": "Broken Access Control - IDOR in FORGE Fix Endpoint",
+    "description": "The POST /api/fix endpoint validates that the action_item belongs to the authenticated user but does NOT validate that the associated scan_report and project also belong to the user. An attacker could potentially trigger FORGE remediation on other users' action items by manipulating the action_item_id.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/fix.py",
+        "line_start": 72,
+        "line_end": 101,
+        "snippet": "action_item = await db.get_action_item(request_body.action_item_id, user_id)\nif not action_item:\n    raise HTTPException(status_code=404, ...)\n...\nproject_id = UUID(action_item[\"project_id\"])\nproject = await db.get_project(project_id)\n...\nscan_report_id = UUID(action_item[\"scan_report_id\"])\nscan_report = await db.get_scan_report(scan_report_id, user_id)"
+      }
+    ],
+    "suggested_fix": "After fetching scan_report, add explicit authorization check: validate that scan_report['user_id'] matches request.state.user_id before proceeding. Also validate project ownership.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-639",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-003",
+    "title": "Sandbox Command Injection Risk via Repo URL",
+    "description": "The primer endpoint passes user-supplied repo_url to SandboxManager.provision() and executes arbitrary shell commands (find, ls, git) on the cloned repository. While the sandbox aims to isolate execution, a malicious repository could contain malicious scripts that execute during the cloning or file listing process. Additionally, there's no validation that the repository URL is from an allowed domain/owner.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 52,
+        "line_end": 56,
+        "snippet": "await sandbox_mgr.provision(scan_id, repo_info.clone_url)\ntree = await sandbox_mgr.exec(scan_id, \"find . -type f -not -path './.git/*' ...\")\ntop_dirs = await sandbox_mgr.exec(scan_id, \"ls -1\", timeout=15)\nhead = await sandbox_mgr.exec(scan_id, \"git rev-parse HEAD\", timeout=15)"
+      }
+    ],
+    "suggested_fix": "Implement repository allowlist/blocklist validation. Use a dedicated sandbox with minimal privileges and no network access beyond cloning. Add timeout limits and resource quotas. Consider pre-cloning trusted repositories only.",
+    "confidence": 0.6,
+    "cwe_id": "CWE-94",
+    "owasp_ref": "A03:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-004",
+    "title": "Webhook Replay Protection Can Be Disabled",
+    "description": "The _register_delivery function uses settings.webhook_replay_window_seconds to determine replay protection window. If this setting is set to 0 or a very small value, the replay protection mechanism becomes ineffective, allowing rapid duplicate webhook submissions.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/webhook.py",
+        "line_start": 52,
+        "line_end": 67,
+        "snippet": "async def _register_delivery(delivery_id: str) -> bool:\n    \"\"\"Return False when a duplicate delivery ID is observed inside replay window.\"\"\"\n    now_ts = int(time.time())\n    ttl_seconds = max(60, int(settings.webhook_replay_window_seconds))"
+      }
+    ],
+    "suggested_fix": "Enforce a minimum replay window of 60 seconds in code (already done via max(60,...)). Add validation at startup to ensure the setting cannot be disabled or set below minimum.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-778",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-005",
+    "title": "OAuth State Secret Falls Back to JWT Secret",
+    "description": "The _state_secret() function returns github_oauth_state_secret if configured, otherwise falls back to supabase_jwt_secret. This weakens OAuth state security since the JWT secret is used for many purposes and may be rotated more frequently. Additionally, if neither is set, the system may fail unsafely.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/github_oauth.py",
+        "line_start": 38,
+        "line_end": 42,
+        "snippet": "def _state_secret() -> str:\n    return settings.github_oauth_state_secret or settings.supabase_jwt_secret\n\ndef _ensure_oauth_configured() -> None:\n    if not settings.github_client_id or not settings.github_client_secret:\n        raise _oauth_not_configured()"
+      }
+    ],
+    "suggested_fix": "Require github_oauth_state_secret to be explicitly configured and non-empty. Add validation at application startup if OAuth is enabled.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-287",
+    "owasp_ref": "A02:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-006",
+    "title": "Rate Limiting Bypass via IP Spoofing",
+    "description": "The rate limiter uses get_remote_address() from slowapi which extracts IP from request.client.host. This can be easily bypassed by attackers spoofing X-Forwarded-For or X-Real-IP headers, as the code doesn't validate or use these headers securely.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/middleware/rate_limit.py",
+        "line_start": 1,
+        "line_end": 15,
+        "snippet": "from slowapi import Limiter\nfrom slowapi.util import get_remote_address\n\nlimiter = Limiter(key_func=get_remote_address)\n\ndef rate_limit_string() -> str:\n    \"\"\"Return the rate limit string for the configured limit.\"\"\"\n    return f\"{settings.rate_limit_per_minute}/minute\""
+      }
+    ],
+    "suggested_fix": "Implement a custom key_func that properly handles X-Forwarded-For only when behind a trusted reverse proxy, or use a more robust identifier like session-based rate limiting combined with IP.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-770",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-007",
+    "title": "Missing Input Validation on Pydantic Request Models",
+    "description": "Cross-segment analysis identified missing input validation: AgentLogEntry.message has no length limits (DoS), Finding.code_snippet has no sanitization (XSS), ProjectIntake fields lack validation. While these models are defined in other segments, this API segment uses them without additional validation.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 180,
+        "line_end": 195,
+        "snippet": "async def start_audit(\n    request_body: AuditRequest,\n    request: Request,\n    background_tasks: BackgroundTasks,\n) -> AuditResponse:"
+      }
+    ],
+    "suggested_fix": "Add explicit validation at route handlers for critical fields: max length on message/code_snippet, sanitize code content before storage, validate nested objects in project_intake.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-008",
+    "title": "JWT Algorithm Not Restricted to HS256",
+    "description": "The JWT verification in auth.py explicitly specifies algorithms=[\"HS256\"] which is correct. However, if settings.supabase_jwt_secret is ever changed to None or empty, the jwt.decode call would fail unexpectedly. Additionally, there's no validation that the JWT secret meets minimum entropy requirements.",
+    "category": "security",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "api/middleware/auth.py",
+        "line_start": 44,
+        "line_end": 49,
+        "snippet": "payload = jwt.decode(\n    token,\n    settings.supabase_jwt_secret,\n    algorithms=[\"HS256\"],\n    audience=\"authenticated\",\n)"
+      }
+    ],
+    "suggested_fix": "Add validation at startup to ensure supabase_jwt_secret is set and meets minimum length/entropy requirements. Consider supporting RS256 for future Supabase Auth changes.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-287",
+    "owasp_ref": "A02:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-009",
+    "title": "No Rate Limiting on Onboarding Endpoint",
+    "description": "The POST /api/onboarding/org endpoint has no rate limiting decorator, unlike other sensitive endpoints like /audit, /fix, and /github-oauth. This could allow unlimited org onboarding submissions.",
+    "category": "security",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "api/routes/onboarding.py",
+        "line_start": 24,
+        "line_end": 32,
+        "snippet": "@router.post(\"/onboarding/org\", response_model=OnboardingResponse)\nasync def save_org_onboarding(\n    request_body: OrgOnboardingPayload,\n    request: Request,\n) -> OnboardingResponse:\n    user_id: str = request.state.user_id"
+      }
+    ],
+    "suggested_fix": "Add @limiter.limit(rate_limit_string()) decorator to the save_org_onboarding endpoint for consistency with other endpoints.",
+    "confidence": 0.9,
+    "cwe_id": "CWE-770",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-010",
+    "title": "Missing Onboarding Check in Primer Endpoint",
+    "description": "The POST /api/primer endpoint does not check if onboarding is complete before proceeding. This bypasses the onboarding requirement enforced in _tier1_preflight for the audit endpoint. A user who hasn't completed onboarding could still have primer data generated.",
+    "category": "security",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 34,
+        "line_end": 45,
+        "snippet": "@router.post(\"/primer\", response_model=PrimerResponse)\nasync def run_primer(request_body: PrimerRequest, request: Request) -> PrimerResponse:\n    user_id: str = request.state.user_id\n\n    github_token = await db.get_github_access_token(user_id)"
+      }
+    ],
+    "suggested_fix": "Add onboarding check at the beginning of run_primer: if not await db.is_onboarding_complete(user_id): raise HTTPException(403, detail='Onboarding required')",
+    "confidence": 0.7,
+    "cwe_id": "CWE-862",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-001",
+    "title": "Memory leak in event_buses SSE storage",
+    "description": "The global event_buses dict in api/routes/_sse.py accumulates entries for completed scans indefinitely. There's no cleanup mechanism, leading to unbounded memory growth over time. Each scan adds a list that is never removed after the SSE stream completes.",
+    "category": "quality",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "api/routes/_sse.py",
+        "line_start": 13,
+        "line_end": 13,
+        "snippet": "event_buses: dict[UUID, list[AgentLogEntry]] = {}"
+      },
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 193,
+        "line_end": 193,
+        "snippet": "event_buses[scan_id] = []"
+      }
+    ],
+    "suggested_fix": "Add cleanup logic to remove scan entries from event_buses after SSE stream completes. Consider using\u5f31\u5f15\u7528 or a dedicated cleanup background task that purges old entries older than a configurable TTL (e.g., 1 hour).",
+    "confidence": 0.95,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-002",
+    "title": "Unbounded memory growth in webhook replay detection",
+    "description": "The _seen_deliveries dict in api/routes/webhook.py grows indefinitely. Although there's cleanup logic for expired entries, if settings.webhook_replay_window_seconds is very large, the dict could consume significant memory. Additionally, the cleanup runs inside _register_delivery which may not be called frequently enough.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/webhook.py",
+        "line_start": 53,
+        "line_end": 67,
+        "snippet": "_seen_deliveries: dict[str, int] = {}"
+      }
+    ],
+    "suggested_fix": "Move the cleanup to a periodic background task instead of doing it on every delivery. Consider using an LRU cache with TTL or a time-bucketed structure to limit memory usage more predictably.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-003",
+    "title": "Global mutable counter for cleanup scheduling",
+    "description": "The _scan_start_counter global variable in api/routes/audit.py is used to trigger periodic cleanup. This pattern is problematic for testing (non-deterministic behavior), doesn't work in multi-process deployments, and has race conditions in async contexts.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 32,
+        "line_end": 33,
+        "snippet": "_CLEANUP_EVERY_N_SCANS = 5\n_scan_start_counter = 0"
+      },
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 49,
+        "line_end": 52,
+        "snippet": "async def _maybe_cleanup_tier1() -> None:\n    global _scan_start_counter\n    _scan_start_counter += 1"
+      }
+    ],
+    "suggested_fix": "Replace global counter with a time-based approach: run cleanup if the last cleanup was more than N minutes ago. Use a timestamp stored in the database or a time-based check to trigger cleanup deterministically.",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-004",
+    "title": "Missing input validation on repo_url across endpoints",
+    "description": "Multiple endpoints accept repo_url as string without validation: api/routes/audit.py, api/routes/primer.py. Only primer.py uses Pydantic HttpUrl which provides validation, but audit.py passes through raw strings. This could allow malformed URLs to propagate to downstream services.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 164,
+        "line_end": 164,
+        "snippet": "async def start_audit("
+      },
+      {
+        "file_path": "api/routes/fix.py",
+        "line_start": 78,
+        "line_end": 82,
+        "snippet": "repo_url = project[\"repo_url\"]"
+      }
+    ],
+    "suggested_fix": "Add repo_url validation using Pydantic's HttpUrl type in AuditRequest and FixRequest models. Ensure consistent validation across all endpoints that accept repository URLs.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-005",
+    "title": "Large hardcoded prompt with potential token overflow",
+    "description": "In api/routes/primer.py, the _summarize function constructs a prompt with up to 15000 characters of JSON: 'json.dumps(primer_json)[:15000]'. Many LLM APIs have lower max token limits, and this could cause API failures or be truncated unexpectedly.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 147,
+        "line_end": 158,
+        "snippet": "prompt = (\n        \"You are Agent_Primer. Summarize this repository context in 4 short bullets:\\n\"\n        \"1) likely product purpose\\n\"\n        \"2) likely core user flows\\n\"\n        \"3) likely deployment/runtime shape\\n\"\n        \"4) top immediate audit risk areas\\n\"\n        \"Keep it concise and factual.\\n\\n\"\n        f\"{json.dumps(primer_json)[:15000]}\"\n    )"
+      }
+    ],
+    "suggested_fix": "Add a more conservative truncation limit (e.g., 4000 chars) and consider implementing proper token counting if available. Alternatively, extract key fields from primer_json rather than dumping the entire JSON.",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-006",
+    "title": "Magic numbers scattered throughout primer.py",
+    "description": "Multiple hardcoded magic numbers in api/routes/primer.py without explanation: 350 (file count), 30/15 (timeouts), 12 (scripts limit), 20 (dependencies limit), 200/40 (sample limits), 280 (max tokens). These should be constants or configuration values.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 67,
+        "line_end": 71,
+        "snippet": "\"find . -type f -not -path './.git/*' -not -path './node_modules/*' | head -350 | sort\""
+      },
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 79,
+        "line_end": 85,
+        "snippet": "\"file_tree_sample\": (tree.stdout or \"\").splitlines()[:200],\n            \"top_level_entries\": (top_dirs.stdout or \"\").splitlines()[:40],"
+      },
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 90,
+        "line_end": 92,
+        "snippet": "scripts = sorted(list((package_data.get(\"scripts\") or {})).keys()))[:12]\n                dependencies = sorted(list(deps.keys()))[:20]"
+      }
+    ],
+    "suggested_fix": "Create a configuration class or constants module with documented values for all these limits. Example: MAX_FILE_TREE_SIZE = 350, MAX_DEPS_SAMPLE = 20, etc.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-007",
+    "title": "Complex function with multiple responsibilities",
+    "description": "The start_audit function in api/routes/audit.py (lines 164-214) performs too many distinct tasks: authentication check, scan ID generation, event bus initialization, GitHub token retrieval, preflight validation, project creation, and scan creation. This violates the Single Responsibility Principle and makes testing difficult.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 164,
+        "line_end": 214,
+        "snippet": "async def start_audit(\n    request_body: AuditRequest,\n    request: Request,\n    background_tasks: BackgroundTasks,\n) -> AuditResponse:"
+      }
+    ],
+    "suggested_fix": "Refactor into smaller functions: _initialize_audit_context(), _validate_and_prepare_project(), _create_scan_record(). This improves testability and makes error handling more granular.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-008",
+    "title": "Missing error handling for external service dependencies",
+    "description": "In api/routes/audit.py, if db.get_github_access_token() fails or returns None, the code proceeds to use github_token which could be None, leading to downstream failures with less clear error messages. Similarly, db operations in preflight don't have consistent error handling.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 167,
+        "line_end": 170,
+        "snippet": "user_id: str = request.state.user_id\n    scan_id = uuid4()\n\n    event_buses[scan_id] = []\n\n    try:\n        github_token = await db.get_github_access_token(user_id)"
+      }
+    ],
+    "suggested_fix": "Add explicit checks after db.get_github_access_token() and raise clear HTTPException if GitHub connection is required but missing. Consider requiring GitHub connection as part of onboarding rather than handling it lazily.",
+    "confidence": 0.75,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-009",
+    "title": "Inconsistent exception handling patterns",
+    "description": "The codebase has inconsistent exception handling: some routes catch HTTPException and re-raise (line 200-201 in audit.py), others use broad except clauses. The github_oauth.py has verbose manual status code checks instead of using resp.raise_for_status().",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 200,
+        "line_end": 203,
+        "snippet": "except HTTPException:\n        raise\n    except Exception:"
+      },
+      {
+        "file_path": "api/routes/github_oauth.py",
+        "line_start": 73,
+        "line_end": 82,
+        "snippet": "if resp.status_code >= 400:\n        raise HTTPException(\n            status_code=502,"
+      }
+    ],
+    "suggested_fix": "Standardize exception handling: use resp.raise_for_status() for httpx responses. Remove redundant HTTPException re-raise pattern - let them propagate naturally. Add a global exception handler for consistent error responses.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-010",
+    "title": "No SSE connection limit or rate limiting",
+    "description": "The /api/status/{scan_id} endpoint in api/routes/status.py allows unlimited SSE connections without rate limiting or per-user connection limits. This could be exploited for resource exhaustion.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/status.py",
+        "line_start": 49,
+        "line_end": 55,
+        "snippet": "@router.get(\"/status/{scan_id}\")\nasync def stream_status(scan_id: UUID, request: Request):"
+      }
+    ],
+    "suggested_fix": "Add @limiter.limit decorator to the status endpoint similar to other routes. Consider adding per-user concurrent connection limits using a connection counter.",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-011",
+    "title": "Dynamic import inside background task function",
+    "description": "In api/routes/fix.py, the trigger_forge_remediate import is done inside the _run_forge_fix function rather than at module level. This delays the error and makes it harder to test the import at module load time.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "api/routes/fix.py",
+        "line_start": 27,
+        "line_end": 28,
+        "snippet": "async def _run_forge_fix(\n    fix_attempt_id: UUID,"
+      },
+      {
+        "file_path": "api/routes/fix.py",
+        "line_start": 30,
+        "line_end": 31,
+        "snippet": "from services.forge_bridge import trigger_forge_remediate"
+      }
+    ],
+    "suggested_fix": "Move the import to module level at the top of the file. If the import needs to be conditional due to optional FORGE functionality, handle the ImportError at module load with a clear message.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-012",
+    "title": "Missing null safety on dictionary access",
+    "description": "Multiple places access dictionary keys without null checks. In audit.py line 131: existing_project['id'] is accessed after the None check, but preflight['existing_project'] is used directly without guaranteed existence. Similar issues with tier1_findings in fix.py.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 188,
+        "line_end": 197,
+        "snippet": "project_id = (\n            UUID(preflight[\"existing_project\"][\"id\"])\n            if preflight[\"existing_project\"]\n            else await db.get_or_create_project("
+      },
+      {
+        "file_path": "api/routes/fix.py",
+        "line_start": 102,
+        "line_end": 105,
+        "snippet": "tier1_findings = None\n    if scan_report and isinstance(scan_report.get(\"report_data\"), dict):\n        tier1_findings = scan_report[\"report_data\"].get(\"findings\")"
+      }
+    ],
+    "suggested_fix": "Use .get() with default values consistently. Consider using Pydantic models for scan_report to get type-safe access with validation.",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-001",
+    "title": "Global in-memory state for SSE event buses lacks cleanup and doesn't scale horizontally",
+    "description": "The event_buses dictionary in api/routes/_sse.py stores scan events in global in-memory state. This creates memory leaks as scans are never explicitly removed from the dict. Additionally, this approach doesn't work in horizontally scaled deployments where multiple API instances maintain separate in-memory stores, causing clients connected to different instances to miss events. There's no TTL mechanism for old scan data.",
+    "category": "architecture",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "api/routes/_sse.py",
+        "line_start": 13,
+        "line_end": 15,
+        "snippet": "event_buses: dict[UUID, list[AgentLogEntry]] = {}"
+      }
+    ],
+    "suggested_fix": "Replace in-memory event_buses with Redis or another distributed cache. Implement periodic cleanup of stale scan entries or use TTL-based expiration. This ensures horizontal scaling and prevents memory leaks.",
+    "confidence": 0.95,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-002",
+    "title": "Layering violation: Routes directly import and instantiate domain objects from other segments",
+    "description": "Routes in api/routes/audit.py directly import domain objects from seg-tier1-6 (DeterministicIndexer, Tier1Orchestrator, Tier1Quota) and instantiate them within route handlers. This violates clean architecture principles where the presentation layer (routes) should not contain business logic. The tier1 orchestrator contains substantial business logic that should be accessed through a service abstraction layer. This creates tight coupling and makes the API layer dependent on internal domain structures.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 16,
+        "line_end": 18,
+        "snippet": "from tier1.indexer import DeterministicIndexer\nfrom tier1.orchestrator import Tier1Orchestrator\nfrom tier1.quota import get_quota_status, utc_month_key"
+      },
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 92,
+        "line_end": 108,
+        "snippet": "orchestrator = Tier1Orchestrator(\n            scan_id=scan_id,\n            repo_url=str(request.repo_url),\n            project_id=project_id,\n            user_id=user_id,\n            project_intake=request.project_intake.model_dump(mode=\"json\"),\n            primer=request.primer,\n            emit=emit,\n            github_token=github_token,\n            user_preferences=user_preferences,\n            run_context={...},\n        )"
+      }
+    ],
+    "suggested_fix": "Create a service abstraction layer (e.g., AuditService) that encapsulates tier1 orchestration. Routes should call service methods rather than directly instantiating domain objects. This improves testability and maintains proper layer boundaries.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-003",
+    "title": "Direct database access in route handlers violates persistence layer abstraction",
+    "description": "All route handlers in this segment directly import and call methods from services.supabase_client (aliased as db). This creates tight coupling between the API layer and the persistence layer. If the database technology changes, all route files would need modification. There's no repository pattern or service layer abstraction protecting the routes from database implementation details.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 18,
+        "line_end": 18,
+        "snippet": "from services import supabase_client as db"
+      },
+      {
+        "file_path": "api/routes/fix.py",
+        "line_start": 17,
+        "line_end": 17,
+        "snippet": "from services import supabase_client as db"
+      },
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 20,
+        "line_end": 20,
+        "snippet": "from services import supabase_client as db"
+      }
+    ],
+    "suggested_fix": "Introduce a repository interface or service layer that abstracts database operations. Create interfaces like IAuditRepository, IProjectRepository that the routes depend on, with SupabaseClient implementing these interfaces.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-004",
+    "title": "Direct coupling to sandbox manager in route layer",
+    "description": "api/routes/primer.py directly imports and instantiates SandboxManager, managing its lifecycle (provision, exec, destroy) within the route handler. This couples the API layer directly to infrastructure concerns. The sandbox management should be abstracted through a service that handles provisioning, execution, and cleanup lifecycle.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 19,
+        "line_end": 19,
+        "snippet": "from sandbox.manager import SandboxManager"
+      },
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 67,
+        "line_end": 69,
+        "snippet": "scan_id = uuid4()\n    sandbox_mgr = SandboxManager()\n\n    primer_json: dict = {}"
+      },
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 139,
+        "line_end": 141,
+        "snippet": "finally:\n        await sandbox_mgr.destroy(scan_id)"
+      }
+    ],
+    "suggested_fix": "Create a SandboxService that manages sandbox lifecycle. Routes should call service methods like run_primer(scan_id, repo_url) rather than managing sandbox instances directly. This improves error handling, ensures proper cleanup on failures, and enables easier testing.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-005",
+    "title": "Global state for webhook delivery replay detection",
+    "description": "The webhook route uses module-level dictionaries (_seen_deliveries) for replay attack detection. This global state has the same issues as event_buses: it doesn't work across multiple API instances and will have inconsistent replay detection in horizontally scaled deployments.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "api/routes/webhook.py",
+        "line_start": 31,
+        "line_end": 33,
+        "snippet": "_seen_deliveries: dict[str, int] = {}\n_deliveries_lock = asyncio.Lock()"
+      }
+    ],
+    "suggested_fix": "Replace the in-memory dict with Redis for distributed replay detection. This ensures consistent replay protection across all API instances.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Cross-segment circular dependency risk through shared state",
+    "description": "This segment imports from tier1 module (Tier1Orchestrator, DeterministicIndexer) while the tier1 segment likely imports models from seg-models-1. If the audit route handlers were to be imported by models or if error handling logic were added that triggers model validation during orchestration, this could create circular dependencies. The tight cross-segment coupling increases this risk.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 16,
+        "line_end": 18,
+        "snippet": "from tier1.indexer import DeterministicIndexer\nfrom tier1.orchestrator import Tier1Orchestrator"
+      }
+    ],
+    "suggested_fix": "Introduce service boundaries that clearly separate segment responsibilities. Use dependency injection to avoid direct imports between segments. Consider using protocol/interface definitions to decouple implementations.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-007",
+    "title": "Inconsistent cleanup strategy for background tasks",
+    "description": "The tier1 expired data cleanup uses a counter-based approach (_scan_start_counter) that triggers every N scans. This is non-deterministic and may lead to inconsistent cleanup timing. Additionally, there's no error handling for failed cleanup operations - exceptions are logged but not surfaced for monitoring. The finding mentions duplicate utc_now functions in neighboring segments, which suggests inconsistent time handling patterns could affect this cleanup logic.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 45,
+        "line_end": 53,
+        "snippet": "_CLEANUP_EVERY_N_SCANS = 5\n_scan_start_counter = 0"
+      },
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 58,
+        "line_end": 64,
+        "snippet": "async def _maybe_cleanup_tier1() -> None:\n    global _scan_start_counter\n    _scan_start_counter += 1\n    if _scan_start_counter % _CLEANUP_EVERY_N_SCANS == 0:\n        await cleanup_tier1_expired()"
+      }
+    ],
+    "suggested_fix": "Replace counter-based cleanup with time-based scheduling (e.g., APScheduler or background task running at intervals). Add monitoring metrics for cleanup failures. Address the utc_now inconsistency by centralizing time utilities.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-008",
+    "title": "Missing input sanitization on LLM prompt construction",
+    "description": "The primer route builds prompts for the LLM by directly interpolating repository data (file_tree_sample, dependency_sample, npm_scripts) into the prompt string. While this is in the API layer, unsanitized input could lead to prompt injection if a malicious repository name or dependency is provided. This relates to security findings in neighboring segments about missing input validation.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "api/routes/primer.py",
+        "line_start": 167,
+        "line_end": 181,
+        "snippet": "prompt = (\n        \"You are Agent_Primer. Summarize this repository context in 4 short bullets:\\n\"\n        \"1) likely product purpose\\n\"\n        \"2) likely core user flows\\n\"\n        \"3) likely deployment/runtime shape\\n\"\n        \"4) top immediate audit risk areas\\n\"\n        \"Keep it concise and factual.\\n\\n\"\n        f\"{json.dumps(primer_json)[:15000]}\"\n    )"
+      }
+    ],
+    "suggested_fix": "Implement input sanitization before including repository data in prompts. Consider using a structured format (JSON) rather than raw string concatenation. Add validation on repository data extraction to limit size and prevent injection.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-009",
+    "title": "Token decoding using settings directly in middleware without abstraction",
+    "description": "The SupabaseAuthMiddleware directly uses settings.supabase_jwt_secret for token decoding. The middleware is tightly coupled to configuration values. If token validation logic needs to change (e.g., different algorithms, audience validation), the middleware must be modified. This is a minor violation of separation of concerns.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "api/middleware/auth.py",
+        "line_start": 44,
+        "line_end": 49,
+        "snippet": "payload = jwt.decode(\n                token,\n                settings.supabase_jwt_secret,\n                algorithms=[\"HS256\"],\n                audience=\"authenticated\",\n            )"
+      }
+    ],
+    "suggested_fix": "Extract token validation into an AuthService that can be injected. The middleware should call the service rather than directly accessing settings. This improves testability and allows for easier modification of auth logic.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-010",
+    "title": "Hardcoded magic values and enum-like string literals throughout routes",
+    "description": "Multiple places in the routes use hardcoded strings that should be enums or constants: status codes in HTTPException, scan tiers ('free'), event types, and status values. This is related to the quality finding about inconsistent status representation and missing enum constraints in neighboring segments. The routes should use centralized constants or enums for better maintainability.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "api/routes/audit.py",
+        "line_start": 30,
+        "line_end": 30,
+        "snippet": "_LIMIT_STATUS = 403"
+      },
+      {
+        "file_path": "api/routes/fix.py",
+        "line_start": 30,
+        "line_end": 35,
+        "snippet": "await db.update_fix_attempt(fix_attempt_id, status=\"running\")\n        await db.update_action_item_fix_status(action_item_id, \"in_progress\")"
+      }
+    ],
+    "suggested_fix": "Create centralized enums/constants for status codes, scan tiers, and fix attempt statuses. Import and use these consistently across all route handlers. This aligns with the quality improvement recommendations for neighboring segments.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-api-0",
+    "wave": 2
+  },
+  {
+    "id": "SEC-001",
+    "title": "Missing Input Validation on Secret Value Field",
+    "description": "The SecretCreateRequest model in models/program.py has a 'value' field with no validation constraints. This allows arbitrarily large strings to be passed as secret values, which could cause denial-of-service issues when processing or storing these secrets. Additionally, without validation, the secret value could contain malformed data that might cause issues in downstream cryptographic operations.",
+    "category": "input_validation",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/program.py",
+        "line_start": 101,
+        "line_end": 103,
+        "snippet": "class SecretCreateRequest(BaseModel):\n    name: str\n    value: str"
+      }
+    ],
+    "suggested_fix": "Add validation constraints to the value field: value: str = Field(min_length=1, max_length=10000). Consider also validating character encoding and format based on the expected secret type.",
+    "confidence": 0.85,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "SEC-002",
+    "title": "Unrestricted Severity Field Allows Arbitrary Values",
+    "description": "The DebtItemRequest model has a 'severity' field that defaults to 'medium' but accepts any string value without validation. This could lead to inconsistent data and potential issues in downstream processing that expects specific severity values. An attacker or misconfigured client could inject arbitrary severity values that bypass business logic checks.",
+    "category": "input_validation",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 120,
+        "line_end": 124,
+        "snippet": "class DebtItemRequest(BaseModel):\n    node_id: str\n    summary: str\n    severity: str = \"medium\""
+      }
+    ],
+    "suggested_fix": "Convert severity to an Enum or use a Literal type with allowed values: severity: Literal['critical', 'high', 'medium', 'low'] = 'medium'",
+    "confidence": 0.8,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "SEC-003",
+    "title": "Unrestricted Policy Violation Code Field",
+    "description": "The PolicyViolationRequest model accepts an unrestricted 'code' string without validation. This could allow injection of malformed or malicious policy codes that bypass security checks in downstream policy enforcement logic.",
+    "category": "input_validation",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 126,
+        "line_end": 131,
+        "snippet": "class PolicyViolationRequest(BaseModel):\n    code: str\n    message: str\n    source: str = \"policy_engine\"\n    blocking: bool = True"
+      }
+    ],
+    "suggested_fix": "Add validation constraints to the code field: code: str = Field(min_length=1, max_length=100, pattern=r'^[A-Z0-9_]+$')",
+    "confidence": 0.75,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "SEC-004",
+    "title": "Unrestricted Secret Name Field Could Enable Path Traversal",
+    "description": "The SecretCreateRequest model accepts a 'name' field without validation. If this name is used in file system operations or as part of lookup keys in external systems, it could potentially be exploited for path traversal or injection attacks. The field should have validation to restrict allowed characters.",
+    "category": "input_validation",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/program.py",
+        "line_start": 101,
+        "line_end": 103,
+        "snippet": "class SecretCreateRequest(BaseModel):\n    name: str\n    value: str"
+      }
+    ],
+    "suggested_fix": "Add validation to restrict the name field: name: str = Field(min_length=1, max_length=200, pattern=r'^[a-zA-Z0-9_-]+$')",
+    "confidence": 0.7,
+    "cwe_id": "CWE-22",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-001",
+    "title": "Duplicate utc_now function across multiple model files",
+    "description": "The utc_now() function is duplicated verbatim in models/builds.py (line 16), models/program.py (line 14), and models/runtime.py (line 13). This violates the DRY principle and creates maintenance burden. If timezone handling needs to be updated, all three locations must be modified.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 16,
+        "line_end": 17,
+        "snippet": "def utc_now() -> datetime:\n    return datetime.now(timezone.utc)"
+      },
+      {
+        "file_path": "models/program.py",
+        "line_start": 14,
+        "line_end": 15,
+        "snippet": "def utc_now() -> datetime:\n    return datetime.now(timezone.utc)"
+      },
+      {
+        "file_path": "models/runtime.py",
+        "line_start": 13,
+        "line_end": 14,
+        "snippet": "def utc_now() -> datetime:\n    return datetime.now(timezone.utc)"
+      }
+    ],
+    "suggested_fix": "Create a shared utils module (e.g., models/_utils.py) with the utc_now function and import it from all three files. Alternatively, use Pydantic's built-in timezone support with field(default_factory=datetime.now, tzinfo=timezone.utc)",
+    "confidence": 0.95,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-002",
+    "title": "Inconsistent timestamp default_factory patterns",
+    "description": "Different model files use different approaches for default timestamps: models/agent_log.py uses lambda: datetime.now(timezone.utc), while models/builds.py, program.py, and runtime.py use a custom utc_now() function. This inconsistency makes the codebase harder to maintain and understand.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/agent_log.py",
+        "line_start": 46,
+        "line_end": 46,
+        "snippet": "timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))"
+      },
+      {
+        "file_path": "models/builds.py",
+        "line_start": 50,
+        "line_end": 50,
+        "snippet": "started_at: datetime = Field(default_factory=utc_now)"
+      },
+      {
+        "file_path": "models/program.py",
+        "line_start": 27,
+        "line_end": 27,
+        "snippet": "created_at: datetime = Field(default_factory=utc_now)"
+      }
+    ],
+    "suggested_fix": "Standardize on a single approach - either use a shared utc_now function or leverage Pydantic's date utilities. The shared utility approach is recommended for consistency across the codebase.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-003",
+    "title": "Missing input validation on string fields",
+    "description": "Several Pydantic models have string fields without length constraints, which could lead to unbounded data storage. Specifically: Finding.title and Finding.description have no max_length; ActionItem.title, ActionItem.description, and ActionItem.effort lack validation. Also, DebtItem.severity and PolicyViolation.message are plain strings without enum constraints.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/findings.py",
+        "line_start": 28,
+        "line_end": 37,
+        "snippet": "title: str\n    description: str"
+      },
+      {
+        "file_path": "models/findings.py",
+        "line_start": 60,
+        "line_end": 70,
+        "snippet": "title: str\n    description: str\n    effort: str = \"moderate\""
+      },
+      {
+        "file_path": "models/builds.py",
+        "line_start": 79,
+        "line_end": 79,
+        "snippet": "summary: str"
+      },
+      {
+        "file_path": "models/builds.py",
+        "line_start": 85,
+        "line_end": 85,
+        "snippet": "message: str"
+      }
+    ],
+    "suggested_fix": "Add Field constraints: title=Field(max_length=200), description=Field(max_length=5000), effort should be an Enum (quick|moderate|significant), severity should use Severity enum or Field(max_length=50)",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-004",
+    "title": "Missing URL validation on repo_url field",
+    "description": "BuildRun model has a repo_url field as plain str with no validation. This should be an HttpUrl to ensure valid URL format and prevent injection attacks or malformed data.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 99,
+        "line_end": 99,
+        "snippet": "repo_url: str"
+      }
+    ],
+    "suggested_fix": "Change to repo_url: HttpUrl from pydantic import HttpUrl, similar to AuditRequest.repo_url which correctly uses HttpUrl",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-005",
+    "title": "Inconsistent Enum naming conventions",
+    "description": "The codebase uses inconsistent Enum value naming: BuildStatus uses lowercase ('pending', 'completed'), GateType uses SCREAMING_SNAKE_CASE ('MERGE_GATE', 'TEST_GATE'), and TaskStatus uses lowercase. This inconsistency makes the API unpredictable and harder to use. Also, LogLevel includes 'success' which is not a standard log level.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 20,
+        "line_end": 27,
+        "snippet": "class BuildStatus(str, Enum):\n    pending = \"pending\"\n    running = \"running\""
+      },
+      {
+        "file_path": "models/builds.py",
+        "line_start": 32,
+        "line_end": 35,
+        "snippet": "class GateType(str, Enum):\n    merge = \"MERGE_GATE\"\n    test = \"TEST_GATE\""
+      },
+      {
+        "file_path": "models/agent_log.py",
+        "line_start": 13,
+        "line_end": 17,
+        "snippet": "class LogLevel(str, Enum):\n    info = \"info\"\n    warn = \"warn\"\n    success = \"success\""
+      }
+    ],
+    "suggested_fix": "Standardize all Enum values to one convention (preferably lowercase for consistency with HTTP status conventions). Remove 'success' from LogLevel or document why it's needed. Consider using consistent naming across all enums.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-006",
+    "title": "Missing Validation on Effort Field in ActionItem",
+    "description": "ActionItem.effort is a string field with a default value of 'moderate' but no validation to ensure only valid values ('quick', 'moderate', 'significant') are accepted. This could lead to inconsistent data.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/findings.py",
+        "line_start": 66,
+        "line_end": 66,
+        "snippet": "effort: str = \"moderate\"  # quick | moderate | significant"
+      }
+    ],
+    "suggested_fix": "Create an EffortLevel Enum: class EffortLevel(str, Enum): quick = \"quick\", moderate = \"moderate\", significant = \"significant\", then use effort: EffortLevel = EffortLevel.moderate",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-007",
+    "title": "Plain string severity in DebtItem lacks validation",
+    "description": "DebtItem model uses a plain string for severity with default 'medium' but no constraints on valid values. PolicyViolation also has a plain string for message without length validation.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 77,
+        "line_end": 77,
+        "snippet": "severity: str = \"medium\""
+      },
+      {
+        "file_path": "models/builds.py",
+        "line_start": 84,
+        "line_end": 84,
+        "snippet": "message: str"
+      }
+    ],
+    "suggested_fix": "Use the Severity enum from models/findings.py for DebtItem.severity. Add max_length to PolicyViolation.message: message: str = Field(max_length=2000)",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-008",
+    "title": "Large model with many optional fields lacks validation",
+    "description": "BuildRun is a large model with 14 fields including nested lists. Several fields like metadata, dag, task_runs have no validation on their contents. The metadata field accepts any dict which could lead to storing arbitrary unstructured data.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 96,
+        "line_end": 114,
+        "snippet": "class BuildRun(BaseModel):\n    build_id: UUID\n    created_by: str\n    repo_url: str\n    ...\n    metadata: dict[str, Any] = Field(default_factory=dict)"
+      }
+    ],
+    "suggested_fix": "Consider adding validation schemas for metadata, or creating separate TypedDict definitions. Consider breaking BuildRun into smaller composition models if it grows further.",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-009",
+    "title": "Missing field validation in RuntimeSession metadata",
+    "description": "RuntimeSession.metadata uses plain dict with no type constraints. This is inconsistent with RuntimeMetric which properly uses dict[str, str] for tags.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/runtime.py",
+        "line_start": 23,
+        "line_end": 23,
+        "snippet": "metadata: dict = Field(default_factory=dict)"
+      }
+    ],
+    "suggested_fix": "Use dict[str, Any] for flexibility or define a TypedDict for the expected metadata structure",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-010",
+    "title": "Import organization inconsistency",
+    "description": "The codebase mixes absolute imports (from pydantic import BaseModel) and would benefit from relative imports for intra-package imports. models/findings.py imports from models.evolution which works but could use relative imports for better refactoring support.",
+    "category": "quality",
+    "severity": "info",
+    "locations": [
+      {
+        "file_path": "models/findings.py",
+        "line_start": 11,
+        "snippet": "from models.evolution import EvolutionReport"
+      }
+    ],
+    "suggested_fix": "Use relative imports within the models package: from .evolution import EvolutionReport. This makes the package more refactoring-friendly and explicit about intra-package dependencies.",
+    "confidence": 0.75,
+    "worker_type": "quality",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-001",
+    "title": "Duplicated utc_now() function across model files",
+    "description": "The utc_now() function is defined identically in three separate files: models/builds.py, models/program.py, and models/runtime.py. This violates the DRY principle and creates maintenance burden - any change to datetime handling must be made in three places.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 14,
+        "line_end": 16,
+        "snippet": "def utc_now() -> datetime:\n    return datetime.now(timezone.utc)"
+      },
+      {
+        "file_path": "models/program.py",
+        "line_start": 14,
+        "line_end": 16,
+        "snippet": "def utc_now() -> datetime:\n    return datetime.now(timezone.utc)"
+      },
+      {
+        "file_path": "models/runtime.py",
+        "line_start": 15,
+        "line_end": 17,
+        "snippet": "def utc_now() -> datetime:\n    return datetime.now(timezone.utc)"
+      }
+    ],
+    "suggested_fix": "Create a shared utility module (e.g., models/_utils.py) with a single utc_now() implementation and import it where needed.",
+    "confidence": 0.95,
+    "worker_type": "architecture",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-002",
+    "title": "Models used as both DTOs and domain objects",
+    "description": "According to cross-segment findings, the route modules directly use these Pydantic models (AuditRequest, BuildRun, etc.) as DTOs for API requests/responses. There's no separation between API-facing DTOs and internal domain models. The findings.py imports EvolutionReport from models.evolution, showing models depend on other models, creating implicit domain coupling.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/findings.py",
+        "line_start": 9,
+        "line_end": 9,
+        "snippet": "from models.evolution import EvolutionReport"
+      }
+    ],
+    "suggested_fix": "Consider introducing a layer separation: create explicit DTO schemas in a separate package (e.g., schemas/api/) while keeping domain models in models/. Alternatively, add clear documentation that these models serve dual purposes.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-003",
+    "title": "No centralized enum definitions",
+    "description": "Enums are scattered across multiple model files: LogLevel, AgentName, SSEEventType in agent_log.py; BuildStatus, TaskStatus, GateType in builds.py; Severity, Category, FindingSource in findings.py, etc. This makes it difficult to discover and reuse enumerations, and creates potential inconsistency in enum naming conventions and usage.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/agent_log.py",
+        "line_start": 10,
+        "line_end": 25,
+        "snippet": "class LogLevel(str, Enum):..."
+      },
+      {
+        "file_path": "models/builds.py",
+        "line_start": 20,
+        "line_end": 36,
+        "snippet": "class BuildStatus(str, Enum):..."
+      },
+      {
+        "file_path": "models/findings.py",
+        "line_start": 13,
+        "line_end": 23,
+        "snippet": "class Severity(str, Enum):..."
+      }
+    ],
+    "suggested_fix": "Consider creating a centralized enums module (models/enums.py or models/_enums/) that exports all enumerations, or group related enums with their respective domain areas.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-004",
+    "title": "Missing module-level exports via __init__.py",
+    "description": "The models directory lacks an __init__.py file to provide clear public API surface. External code must import specific modules (from models.builds import BuildRun) rather than using package-level exports. This exposes internal file structure and makes refactoring more difficult.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/__init__.py",
+        "line_start": 1,
+        "line_end": 1,
+        "snippet": "(file does not exist)"
+      }
+    ],
+    "suggested_fix": "Add models/__init__.py with explicit exports: __all__ = ['BuildRun', 'BuildStatus', 'DagNode', ...] to define stable public API.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-005",
+    "title": "Large BuildRun model with too many responsibilities",
+    "description": "The BuildRun model in builds.py aggregates 11 different collections (task_runs, replan_history, debt_items, policy_violations, state_transitions, gate_history, etc.) making it a God object. This model serves as both configuration, state container, and event history, violating single responsibility principle.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 110,
+        "line_end": 124,
+        "snippet": "class BuildRun(BaseModel):\n    build_id: UUID\n    created_by: str\n    repo_url: str\n    objective: str\n    status: BuildStatus = BuildStatus.pending\n    created_at: datetime = Field(default_factory=utc_now)\n    updated_at: datetime = Field(default_factory=utc_now)\n    dag: list[DagNode] = Field(default_factory=list)\n    task_runs: list[TaskRun] = Field(default_factory=list)\n    replan_history: list[ReplanDecision] = Field(default_factory=list)\n    debt_items: list[DebtItem] = Field(default_factory=list)\n    policy_violations: list[PolicyViolation] = Field(default_factory=list)\n    state_transitions: list[BuildStatusTransition] = Field(default_factory=list)\n    gate_history: list[GateDecision] = Field(default_factory=list)\n    metadata: dict[str, Any] = Field(default_factory=dict)"
+      }
+    ],
+    "suggested_fix": "Consider splitting BuildRun into separate models: BuildConfig (static build definition), BuildState (current status, timestamps), and BuildHistory (event collections). Use composition rather than a single large model.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Mutable default arguments in Pydantic models",
+    "description": "Several models use mutable default arguments like Field(default_factory=list) which is correct in Pydantic, but the pattern is inconsistent. Some fields use default_factory while others rely on Pydantic's automatic handling. Additionally, the utc_now default factory captures module-level function which could behave unexpectedly if modules are reloaded in different contexts.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "models/builds.py",
+        "line_start": 78,
+        "line_end": 80,
+        "snippet": "replacement_nodes: list[DagNode] = Field(default_factory=list)"
+      },
+      {
+        "file_path": "models/program.py",
+        "line_start": 24,
+        "line_end": 24,
+        "snippet": "repos: list[str] = Field(default_factory=list)"
+      }
+    ],
+    "suggested_fix": "Ensure consistent use of default_factory for all mutable defaults. Document the utc_now behavior or move to a shared utility.",
+    "confidence": 0.6,
+    "worker_type": "architecture",
+    "segment_id": "seg-models-1",
+    "wave": 2
+  },
+  {
+    "id": "SEC-001",
+    "title": "OAuth State Secret Falls Back to JWT Secret",
+    "description": "In config.py, the github_oauth_state_secret field has a default value of None. When this is None, the OAuth flow in api/routes/github_oauth.py falls back to using settings.supabase_jwt_secret for signing OAuth state tokens. Reusing the JWT secret for OAuth state creates a cryptographic confusion risk - if the JWT secret is compromised, both JWT authentication and OAuth state signing are compromised. Additionally, using the same secret for different purposes violates the principle of secret separation.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 30,
+        "line_end": 30,
+        "snippet": "github_oauth_state_secret: str | None = None"
+      },
+      {
+        "file_path": "config.py",
+        "line_start": 19,
+        "line_end": 19,
+        "snippet": "supabase_jwt_secret: str = Field(..., description=\"Supabase JWT secret for token verification\")"
+      }
+    ],
+    "suggested_fix": "Make github_oauth_state_secret a required field (remove None default) or add validation to fail startup if it's not set. Generate a cryptographically random secret specific to OAuth state signing.",
+    "confidence": 0.9,
+    "cwe_id": "CWE-798",
+    "owasp_ref": "A02:2021",
+    "worker_type": "security",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "SEC-002",
+    "title": "Webhook Secret Has No Required Validation",
+    "description": "The github_webhook_secret in config.py can be None. Webhook endpoints typically require a secret for signature verification to prevent spoofed webhook events. If this is None, the webhook verification logic (in api/routes/webhook.py based on neighbor findings) likely skips signature verification entirely, allowing attackers to inject arbitrary webhook events.",
+    "category": "security",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 32,
+        "line_end": 32,
+        "snippet": "github_webhook_secret: str | None = None"
+      }
+    ],
+    "suggested_fix": "Make github_webhook_secret a required field (remove None default) and enforce signature verification in the webhook handler.",
+    "confidence": 0.85,
+    "cwe_id": "CWE-306",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "SEC-003",
+    "title": "Insufficient Rate Limit for API Endpoints",
+    "description": "The rate_limit_per_minute is set to 10 across all endpoints. This generic limit may be too restrictive for legitimate bulk operations while still being insufficient for brute-force protection on authentication endpoints. Additionally, the rate limiting implementation uses get_remote_address which is vulnerable to IP spoofing (as noted in neighbor findings), allowing attackers to bypass limits.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 64,
+        "line_end": 64,
+        "snippet": "rate_limit_per_minute: int = 10"
+      }
+    ],
+    "suggested_fix": "Implement tiered rate limiting: more restrictive for auth endpoints (login, OAuth), less restrictive for data operations. Configure trusted proxy headers properly to prevent IP spoofing.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-770",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "SEC-004",
+    "title": "CORS Allows HTTP Origins in Production",
+    "description": "The CORS configuration allows both HTTP and HTTPS origins matching localhost or 127.0.0.1. While this is restricted to localhost, using HTTP (without TLS) in any context could allow credential theft via network interception. Additionally, the regex pattern allows any port on localhost/127.0.0.1 which could be exploited if there's a local proxy or DNS rebinding attack.",
+    "category": "security",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 57,
+        "line_end": 61,
+        "snippet": "app.add_middleware(\n    CORSMiddleware,\n    allow_origin_regex=r\"^https?://(localhost|127\\.0\\.0\\.1)(:\\d+)?$\",\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)"
+      }
+    ],
+    "suggested_fix": "Restrict CORS to HTTPS origins only in production environments. Consider implementing explicit allowed origins list rather than regex patterns.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-346",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "SEC-005",
+    "title": "Weak Default for FORGE AgentField API Key",
+    "description": "The agentfield_api_key has an empty string default (\"\"), which is different from None. This means the configuration will accept an empty string as a valid key, potentially causing silent authentication failures when FORGE integration is enabled. An empty string key would fail against the external service but might not be caught until runtime.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 73,
+        "line_end": 73,
+        "snippet": "agentfield_api_key: str = \"\""
+      }
+    ],
+    "suggested_fix": "Either make this a required field with Field(...) or validate that if forge_enabled is True, agentfield_api_key must be non-empty.",
+    "confidence": 0.75,
+    "cwe_id": "CWE-1188",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "SEC-006",
+    "title": "Debug Mode Potentially Exposed via Environment",
+    "description": "While debug defaults to False in config.py, it can be overridden via environment variables. If debug=True is set in production, it could expose detailed error traces, StackOverflowException details, and application internals through the error responses.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 10,
+        "line_end": 10,
+        "snippet": "debug: bool = False"
+      }
+    ],
+    "suggested_fix": "Add validation to ensure debug=False in production environments, or add a startup check that warns/fails if debug=True is set with non-localhost hosts.",
+    "confidence": 0.6,
+    "cwe_id": "CWE-11",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-001",
+    "title": "OAuth State Secret Can Be None Leading to Runtime Errors",
+    "description": "In config.py, the `github_oauth_state_secret` and `github_webhook_secret` fields are defined as `str | None = None`. When these are None and the code attempts to use them for cryptographic operations (e.g., HMAC signing in github_oauth.py), it will fail at runtime with a TypeError. The Settings class should enforce that these secrets are provided in production environments or raise validation errors at startup rather than failing at runtime.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 32,
+        "line_end": 32,
+        "snippet": "github_oauth_state_secret: str | None = None"
+      },
+      {
+        "file_path": "config.py",
+        "line_start": 33,
+        "line_end": 33,
+        "snippet": "github_webhook_secret: str | None = None"
+      }
+    ],
+    "suggested_fix": "Use Pydantic field validation with a validator that ensures required secrets are provided when the corresponding feature is enabled. For example: `Field(None, validation_alias=...)` with a validator that raises if the feature is enabled but the secret is missing.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-002",
+    "title": "Missing Numeric Range Validation on Resource Limits",
+    "description": "Configuration fields like `sandbox_cpu`, `sandbox_memory_gb`, `sandbox_disk_gb`, `sandbox_timeout_minutes`, `llm_max_output_tokens`, and rate limits accept any integer value including negative numbers. There's no validation that ensures these values are positive. This could lead to runtime errors or unexpected behavior if misconfigured.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 46,
+        "line_end": 53,
+        "snippet": "sandbox_timeout_minutes: int = 30\n    sandbox_cpu: int = 2\n    sandbox_memory_gb: int = 4\n    sandbox_disk_gb: int = 8"
+      }
+    ],
+    "suggested_fix": "Add Field constraints using gt=0 (greater than) or ge=0 (greater than or equal) to enforce positive values: `Field(30, gt=0)` for timeout, `Field(2, ge=1)` for CPU cores, etc.",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-003",
+    "title": "Global Exception Handler Hides Error Details in Production",
+    "description": "The global_exception_handler in main.py catches all exceptions and returns a generic 'Internal server error' message. While this is appropriate for security (not exposing internals to clients), it makes debugging difficult. The handler logs the exception but the logged information may not be accessible in all deployment environments.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 98,
+        "line_end": 107,
+        "snippet": "@app.exception_handler(Exception)\nasync def global_exception_handler(request: Request, exc: Exception):\n    logger.exception(\"Unhandled exception on %s %s\", request.method, request.url)\n    return JSONResponse(\n        status_code=500,\n        content={\"detail\": \"Internal server error\"},\n    )"
+      }
+    ],
+    "suggested_fix": "Consider implementing different error handling strategies based on the debug setting: return detailed error information when settings.debug is True, and a generic message otherwise. Also, consider adding specific exception handlers for common exceptions (ValueError, ValidationError, etc.) to provide more meaningful error responses.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-004",
+    "title": "Permissive CORS Configuration for Development",
+    "description": "The CORS middleware allows credentials from any localhost or 127.0.0.1 URL on any port. This is overly permissive for a production application. While appropriate for development, there's no conditional logic to tighten this in production environments based on the debug flag or an explicit allowed origins list.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 60,
+        "line_end": 65,
+        "snippet": "app.add_middleware(\n    CORSMiddleware,\n    allow_origin_regex=r\"^https?://(localhost|127\\.0\\.0\\.1)(:\\d+)?$\",\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)"
+      }
+    ],
+    "suggested_fix": "Add conditional CORS configuration based on settings.debug or an explicit allowed_origins list. For production, use an explicit list of allowed domains rather than a catch-all regex. Consider adding environment-specific configuration for allowed origins.",
+    "confidence": 0.75,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-005",
+    "title": "No Graceful Shutdown Handling in Lifespan",
+    "description": "The lifespan context manager in main.py logs shutdown but doesn't perform any cleanup operations like closing database connections, clearing caches, or canceling pending tasks. The tier1 cleanup is only run on startup, not shutdown.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 29,
+        "line_end": 34,
+        "snippet": "@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    logger.info(\"Vibe2Prod API starting up...\")\n    if settings.tier1_enabled:\n        await audit.cleanup_tier1_expired()\n    yield\n    logger.info(\"Vibe2Prod API shutting down.\")"
+      }
+    ],
+    "suggested_fix": "Add cleanup code in the post-yield section: close database connections, flush any pending writes, cancel ongoing SSE streams, etc. Consider handling shutdown signals explicitly with asyncio shutdown callbacks.",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-006",
+    "title": "Module-Level Singleton Instance Created at Import Time",
+    "description": "The `settings = Settings()` instance is created at module import time in config.py. This means any configuration errors (missing required environment variables) will cause import failures rather than application startup failures. This also makes unit testing more difficult as the settings cannot be easily mocked without monkeypatching.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 72,
+        "line_end": 73,
+        "snippet": "model_config = {\"env_file\": \".env\", \"env_file_encoding\": \"utf-8\"}\n\n\nsettings = Settings()"
+      }
+    ],
+    "suggested_fix": "Consider lazy initialization of settings using a factory function or dependency injection. This would allow the application to start even if settings validation fails, providing better error messages. Alternatively, document this behavior clearly and ensure CI/CD validates settings at startup.",
+    "confidence": 0.75,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-007",
+    "title": "Inconsistent Field Definition Style for Required vs Optional",
+    "description": "The Settings class mixes two styles for defining required fields: some use `Field(...)` (e.g., supabase_url) while others use type annotation with default values. This inconsistency makes it unclear which fields are truly required at a glance. Optional fields use `str | None = None` which is not consistent with the older `Optional[str] = None` style used in some route code.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 15,
+        "line_end": 72,
+        "snippet": "Multiple field definitions with mixed styles"
+      }
+    ],
+    "suggested_fix": "Standardize on one approach. Consider using `Field(...)` with description for all required fields and explicit `= None` for optional fields. Ensure consistency with Python 3.10+ union syntax `str | None` used throughout.",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-008",
+    "title": "Health Endpoint Lacks Authentication Bypass Verification",
+    "description": "While the health endpoint is exposed at /health and the SupabaseAuthMiddleware is added after CORS, there's no explicit exclusion of the health endpoint from authentication in the middleware configuration shown. This could potentially cause health checks to fail when authentication is required, depending on middleware implementation.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 88,
+        "line_end": 91,
+        "snippet": "@app.get(\"/health\", tags=[\"meta\"])\nasync def health():\n    return {\"status\": \"healthy\"}"
+      }
+    ],
+    "suggested_fix": "Ensure the SupabaseAuthMiddleware explicitly excludes /health and / from authentication, or document that these endpoints are intentionally public. Verify middleware implementation to confirm unauthenticated access works correctly.",
+    "confidence": 0.65,
+    "worker_type": "quality",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-001",
+    "title": "Global Singleton Settings Object Creates Tight Coupling",
+    "description": "The config.py module creates a global singleton `settings = Settings()` at module level. This pattern makes it difficult to test components in isolation and creates implicit global state that can cause issues in multi-threaded environments. Any code importing from config.py gets the same instance, making it impossible to inject different configurations for testing or different deployment scenarios.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 67,
+        "line_end": 67,
+        "snippet": "settings = Settings()"
+      }
+    ],
+    "suggested_fix": "Use dependency injection with a settings factory pattern. Create a get_settings() function that returns Settings instances, allowing for configuration overrides in tests. Consider using a lazy initialization pattern or a settings manager class that can be mocked.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-002",
+    "title": "Settings Validation Lacks Cross-Field Constraints",
+    "description": "The Settings class has multiple fields with no validation of their interdependencies. For example, `forge_enabled = False` but `forge_agentfield_url` still has a default value; `sandbox_timeout_minutes = 30` but there are no constraints ensuring it's within reasonable bounds. The `github_oauth_state_secret` falling back to JWT secret (mentioned in neighbor findings) indicates related settings aren't validated together.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 1,
+        "line_end": 67,
+        "snippet": "class Settings(BaseSettings):"
+      }
+    ],
+    "suggested_fix": "Add Pydantic model validators (model_validator) to enforce cross-field constraints. For example, validate that if forge_enabled is True, the required forge_* fields are properly configured. Add model_validators to ensure OAuth state secret is distinct from JWT secret.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-003",
+    "title": "Direct Settings Import in main.py Creates Implicit Dependency",
+    "description": "In main.py, settings are imported directly (`from config import settings`) and used throughout the module. This creates tight coupling between the application entry point and the configuration module. The import happens at module load time, meaning any configuration errors will crash the entire application startup.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 25,
+        "line_end": 25,
+        "snippet": "from config import settings"
+      },
+      {
+        "file_path": "main.py",
+        "line_start": 72,
+        "line_end": 72,
+        "snippet": "if settings.tier1_enabled:"
+      }
+    ],
+    "suggested_fix": "Use FastAPI's dependency injection system. Create a get_settings() dependency that can be overridden in tests. This also allows for lazy loading and better error handling at startup.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-004",
+    "title": "No Graceful Degradation for Startup Tasks",
+    "description": "The lifespan function in main.py calls `await audit.cleanup_tier1_expired()` during startup if tier1 is enabled. If this cleanup fails, the entire application startup will fail with no graceful degradation. This creates availability risks - a misconfigured database or network issue could prevent the entire service from starting.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 70,
+        "line_end": 74,
+        "snippet": "@asynccontextmanager\nasync def lifespan(app: FastAPI):\n    logger.info(\"Vibe2Prod API starting up...\")\n    if settings.tier1_enabled:\n        await audit.cleanup_tier1_expired()\n    yield\n    logger.info(\"Vibe2Prod API shutting down.\")"
+      }
+    ],
+    "suggested_fix": "Wrap the startup task in a try-except block with proper logging. Consider whether cleanup failure should block startup or just log a warning. For critical startup tasks, implement retry logic with exponential backoff. Consider moving cleanup to a background task that runs after startup completes.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-005",
+    "title": "Middleware Configuration Mixed with Application Logic",
+    "description": "The main.py file contains both middleware configuration and application logic intertwined. The CORS, rate limiting, and authentication middleware are configured inline with application setup. This makes it difficult to swap middleware configurations for different environments (dev vs production) without modifying code.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 78,
+        "line_end": 98,
+        "snippet": "app.add_middleware(CORSMiddleware, ...) and other middleware setup"
+      }
+    ],
+    "suggested_fix": "Extract middleware configuration into separate factory functions or a middleware registry module. Use environment-based configuration to allow different middleware setups per environment. Consider creating a configure_middleware(app) function that can be customized.",
+    "confidence": 0.65,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Configuration Secrets Have Unsafe Defaults",
+    "description": "Several settings like `github_client_id`, `github_client_secret`, `github_oauth_state_secret`, and `webhook_secret` have defaults of None. This can lead to runtime errors when these values are accessed, or security issues if code doesn't properly check for None before use. The neighbor findings mention OAuth state falling back to JWT secret - this pattern of None defaults encourages such fallbacks.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 21,
+        "line_end": 24,
+        "snippet": "github_client_id: str | None = None\ngithub_client_secret: str | None = None\ngithub_oauth_state_secret: str | None = None\nwebhook_secret: str | None = None"
+      }
+    ],
+    "suggested_fix": "Use Pydantic's required validation (Field(default=..., validation_alias=...)) instead of None defaults where secrets are actually required. For optional features, use a sentinel value or separate configuration class. Implement model validators to fail fast if required secrets are missing for enabled features.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-007",
+    "title": "Enables Cross-Segment Tight Coupling via Direct Config Usage",
+    "description": "This segment's configuration pattern enables the tight coupling issues identified in neighboring segments. The direct import of settings and the singleton pattern means all route modules (which depend on this segment) will have tight coupling to the configuration. The neighbor findings about routes directly importing db clients is facilitated by configuration not being injected but accessed globally.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "config.py",
+        "line_start": 67,
+        "line_end": 67,
+        "snippet": "settings = Settings()"
+      },
+      {
+        "file_path": "main.py",
+        "line_start": 25,
+        "line_end": 25,
+        "snippet": "from config import settings"
+      }
+    ],
+    "suggested_fix": "Refactor to use dependency injection throughout. Create a SettingsPort abstract interface and concrete implementation. Use FastAPI's Depends() to inject settings where needed. This enables mocking in tests and reduces coupling between modules.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-008",
+    "title": "Missing Configuration Validation at Startup",
+    "description": "The application starts without validating critical configuration dependencies. For instance, if Supabase credentials are invalid, the app will start but fail at runtime when database calls are made. This\u5ef6\u8fdf (delays) error discovery and makes debugging harder.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "main.py",
+        "line_start": 67,
+        "line_end": 76,
+        "snippet": "app = FastAPI(...) - no config validation step"
+      }
+    ],
+    "suggested_fix": "Add a startup event handler that validates configuration. Check that required external services (Supabase, OpenRouter, etc.) are reachable. Implement a /health check that verifies config validity. Use Pydantic's validate_settings() at startup.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-root-2",
+    "wave": 2
+  },
+  {
+    "id": "SEC-001",
+    "title": "Path Traversal in read_file Allows Access to Arbitrary Files",
+    "description": "The read_file method in SandboxManager accepts a path parameter without validating it stays within the repo directory. An attacker can read sensitive files outside the repo like /etc/passwd, ~/.ssh/authorized_keys, or other configuration files.",
+    "category": "authorization",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 86,
+        "line_end": 95,
+        "snippet": "async def read_file(self, scan_id: UUID, path: str) -> str:\n    \"\"\"Download a file's contents from the sandbox.\"\"\"\n    session = self._sessions.get(scan_id)\n    if session is None:\n        raise RuntimeError(f\"No sandbox session for scan {scan_id}\")\n    try:\n        content = session.sandbox.fs.download_file(path)"
+      }
+    ],
+    "suggested_fix": "Add path validation to ensure the path is within the repo directory. Use os.path.realpath() and verify the resolved path starts with the session's repo_path prefix.",
+    "confidence": 0.9,
+    "cwe_id": "CWE-22",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-002",
+    "title": "Path Traversal in upload_file Allows Writing to Arbitrary Locations",
+    "description": "The upload_file method accepts a path without validation, allowing writes outside the intended repo directory. Attackers could write to /etc/cron.d, ~/.bashrc, or other sensitive locations for persistence or privilege escalation.",
+    "category": "authorization",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 97,
+        "line_end": 102,
+        "snippet": "async def upload_file(self, scan_id: UUID, path: str, content: bytes) -> None:\n    \"\"\"Upload a file into the sandbox.\"\"\"\n    session = self._sessions.get(scan_id)\n    if session is None:\n        raise RuntimeError(f\"No sandbox session for scan {scan_id}\")\n    session.sandbox.fs.upload_file(content, path)"
+      }
+    ],
+    "suggested_fix": "Validate that the target path resolves to within the session's repo_path. Reject paths with ../ traversal attempts or paths outside the allowed directory.",
+    "confidence": 0.9,
+    "cwe_id": "CWE-22",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-003",
+    "title": "Incomplete Command Blocklist Allows Dangerous Operations",
+    "description": "The network policy's blocked command patterns are incomplete. While basic patterns like 'rm -rf /' are blocked, many dangerous commands are not: curl|wget piping to shell (curl | sh), base64 decoding and piping, netcat for reverse shells, chmod/sudo for privilege escalation, env modification for persistence, and more.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "sandbox/network_policy.py",
+        "line_start": 20,
+        "line_end": 30,
+        "snippet": "_BLOCKED_COMMAND_PATTERNS: tuple[re.Pattern[str], ...] = (\n    re.compile(r\"\\bgit\\s+reset\\s+--hard\\b\", re.IGNORECASE),\n    re.compile(r\"\\bgit\\s+clean\\s+-f[dDxX]*\\b\", re.IGNORECASE),\n    re.compile(r\"\\brm\\s+-rf\\s+/(?:\\s|$)\", re.IGNORECASE),\n    re.compile(r\"\\bmkfs\\.\", re.IGNORECASE),\n    re.compile(r\"\\bshutdown\\b\", re.IGNORECASE),\n    re.compile(r\"\\breboot\\b\", re.IGNORECASE),\n    re.compile(r\"\\bpoweroff\\b\", re.IGNORECASE),\n    re.compile(r\"\\bdd\\s+if=.*\\s+of=/dev/\", re.IGNORECASE),\n)"
+      }
+    ],
+    "suggested_fix": "Implement a deny-by-default command whitelist approach instead of trying to block dangerous commands. Only allow explicitly safe commands like 'git status', 'git log', 'cat', 'grep', 'find', 'ls', etc. Consider using a sandboxed shell with restricted builtins.",
+    "confidence": 0.85,
+    "cwe_id": "CWE-77",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-004",
+    "title": "No Validation on clone_url Enables Cloning from Malicious Repositories",
+    "description": "The provision method accepts a clone_url parameter and passes it directly to sandbox.git.clone() without validation. An attacker could clone from internal infrastructure, malicious repositories, or exploit git features (like hooks) to compromise the sandbox or exfiltrate data.",
+    "category": "input_validation",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 54,
+        "line_end": 74,
+        "snippet": "sandbox = self._daytona.create(\n    CreateSandboxFromImageParams(\n        image=image,\n        resources=Resources(\n            cpu=settings.sandbox_cpu,\n            memory=settings.sandbox_memory_gb,\n            disk=settings.sandbox_disk_gb,\n        ),\n        auto_stop_interval=settings.sandbox_timeout_minutes,\n        ephemeral=True,\n        labels={\"scan_id\": str(scan_id)},\n        env_vars={\"SCAN_ID\": str(scan_id)},\n    ),\n)\n\nrepo_path = \"/home/daytona/repo\"\nsandbox.git.clone(clone_url, repo_path)"
+      }
+    ],
+    "suggested_fix": "Validate clone_url against an allowlist of trusted git hosts. Only allow https:// URLs (not git:// or ssh://). Consider URL parsing to extract and validate the hostname before passing to git clone.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-346",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-005",
+    "title": "Allowlist Subdomain Bypass in Network Policy",
+    "description": "The network policy allows any subdomain of approved hosts (e.g., evil.github.com passes because it ends with github.com). An attacker could register a malicious domain or use DNS hijacking to bypass the allowlist and exfiltrate data to arbitrary servers.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "sandbox/network_policy.py",
+        "line_start": 68,
+        "line_end": 74,
+        "snippet": "def _is_host_allowed(self, host: str) -> bool:\n    hostname = host.lower().strip(\".\")\n    return any(\n        hostname == suffix or hostname.endswith(f\".{suffix}\")\n        for suffix in self.allowed_host_suffixes\n    )"
+      }
+    ],
+    "suggested_fix": "Only allow exact matches or verified domains. Consider maintaining a list of known-safe domains and subdomains, or implement additional verification like checking for suspicious patterns in subdomain names.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-346",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-006",
+    "title": "Missing Authorization Check on scan_id Access",
+    "description": "The exec, read_file, upload_file, get_file_tree, and destroy methods accept scan_id but do not verify the caller owns or has access to that scan session. Any authenticated user with a valid scan_id could access any other user's sandbox. This combines with neighbor finding about missing auth on status endpoints.",
+    "category": "authorization",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 76,
+        "line_end": 128,
+        "snippet": "async def exec(self, scan_id: UUID, command: str, cwd: str | None = None, timeout: int = 120) -> CommandResult:\n    \"\"\"Execute a command inside the scan's sandbox.\"\"\"\n    session = self._sessions.get(scan_id)\n    if session is None:\n        raise RuntimeError(f\"No sandbox session for scan {scan_id}\")"
+      }
+    ],
+    "suggested_fix": "Add authorization layer to verify the requesting user owns the scan_id. Cross-reference with neighbor finding about missing auth on status endpoints - this pattern likely exists across the codebase.",
+    "confidence": 0.85,
+    "cwe_id": "CWE-639",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-007",
+    "title": "Arbitrary Content Upload Without Validation",
+    "description": "The upload_file method accepts arbitrary bytes without validating file type, size, or content. An attacker could upload webshells, malicious scripts, or binary payloads that could be executed later.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 97,
+        "line_end": 102,
+        "snippet": "async def upload_file(self, scan_id: UUID, path: str, content: bytes) -> None:\n    \"\"\"Upload a file into the sandbox.\"\"\"\n    session = self._sessions.get(scan_id)\n    if session is None:\n        raise RuntimeError(f\"No sandbox session for scan {scan_id}\")\n    session.sandbox.fs.upload_file(content, path)"
+      }
+    ],
+    "suggested_fix": "Implement file type validation based on magic bytes, size limits, and content scanning for malicious patterns. Consider restricting upload to specific allowed extensions only.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-434",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-008",
+    "title": "Argument Variation Bypasses Blocked Commands",
+    "description": "The blocked command patterns only match exact phrases like 'rm -rf /' but attackers can use variations like 'rm -rf /var', 'rm -rf /etc', or use variables: rm -rf $PATH. The pattern 'rm -rf /' with whitespace boundary won't catch these variations.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "sandbox/network_policy.py",
+        "line_start": 23,
+        "line_end": 23,
+        "snippet": "re.compile(r\"\\brm\\s+-rf\\s+/(?:\\s|$)\", re.IGNORECASE),"
+      }
+    ],
+    "suggested_fix": "Use more comprehensive patterns that detect dangerous rm commands regardless of arguments, or implement command whitelisting as mentioned in SEC-003.",
+    "confidence": 0.75,
+    "cwe_id": "CWE-77",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-009",
+    "title": "Potential Command Injection in Cat Fallback",
+    "description": "When download_file fails, read_file falls back to running 'cat {path}' via exec. If path isn't properly sanitized before this fallback, command injection is possible. The path goes directly into the command string without escaping.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 90,
+        "line_end": 96,
+        "snippet": "logger.warning(\"download_file failed for %s: %s; falling back to cat\", path, exc)\n            result = await self.exec(scan_id, f\"cat {path}\", cwd=\"/home/daytona\", timeout=120)"
+      }
+    ],
+    "suggested_fix": "Validate and sanitize the path parameter before use in the cat command. Use proper shell escaping or pass path as an argument rather than string interpolation.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-78",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-010",
+    "title": "No Timeout on Sandbox Git Clone Operation",
+    "description": "The provision method calls sandbox.git.clone() synchronously without a timeout. A malicious or slow git clone could hang indefinitely, causing denial of service. This is separate from the executor timeout which applies to exec(), not provision().",
+    "category": "availability",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 70,
+        "line_end": 72,
+        "snippet": "repo_path = \"/home/daytona/repo\"\nsandbox.git.clone(clone_url, repo_path)"
+      }
+    ],
+    "suggested_fix": "Wrap the git clone operation in an asyncio.wait_for with an appropriate timeout to prevent indefinite hangs.",
+    "confidence": 0.65,
+    "cwe_id": "CWE-400",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-001",
+    "title": "Direct configuration import coupling",
+    "description": "SandboxManager directly imports from the config module (from config import settings), creating tight coupling between the sandbox layer and configuration management. This makes the sandbox module dependent on a specific configuration structure from seg-root-2.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 17,
+        "line_end": 17,
+        "snippet": "from config import settings"
+      }
+    ],
+    "suggested_fix": "Consider passing configuration as constructor parameters or using a configuration interface/ dataclass that is injected rather than directly imported. This would decouple the sandbox from the config module structure.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-002",
+    "title": "Missing abstraction for sandbox provider",
+    "description": "The code directly uses the Daytona SDK types (Sandbox, Daytona, DaytonaConfig, Image, Resources, CreateSandboxFromImageParams) throughout the manager and executor. There's no abstract interface that would allow swapping the sandbox provider or mocking for testing. This creates tight coupling to the external library's API.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 21,
+        "line_end": 27,
+        "snippet": "from daytona import (Daytona, DaytonaConfig, CreateSandboxFromImageParams, Image, Resources, Sandbox,)"
+      },
+      {
+        "file_path": "sandbox/executor.py",
+        "line_start": 11,
+        "line_end": 11,
+        "snippet": "from daytona import Sandbox"
+      }
+    ],
+    "suggested_fix": "Define an abstract interface (e.g., ISandbox, ISandboxManager) that encapsulates sandbox operations. Have the concrete Daytona implementation implement this interface. This enables better testability and provider flexibility.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-003",
+    "title": "God class - SandboxManager handles multiple responsibilities",
+    "description": "SandboxManager handles sandbox provisioning, session tracking, command execution delegation, file operations (read_file, upload_file, get_file_tree), and cleanup. This violates the Single Responsibility Principle. Combined with executor.py, there's overlap in command execution (executor has execute, manager has exec).",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 40,
+        "line_end": 130,
+        "snippet": "class SandboxManager handles provisioning, exec, read_file, upload_file, get_file_tree, destroy"
+      }
+    ],
+    "suggested_fix": "Split into separate classes: SandboxLifecycleManager (provision, destroy), FileOperationsHandler (read_file, upload_file, get_file_tree), and SessionManager (tracking sessions). Consider aFacade pattern to coordinate them.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-004",
+    "title": "No DTO/interface separation for cross-segment data",
+    "description": "SandboxSession is a dataclass defined in manager.py but represents a cross-segment contract (used by exec, read_file, etc.). There's no explicit interface defining what's exposed. Additionally, CommandResult is defined in executor.py but used by manager.py - the data flow between modules lacks clear contracts.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 32,
+        "line_end": 36,
+        "snippet": "@dataclass\nclass SandboxSession:"
+      },
+      {
+        "file_path": "sandbox/executor.py",
+        "line_start": 14,
+        "line_end": 21,
+        "snippet": "@dataclass\nclass CommandResult:"
+      }
+    ],
+    "suggested_fix": "Move shared data classes to a dedicated module (e.g., sandbox/models.py) with explicit exports. Consider using Protocols or ABCs to define interfaces for sandbox interactions.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-005",
+    "title": "Inconsistent error handling approach",
+    "description": "SandboxManager raises generic RuntimeError for missing sessions, while network_policy.py has a custom PolicyViolationError. There's no consistent exception hierarchy for the sandbox domain. The fallback in read_file also swallows exceptions without clear error categorization.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 96,
+        "line_end": 98,
+        "snippet": "raise RuntimeError(f\"No sandbox session for scan {scan_id}\")"
+      },
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 107,
+        "line_end": 112,
+        "snippet": "except Exception as exc: logger.warning(...)"
+      }
+    ],
+    "suggested_fix": "Define a sandbox-specific exception hierarchy (e.g., SandboxError base class, SessionNotFoundError, SandboxOperationError) that inherits from a common domain exception.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Hidden cross-segment state dependency",
+    "description": "The executor depends on the external Sandbox object passed in, but this object comes from the manager which gets it from the Daytona SDK. There's no clear contract about what the Sandbox interface must provide, and changes to the Daytona SDK could break the executor without clear API boundaries.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "sandbox/executor.py",
+        "line_start": 31,
+        "line_end": 35,
+        "snippet": "async def execute(self, *, sandbox: Sandbox, command: str, cwd: str, timeout: int = 120) -> CommandResult:"
+      }
+    ],
+    "suggested_fix": "Define a minimal interface (Protocol) for the sandbox operations used (process.exec, git.clone, fs operations) to make dependencies explicit.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-007",
+    "title": "Magic strings for paths and commands",
+    "description": "Hardcoded paths like '/home/daytona/repo', '/home/daytona' and commands like 'find . -type f...' appear in multiple places without constants. This violates DRY and makes configuration changes difficult.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 36,
+        "line_end": 36,
+        "snippet": "repo_path: str = \"/home/daytona/repo\""
+      },
+      {
+        "file_path": "sandbox/manager.py",
+        "line_start": 124,
+        "line_end": 126,
+        "snippet": "\"find . -type f -not -path './.git/*' -not -path './node_modules/*' | head -500 | sort\""
+      }
+    ],
+    "suggested_fix": "Define path constants and command templates in a central location (e.g., sandbox/constants.py) or pass them as configuration parameters.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-sandbox-3",
+    "wave": 2
+  },
+  {
+    "id": "SEC-001",
+    "title": "Missing Input Validation on repo_url Parameter",
+    "description": "The trigger_forge_scan and trigger_forge_remediate functions accept a repo_url parameter without validating that it points to a legitimate GitHub repository. This could allow SSRF attacks if the URL is used to make requests to internal services or malicious endpoints.",
+    "category": "input_validation",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "services/forge_bridge.py",
+        "line_start": 134,
+        "line_end": 150,
+        "snippet": "async def trigger_forge_scan(\n    repo_url: str,\n    *,\n    model_override: str | None = None,\n    timeout: int = _SCAN_TIMEOUT,\n    agentfield_url_override: str | None = None,\n) -> ForgeRunResult:"
+      },
+      {
+        "file_path": "services/forge_bridge.py",
+        "line_start": 165,
+        "line_end": 195,
+        "snippet": "async def trigger_forge_remediate(\n    repo_url: str,\n    tier1_findings: Sequence[Any] | None = None,\n    *,\n    mode: str = \"full\",\n    model_override: str | None = None,\n    timeout: int = _REMEDIATE_TIMEOUT,\n    agentfield_url_override: str | None = None,\n    github_token: str | None = None,\n) -> ForgeRunResult:"
+      }
+    ],
+    "suggested_fix": "Add URL validation to ensure repo_url is a valid GitHub repository URL. Use a strict regex pattern or the existing parse_repo_url function to validate the format before making API calls. Consider allowinglist validation against expected GitHub domains.",
+    "confidence": 0.85,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-002",
+    "title": "Missing Input Validation on GitHub API Parameters",
+    "description": "The GitHub API helper functions (get_repo_info, create_pull_request, get_head_sha) accept owner, repo, and branch parameters without validating they contain safe characters. This could allow injection attacks if malicious values are passed, particularly as these values are interpolated directly into URLs.",
+    "category": "input_validation",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "services/github.py",
+        "line_start": 27,
+        "line_end": 42,
+        "snippet": "async def get_repo_info(\n    owner: str, repo: str, token: str | None = None\n) -> RepoInfo:\n    \"\"\"Fetch repository metadata from the GitHub API.\"\"\"\n    headers: dict[str, str] = {\"Accept\": \"application/vnd.github.v3+json\"}\n    if token:\n        headers[\"Authorization\"] = f\"token {token}\"\n\n    async with httpx.AsyncClient() as client:\n        resp = await client.get(\n            f\"https://api.github.com/repos/{owner}/{repo}\","
+      },
+      {
+        "file_path": "services/github.py",
+        "line_start": 44,
+        "line_end": 58,
+        "snippet": "async def create_pull_request(\n    owner: str,\n    repo: str,\n    title: str,\n    body: str,\n    head: str,\n    base: str,\n    token: str,\n) -> str:"
+      },
+      {
+        "file_path": "services/github.py",
+        "line_start": 60,
+        "line_end": 75,
+        "snippet": "async def get_head_sha(\n    owner: str,\n    repo: str,\n    branch: str,\n    token: str | None = None,\n) -> str:\n    \"\"\"Resolve the latest commit SHA for a branch.\"\"\"\n    headers: dict[str, str] = {\"Accept\": \"application/vnd.github.v3+json\"}\n    if token:\n        headers[\"Authorization\"] = f\"token {token}\"\n\n    async with httpx.AsyncClient() as client:\n        resp = await client.get(\n            f\"https://api.github.com/repos/{owner}/{repo}/commits/{branch}\","
+      }
+    ],
+    "suggested_fix": "Add input validation to verify that owner, repo, and branch parameters only contain valid characters (alphanumeric, hyphens, underscores). Use regex pattern ^[a-zA-Z0-9_-]+$ to validate these parameters before URL interpolation.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-79",
+    "owasp_ref": "A03:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-003",
+    "title": "Potential ReDoS in parse_repo_url Regex",
+    "description": "The parse_repo_url function uses a regex pattern that could be vulnerable to Regular Expression Denial of Service (ReDoS). While the current pattern is relatively simple, malformed URLs with specially crafted input could cause catastrophic backtracking.",
+    "category": "availability",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "services/github.py",
+        "line_start": 19,
+        "line_end": 26,
+        "snippet": "async def parse_repo_url(url: str) -> tuple[str, str]:\n    \"\"\"Extract (owner, repo) from a GitHub URL.\"\"\"\n    pattern = r\"github\\.com[/:](?P<owner>[^/]+)/(?P<repo>[^/.]+)\"\n    m = re.search(pattern, str(url))\n    if not m:\n        raise ValueError(f\"Cannot parse GitHub repo from URL: {url}\")\n    return m.group(\"owner\"), m.group(\"repo\")"
+      }
+    ],
+    "suggested_fix": "Use more restrictive character classes in the regex pattern. Consider using re.compile with timeout or using a URL parsing library instead of regex. The pattern could be changed to: r\"github\\.com/(?P<owner>[a-zA-Z0-9_-]+)/(?P<repo>[a-zA-Z0-9_-]+)\" to restrict valid characters.",
+    "confidence": 0.6,
+    "cwe_id": "CWE-1333",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-004",
+    "title": "Unvalidated github_token Parameter Passed to FORGE",
+    "description": "The trigger_forge_remediate function accepts an optional github_token parameter and passes it in the payload to the AgentField API without validation. If this token is user-controlled, it could allow token injection or unauthorized access to the FORGE service.",
+    "category": "confidentiality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "services/forge_bridge.py",
+        "line_start": 165,
+        "line_end": 210,
+        "snippet": "async def trigger_forge_remediate(\n    repo_url: str,\n    tier1_findings: Sequence[Any] | None = None,\n    *,\n    mode: str = \"full\",\n    model_override: str | None = None,\n    timeout: int = _REMEDIATE_TIMEOUT,\n    agentfield_url_override: str | None = None,\n    github_token: str | None = None,\n) -> ForgeRunResult:"
+      },
+      {
+        "file_path": "services/forge_bridge.py",
+        "line_start": 217,
+        "line_end": 235,
+        "snippet": "    payload = {\n        \"input\": {\n            \"repo_url\": repo_url,\n            \"config\": config,\n            \"tier1_findings\": t1_dicts,\n        }\n    }\n\n    return await _trigger_forge(\n        agentfield_url, api_key, \"remediate\", payload, timeout,\n    )"
+      }
+    ],
+    "suggested_fix": "Ensure github_token is retrieved from a secure source (e.g., settings or database) rather than accepting it as a user-controlled parameter. If user-provided tokens are necessary, validate they match expected GitHub token format (starts with 'ghp_', 'gho_', etc.) before passing to external API.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-200",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-005",
+    "title": "Missing Rate Limiting on ContextStore Operations",
+    "description": "The ContextStore class provides unbounded storage for session data without any rate limiting or size restrictions on keys or values. Combined with findings from neighboring segments showing unbounded memory growth in SSE event buses, this could contribute to memory exhaustion attacks.",
+    "category": "availability",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "services/context_store.py",
+        "line_start": 44,
+        "line_end": 55,
+        "snippet": "    def set(self, key: str, value: Any) -> None:\n        with self._lock:\n            self._data[key] = value\n\n    def get(self, key: str, default: Any = None) -> Any:\n        with self._lock:\n            return self._data.get(key, default)\n\n    def get_all(self, prefix: str) -> dict[str, Any]:\n        \"\"\"Return all entries whose key starts with *prefix*.\"\"\"\n        with self._lock:\n            return {k: v for k, v in self._data.items() if k.startswith(prefix)}"
+      }
+    ],
+    "suggested_fix": "Add size limits to the ContextStore: 1) Limit total number of keys stored, 2) Limit individual value sizes, 3) Implement TTL-based expiration for entries, 4) Add validation to ensure keys follow the documented namespace convention (e.g., 'file:', 'findings:', etc.).",
+    "confidence": 0.75,
+    "cwe_id": "CWE-400",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-006",
+    "title": "Sensitive Data Exposure in Supabase Client Functions",
+    "description": "The supabase_client.py contains multiple functions that handle sensitive data (github_access_token, project_charter, etc.) and pass them directly to the database without apparent encryption. The save_github_connection function stores tokens in plain text. Cross-reference: The OAuth state secret fallback issue from neighboring segments suggests a pattern of mishandling secrets.",
+    "category": "confidentiality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "services/supabase_client.py",
+        "line_start": 175,
+        "line_end": 190,
+        "snippet": "async def save_github_connection(\n    *,\n    user_id: str,\n    access_token: str,\n    github_username: str | None = None,\n    avatar_url: str | None = None,\n) -> None:\n    \"\"\"Persist GitHub OAuth credentials and profile metadata for a user.\"\"\"\n    client = _client()\n    client.table(\"profiles\").update(\n        {\n            \"github_access_token\": access_token,\n            \"github_username\": github_username,\n            \"avatar_url\": avatar_url,\n        }\n    ).eq(\"user_id\", str(user_id)).execute()"
+      },
+      {
+        "file_path": "services/supabase_client.py",
+        "line_start": 31,
+        "line_end": 53,
+        "snippet": "async def get_or_create_project(\n    user_id: str,\n    repo_url: str,\n    repo_name: str | None = None,\n    vibe_prompt: str | None = None,\n    project_charter: dict | None = None,\n    latest_scan_tier: str = \"deep\",\n) -> UUID:\n    \"\"\"Return the project ID for *repo_url*, creating the row if needed.\"\"\"\n    client = _client()\n    existing = (\n        client.table(\"projects\")\n        .select(\"id\")\n        .eq(\"user_id\", str(user_id))\n        .eq(\"repo_url\", repo_url)\n        .limit(1)\n        .execute()\n    )"
+      }
+    ],
+    "suggested_fix": "1) Encrypt GitHub access tokens before storing in the database using a proper encryption key managed in settings, 2) Use Supabase's built-in encryption for sensitive fields if available, 3) Consider using Supabase Row Level Security (RLS) policies to restrict access to sensitive columns, 4) Add field-level encryption for project_charter and other sensitive JSON data.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-200",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-007",
+    "title": "Race Condition in Quota Check Not Present But Related Pattern Exists",
+    "description": "The neighboring segment findings indicate a race condition in quota checks in api/routes/audit.py. While this segment (services) doesn't directly contain the race condition, the supabase_client.py provides increment_free_reports_generated which could be used in a non-atomic manner. The pattern of check-then-act is present in the dependent code.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "services/supabase_client.py",
+        "line_start": 245,
+        "line_end": 260,
+        "snippet": "async def increment_free_reports_generated(user_id: str, month_key: date) -> int:\n    \"\"\"Increment free-tier reports_generated counter and return new value.\"\"\"\n    row = await get_or_create_free_usage_month(user_id, month_key)\n    current = int(row.get(\"reports_generated\") or 0)\n    next_value = current + 1\n\n    client = _client()\n    client.table(\"free_usage_monthly\").update(\n        {\"reports_generated\": next_value}\n    ).eq(\"id\", row[\"id\"]).execute()\n    return next_value"
+      }
+    ],
+    "suggested_fix": "This function reads the current value, increments in Python, then writes back - this is a read-modify-write that can race. Use an atomic SQL increment instead: client.table('free_usage_monthly').update({'reports_generated': supabase.sql('reports_generated + 1')}).eq('id', row['id']).execute() or use a database function with atomic increment.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-362",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-008",
+    "title": "Missing Authentication Check in Context Store",
+    "description": "The ContextStore class stores and retrieves data based on scan_id (UUID) without any authentication or authorization checks. Any code with access to a scan_id can read or modify any stored data. This is related to the finding from neighboring segments about missing authorization on SSE status endpoints.",
+    "category": "authorization",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "services/context_store.py",
+        "line_start": 34,
+        "line_end": 40,
+        "snippet": "    def __init__(self, scan_id: UUID) -> None:\n        self.scan_id = scan_id\n        self._data: dict[str, Any] = {}\n        self._lock = threading.Lock()"
+      },
+      {
+        "file_path": "services/context_store.py",
+        "line_start": 42,
+        "line_end": 55,
+        "snippet": "    def set(self, key: str, value: Any) -> None:\n        with self._lock:\n            self._data[key] = value\n\n    def get(self, key: str, default: Any = None) -> Any:\n        with self._lock:\n            return self._data.get(key, default)"
+      }
+    ],
+    "suggested_fix": "The ContextStore should be scoped to a specific user context. Add user_id validation to ensure that data can only be accessed by the user who owns the scan. Consider integrating user context into the store's access patterns or adding an authorization layer before store operations.",
+    "confidence": 0.65,
+    "cwe_id": "CWE-862",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-services-4",
+    "wave": 2
+  },
+  {
+    "id": "SEC-001",
+    "title": "Test Coverage Gap: Race Condition in Quota Checks Not Verified",
+    "description": "The tests verify quota enforcement behavior but do not test for race conditions in concurrent quota operations. The neighbor segment findings indicate that quota checks in api/routes/audit.py are not atomic - the check and increment operations can have a time-of-check to time-of-use (TOCTOU) gap. While tests verify the happy path and error paths for quota limits, concurrent request scenarios that could exploit this race condition are not covered.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 52,
+        "line_end": 85,
+        "snippet": "def test_project_cap_blocks_new_project(self) -> None: ... def test_reports_cap_blocks_when_monthly_quota_used(self) -> None:"
+      }
+    ],
+    "suggested_fix": "Add concurrent integration tests that simulate multiple simultaneous audit requests approaching the quota limit to verify atomicity of quota checks and increments. Use threading or async concurrent requests to verify that quota enforcement cannot be bypassed through race conditions.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-367",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "SEC-002",
+    "title": "Test Coverage Gap: Authorization on Action Item Access Not Verified",
+    "description": "The tests for the fix route verify various error conditions (not found, in progress, project not found) but do not verify that a user cannot access action items belonging to other users. The neighbor findings indicate that api/routes/fix.py:trigger_fix retrieves an action_item without verifying ownership. Tests should verify that users can only access their own action items.",
+    "category": "authorization",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/test_fix_routes.py",
+        "line_start": 43,
+        "line_end": 60,
+        "snippet": "def test_action_item_not_found_returns_404(self) -> None: ... def test_fix_already_in_progress_returns_409(self) -> None:"
+      }
+    ],
+    "suggested_fix": "Add test cases that verify: 1) User A cannot trigger a fix on User B's action_item_id, 2) The endpoint validates that the authenticated user owns the action_item before processing. Mock db.get_action_item to return an action_item with a different user_id and verify 403 Forbidden is returned.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-639",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "SEC-003",
+    "title": "Test Coverage Gap: SSE Status Endpoint Missing Ownership Verification",
+    "description": "While the tests cover audit routes and artifact retrieval, there are no tests for the SSE status endpoint (/api/status/{scan_id}) which neighbor findings indicate lacks user ownership verification. Any authenticated user could potentially stream status for any scan_id.",
+    "category": "authorization",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 1,
+        "line_end": 50,
+        "snippet": "class AuditRouteTests(unittest.TestCase):"
+      }
+    ],
+    "suggested_fix": "Add test cases for SSE status endpoint that verify: 1) User can only stream status for their own scans, 2) Accessing another user's scan_id returns 403/404. This would require testing the stream_status endpoint from api/routes/status.py.",
+    "confidence": 0.6,
+    "cwe_id": "CWE-639",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "SEC-004",
+    "title": "Test Coverage Gap: Webhook Replay Detection Scaling Not Verified",
+    "description": "The tests verify webhook replay detection works within a single test instance (using setUp to clear _seen_deliveries), but do not verify that replay detection works across multiple API instances. The neighbor findings indicate _seen_deliveries uses in-memory storage which doesn't scale horizontally.",
+    "category": "availability",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/test_webhook_routes.py",
+        "line_start": 45,
+        "line_end": 60,
+        "snippet": "def test_valid_signature_then_replay_detected(self) -> None:"
+      }
+    ],
+    "suggested_fix": "Add a note or integration test documenting that webhook replay detection currently only works within a single API instance. For production deployments requiring multiple instances, consider using a distributed cache (Redis) for _seen_deliveries.",
+    "confidence": 0.9,
+    "cwe_id": "CWE-1041",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "SEC-005",
+    "title": "Test Coverage Gap: OAuth State Secret Reuse Not Tested",
+    "description": "The tests for GitHub OAuth verify the happy path but do not test the fallback behavior where OAuth state secret falls back to JWT secret. Neighbor findings indicate that _state_secret() falls back to supabase_jwt_secret which is a security concern.",
+    "category": "security",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/test_github_oauth_routes.py",
+        "line_start": 30,
+        "line_end": 55,
+        "snippet": "def test_get_auth_url_returns_stateful_redirect(self) -> None: ... def test_exchange_code_persists_connection(self) -> None:"
+      }
+    ],
+    "suggested_fix": "Add test case that mocks settings.github_oauth_state_secret as None/unset and verifies the system either: 1) Uses a separate secure default, or 2) Refuses to operate without explicit configuration (fail closed).",
+    "confidence": 0.7,
+    "cwe_id": "CWE-295",
+    "owasp_ref": "A02:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "SEC-006",
+    "title": "Potential Information Disclosure in FORGE Integration Tests",
+    "description": "The test_forge_bridge.py tests send tier1_findings including severity levels to external FORGE service. While this is test code, it demonstrates that findings with severity 'critical' are sent to an external service. If production code follows this pattern, sensitive finding details could be exposed to external services.",
+    "category": "confidentiality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/test_forge_bridge.py",
+        "line_start": 108,
+        "line_end": 130,
+        "snippet": "findings = [{\"title\": \"No auth\", \"severity\": \"critical\"}] ... payload[\"input\"][\"tier1_findings\"], findings)"
+      }
+    ],
+    "suggested_fix": "Verify that production code sanitizes or filters sensitive data before sending to external FORGE service. Consider whether severity levels and finding titles should be sent externally, or if only anonymized/faggregated data should be transmitted.",
+    "confidence": 0.5,
+    "cwe_id": "CWE-200",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-001",
+    "title": "Test environment setup causes side effects at import time",
+    "description": "Multiple test files set environment variables using os.environ.setdefault() at module import time (lines 11-17 in test_audit_routes.py, similar pattern in other test files). This causes side effects during import that can leak between test modules and affect other tests running in the same Python process. Additionally, the fake orchestrator module creation (lines 25-35) modifies sys.modules during import, which is a global side effect.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 11,
+        "line_end": 35,
+        "snippet": "os.environ.setdefault(\"SUPABASE_URL\", \"http://localhost\")\n...\nfake_orchestrator = types.ModuleType(\"agents.orchestrator\")\n...\nsys.modules[\"agents.orchestrator\"] = fake_orchestrator"
+      },
+      {
+        "file_path": "tests/test_fix_routes.py",
+        "line_start": 10,
+        "line_end": 16,
+        "snippet": "os.environ.setdefault(\"SUPABASE_URL\", \"http://localhost\")..."
+      },
+      {
+        "file_path": "tests/test_forge_bridge.py",
+        "line_start": 10,
+        "line_end": 16,
+        "snippet": "os.environ.setdefault(\"SUPABASE_URL\", \"http://localhost\")..."
+      }
+    ],
+    "suggested_fix": "Move environment variable setup to a pytest fixture with autouse=True or to a conftest.py file. Create the fake orchestrator in a test fixture that uses monkeypatch to temporarily modify sys.modules and cleans up afterward. Use pytest-env or similar plugin for environment variable management.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-002",
+    "title": "Tests directly access production module global state",
+    "description": "Test files directly access internal module state such as audit.settings, fix.settings, webhook._seen_deliveries. In test_webhook_routes.py line 94, the test calls webhook._seen_deliveries.clear() in setUp, directly manipulating production module internals. This creates tight coupling between tests and implementation details - any refactoring of internal state will break tests.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/test_webhook_routes.py",
+        "line_start": 94,
+        "line_end": 95,
+        "snippet": "def setUp(self) -> None:\n    webhook._seen_deliveries.clear()"
+      }
+    ],
+    "suggested_fix": "Instead of accessing internal state, inject a cleanup mechanism into the production code (e.g., a function like reset_replay_detection() or use dependency injection). Alternatively, expose configuration for test isolation through a proper interface.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-003",
+    "title": "Duplicated FastAPI test app setup across test classes",
+    "description": "Each test file (test_audit_routes.py, test_fix_routes.py, test_github_oauth_routes.py, test_onboarding_routes.py, test_webhook_routes.py) contains nearly identical FastAPI app setup code in setUpClass: creating app, setting up limiter, adding middleware to inject user_id, including router. This violates DRY and creates maintenance burden - any change to test app setup must be replicated across 5+ files.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 42,
+        "line_end": 54,
+        "snippet": "@classmethod\ndef setUpClass(cls) -> None:\n    app = FastAPI()\n    app.state.limiter = audit.limiter\n\n    @app.middleware(\"http\")\n    async def _inject_user(request, call_next):\n        request.state.user_id = \"user_test\"\n        return await call_next(request)\n\n    app.include_router(audit.router, prefix=\"/api\")\n    cls.client = TestClient(app)"
+      },
+      {
+        "file_path": "tests/test_fix_routes.py",
+        "line_start": 28,
+        "line_end": 40,
+        "snippet": "Similar FastAPI setup repeated..."
+      }
+    ],
+    "suggested_fix": "Create a shared test fixture in conftest.py that returns a TestClient with properly configured app. Use pytest fixtures with proper scoping to avoid test pollution. Example: @pytest.fixture(scope=\"class\") def audit_client(): ... that can be parameterized for different routers.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-004",
+    "title": "Test uses hardcoded mock paths brittle to refactoring",
+    "description": "Tests use hardcoded module paths for mocking like 'api.routes.audit.db.get_github_access_token', 'api.routes.fix.db.get_action_item', etc. These string-based patches are tightly coupled to the specific import paths in production code. If the production code refactors imports (e.g., moves db to a different module or uses dependency injection), all these mock paths will break.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 66,
+        "line_end": 69,
+        "snippet": "with patch(\"api.routes.audit.db.get_github_access_token\", new=AsyncMock(return_value=None))..."
+      },
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 73,
+        "line_end": 80,
+        "snippet": "with patch(\"api.routes.audit.db.get_project_by_repo_url\", new=AsyncMock(return_value=None))..."
+      }
+    ],
+    "suggested_fix": "Consider using dependency injection in production code to allow injecting mock implementations. Alternatively, create a test db interface that can be patched at a higher level. Use unittest.mock.patch.object when possible instead of string-based paths.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-005",
+    "title": "Fake orchestrator workaround indicates production dependency issue",
+    "description": "In test_audit_routes.py lines 25-35, a fake orchestrator module is created and inserted into sys.modules to prevent importing the deep orchestrator that requires 'openhands'. This is a workaround for a production code problem: the api.routes.audit module has an unwanted dependency on the orchestrator that shouldn't exist in Tier 1 context. This creates hidden test complexity and indicates layering violation in production code.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 25,
+        "line_end": 35,
+        "snippet": "if \"agents.orchestrator\" not in sys.modules:\n    import types\n\n    fake_orchestrator = types.ModuleType(\"agents.orchestrator\")\n\n    class _FakeAuditOrchestrator:\n        def __init__(self, *args, **kwargs) -> None:\n            pass\n\n        async def run(self):\n            raise RuntimeError(\"deep orchestrator should not be used in Tier 1 route tests\")\n\n    fake_orchestrator.AuditOrchestrator = _FakeAuditOrchestrator\n    sys.modules[\"agents.orchestrator\"] = fake_orchestrator"
+      }
+    ],
+    "suggested_fix": "Refactor production code to remove direct import of orchestrator in audit routes - use lazy imports or dependency injection. The audit route should only import tier1-specific modules, not the deep orchestrator. Consider creating an abstraction layer so the route doesn't know which orchestrator is being used.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Test directly couples to implementation details like limiter",
+    "description": "Tests access internal implementation details like audit.limiter, fix.limiter and assign them to app.state. This couples tests tightly to FastAPI implementation and internal module structure. If limiter is moved, refactored, or replaced, tests will break.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/test_audit_routes.py",
+        "line_start": 45,
+        "line_end": 46,
+        "snippet": "app.state.limiter = audit.limiter"
+      },
+      {
+        "file_path": "tests/test_fix_routes.py",
+        "line_start": 31,
+        "line_end": 32,
+        "snippet": "app.state.limiter = fix.limiter"
+      }
+    ],
+    "suggested_fix": "Create a fixture that handles limiter setup transparently, or make the limiter optional/fallback in production code so tests can omit it. Consider checking if limiter exists before assignment: if hasattr(audit, 'limiter'): app.state.limiter = audit.limiter",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-5",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-001",
+    "title": "Subprocess errors not gracefully handled in git operations",
+    "description": "In indexer.py, the _build_index_sync method performs multiple subprocess calls (git clone, fetch, checkout) but uses check=True without any exception handling. If git operations fail (e.g., network issues, invalid repo), the exception will bubble up as an unhandled CalledProcessError without context about which operation failed or what the underlying issue was.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 110,
+        "line_end": 125,
+        "snippet": "_run([\"git\", \"clone\", \"--depth\", \"1\", clone_target, str(repo_dir)], timeout=120)\n_run([\"git\", \"fetch\", \"--depth\", \"1\", \"origin\", repo_sha], cwd=repo_dir, timeout=120)\n_run([\"git\", \"checkout\", repo_sha], cwd=repo_dir, timeout=30)"
+      }
+    ],
+    "suggested_fix": "Wrap git operations in try/except blocks with specific error handling. Provide meaningful error messages that include the operation type, repo URL, and underlying error. Consider adding retry logic for transient failures.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-002",
+    "title": "Massive function with high cyclomatic complexity",
+    "description": "The _build_index_sync function spans over 200 lines and contains deeply nested logic including a large for loop processing files with multiple conditional checks. This violates the single responsibility principle and makes the code difficult to test, maintain, and debug. The function handles workspace setup, git operations, file indexing, and signal collection all in one place.",
+    "category": "quality",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 95,
+        "line_end": 230,
+        "snippet": "def _build_index_sync(self, repo_url: str, clone_url: str, repo_sha: str, github_token: str | None, scan_id: UUID | None) -> dict:"
+      }
+    ],
+    "suggested_fix": "Extract distinct responsibilities into separate functions: _setup_workspace(), _clone_and_checkout(), _index_files(), _collect_signals(). Consider using a pipeline or chain-of-responsibility pattern to compose these operations.",
+    "confidence": 0.95,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-003",
+    "title": "Silent failure on file read errors",
+    "description": "The _read_text function returns None when file reading fails (any exception) or when the file contains null bytes. The calling code in _build_index_sync simply checks 'if data is None: continue' and moves on without logging or recording that a file could not be processed. This masks potential issues and makes debugging difficult.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 258,
+        "line_end": 270,
+        "snippet": "def _read_text(path: Path) -> str | None:\n    try:\n        raw = path.read_bytes()\n    except Exception:\n        return None"
+      }
+    ],
+    "suggested_fix": "Add logging for read failures with specific error details. Consider using a result type or sentinel value instead of None to distinguish between different failure modes (file not found, encoding error, binary file, etc.).",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-004",
+    "title": "Potential blocking synchronous database calls in async context",
+    "description": "In quota.py, get_quota_status is an async function but appears to call synchronous database operations (db.get_or_create_free_usage_month, db.get_active_project_count). While awaiting these, if they are actually synchronous under the hood, this will block the event loop, degrading performance under load.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tier1/quota.py",
+        "line_start": 21,
+        "line_end": 30,
+        "snippet": "async def get_quota_status(user_id: str) -> Tier1QuotaStatus:\n    month_key = utc_month_key()\n    usage_row = await db.get_or_create_free_usage_month(user_id, month_key)\n    project_count = await db.get_active_project_count(user_id)"
+      }
+    ],
+    "suggested_fix": "Verify that all db.* functions are truly async (using asyncio.to_thread for any sync operations) or use run_in_executor to prevent event loop blocking.",
+    "confidence": 0.75,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-005",
+    "title": "No input validation on public API methods",
+    "description": "The build_or_reuse method accepts repo_url, clone_url, repo_sha, and github_token without any validation. Invalid URLs, malformed shas, or missing required parameters will cause obscure errors deep in the execution rather than failing fast with clear validation messages.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 53,
+        "line_end": 70,
+        "snippet": "async def build_or_reuse(\n    self,\n    *,\n    project_id: UUID | None,\n    user_id: str | None,\n    repo_url: str,\n    clone_url: str,\n    repo_sha: str,\n    github_token: str | None,\n    scan_id: UUID | None = None,\n) -> dict:"
+      }
+    ],
+    "suggested_fix": "Add Pydantic input models or validation decorators to validate URL formats, git SHA format (40 hex chars), and required vs optional parameters at the method entry point.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-006",
+    "title": "Sensitive data passed without redaction in error paths",
+    "description": "When git clone fails, the exception could contain the clone URL with embedded GitHub token in the error message. This could lead to token leakage in logs if the exception is logged at a higher level without sanitization.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 106,
+        "line_end": 115,
+        "snippet": "clone_target = _clone_url_with_token(clone_url, github_token)\ntry:\n    _run([\"git\", \"clone\", \"--depth\", \"1\", clone_target, str(repo_dir)], timeout=120)"
+      }
+    ],
+    "suggested_fix": "Sanitize URLs in error messages or use a custom exception that strips sensitive query parameters before logging. Consider using a redaction utility for URLs containing tokens.",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-007",
+    "title": "Inconsistent error handling approach in reporter",
+    "description": "In Tier1Reporter.generate_report, the LLM call is wrapped in try/except but silently falls back without rethrowing. In contrast, indexer.py uses check=True without exception handling. This inconsistency makes it difficult to understand the error handling strategy across the codebase.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tier1/reporter.py",
+        "line_start": 73,
+        "line_end": 82,
+        "snippet": "try:\n    assistant_context, model_usage = await self._generate_assistant_context(...)\nexcept Exception:\n    logger.exception(\"Tier1 assistant context generation failed; using deterministic-only narrative\")\n    fallback_used = True"
+      }
+    ],
+    "suggested_fix": "Document the fallback strategy consistently. Consider using a Result type pattern or explicit fallback methods to make the error handling approach uniform across the codebase.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-008",
+    "title": "Missing null checks on payload data access",
+    "description": "In scanner.py, multiple calls use .get() with defaults but the pattern is inconsistent. In orchestrator.py, direct dictionary access like index_payload['index_json'] without .get() could raise KeyError if the payload is malformed. The code assumes well-formed input without validating structure.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/orchestrator.py",
+        "line_start": 89,
+        "line_end": 93,
+        "snippet": "index_json = index_payload.get(\"index_json\") or {}\nindex_facts = index_json.get(\"facts\") or {}\ngit_metadata = index_facts.get(\"git_metadata\") or {}"
+      }
+    ],
+    "suggested_fix": "Use a consistent pattern (all .get() or explicit validation). Consider validating the index_payload structure at the entry point of the orchestrator to fail fast with clear errors.",
+    "confidence": 0.75,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-009",
+    "title": "Hardcoded magic numbers without constants",
+    "description": "Several magic numbers appear in the code without explanation: file size cap (1_500_000), timeouts (120, 30, 60), token length checks (ghp_ 20+ chars). These values are buried in implementation details and make configuration difficult.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 262,
+        "line_end": 264,
+        "snippet": "if len(raw) > 1_500_000:\n    raw = raw[:1_500_000]"
+      }
+    ],
+    "suggested_fix": "Extract these to named constants at module level with documentation explaining the rationale (e.g., MAX_FILE_SIZE_BYTES, GIT_CLONE_TIMEOUT_SECONDS). Consider making them configurable via settings.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "QUAL-010",
+    "title": "Potential resource exhaustion with unbounded file processing",
+    "description": "The indexer processes all files in a repository without pagination or limits. For repositories with thousands of files, this could consume significant memory. There's no mechanism to limit scanning to a subset of files or process in batches.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 148,
+        "line_end": 160,
+        "snippet": "for rel_path in files:\n    # ... processing each file\n    indexed_files.append(...)"
+      }
+    ],
+    "suggested_fix": "Add configurable limits on files to process. Consider streaming or batching large file lists. Add a maximum file count or LOC threshold to prevent resource exhaustion.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-001",
+    "title": "Direct database import coupling in business logic layer",
+    "description": "The tier1 segment directly imports and uses `services.supabase_client as db` in both indexer.py and quota.py. This creates tight coupling between the business logic layer and the data access layer, violating clean architecture principles. The business logic should depend on repository abstractions, not concrete database implementations.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 17,
+        "line_end": 17,
+        "snippet": "from services import supabase_client as db"
+      },
+      {
+        "file_path": "tier1/quota.py",
+        "line_start": 10,
+        "line_end": 10,
+        "snippet": "from services import supabase_client as db"
+      }
+    ],
+    "suggested_fix": "Introduce repository interfaces/abstractions (e.g., ProjectIndexRepository, UsageRepository) in a contracts or interfaces layer. Have business logic depend on these abstractions, and inject concrete implementations at runtime.",
+    "confidence": 0.95,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-002",
+    "title": "Hardcoded external service endpoints and credentials in reporter",
+    "description": "The Tier1Reporter in reporter.py directly uses settings.openrouter_base_url and settings.openrouter_api_key with hardcoded HTTP client configuration. This creates tight coupling to an external service and makes testing difficult without mocking the actual HTTP calls.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/reporter.py",
+        "line_start": 104,
+        "line_end": 118,
+        "snippet": "async with httpx.AsyncClient(timeout=30) as client:\n            resp = await client.post(\n                f\"{settings.openrouter_base_url}/chat/completions\",\n                headers={\n                    \"Authorization\": f\"Bearer {settings.openrouter_api_key}\","
+      }
+    ],
+    "suggested_fix": "Extract HTTP calls to an external service adapter class with an interface. Inject the adapter rather than directly using httpx. Consider using a dependency injection pattern for testability.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-003",
+    "title": "Hardcoded filesystem paths in indexer",
+    "description": "The DeterministicIndexer hardcodes the workspace root path as `/tmp/vibe2prod/tier1/` in _build_index_sync. This creates implicit coupling to the filesystem and may cause issues in different environments (e.g., restricted /tmp, different OS, containerized environments).",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 98,
+        "line_end": 98,
+        "snippet": "workspace_root = Path(\"/tmp\") / \"vibe2prod\" / \"tier1\" / str(scan_id or uuid4())"
+      }
+    ],
+    "suggested_fix": "Make the workspace root configurable via settings or inject it as a dependency. Consider using tempfile.mkdtemp() for proper temporary file handling.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-004",
+    "title": "Direct subprocess git commands create environment coupling",
+    "description": "The indexer directly executes git commands via subprocess.run and subprocess.run. This creates tight coupling to the system environment and makes the code dependent on git being installed. Error handling for git-specific errors could be improved.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 115,
+        "line_end": 125,
+        "snippet": "_run([\"git\", \"clone\", \"--depth\", \"1\", clone_target, str(repo_dir)], timeout=120)"
+      },
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 127,
+        "line_end": 140,
+        "snippet": "_run([\"git\", \"fetch\", \"--depth\", \"1\", \"origin\", repo_sha]"
+      }
+    ],
+    "suggested_fix": "Consider using a git library like GitPython instead of subprocess calls. This would provide better error handling and abstraction over git operations.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-005",
+    "title": "No separation between contracts and domain models",
+    "description": "The tier1/contracts.py module contains Pydantic models that serve as both DTOs (for API boundaries) and internal domain models. This blurs the boundary between external interfaces and internal logic. The scanner uses Tier1Finding from contracts, while orchestrator converts to Finding from models.findings.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/contracts.py",
+        "line_start": 1,
+        "line_end": 60,
+        "snippet": "class Tier1Finding(BaseModel): ..."
+      },
+      {
+        "file_path": "tier1/orchestrator.py",
+        "line_start": 166,
+        "line_end": 195,
+        "snippet": "def _to_audit_report(self, *, findings: list, score_summary: dict) -> AuditReport:"
+      }
+    ],
+    "suggested_fix": "Create clear separation: keep contracts.py for external API DTOs only, and create internal domain models in a separate module. The orchestrator should translate from external DTOs to internal domain models at the boundary.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Orchestrator has too many responsibilities",
+    "description": "The Tier1Orchestrator class handles orchestration flow, scoring logic (_score method), and audit report conversion (_to_audit_report method). This violates the Single Responsibility Principle. The scoring and conversion logic could be extracted to separate service classes.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tier1/orchestrator.py",
+        "line_start": 130,
+        "line_end": 164,
+        "snippet": "@staticmethod\n    def _score(findings: list) -> dict:"
+      },
+      {
+        "file_path": "tier1/orchestrator.py",
+        "line_start": 166,
+        "line_end": 195,
+        "snippet": "def _to_audit_report(self, *, findings: list, score_summary: dict) -> AuditReport:"
+      }
+    ],
+    "suggested_fix": "Extract scoring logic to a ScoringService class and audit report conversion to a ReportConverter class. This improves testability and follows SRP.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-007",
+    "title": "Regex patterns as module-level constants reduce configurability",
+    "description": "All security patterns (SECRET_PATTERNS, DANGEROUS_PATTERNS, SQL_PATTERNS, etc.) are hardcoded as module-level constants in indexer.py. While this provides deterministic scanning, it makes the scanner less adaptable to different security policies without code changes.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tier1/indexer.py",
+        "line_start": 22,
+        "line_end": 80,
+        "snippet": "SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [...]"
+      }
+    ],
+    "suggested_fix": "Consider making patterns configurable via settings or a configuration file. This would allow different security policies per deployment without code changes.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-008",
+    "title": "Cross-segment coupling: tier1 depends on models from seg-models-1",
+    "description": "The orchestrator imports directly from models.findings (AuditReport, Finding, Category, Severity, FindingSource) and models.scan (PrimerResult). This creates bidirectional dependency risk with seg-models-1. If models change, tier1 breaks.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/orchestrator.py",
+        "line_start": 12,
+        "line_end": 14,
+        "snippet": "from models.findings import AuditReport, Category, Finding, FindingSource, Severity\nfrom models.scan import PrimerResult"
+      }
+    ],
+    "suggested_fix": "Use dependency injection for model imports. Define interfaces/abstractions that tier1 owns, and let seg-models-1 implement adapters. Alternatively, move the conversion logic to a separate module that both segments depend on.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-009",
+    "title": "Cross-segment coupling: tier1 depends on services from seg-services-4",
+    "description": "The tier1 segment directly imports from services.github (get_head_sha, get_repo_info, parse_repo_url). This creates dependency on seg-services-4. The orchestrator uses these services to gather repository metadata before invoking tier1 operations.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tier1/orchestrator.py",
+        "line_start": 15,
+        "line_end": 15,
+        "snippet": "from services.github import get_head_sha, get_repo_info, parse_repo_url"
+      }
+    ],
+    "suggested_fix": "Define a RepositoryService interface in tier1 contracts. Inject the concrete GitHub service implementation. This enables testing with mock services and reduces coupling.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  },
+  {
+    "id": "ARCH-010",
+    "title": "Silent fallback in reporter reduces observability",
+    "description": "In reporter.py, when the LLM assistant context generation fails, the code catches the exception and continues with fallback_used=True but only logs at exception level. This silent failure may mask significant issues and makes it hard to distinguish between minor and major failures in production monitoring.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tier1/reporter.py",
+        "line_start": 75,
+        "line_end": 80,
+        "snippet": "except Exception:\n            logger.exception(\"Tier1 assistant context generation failed; using deterministic-only narrative\")\n            fallback_used = True"
+      }
+    ],
+    "suggested_fix": "Add metrics/observability for fallback events. Consider distinguishing between transient failures (retry) vs permanent failures (use fallback). Add an alert threshold for fallback rate.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-tier1-6",
+    "wave": 2
+  }
+]

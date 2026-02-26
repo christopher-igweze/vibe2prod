@@ -1,0 +1,14 @@
+{
+  "repo": "/Users/christopher/Documents/AntiGravity/forge-engine",
+  "repo_name": "forge_engine",
+  "forge_run_id": "51a9188d9e77",
+  "success": true,
+  "mode": "discovery",
+  "total_findings": 30,
+  "findings_fixed": 0,
+  "findings_deferred": 0,
+  "agent_invocations": 13,
+  "cost_usd": 0.5453,
+  "duration_seconds": 490.7,
+  "summary": "FORGE run 51a9188d9e77. Found 30 issues. (2 critical, 6 high, 9 low, 13 medium). Remediation plan: 30 items across 7 levels."
+}

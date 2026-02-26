@@ -1,0 +1,1368 @@
+[
+  {
+    "id": "SEC-001",
+    "title": "Command Injection via Git Clone with Unsanitized repo_url",
+    "description": "In `forge/app.py`, the `_resolve_repo_path` function directly uses the `repo_url` parameter in a `subprocess.run` call without any validation or sanitization. An attacker could provide a malicious URL containing shell metacharacters to execute arbitrary commands on the system.",
+    "category": "injection",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 70,
+        "line_end": 78,
+        "snippet": "subprocess.run(\n    [\"git\", \"clone\", \"--depth=1\", repo_url, workspace],\n    check=True, capture_output=True, text=True,\n)"
+      }
+    ],
+    "suggested_fix": "Implement strict URL validation using a whitelist of allowed protocols (only 'https://' and 'ssh://' with known host patterns), validate the URL format with a regex, and use `shlex.quote()` to escape any shell metacharacters in the URL. Consider using a URL parser to extract and validate the hostname before passing to subprocess.",
+    "confidence": 0.9,
+    "cwe_id": "CWE-78",
+    "owasp_ref": "A03:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-002",
+    "title": "Path Traversal Vulnerability in File Context Selection",
+    "description": "The `context_builder.py` file reading functions do not validate or sanitize file paths before reading. An attacker who can control the codebase_map could inject paths with `../` sequences to read sensitive files outside the repository (e.g., `../../etc/passwd`, `../../.env`).",
+    "category": "insecure_design",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 59,
+        "line_end": 67,
+        "snippet": "def read_file_safe(path: str, max_chars: int = 15_000) -> str:\n    try:\n        content = Path(path).read_text(errors=\"replace\")\n        if len(content) > max_chars:\n            content = content[:max_chars] + f\"\\n... (truncated at {max_chars} chars)\"\n        return content\n    except OSError:\n        return \"\""
+      },
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 173,
+        "line_end": 181,
+        "snippet": "for score, rel_path in scored_files:\n    ...\n    abs_path = str(root / rel_path)\n    content = read_file_safe(abs_path)"
+      }
+    ],
+    "suggested_fix": "Add path traversal validation in `read_file_safe` and before constructing paths. Use `Path.resolve()` to resolve the absolute path and verify it starts with the repository root using `resolved_path.is_relative_to(repo_root)` or equivalent check.",
+    "confidence": 0.85,
+    "cwe_id": "CWE-22",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-003",
+    "title": "Insecure Deserialization in Checkpoint Loading",
+    "description": "The checkpoint system in `checkpoint.py` loads JSON files without integrity verification and reconstructs complex objects (including potential code execution via Pydantic models). An attacker with write access to `.forge-checkpoints/` could tamper with checkpoint files to inject malicious data or cause denial of service.",
+    "category": "insecure_deserialization",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 88,
+        "line_end": 103,
+        "snippet": "def load_checkpoint(\n    repo_path: str,\n    phase: CheckpointPhase,\n) -> ForgeCheckpoint | None:\n    path = _checkpoint_path(repo_path, phase)\n    if not os.path.isfile(path):\n        return None\n\n    try:\n        with open(path, \"r\") as f:\n            data = json.load(f)\n        cp = ForgeCheckpoint(**data)\n        logger.info(\"Checkpoint loaded: %s\", phase.value)\n        return cp"
+      },
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 131,
+        "line_end": 156,
+        "snippet": "def restore_state(\n    cp: ForgeCheckpoint,\n) -> Any:\n    ...\n    state = ForgeExecutionState(\n        forge_run_id=cp.forge_run_id,\n        mode=ForgeMode.FULL,\n        repo_path=cp.repo_path,\n        artifacts_dir=cp.artifacts_dir,\n    )\n\n    # Restore discovery outputs\n    if cp.codebase_map:\n        state.codebase_map = CodebaseMap(**cp.codebase_map)\n    state.security_findings = [AuditFinding(**f) for f in cp.security_findings]"
+      }
+    ],
+    "suggested_fix": "Add HMAC signature verification to checkpoint files using a secret key stored securely. Verify the signature before deserializing. Alternatively, add schema validation using Pydantic's strict mode and add type coercion restrictions.",
+    "confidence": 0.75,
+    "cwe_id": "CWE-502",
+    "owasp_ref": "A08:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-004",
+    "title": "Missing Input Validation on Environment-Derived Configuration",
+    "description": "Multiple functions accept configuration via environment variables without validation. The `main()` function in `__main__.py` converts `FORGE_PORT` to int without try/except, allowing DoS via malformed values. Similarly, `app` initialization uses unchecked environment variables.",
+    "category": "input_validation",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/__main__.py",
+        "line_start": 22,
+        "line_end": 25,
+        "snippet": "port = int(os.getenv(\"FORGE_PORT\", \"8004\"))\nhost = os.getenv(\"FORGE_HOST\", \"0.0.0.0\")"
+      },
+      {
+        "file_path": "forge/app.py",
+        "line_start": 38,
+        "line_end": 45,
+        "snippet": "NODE_ID = os.getenv(\"FORGE_NODE_ID\", \"forge-engine\")\nWORKSPACES_DIR = os.getenv(\"WORKSPACES_DIR\", \"/workspaces\")"
+      }
+    ],
+    "suggested_fix": "Add validation for all environment variables: port should be validated as positive integer in valid range (1-65535), host should be validated as valid IP or hostname, NODE_ID should be validated against allowed characters pattern.",
+    "confidence": 0.8,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-005",
+    "title": "Potential Arbitrary File Write via Worktree Operations",
+    "description": "The code uses git worktrees for isolation during fixes. If `worktree_path` is derived from user input without proper validation, an attacker could create worktrees in arbitrary locations. The `_resolve_repo_path` function creates directories based on repo names extracted from URLs.",
+    "category": "insecure_design",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 60,
+        "line_end": 75,
+        "snippet": "workspace = os.path.join(WORKSPACES_DIR, name)\n\n        if Path(workspace).is_dir():\n            logger.info(\"Reusing existing workspace: %s\", workspace)\n            return workspace\n\n        # Clone\n        logger.info(\"Cloning %s \u2192 %s\", repo_url, workspace)\n        os.makedirs(workspace, exist_ok=True)\n        import subprocess\n        subprocess.run(\n            [\"git\", \"clone\", \"--depth=1\", repo_url, workspace],\n            check=True, capture_output=True, text=True,\n        )"
+      }
+    ],
+    "suggested_fix": "Validate the derived workspace path is within an expected parent directory (e.g., verify `os.path.abspath(workspace).startswith(WORKSPACES_DIR)`). Use a allowlist of permitted characters for the extracted repo name.",
+    "confidence": 0.7,
+    "cwe_id": "CWE-22",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-006",
+    "title": "No Rate Limiting on API Endpoints or Agent Invocations",
+    "description": "The FORGE system makes multiple LLM API calls but has no built-in rate limiting. The configuration allows high concurrency (`enable_parallel_audit`) without throttling. This could lead to API quota exhaustion or cost spikes.",
+    "category": "rate_limiting",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/config.py",
+        "line_start": 59,
+        "line_end": 61,
+        "snippet": "enable_parallel_audit: bool = True  # Run audit passes concurrently\n    enable_learning: bool = True  # Log training data for fine-tuning flywheel"
+      },
+      {
+        "file_path": "forge/app.py",
+        "line_start": 114,
+        "line_end": 120,
+        "snippet": "# \u2500\u2500 Step 1: Discovery (Agents 1-4) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n        if resume_phase not in (\n            CheckpointPhase.DISCOVERY, CheckpointPhase.TRIAGE,\n            CheckpointPhase.REMEDIATION, CheckpointPhase.VALIDATION,\n        ):\n            discovery_result = await _run_discovery(\n                app, state, cfg, resolved,\n            )\n            state.total_agent_invocations += discovery_result[\"invocations\"]"
+      }
+    ],
+    "suggested_fix": "Implement rate limiting using a token bucket or sliding window algorithm. Add configuration options for max requests per minute and max concurrent invocations. Consider adding a circuit breaker pattern for external API calls.",
+    "confidence": 0.6,
+    "cwe_id": "CWE-770",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-007",
+    "title": "Insufficient Input Validation in Config Resolution",
+    "description": "The `ForgeConfig` class uses Pydantic but allows arbitrary dictionaries via the `models` field. While `extra=\"forbid\"` is set, there's no validation that model names map to valid roles or that the dict values are legitimate model identifiers. Malformed config could cause unexpected behavior.",
+    "category": "input_validation",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/config.py",
+        "line_start": 85,
+        "line_end": 93,
+        "snippet": "class ForgeConfig(BaseModel):\n    \"\"\"Configuration for a FORGE run.\n\n    Mirrors SWE-AF's BuildConfig pattern with FORGE-specific defaults.\n    \"\"\"\n\n    model_config = ConfigDict(extra=\"forbid\")\n\n    runtime: Literal[\"open_code\"] = \"open_code\"\n    models: dict[str, str] | None = None  # role -> model overrides"
+      }
+    ],
+    "suggested_fix": "Add a validator that checks the `models` dictionary keys are valid roles from `FORGE_ROLE_TO_MODEL_FIELD` and values match expected model ID patterns (e.g., `provider/model-name` format).",
+    "confidence": 0.7,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-008",
+    "title": "Sensitive Data Exposure in Logging",
+    "description": "The code logs various data including potential API keys, repo paths, and finding details. While `OPENROUTER_API_KEY` is set in environment after validation, the `AGENTFIELD_API_KEY` is passed directly to the Agent constructor and could be logged inadvertently.",
+    "category": "secrets_management",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 38,
+        "line_end": 45,
+        "snippet": "NODE_ID = os.getenv(\"FORGE_NODE_ID\", \"forge-engine\")\nWORKSPACES_DIR = os.getenv(\"WORKSPACES_DIR\", \"/workspaces\")\n\nlogger = logging.getLogger(__name__)\n\nif Agent is not None:\n    app = Agent(\n        node_id=NODE_ID,\n        version=\"0.1.0\",\n        description=\"FORGE: Framework for Orchestrated Remediation & Governance Engine\",\n        agentfield_server=os.getenv(\"AGENTFIELD_SERVER\", \"http://localhost:8080\"),\n        api_key=os.getenv(\"AGENTFIELD_API_KEY\"),\n    )"
+      }
+    ],
+    "suggested_fix": "Ensure API keys are redacted in logs by using a custom log filter or by explicitly avoiding logging any configuration containing secrets. Use `logging.Filter` to mask sensitive environment variables.",
+    "confidence": 0.6,
+    "cwe_id": "CWE-532",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-009",
+    "title": "Missing Authentication/Authorization for CLI Commands",
+    "description": "The CLI (`cli.py`) has no authentication mechanism. While API key is required for LLM calls, there's no access control on who can run scans or fixes against local repositories. In multi-user environments, this could be exploited.",
+    "category": "authentication",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/cli.py",
+        "line_start": 39,
+        "line_end": 58,
+        "snippet": "def _check_api_key(api_key: str | None) -> str:\n    \"\"\"Resolve the OpenRouter API key from flag or environment.\"\"\"\n    key = api_key or os.getenv(\"OPENROUTER_API_KEY\")\n    if not key:\n        typer.echo(\n            \"Error: OPENROUTER_API_KEY is not set.\\n\"\n            \"Set it in your environment or pass --api-key:\\n\\n\"\n            \"  export OPENROUTER_API_KEY=sk-or-v1-...\\n\"\n            \"  vibe2prod scan ./my-app\\n\",\n            err=True,\n        )\n        raise typer.Exit(1)\n    os.environ[\"OPENROUTER_API_KEY\"] = key\n    return key"
+      }
+    ],
+    "suggested_fix": "For multi-user environments, consider adding authentication (e.g., API key validation stored securely) or OS-level permissions. Document that this tool should only be used in trusted environments.",
+    "confidence": 0.5,
+    "cwe_id": "CWE-306",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-010",
+    "title": "Potential DoS via Token Budget Exhaustion in Context Building",
+    "description": "The `select_files_for_pass` function uses a token budget but doesn't validate input parameters. Large `token_budget` values or many files could cause memory exhaustion. The `_estimate_tokens` function uses a rough approximation that could be significantly off for certain content types.",
+    "category": "dos",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 117,
+        "line_end": 124,
+        "snippet": "def select_files_for_pass(\n    repo_path: str,\n    audit_pass: AuditPassType,\n    codebase_map: CodebaseMap,\n    token_budget: int = DEFAULT_TOKEN_BUDGET,\n) -> str:"
+      },
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 72,
+        "line_end": 75,
+        "snippet": "def _estimate_tokens(text: str) -> int:\n    \"\"\"Rough token estimate from character count.\"\"\"\n    return len(text) // CHARS_PER_TOKEN"
+      }
+    ],
+    "suggested_fix": "Add bounds checking on `token_budget` parameter (e.g., max 150000 tokens). Add timeout for file reading operations. Consider streaming file processing for very large repositories.",
+    "confidence": 0.5,
+    "cwe_id": "CWE-400",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-001",
+    "title": "Missing error handling in subprocess git clone operation",
+    "description": "The `_resolve_repo_path` function in `forge/app.py` uses `subprocess.run` with `check=True` which will raise `CalledProcessError` if the git clone fails, but there's no try/except to handle this gracefully. Additionally, the import of `subprocess` and `re` modules are done inside the function rather than at the module level, which is an inconsistent pattern.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 54,
+        "line_end": 67,
+        "snippet": "subprocess.run(\n            [\"git\", \"clone\", \"--depth=1\", repo_url, workspace],\n            check=True, capture_output=True, text=True,\n        )"
+      }
+    ],
+    "suggested_fix": "Wrap the subprocess call in a try/except to handle clone failures gracefully and provide a user-friendly error message. Move imports to module level for consistency.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-002",
+    "title": "Complex function with too many responsibilities",
+    "description": "The `remediate` function in `forge/app.py` is approximately 150 lines and handles multiple concerns: repo path resolution, telemetry setup, checkpoint recovery, discovery, triage, remediation, validation, cleanup, and result building. This violates the Single Responsibility Principle and makes testing difficult.",
+    "category": "quality",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 95,
+        "line_end": 245,
+        "snippet": "async def remediate(\n    repo_url: str = \"\",\n    repo_path: str = \"\",\n    config: dict | None = None,\n    tier1_findings: list[dict] | None = None,\n) -> dict:"
+      }
+    ],
+    "suggested_fix": "Extract smaller functions: `_setup_telemetry()`, `_recover_from_checkpoint()`, `_run_discovery_phase()`, `_run_triage_phase()`, `_run_remediation_phase()`, `_run_validation_phase()`, `_cleanup()` to improve maintainability and testability.",
+    "confidence": 0.95,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-003",
+    "title": "Code duplication in file selection functions",
+    "description": "The functions `select_files_for_pass` and `select_files_for_quality_pass` in `forge/execution/context_builder.py` have nearly identical logic for reading files and managing token budgets. The only difference is the scoring keyword sets used.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 150,
+        "line_end": 195,
+        "snippet": "def select_files_for_pass(...)\ndef select_files_for_quality_pass(...)"
+      },
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 236,
+        "line_end": 275,
+        "snippet": "def select_files_for_quality_pass(\n    repo_path: str,\n    audit_pass: AuditPassType,\n    codebase_map: CodebaseMap,\n    token_budget: int = DEFAULT_TOKEN_BUDGET,\n) -> str:"
+      }
+    ],
+    "suggested_fix": "Extract common logic into a helper function like `_select_files_for_pass_impl()` that accepts a scoring function or keyword list as a parameter.",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-004",
+    "title": "Unsafe file resource management",
+    "description": "In `build_codebase_inventory`, files are opened using `fpath.open(errors=\"replace\")` but there's no explicit close - relying on garbage collection. While Python eventually cleans this up, it's not explicit and could cause issues with file descriptors on systems with low limits.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 280,
+        "line_end": 320,
+        "snippet": "try:\n                loc = sum(1 for _ in fpath.open(errors=\"replace\"))\n            except OSError:\n                loc = 0"
+      }
+    ],
+    "suggested_fix": "Use a context manager: `with fpath.open(errors=\"replace\") as f: loc = sum(1 for _ in f)`",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-005",
+    "title": "Silent error suppression in checkpoint cleanup",
+    "description": "The `clear_checkpoints` function uses `shutil.rmtree(cp_dir, ignore_errors=True)` which silently ignores all errors including permission denied, file not found, etc. This could hide legitimate issues during development.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 155,
+        "line_end": 161,
+        "snippet": "def clear_checkpoints(repo_path: str) -> None:\n    \"\"\"Remove all checkpoint files for a repo.\"\"\"\n    import shutil\n\n    cp_dir = os.path.join(repo_path, CHECKPOINT_DIR)\n    if os.path.isdir(cp_dir):\n        shutil.rmtree(cp_dir, ignore_errors=True)"
+      }
+    ],
+    "suggested_fix": "Either log warnings when errors occur, or use a try/except to differentiate between 'not found' (expected) and permission errors (problematic).",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-006",
+    "title": "Missing type safety in restore_state function",
+    "description": "The `restore_state` function accepts `Any` type for the checkpoint parameter and returns `Any`. This loses the benefits of static type checking and makes the API unclear.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 126,
+        "line_end": 130,
+        "snippet": "def restore_state(\n    cp: ForgeCheckpoint,\n) -> Any:"
+      },
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 130,
+        "line_end": 172,
+        "snippet": ") -> Any:\n    \"\"\"Restore ForgeExecutionState from a checkpoint.\n\n    Returns a populated ForgeExecutionState ready to resume.\n    \"\"\""
+      }
+    ],
+    "suggested_fix": "Change return type to `ForgeExecutionState` with proper type annotation.",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-007",
+    "title": "Missing input validation in CLI path resolution",
+    "description": "While `_resolve_path` checks if a directory exists, it doesn't validate for path traversal attacks or symlink loops. Additionally, there's no check for whether the path is readable.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/cli.py",
+        "line_start": 52,
+        "line_end": 66,
+        "snippet": "def _resolve_path(path: str) -> str:\n    \"\"\"Resolve and validate the repo path.\"\"\"\n    resolved = str(Path(path).resolve())\n    if not Path(resolved).is_dir():\n        typer.echo(f\"Error: '{path}' is not a directory.\", err=True)\n        raise typer.Exit(1)\n    if not Path(resolved, \".git\").exists():\n        typer.echo(\n            f\"Warning: '{path}' is not a git repository. \"\n            \"Some features (worktree isolation, PR creation) won't work.\",\n            err=True,\n        )\n    return resolved"
+      }
+    ],
+    "suggested_fix": "Add checks for path readability and potentially symlink safety. Consider using `os.path.realpath()` to resolve symlinks and prevent path traversal.",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-008",
+    "title": "Inconsistent error handling in async gather calls",
+    "description": "In `forge_executor.py`, `asyncio.gather` is called with `return_exceptions=True` but the exceptions are only logged as errors rather than being properly handled or propagated. This could mask failures in test generator or code reviewer.",
+    "category": "quality",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "forge/execution/forge_executor.py",
+        "line_start": 130,
+        "line_end": 145,
+        "snippet": "test_raw, review_raw = await asyncio.gather(\n            test_coro, review_coro, return_exceptions=True,\n        )\n\n        # Parse test result\n        if isinstance(test_raw, Exception):\n            logger.error(\"Test generator failed: %s\", test_raw)\n            loop_state.test_result = TestGeneratorResult(finding_id=finding.id)\n        else:\n            loop_state.test_result = TestGeneratorResult(**_unwrap(test_raw))\n\n        # Parse review result\n        if isinstance(review_raw, Exception):\n            logger.error(\"Code reviewer failed: %s\", review_raw)\n            loop_state.review_result = ForgeCodeReviewResult(\n                finding_id=finding.id,\n                decision=ReviewDecision.REQUEST_CHANGES,\n                summary=f\"Review failed: {review_raw}\",\n            )"
+      }
+    ],
+    "suggested_fix": "The current handling creates a default result rather than failing fast. Consider whether these failures should halt execution or be counted as fix failures. Document this behavior and ensure it's intentional.",
+    "confidence": 0.85,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-009",
+    "title": "Hardcoded string literals scattered across codebase",
+    "description": "The role-to-model mappings in `forge/config.py` use hardcoded strings like 'codebase_analyst', 'security_auditor', etc. These same strings appear in other files (e.g., in provider_for_role calls). If a role name changes, multiple files need updating.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/config.py",
+        "line_start": 17,
+        "line_end": 33,
+        "snippet": "FORGE_ROLE_TO_MODEL_FIELD: dict[str, str] = {\n    \"codebase_analyst\": \"codebase_analyst_model\",\n    \"security_auditor\": \"security_auditor_model\",\n    \"quality_auditor\": \"quality_auditor_model\",\n    \"architecture_reviewer\": \"architecture_reviewer_model\",\n    \"fix_strategist\": \"fix_strategist_model\",\n    \"triage_classifier\": \"triage_classifier_model\",\n    \"coder_tier2\": \"coder_tier2_model\",\n    \"coder_tier3\": \"coder_tier3_model\",\n    \"test_generator\": \"test_generator_model\",\n    \"code_reviewer\": \"code_reviewer_model\",\n    \"integration_validator\": \"integration_validator_model\",\n    \"debt_tracker\": \"debt_tracker_model\",\n    # Hive Discovery roles\n    \"swarm_worker\": \"swarm_worker_model\",\n    \"synthesizer\": \"synthesizer_model\",\n}"
+      },
+      {
+        "file_path": "forge/config.py",
+        "line_start": 55,
+        "line_end": 70,
+        "snippet": "ROLE_TO_PROVIDER: dict[str, str] = {\n    \"codebase_analyst\": \"openrouter_direct\",\n    \"security_auditor\": \"openrouter_direct\",\n    \"quality_auditor\": \"openrouter_direct\",\n    \"architecture_reviewer\": \"openrouter_direct\",\n    \"fix_strategist\": \"openrouter_direct\",\n    \"triage_classifier\": \"openrouter_direct\",\n    \"coder_tier2\": \"opencode\",\n    \"coder_tier3\": \"opencode\",\n    \"test_generator\": \"opencode\",\n    \"code_reviewer\": \"openrouter_direct\",\n    \"integration_validator\": \"opencode\",\n    \"debt_tracker\": \"openrouter_direct\",\n    # Hive Discovery\n    \"swarm_worker\": \"openrouter_direct\",\n    \"synthesizer\": \"openrouter_direct\",\n}"
+      }
+    ],
+    "suggested_fix": "Consider creating an enum for agent roles and using it consistently across the codebase, or at minimum centralizing all role string constants in one location.",
+    "confidence": 0.75,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-010",
+    "title": "Telemetry context manager may not properly handle exceptions",
+    "description": "In the `remediate` function, the telemetry context is activated manually with `__enter__` and `__exit__` calls. If an exception occurs between activation and the finally block, the context might not be properly exited. Additionally, if `ForgeTelemetry.current()` returns a valid outer context, the code enters a branch where `_telemetry_ctx` is None, which could lead to inconsistent cleanup.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 117,
+        "line_end": 130,
+        "snippet": "if _outer is not None:\n        telemetry = _outer\n        _telemetry_ctx = None\n    else:\n        telemetry = ForgeTelemetry(run_id=state.forge_run_id)\n        _telemetry_ctx = telemetry.activate()\n        _telemetry_ctx.__enter__()\n\n    try:"
+      },
+      {
+        "file_path": "forge/app.py",
+        "line_start": 232,
+        "line_end": 240,
+        "snippet": "finally:\n        # Clean up all FORGE worktrees\n        try:\n            from forge.execution.worktree import cleanup_all_worktrees\n            cleanup_all_worktrees(state.repo_path)\n        except Exception as e:\n            logger.warning(\"Worktree cleanup failed: %s\", e)\n        # Deactivate telemetry context (only if we created it)\n        if _telemetry_ctx is not None:\n            _telemetry_ctx.__exit__(None, None, None)"
+      }
+    ],
+    "suggested_fix": "Use contextlib.contextmanager decorator or a proper context manager class to ensure proper cleanup. Consider using `async with` if the context supports it.",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-001",
+    "title": "God Module: forge/app.py Contains Too Many Responsibilities",
+    "description": "forge/app.py acts as a monolithic orchestrator handling platform detection, repo cloning, telemetry activation, checkpoint recovery, pipeline execution (discovery/triage/remediation/validation), worktree management, and result construction. This violates the Single Responsibility Principle and makes the module difficult to test, maintain, and extend. Changes to any part of the pipeline require modifying this central file.",
+    "category": "architecture",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 1,
+        "line_end": 200,
+        "snippet": "Contains platform detection, repo cloning, telemetry, checkpoint recovery, and all 4 pipeline phases in single module"
+      }
+    ],
+    "suggested_fix": "Extract responsibilities into separate modules: 1) RepoResolver for clone/path resolution, 2) PipelineOrchestrator for phase sequencing, 3) TelemetryManager for telemetry lifecycle, 4) WorktreeManager for git operations. Use a pipeline definition class to configure phase order.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-002",
+    "title": "Layering Violation: CLI Directly Couples to Execution Engine",
+    "description": "forge/cli.py directly imports and calls run_standalone from forge.standalone, mixing presentation logic with execution logic. The CLI should interact through a well-defined API or service layer, not directly invoke internal execution functions. This creates tight coupling that prevents swapping the execution engine.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "forge/cli.py",
+        "line_start": 95,
+        "line_end": 97,
+        "snippet": "from forge.standalone import run_standalone"
+      }
+    ],
+    "suggested_fix": "Create a public API module (e.g., forge/api.py) with functions like scan_repository() and fix_repository() that the CLI imports. This provides a stable contract between presentation and execution layers.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-003",
+    "title": "Conditional Import Creates Fragile Architecture",
+    "description": "forge/app.py uses 'try/except ImportError' to conditionally create the AgentField app or set app=None. This pattern makes the platform/standalone mode distinction implicit and error-prone. The codebase cannot clearly express which features require AgentField vs standalone mode.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 18,
+        "line_end": 47,
+        "snippet": "try:\n    from agentfield import Agent\nexcept ImportError:\n    Agent = None"
+      }
+    ],
+    "suggested_fix": "Use an explicit mode configuration enum (PlatformMode.STANDALONE vs PlatformMode.AGENTFIELD) passed at startup. Create separate entry points (forge/platform.py and forge/standalone.py) that each configure the appropriate app instance.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-004",
+    "title": "Circular Import Risk with Lazy Schema Imports",
+    "description": "forge/execution/checkpoint.py imports forge.schemas inside the restore_state() function rather than at module level. This creates a hidden circular import dependency - if schemas ever imports from checkpoint, the code will break. It also makes the module's dependencies unclear at static analysis time.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 114,
+        "line_end": 130,
+        "snippet": "def restore_state(cp: ForgeCheckpoint) -> Any:\n    \"\"\"Restore ForgeExecutionState from a checkpoint.\"\"\"\n    from forge.schemas import (..."
+      }
+    ],
+    "suggested_fix": "Move imports to the top of the module. Use TYPE_CHECKING block for type-only imports if needed. Add explicit dependencies in a requirements or package manifest.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-005",
+    "title": "Configuration Scattered Across Multiple Locations",
+    "description": "Configuration is defined in multiple places: FORGE_DEFAULT_MODELS in config.py, hardcoded values in context_builder.py (DEFAULT_TOKEN_BUDGET=80_000, CHARS_PER_TOKEN=4), magic numbers in forge_executor.py (max retries), and worktree paths in app.py. There's no unified configuration object, making it difficult to override settings or understand the full configuration surface.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 20,
+        "line_end": 24,
+        "snippet": "CHARS_PER_TOKEN = 4\nDEFAULT_TOKEN_BUDGET = 80_000"
+      },
+      {
+        "file_path": "forge/app.py",
+        "line_start": 29,
+        "line_end": 29,
+        "snippet": "WORKSPACES_DIR = os.getenv(\"WORKSPACES_DIR\", \"/workspaces\")"
+      }
+    ],
+    "suggested_fix": "Consolidate all configuration into ForgeConfig in config.py. Add token_budget, chars_per_token, workspaces_dir, and other settings. Use environment variable overrides consistently through ForgeConfig.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Telemetry Activation Coupled to Business Logic",
+    "description": "In forge/app.py:remediate(), telemetry is activated inline within the function using context manager patterns. This couples telemetry (a cross-cutting concern) directly to the main execution path, making it difficult to disable or replace telemetry implementation without modifying core logic.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 79,
+        "line_end": 88,
+        "snippet": "telemetry = ForgeTelemetry(run_id=state.forge_run_id)\n_telemetry_ctx = telemetry.activate()\n_telemetry_ctx.__enter__()"
+      }
+    ],
+    "suggested_fix": "Extract telemetry initialization into a middleware or context manager that wraps the entire pipeline. Consider using a decorator pattern to separate telemetry concerns from the remediate() function.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-007",
+    "title": "Inconsistent Error Handling in Checkpoint System",
+    "description": "forge/execution/checkpoint.py silently catches and logs exceptions without re-raising (lines 70-73, 101-104). This masks failures that may be critical for crash recovery. A checkpoint save failure could lead to lost work without the user being aware.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 67,
+        "line_end": 75,
+        "snippet": "except Exception as e:\n    logger.error(\"Failed to save checkpoint for %s: %s\", phase.value, e)"
+      }
+    ],
+    "suggested_fix": "Add a configuration option for checkpoint failure behavior: strict (raise exception), lenient (log and continue), or advisory (log warning). In critical pipelines, default to strict mode.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-008",
+    "title": "Missing Abstractions in Context Builder",
+    "description": "forge/execution/context_builder.py mixes file selection logic (keyword matching, scoring) with file reading and token budgeting in the same functions. These are separate concerns that should be abstracted: FileSelector, ContentReader, and TokenBudgetAllocator classes would improve testability and reusability.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/execution/context_builder.py",
+        "line_start": 100,
+        "line_end": 150,
+        "snippet": "def select_files_for_pass(...): combines scoring, reading, and token budgeting"
+      }
+    ],
+    "suggested_fix": "Refactor into separate classes: FileSelector (applies keywords/scoring), ContentReader (handles file I/O), TokenBudgetAllocator (manages limits). Pass these as dependencies to audit passes.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-009",
+    "title": "Function-Level Imports Hide Dependencies",
+    "description": "Multiple modules use function-level imports (app.py imports telemetry, checkpoint, worktree inside remediate; checkpoint.py imports schemas in restore_state). This obscures the module's true dependencies, making static analysis and tooling support difficult.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/app.py",
+        "line_start": 95,
+        "line_end": 200,
+        "snippet": "Multiple imports scattered throughout remediate function"
+      }
+    ],
+    "suggested_fix": "Move all imports to the top of modules. Use explicit re-exports in __init__.py if certain imports need to be centralized. Document any intentional lazy imports.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-010",
+    "title": "Checkpoint State Coupling to Pipeline Phases",
+    "description": "The CheckpointPhase enum in checkpoint.py tightly couples the checkpoint system to specific pipeline phases (DISCOVERY, TRIAGE, REMEDIATION, VALIDATION). Adding new phases or changing the pipeline requires modifying the checkpoint system. The checkpoint should be agnostic to what phases exist.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "forge/execution/checkpoint.py",
+        "line_start": 23,
+        "line_end": 30,
+        "snippet": "class CheckpointPhase(str, Enum):\n    DISCOVERY = \"discovery_complete\"\n    TRIAGE = \"triage_complete\"\n    REMEDIATION = \"fix_progress\"\n    VALIDATION = \"validation_complete\""
+      }
+    ],
+    "suggested_fix": "Use a generic checkpoint system that stores phase name as a string and stores arbitrary state. Define phases in the pipeline orchestrator, not in the checkpoint module.",
+    "confidence": 0.65,
+    "worker_type": "architecture",
+    "segment_id": "seg-forge-0",
+    "wave": 1
+  },
+  {
+    "id": "SEC-001",
+    "title": "Hardcoded Secrets in Source Code",
+    "description": "Multiple hardcoded secrets (API keys, database passwords, JWT secrets) are directly embedded in source code files. This exposes sensitive credentials in the codebase, which can be leaked through version control, code reviews, or decompiled binaries.",
+    "category": "security",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/express_api_nosec/src/config.js",
+        "line_start": 1,
+        "line_end": 3,
+        "snippet": "const API_KEY = \"sk-live-12345abcdef67890ghijklmnop\";\nconst DB_PASSWORD = \"password123\";\nconst JWT_SECRET = \"mysupersecretjwt\";"
+      },
+      {
+        "file_path": "tests/golden/codebases/flask_exposed_secrets/app.py",
+        "line_start": 6,
+        "line_end": 6,
+        "snippet": "SECRET_KEY = \"supersecret123\""
+      },
+      {
+        "file_path": "tests/golden/codebases/react_app_noerror/src/components/Dashboard.tsx",
+        "line_start": 5,
+        "line_end": 5,
+        "snippet": "const STRIPE_KEY = \"pk_live_abc123def456ghi789\";"
+      }
+    ],
+    "suggested_fix": "Use environment variables or a secrets management solution (e.g., AWS Secrets Manager, HashiCorp Vault) to store sensitive credentials. Load them at runtime via process.env or environment variable configuration.",
+    "confidence": 1.0,
+    "cwe_id": "CWE-798",
+    "owasp_ref": "A02:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-002",
+    "title": "SQL Injection Vulnerability",
+    "description": "User-supplied input is directly concatenated into SQL queries without parameterization or sanitization, allowing attackers to manipulate query logic and potentially access unauthorized data.",
+    "category": "security",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/express_api_nosec/src/routes/users.js",
+        "line_start": 11,
+        "line_end": 14,
+        "snippet": "const { name } = req.query;\nconst result = await pool.query(\n  `SELECT * FROM users WHERE name = '${name}'`\n);"
+      }
+    ],
+    "suggested_fix": "Use parameterized queries (prepared statements) with placeholders (e.g., $1, $2) instead of string interpolation. Example: pool.query('SELECT * FROM users WHERE name = $1', [name])",
+    "confidence": 1.0,
+    "cwe_id": "CWE-89",
+    "owasp_ref": "A03:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-003",
+    "title": "Missing Authentication on Admin Endpoints",
+    "description": "Admin endpoints (/admin/users, /admin/users/{user_id}) have no authentication or authorization checks, allowing any unauthenticated user to access sensitive administrative functionality.",
+    "category": "security",
+    "severity": "critical",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/fastapi_monolith/main.py",
+        "line_start": 36,
+        "line_end": 42,
+        "snippet": "@app.get(\"/admin/users\")\ndef admin_list_users():\n    # No authentication check!\n    db = SessionLocal()\n    users = db.query(User).all()"
+      },
+      {
+        "file_path": "tests/golden/codebases/fastapi_monolith/main.py",
+        "line_start": 44,
+        "line_end": 49,
+        "snippet": "@app.delete(\"/admin/users/{user_id}\")\ndef admin_delete_user(user_id: int):\n    # No authentication check!"
+      }
+    ],
+    "suggested_fix": "Implement authentication (e.g., JWT tokens, session-based auth) and role-based authorization (RBAC) to verify that only authorized users can access admin endpoints. Use dependency injection patterns (e.g., FastAPI's Depends) to enforce access control.",
+    "confidence": 1.0,
+    "cwe_id": "CWE-306",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-004",
+    "title": "Information Disclosure via Stack Traces",
+    "description": "Error handlers expose full stack traces in HTTP responses, revealing internal application details, file paths, and library versions that could assist attackers in identifying vulnerabilities.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/express_api_nosec/src/index.js",
+        "line_start": 19,
+        "line_end": 23,
+        "snippet": "res.status(500).json({\n    error: err.message,\n    stack: err.stack,\n});"
+      },
+      {
+        "file_path": "tests/golden/codebases/express_api_nosec/src/routes/users.js",
+        "line_start": 17,
+        "line_end": 19,
+        "snippet": "res.status(500).json({ error: err.message, stack: err.stack });"
+      },
+      {
+        "file_path": "tests/golden/codebases/flask_exposed_secrets/app.py",
+        "line_start": 31,
+        "line_end": 31,
+        "snippet": "app.run(debug=True, host=\"0.0.0.0\", port=5000)"
+      },
+      {
+        "file_path": "tests/golden/codebases/flask_exposed_secrets/app.py",
+        "line_start": 28,
+        "line_end": 28,
+        "snippet": "# Debug mode in production \u2014 exposes Werkzeug debugger"
+      }
+    ],
+    "suggested_fix": "Disable debug mode in production. Configure error handlers to return generic error messages to clients while logging detailed errors server-side. Example: res.status(500).json({ error: 'Internal server error' }) and log full details to a secure logging system.",
+    "confidence": 1.0,
+    "cwe_id": "CWE-209",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-005",
+    "title": "Missing Input Validation",
+    "description": "User input from request bodies is used directly without validation or sanitization, potentially allowing injection attacks, malformed data storage, or application crashes.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/express_api_nosec/src/routes/users.js",
+        "line_start": 26,
+        "line_end": 32,
+        "snippet": "const { name, email, password } = req.body;\n// No input validation"
+      },
+      {
+        "file_path": "tests/golden/codebases/fastapi_monolith/main.py",
+        "line_start": 24,
+        "line_end": 28,
+        "snippet": "def create_user(data: dict):\n    # No input validation \u2014 raw dict access\n    user = User(name=data[\"name\"], email=data[\"email\"])"
+      },
+      {
+        "file_path": "tests/golden/codebases/flask_exposed_secrets/app.py",
+        "line_start": 22,
+        "line_end": 25,
+        "snippet": "@app.route(\"/api/login\", methods=[\"POST\"])\ndef login():\n    data = request.get_json()\n    # No input validation\n    session[\"user\"] = data[\"username\"]"
+      }
+    ],
+    "suggested_fix": "Implement input validation using schema validation libraries (e.g., Pydantic for Python, Joi for Node.js, Zod for TypeScript). Validate data types, required fields, format constraints (email, length), and sanitize special characters.",
+    "confidence": 1.0,
+    "cwe_id": "CWE-20",
+    "owasp_ref": "A03:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-006",
+    "title": "Missing Security Headers and Rate Limiting",
+    "description": "The Express application lacks rate limiting, CORS configuration, and security headers (Helmet), exposing the application to brute-force attacks, cross-site scripting via CORS, and various client-side attacks.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/express_api_nosec/src/index.js",
+        "line_start": 5,
+        "line_end": 8,
+        "snippet": "// No rate limiting\n// No CORS configuration\n// No helmet security headers"
+      }
+    ],
+    "suggested_fix": "Add rate limiting using express-rate-limit, configure CORS with appropriate origin restrictions, and use Helmet.js to set security headers (Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, etc.).",
+    "confidence": 1.0,
+    "cwe_id": "Cwe-770",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-007",
+    "title": "Insecure Session Cookie Configuration",
+    "description": "Flask session cookies are not configured with security flags (SECURE, HTTPONLY, SAME SITE), making them vulnerable to XSS theft and CSRF attacks.",
+    "category": "security",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/flask_exposed_secrets/app.py",
+        "line_start": 9,
+        "line_end": 12,
+        "snippet": "# No session cookie security flags\n# app.config[\"SESSION_COOKIE_SECURE\"] = False (default)\n# app.config[\"SESSION_COOKIE_HTTPONLY\"] = False (default)"
+      }
+    ],
+    "suggested_fix": "Configure secure session cookies: app.config['SESSION_COOKIE_SECURE'] = True, app.config['SESSION_COOKIE_HTTPONLY'] = True, app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'",
+    "confidence": 1.0,
+    "cwe_id": "CWE-614",
+    "owasp_ref": "A05:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-008",
+    "title": "Sensitive Data Exposure via Console Logging",
+    "description": "Authentication tokens and API keys are logged to the browser console, potentially exposing sensitive credentials to anyone with browser access or through browser extensions.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/react_app_noerror/src/components/Dashboard.tsx",
+        "line_start": 16,
+        "line_end": 18,
+        "snippet": "console.log(\"User token:\", token);\nconsole.log(\"Stripe key:\", STRIPE_KEY);"
+      }
+    ],
+    "suggested_fix": "Remove all console.log statements that output sensitive data. Use proper secret management and ensure debugging output is disabled in production environments.",
+    "confidence": 1.0,
+    "cwe_id": "CWE-532",
+    "owasp_ref": "A01:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-009",
+    "title": "Hardcoded Database Connection URL",
+    "description": "Database URL is hardcoded in source code, which could be exposed if the code is leaked and doesn't follow the principle of configuration separation.",
+    "category": "security",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/fastapi_monolith/main.py",
+        "line_start": 8,
+        "line_end": 8,
+        "snippet": "DATABASE_URL = \"sqlite:///./app.db\""
+      }
+    ],
+    "suggested_fix": "Store database connection strings in environment variables and load them at runtime using os.environ.get('DATABASE_URL')",
+    "confidence": 0.9,
+    "cwe_id": "CWE-1059",
+    "owasp_ref": "A04:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-010",
+    "title": "Missing Error Handling in Fetch Calls",
+    "description": "React components make API calls without error handling, which can lead to unhandled promise rejections and poor user experience. While not a direct security vulnerability, it can expose application state issues.",
+    "category": "security",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/react_app_noerror/src/components/Dashboard.tsx",
+        "line_start": 10,
+        "line_end": 14,
+        "snippet": "fetch(\"/api/dashboard\")\n    .then((res) => res.json())\n    .then(setData);"
+      },
+      {
+        "file_path": "tests/golden/codebases/react_app_noerror/src/components/UserList.tsx",
+        "line_start": 7,
+        "line_end": 10,
+        "snippet": "fetch(\"/api/users\")\n    .then((res) => res.json())\n    .then(setUsers);"
+      },
+      {
+        "file_path": "tests/golden/codebases/react_app_noerror/src/utils/api.ts",
+        "line_start": 4,
+        "line_end": 17,
+        "snippet": "export async function getUsers() {\n  const response = await fetch(`${BASE_URL}/users`);\n  return response.json();\n}"
+      }
+    ],
+    "suggested_fix": "Add .catch() handlers to all fetch calls and implement proper error states in the UI. Example: fetch(url).then(res => { if (!res.ok) throw new Error(...); return res.json(); }).catch(err => { ... })",
+    "confidence": 1.0,
+    "cwe_id": "CWE-755",
+    "owasp_ref": "A05:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "SEC-011",
+    "title": "Circular Import Dependency",
+    "description": "Python files have circular imports (main.py imports from utils.py, utils.py imports from main.py) which can cause runtime import errors and unpredictable module initialization.",
+    "category": "security",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/fastapi_monolith/main.py",
+        "line_start": 55,
+        "line_end": 55,
+        "snippet": "from utils import format_price  # noqa: E402"
+      },
+      {
+        "file_path": "tests/golden/codebases/fastapi_monolith/utils.py",
+        "line_start": 3,
+        "line_end": 3,
+        "snippet": "from main import Product  # Circular import!"
+      }
+    ],
+    "suggested_fix": "Refactor to eliminate circular dependencies by moving shared code to a separate module or using lazy imports within functions rather than module-level imports.",
+    "confidence": 1.0,
+    "cwe_id": "CWE-1101",
+    "owasp_ref": "A09:2021",
+    "worker_type": "security",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-001",
+    "title": "Code duplication - _copy_golden function repeated across test files",
+    "description": "The _copy_golden helper function is duplicated in test_golden_suite.py and test_hive_live_e2e.py. This violates DRY principle and creates maintenance burden.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/golden/test_golden_suite.py",
+        "line_start": 34,
+        "line_end": 41,
+        "snippet": "def _copy_golden(name: str, tmp_path) -> str:"
+      },
+      {
+        "file_path": "tests/integration/test_hive_live_e2e.py",
+        "line_start": 38,
+        "line_end": 47,
+        "snippet": "def _copy_golden_codebase(name: str, dest: Path) -> Path:"
+      }
+    ],
+    "suggested_fix": "Move _copy_golden to tests/fixtures/schemas.py or conftest.py as a shared fixture",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-002",
+    "title": "Loose assertions in golden tests may hide regressions",
+    "description": "Tests use >= assertions (e.g., assert len(inv) >= 4) which are too permissive. A regression that reduces file count from 10 to 5 would still pass.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/golden/test_golden_suite.py",
+        "line_start": 54,
+        "line_end": 55,
+        "snippet": "assert len(inv) >= 4"
+      },
+      {
+        "file_path": "tests/golden/test_golden_suite.py",
+        "line_start": 69,
+        "line_end": 69,
+        "snippet": "assert len(js_files) >= 4"
+      }
+    ],
+    "suggested_fix": "Use exact assertions with known expected counts, or at minimum document why >= is acceptable",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-003",
+    "title": "Mock response builder functions duplicated between integration tests",
+    "description": "Functions like _coder_ok, _test_ok, _review_ok in test_execute_remediation.py could be consolidated with or leverage the existing factory functions in conftest.py",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 44,
+        "line_end": 67,
+        "snippet": "def _coder_ok, _test_ok, _review_ok"
+      }
+    ],
+    "suggested_fix": "Extend conftest.py factory functions to accept model_dump() output, or add a make_mock_result helper",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-004",
+    "title": "Test helper docstring mismatch in _create_test_repo",
+    "description": "The _create_test_repo function creates files that import 'from src.utils import helper' but only creates 'src/utils.py' without verifying the helper function exists. The docstring says 'minimal Python project' but creates imports that may not work.",
+    "category": "quality",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_hive_discovery.py",
+        "line_start": 117,
+        "line_end": 167,
+        "snippet": "def _create_test_repo(tmp_path: Path) -> str:"
+      }
+    ],
+    "suggested_fix": "Verify the created test repo actually works by running a simple import check, or simplify the structure to avoid circular/relative import issues",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-005",
+    "title": "Inconsistent async test marker usage",
+    "description": "Some async tests use @pytest.mark.asyncio while others rely on pytest-asyncio auto-detection. This inconsistency may cause tests to be skipped silently in some configurations.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_hive_discovery.py",
+        "line_start": 176,
+        "line_end": 177,
+        "snippet": "@pytest.mark.asyncio"
+      },
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 83,
+        "line_end": 84,
+        "snippet": "@pytest.mark.asyncio"
+      }
+    ],
+    "suggested_fix": "Ensure pytest-asyncio mode='auto' is set in pytest.ini or conftest.py, or consistently apply the marker",
+    "confidence": 0.6,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-006",
+    "title": "Missing error handling in mock side effects",
+    "description": "The _smart_side_effect functions in test_execute_remediation.py use multiple isinstance checks that could fail silently. If the kwarg structure changes, the function returns empty dict {} which may cause downstream errors.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 93,
+        "line_end": 112,
+        "snippet": "async def _smart_side_effect(*args, **kwargs):"
+      }
+    ],
+    "suggested_fix": "Add validation/assertion to ensure expected kwarg structure, or raise an error for unexpected input",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-007",
+    "title": "Complex mock logic in tests reduces readability",
+    "description": "The _smart_side_effect function in test_execute_remediation.py has complex conditional logic to determine the finding_id from different kwarg structures. This makes the test hard to understand and maintain.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 93,
+        "line_end": 112,
+        "snippet": "fid = \"F-rem001\"\n            if \"finding\" in kwargs..."
+      }
+    ],
+    "suggested_fix": "Extract finding_id extraction logic into a separate helper function with clear documentation",
+    "confidence": 0.8,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-008",
+    "title": "Test state helpers defined as module-level functions instead of fixtures",
+    "description": "_state_with_plan() and similar helpers are defined at module level rather than as pytest fixtures. This prevents dependency injection and makes test ordering matter more.",
+    "category": "testability",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 23,
+        "line_end": 41,
+        "snippet": "def _state_with_plan():"
+      }
+    ],
+    "suggested_fix": "Convert these to @pytest.fixture functions in conftest.py for better test isolation",
+    "confidence": 0.7,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-009",
+    "title": "Hardcoded test paths may break on different systems",
+    "description": "Tests use hardcoded paths like '/tmp/test-repo' and '/tmp/test-artifacts' which could have permission issues or conflicts on some systems.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 26,
+        "line_end": 26,
+        "snippet": "state = ForgeExecutionState(repo_path=\"/tmp/test-repo\")"
+      }
+    ],
+    "suggested_fix": "Use tmp_path fixture provided by pytest for path isolation",
+    "confidence": 0.9,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "QUAL-010",
+    "title": "Missing timeout handling in live tests beyond pytest marker",
+    "description": "While @pytest.mark.timeout is used, there's no graceful handling if the LLM API call hangs. The test will just timeout without cleanup.",
+    "category": "quality",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_hive_live_e2e.py",
+        "line_start": 75,
+        "line_end": 76,
+        "snippet": "@pytest.mark.timeout(HIVE_TIMEOUT)"
+      }
+    ],
+    "suggested_fix": "Add try/finally with cleanup, or use pytest-timeout's timeout hook",
+    "confidence": 0.5,
+    "worker_type": "quality",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-001",
+    "title": "Global sys.modules manipulation in test infrastructure",
+    "description": "tests/integration/conftest.py directly manipulates sys.modules to mock the agentfield module before any imports. This creates tight coupling between test infrastructure and production module structure, makes tests fragile to module reorganization, and bypasses normal import mechanisms.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/integration/conftest.py",
+        "line_start": 29,
+        "line_end": 40,
+        "snippet": "sys.modules.setdefault(\"agentfield\", _mock_agentfield)"
+      }
+    ],
+    "suggested_fix": "Use a pytest plugin or conftest at the root level with proper autouse fixtures that mock at the call site rather than module load time. Consider using unittest.mock.patch at the import point (e.g., patch('forge.execution.forge_executor.Agent')) rather than modifying sys.modules directly.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-002",
+    "title": "String-based reasoner dispatch coupling",
+    "description": "Integration tests use magic strings like 'run_coder', 'run_test_generator', 'run_code_reviewer' to determine which mock response to return. This creates brittle coupling where test behavior depends on exact string matching with implementation reasoner names.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 88,
+        "line_end": 97,
+        "snippet": "if \"run_coder\" in reasoner:"
+      }
+    ],
+    "suggested_fix": "Define an enum or constant class for reasoner names that can be imported by both production code and tests. Use constants instead of magic strings, or consider a more robust dispatch mechanism like passing mock responses keyed by finding_id.",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-003",
+    "title": "Parallel test execution side effects - benchmark file writes",
+    "description": "The forge_telemetry fixture in tests/integration/conftest.py writes to a shared file (.forge-benchmarks/cost_log.jsonl) without any locking mechanism. When tests run in parallel, this can cause file corruption or lost benchmark entries.",
+    "category": "architecture",
+    "severity": "high",
+    "locations": [
+      {
+        "file_path": "tests/integration/conftest.py",
+        "line_start": 102,
+        "line_end": 107,
+        "snippet": "with open(_BENCHMARK_LOG, \"a\") as f:"
+      }
+    ],
+    "suggested_fix": "Use thread-safe file writing (e.g., file locking with fcntl, or writing to separate per-worker files that are merged afterward), or disable this feature when running tests in parallel mode.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-004",
+    "title": "Module-level patching of imports",
+    "description": "Tests patch specific module paths like 'forge.execution.worktree.create_worktree' rather than testing against abstractions. This couples tests to implementation file structure and makes refactoring difficult.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 68,
+        "line_end": 71,
+        "snippet": "@patch(\"forge.execution.worktree.create_worktree\", return_value=\"/tmp/test-worktree\")"
+      }
+    ],
+    "suggested_fix": "Inject worktree functions as dependencies into execute_remediation, or use an abstraction layer that can be mocked more cleanly. Consider constructor injection or dependency injection framework.",
+    "confidence": 0.75,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-005",
+    "title": "Inconsistent test factory patterns",
+    "description": "tests/conftest.py mixes pytest fixtures (forge_config, mock_app) with standalone factory functions (make_finding, make_codebase_map). This inconsistency makes it unclear which pattern to use and can lead to tests that don't use shared fixtures.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/conftest.py",
+        "line_start": 1,
+        "line_end": 150,
+        "snippet": "def make_finding(...), @pytest.fixture def forge_config()"
+      }
+    ],
+    "suggested_fix": "Convert factory functions to pytest fixtures (e.g., @pytest.fixture def finding() -> AuditFinding:) and remove the standalone functions, or clearly document when to use each pattern.",
+    "confidence": 0.7,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-006",
+    "title": "Hardcoded model name strings in tests",
+    "description": "Tests embed model names like 'anthropic/claude-sonnet-4.6' directly as strings in test code. This creates maintenance burden when models change and doesn't leverage ForgeConfig resolved_models() consistently.",
+    "category": "architecture",
+    "severity": "low",
+    "locations": [
+      {
+        "file_path": "tests/integration/test_execute_remediation.py",
+        "line_start": 50,
+        "line_end": 54,
+        "snippet": "\"coder_tier2_model\": \"anthropic/claude-sonnet-4.6\""
+      }
+    ],
+    "suggested_fix": "Use ForgeConfig.resolved_models() or define constants for model names in forge.config module, importing them in tests.",
+    "confidence": 0.8,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-007",
+    "title": "Test conftest responsibilities not separated",
+    "description": "tests/conftest.py combines schema factories, pytest hooks (pytest_addoption, pytest_configure, pytest_collection_modifyitems), and fixtures in a single 200+ line file. This violates single responsibility principle and makes the file harder to maintain.",
+    "category": "architecture",
+    "severity": "medium",
+    "locations": [
+      {
+        "file_path": "tests/conftest.py",
+        "line_start": 142,
+        "line_end": 198,
+        "snippet": "def pytest_addoption(parser):"
+      }
+    ],
+    "suggested_fix": "Split into separate files: tests/conftest.py for fixtures, tests/hooks.py for pytest hooks, and keep factories in tests/fixtures/schemas.py (which already exists as a re-export file).",
+    "confidence": 0.85,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  },
+  {
+    "id": "ARCH-008",
+    "title": "Golden test codebases contain intentional architectural anti-patterns",
+    "description": "The golden codebases (e.g., fastapi_monolith) contain intentional circular imports and god modules that tests rely on. While this is intentional for testing detection capabilities, it creates implicit dependencies on bad patterns that could mislead developers.",
+    "category": "architecture",
+    "severity": "info",
+    "locations": [
+      {
+        "file_path": "tests/golden/codebases/fastapi_monolith/utils.py",
+        "line_start": 3,
+        "line_end": 3,
+        "snippet": "from main import Product  # Circular import!"
+      }
+    ],
+    "suggested_fix": "Add clear documentation or a README in tests/golden/codebases explaining that these are intentionally-flawed codebases for testing, and consider organizing them in a separate directory structure to make the intent clearer.",
+    "confidence": 0.9,
+    "worker_type": "architecture",
+    "segment_id": "seg-tests-1",
+    "wave": 1
+  }
+]
