@@ -33,8 +33,9 @@ export default function NewScanPage() {
   // Wizard state
   const [step, setStep] = useState(1);
 
-  // Step 1: Repo URL + Primer
+  // Step 1: Repo URL + Branch + Primer
   const [repoUrl, setRepoUrl] = useState("");
+  const [branch, setBranch] = useState("");
   const [primerResult, setPrimerResult] = useState<PrimerResult | null>(null);
   const [suggestedFlows, setSuggestedFlows] = useState<string[]>([]);
   const [repoSelectorManual, setRepoSelectorManual] = useState(false);
@@ -124,12 +125,17 @@ export default function NewScanPage() {
 
       const body: {
         repo_url: string;
+        branch?: string;
         project_intake: ProjectIntake;
         primer?: PrimerResult;
       } = {
         repo_url: repoUrl.trim(),
         project_intake: intake,
       };
+
+      if (branch) {
+        body.branch = branch;
+      }
 
       if (primerResult) {
         body.primer = primerResult;
@@ -229,6 +235,8 @@ export default function NewScanPage() {
           getToken={getToken}
           repoUrl={repoUrl}
           setRepoUrl={setRepoUrl}
+          branch={branch}
+          setBranch={setBranch}
           primerResult={primerResult}
           setPrimerResult={setPrimerResult}
           setSuggestedFlows={setSuggestedFlows}
@@ -266,6 +274,7 @@ export default function NewScanPage() {
       {step === 3 && (
         <ReviewStep
           repoUrl={repoUrl}
+          branch={branch}
           primerResult={primerResult}
           projectOrigin={projectOrigin}
           productSummary={productSummary}

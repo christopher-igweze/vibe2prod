@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 
 export interface ReviewStepProps {
   repoUrl: string;
+  branch: string;
   primerResult: PrimerResult | null;
   projectOrigin: ProjectOrigin;
   productSummary: string;
@@ -50,6 +51,7 @@ export interface ReviewStepProps {
 
 export function ReviewStep({
   repoUrl,
+  branch,
   primerResult,
   projectOrigin,
   productSummary,
@@ -71,7 +73,7 @@ export function ReviewStep({
   // Render helpers
   const primerJson = primerResult?.primer_json;
   const repoName = (primerJson?.repo_full_name as string) || "";
-  const defaultBranch = (primerJson?.default_branch as string) || "";
+  const displayBranch = branch || (primerJson?.default_branch as string) || "";
 
   return (
     <div className="space-y-6">
@@ -110,10 +112,10 @@ export function ReviewStep({
             {primerResult && (
               <div className="flex items-center gap-3 text-xs text-neutral-500">
                 {repoName && <span>{repoName}</span>}
-                {defaultBranch && (
+                {displayBranch && (
                   <>
                     <span className="text-neutral-700">|</span>
-                    <span>{defaultBranch}</span>
+                    <span>{displayBranch}</span>
                   </>
                 )}
                 {primerResult.confidence > 0 && (
