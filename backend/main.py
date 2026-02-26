@@ -65,7 +65,7 @@ app = FastAPI(
 # ------------------------------------------------------------------ #
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$|^https://(www\.)?vibe2prod\.com$",
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$|^https://(www\.)?vibe2prod\.com$|^https://.*\.ngrok-free\.app$|^https://.*\.ngrok-free\.dev$|^https://.*\.ngrok\.io$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
