@@ -90,11 +90,6 @@ export default function NewScanPage() {
         token: token ?? undefined,
       });
       setQuota(limits);
-      if (limits.reports_remaining <= 0) {
-        setQuotaError(
-          `You've used all ${limits.reports_limit} free scans this month. Resets next month.`
-        );
-      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
         setQuotaError("Unable to check quota. Please ensure you are onboarded.");
@@ -168,9 +163,7 @@ export default function NewScanPage() {
             return;
           }
 
-          if (code === "limit_reports_exceeded") {
-            setSubmitError("You have used all your free scans this month. Quota resets next month.");
-          } else if (code === "limit_projects_exceeded") {
+          if (code === "limit_projects_exceeded") {
             setSubmitError("You have reached the free tier project limit.");
           } else {
             setSubmitError(
