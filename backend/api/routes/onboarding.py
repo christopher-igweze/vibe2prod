@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 
+from api.middleware.rate_limit import limiter, rate_limit_string
 from models.onboarding import OrgOnboardingPayload
 from services import supabase_client as db
 
@@ -17,6 +18,7 @@ class OnboardingResponse(BaseModel):
 
 
 @router.post("/onboarding/org", response_model=OnboardingResponse)
+@limiter.limit(rate_limit_string())
 async def save_org_onboarding(
     request_body: OrgOnboardingPayload,
     request: Request,

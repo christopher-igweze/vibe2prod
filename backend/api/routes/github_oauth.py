@@ -44,7 +44,16 @@ def _oauth_not_configured() -> HTTPException:
 
 
 def _state_secret() -> str:
-    return settings.github_oauth_state_secret or settings.supabase_jwt_secret
+    if not settings.github_oauth_state_secret:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_oauth_state_secret_missing",
+                "message": "GitHub OAuth state secret is not configured. "
+                "Set GITHUB_OAUTH_STATE_SECRET in the environment.",
+            },
+        )
+    return settings.github_oauth_state_secret
 
 
 def _ensure_oauth_configured() -> None:

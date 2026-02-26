@@ -184,6 +184,12 @@ def _suggest_flows(primer_json: dict) -> list[str]:
 
 
 async def _summarize(primer_json: dict) -> str:
+    # Truncate individual list fields to keep prompt within token limits
+    # while preserving valid JSON structure
+    trimmed = {
+        k: v[:150] if isinstance(v, list) else v
+        for k, v in primer_json.items()
+    }
     prompt = (
         "You are Agent_Primer. Summarize this repository context in 4 short bullets:\n"
         "1) likely product purpose\n"
@@ -191,7 +197,8 @@ async def _summarize(primer_json: dict) -> str:
         "3) likely deployment/runtime shape\n"
         "4) top immediate audit risk areas\n"
         "Keep it concise and factual.\n\n"
-        f"{json.dumps(primer_json)[:15000]}"
+        "Repository data (JSON):\n"
+        f"{json.dumps(trimmed)}"
     )
     try:
         async with httpx.AsyncClient(timeout=20) as client:

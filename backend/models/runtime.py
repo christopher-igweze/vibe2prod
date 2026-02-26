@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-
-def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+from models._utils import utc_now
 
 
 class RuntimeSession(BaseModel):

@@ -15,8 +15,10 @@ from uuid import UUID
 from fastapi import APIRouter, Request, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
+from api.middleware.rate_limit import limiter, rate_limit_string
 from models.agent_log import SSEEventType
 from api.routes._sse import event_buses
+from services import supabase_client as db
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -36,43 +38,55 @@ async def _event_generator(scan_id: UUID):
     idle_ticks = 0
     max_idle = 600  # 10 minutes with no new events → close
 
-    while True:
-        if cursor < len(bus):
-            # New events available
-            for entry in bus[cursor:]:
-                yield {
-                    "event": entry.event_type.value,
-                    "data": json.dumps(
-                        entry.model_dump(mode="json"), default=str
-                    ),
-                }
+    try:
+        while True:
+            if cursor < len(bus):
+                # New events available
+                for entry in bus[cursor:]:
+                    yield {
+                        "event": entry.event_type.value,
+                        "data": json.dumps(
+                            entry.model_dump(mode="json"), default=str
+                        ),
+                    }
 
-                # If scan is done or errored, close the stream
-                if entry.event_type in (
-                    SSEEventType.scan_complete,
-                    SSEEventType.scan_error,
-                ):
+                    # If scan is done or errored, close the stream
+                    if entry.event_type in (
+                        SSEEventType.scan_complete,
+                        SSEEventType.scan_error,
+                    ):
+                        return
+
+                cursor = len(bus)
+                idle_ticks = 0
+            else:
+                idle_ticks += 1
+                if idle_ticks >= max_idle:
+                    yield {
+                        "event": "timeout",
+                        "data": json.dumps({"message": "Stream timed out"}),
+                    }
                     return
 
-            cursor = len(bus)
-            idle_ticks = 0
-        else:
-            idle_ticks += 1
-            if idle_ticks >= max_idle:
-                yield {
-                    "event": "timeout",
-                    "data": json.dumps({"message": "Stream timed out"}),
-                }
-                return
-
-        await asyncio.sleep(1)
+            await asyncio.sleep(1)
+    finally:
+        # Clean up the event bus entry to prevent unbounded memory growth
+        event_buses.pop(scan_id, None)
+        logger.debug("Cleaned up event bus for scan %s", scan_id)
 
 
 @router.get("/status/{scan_id}")
+@limiter.limit(rate_limit_string())
 async def stream_status(scan_id: UUID, request: Request):
     """Stream audit events for a given scan via SSE."""
     if scan_id not in event_buses:
         raise HTTPException(status_code=404, detail="Scan not found")
+
+    # Verify the requesting user owns this scan
+    user_id: str = request.state.user_id
+    scan = await db.get_scan_report(scan_id, user_id)
+    if not scan:
+        raise HTTPException(status_code=403, detail="Not authorized to view this scan")
 
     return EventSourceResponse(
         _event_generator(scan_id),
