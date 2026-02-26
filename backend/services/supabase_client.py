@@ -281,6 +281,41 @@ async def clear_github_connection(*, user_id: str) -> None:
     ).eq("user_id", str(user_id)).execute()
 
 
+async def upsert_profile_from_clerk(
+    user_id: str,
+    email: str,
+    display_name: str | None = None,
+    avatar_url: str | None = None,
+    github_username: str | None = None,
+) -> None:
+    """Upsert a user profile from Clerk webhook data."""
+    client = _client()
+    data: dict = {
+        "user_id": user_id,
+        "email": email,
+        "display_name": display_name,
+        "avatar_url": avatar_url,
+    }
+    if github_username:
+        data["github_username"] = github_username
+
+    existing = (
+        client.table("profiles")
+        .select("user_id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    if existing.data:
+        # Update existing profile (don't overwrite fields with None)
+        update_data = {k: v for k, v in data.items() if v is not None and k != "user_id"}
+        if update_data:
+            client.table("profiles").update(update_data).eq("user_id", user_id).execute()
+    else:
+        # Insert new profile
+        client.table("profiles").insert(data).execute()
+
+
 async def save_org_onboarding(*, user_id: str, payload: dict) -> None:
     client = _client()
     client.table("profiles").update(
