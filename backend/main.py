@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -113,6 +113,20 @@ async def health():
 # ------------------------------------------------------------------ #
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    # Starlette BaseHTTPMiddleware wraps HTTPExceptions in ExceptionGroups.
+    # Unwrap them so FastAPI returns the correct status code.
+    if isinstance(exc, BaseExceptionGroup):
+        for inner in exc.exceptions:
+            if isinstance(inner, HTTPException):
+                return JSONResponse(
+                    status_code=inner.status_code,
+                    content={"detail": inner.detail},
+                )
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
     logger.exception("Unhandled exception on %s %s", request.method, request.url)
     return JSONResponse(
         status_code=500,

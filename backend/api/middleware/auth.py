@@ -14,9 +14,9 @@ import logging
 
 import jwt
 from jwt import PyJWKClient
-from fastapi import Request, HTTPException
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
 
 from config import settings
 
@@ -53,7 +53,10 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
 
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
-            raise HTTPException(status_code=401, detail="Missing Bearer token")
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Missing Bearer token"},
+            )
 
         token = auth_header.removeprefix("Bearer ").strip()
 
@@ -79,8 +82,14 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
 
             request.state.user_id = payload["sub"]
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token expired")
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Token expired"},
+            )
         except jwt.InvalidTokenError as exc:
-            raise HTTPException(status_code=401, detail=f"Invalid token: {exc}")
+            return JSONResponse(
+                status_code=401,
+                content={"detail": f"Invalid token: {exc}"},
+            )
 
         return await call_next(request)
