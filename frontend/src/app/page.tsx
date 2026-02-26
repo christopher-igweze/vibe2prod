@@ -1,4 +1,3 @@
-import { Waitlist } from "@clerk/nextjs";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -19,30 +18,20 @@ function HeroSection() {
           Get actionable security, reliability, and scalability findings —
           prioritized for your project stage.
         </p>
-      </div>
-    </section>
-  );
-}
-
-function WaitlistSection() {
-  return (
-    <section id="waitlist" className="py-12">
-      <div className="mx-auto max-w-md px-6">
-        <Waitlist
-          appearance={{
-            elements: {
-              rootBox: "mx-auto w-full",
-              card: "bg-neutral-900 border border-neutral-800 shadow-2xl shadow-emerald-500/5",
-              headerTitle: "text-neutral-100",
-              headerSubtitle: "text-neutral-400",
-              formFieldInput:
-                "bg-neutral-800 border-neutral-700 text-neutral-100 placeholder:text-neutral-500",
-              formButtonPrimary:
-                "bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-semibold",
-              footerActionLink: "text-emerald-400 hover:text-emerald-300",
-            },
-          }}
-        />
+        <div className="mt-10 flex items-center justify-center gap-4">
+          <Link
+            href="/sign-up"
+            className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
+          >
+            Get Started Free
+          </Link>
+          <Link
+            href="/sign-in"
+            className="rounded-lg border border-neutral-700 px-6 py-3 text-base font-semibold text-neutral-300 hover:border-neutral-500 hover:text-neutral-100 transition-colors"
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -174,7 +163,7 @@ function Footer() {
     <footer className="border-t border-neutral-800 py-8">
       <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-neutral-500">
-          © {new Date().getFullYear()} Vibe2Prod. All rights reserved.
+          &copy; {new Date().getFullYear()} Vibe2Prod. All rights reserved.
         </div>
         <div className="flex items-center gap-6">
           <Link
@@ -184,10 +173,10 @@ function Footer() {
             Sign In
           </Link>
           <Link
-            href="#waitlist"
+            href="/sign-up"
             className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
           >
-            Join Waitlist
+            Get Started
           </Link>
         </div>
       </div>
@@ -213,17 +202,16 @@ export default function LandingPage() {
               Sign In
             </Link>
             <Link
-              href="#waitlist"
+              href="/sign-up"
               className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
             >
-              Get Early Access
+              Get Started
             </Link>
           </div>
         </div>
       </nav>
 
       <HeroSection />
-      <WaitlistSection />
       <FeaturesSection />
       <ActionabilitySection />
       <StatsSection />
