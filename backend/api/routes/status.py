@@ -17,6 +17,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from models.agent_log import SSEEventType
 from api.routes._sse import event_buses
+from services import supabase_client as db
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -78,6 +79,12 @@ async def stream_status(scan_id: UUID, request: Request):
     """Stream audit events for a given scan via SSE."""
     if scan_id not in event_buses:
         raise HTTPException(status_code=404, detail="Scan not found")
+
+    # Verify the requesting user owns this scan
+    user_id: str = request.state.user_id
+    scan = await db.get_scan_report(scan_id, user_id)
+    if not scan:
+        raise HTTPException(status_code=403, detail="Not authorized to view this scan")
 
     return EventSourceResponse(
         _event_generator(scan_id),
