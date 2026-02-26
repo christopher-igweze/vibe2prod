@@ -25,6 +25,11 @@ from models.scan import FixRequest, FixResponse
 from api.middleware.rate_limit import limiter, rate_limit_string
 from services import supabase_client as db
 
+try:
+    from services.forge_bridge import trigger_forge_remediate
+except ImportError:
+    trigger_forge_remediate = None  # type: ignore[assignment]
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
@@ -36,8 +41,6 @@ async def _run_forge_fix(
     tier1_findings: list[dict] | None,
 ) -> None:
     """Background task that runs FORGE remediation and stores results."""
-    from services.forge_bridge import trigger_forge_remediate
-
     try:
         await db.update_fix_attempt(fix_attempt_id, status="running")
         await db.update_action_item_fix_status(action_item_id, "in_progress")
