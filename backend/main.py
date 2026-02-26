@@ -29,7 +29,6 @@ from api.routes import (
     webhook,
     webhook_clerk,
 )
-from config import settings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,8 +41,6 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Vibe2Prod API starting up...")
-    if settings.tier1_enabled:
-        await audit.cleanup_tier1_expired()
     yield
     logger.info("Vibe2Prod API shutting down.")
 
