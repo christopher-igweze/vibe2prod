@@ -1,3 +1,5 @@
+"use client"
+
 import type { CodebaseMap, DiscoveryFinding } from "@/lib/api/types"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,50 +32,70 @@ export function ArchitectureContext({ map, findings }: ArchitectureContextProps)
         </p>
       )}
 
-      {/* Modules */}
-      {map.modules.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-neutral-400 mb-2">Modules</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {map.modules.map((mod) => (
-              <div
-                key={mod.path}
-                className="rounded border border-neutral-800 bg-neutral-950/50 px-3 py-2"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-neutral-200">{mod.name}</span>
+      {/* Modules + Entry Points grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Modules */}
+        {map.modules.length > 0 && (
+          <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-4">
+            <h3 className="text-sm font-medium text-neutral-400 mb-3">Modules</h3>
+            <div className="space-y-2">
+              {map.modules.map((mod) => (
+                <div
+                  key={mod.path}
+                  className="flex items-start justify-between gap-2"
+                >
+                  <div className="min-w-0">
+                    <span className="text-sm font-medium text-neutral-200 block">
+                      {mod.name}
+                    </span>
+                    {mod.purpose && (
+                      <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
+                        {mod.purpose}
+                      </p>
+                    )}
+                  </div>
                   {mod.loc > 0 && (
-                    <span className="text-xs text-neutral-500">{mod.loc.toLocaleString()} LOC</span>
+                    <span className="text-xs text-neutral-500 shrink-0 tabular-nums">
+                      {mod.loc.toLocaleString()} LOC
+                    </span>
                   )}
                 </div>
-                {mod.purpose && (
-                  <p className="text-xs text-neutral-500 mt-0.5 line-clamp-1">{mod.purpose}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Entry Points */}
-      {map.entry_points.length > 0 && (
-        <div>
-          <h3 className="text-sm font-medium text-neutral-400 mb-2">Entry Points</h3>
-          <div className="flex flex-wrap gap-2">
-            {map.entry_points.map((ep, i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <Badge
-                  variant="outline"
-                  className="border-neutral-700 text-neutral-300 text-xs"
-                >
-                  {ep.type}
-                </Badge>
-                <span className="text-xs text-neutral-400 font-mono">{ep.path}</span>
-              </div>
-            ))}
+        {/* Entry Points */}
+        {map.entry_points.length > 0 && (
+          <div className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-4">
+            <h3 className="text-sm font-medium text-neutral-400 mb-3">Entry Points</h3>
+            <div className="space-y-2">
+              {map.entry_points.map((ep, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-300 font-mono truncate flex-1">
+                    {ep.path}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className="border-neutral-700 text-neutral-400 text-[10px] px-1.5 py-0 shrink-0"
+                  >
+                    {ep.type}
+                  </Badge>
+                  <Badge
+                    className={`text-[10px] px-1.5 py-0 border shrink-0 ${
+                      ep.is_public
+                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                        : "bg-neutral-500/10 text-neutral-400 border-neutral-600"
+                    }`}
+                  >
+                    {ep.is_public ? "public" : "private"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Key Patterns */}
       {map.key_patterns.length > 0 && (
@@ -97,31 +119,32 @@ export function ArchitectureContext({ map, findings }: ArchitectureContextProps)
       {map.data_flows.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-neutral-400 mb-2">Data Flows</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-neutral-800 text-neutral-500">
-                  <th className="text-left py-1.5 pr-4">Source</th>
-                  <th className="text-left py-1.5 pr-4">Destination</th>
-                  <th className="text-left py-1.5 pr-4">Type</th>
-                  <th className="text-left py-1.5">Auth</th>
-                </tr>
-              </thead>
-              <tbody>
-                {map.data_flows.map((flow, i) => (
-                  <tr key={i} className="border-b border-neutral-800/50">
-                    <td className="py-1.5 pr-4 text-neutral-300 font-mono">{flow.source}</td>
-                    <td className="py-1.5 pr-4 text-neutral-300 font-mono">{flow.destination}</td>
-                    <td className="py-1.5 pr-4 text-neutral-400">{flow.data_type}</td>
-                    <td className="py-1.5">
-                      <span className={flow.is_authenticated ? "text-emerald-400" : "text-red-400"}>
-                        {flow.is_authenticated ? "Yes" : "No"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-2">
+            {map.data_flows.map((flow, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 text-sm"
+              >
+                <span className="text-neutral-300 font-mono text-xs">{flow.source}</span>
+                <span className="text-neutral-600">-&gt;</span>
+                <span className="text-neutral-300 font-mono text-xs">{flow.destination}</span>
+                <Badge
+                  variant="outline"
+                  className="border-neutral-700 text-neutral-500 text-[10px] px-1.5 py-0 ml-1"
+                >
+                  {flow.data_type}
+                </Badge>
+                <Badge
+                  className={`text-[10px] px-1.5 py-0 border shrink-0 ${
+                    flow.is_authenticated
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-red-500/10 text-red-400 border-red-500/20"
+                  }`}
+                >
+                  {flow.is_authenticated ? "authenticated" : "unauthenticated"}
+                </Badge>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -130,29 +153,22 @@ export function ArchitectureContext({ map, findings }: ArchitectureContextProps)
       {map.auth_boundaries.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-neutral-400 mb-2">Auth Boundaries</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-neutral-800 text-neutral-500">
-                  <th className="text-left py-1.5 pr-4">Path</th>
-                  <th className="text-left py-1.5 pr-4">Protected</th>
-                  <th className="text-left py-1.5">Auth Type</th>
-                </tr>
-              </thead>
-              <tbody>
-                {map.auth_boundaries.map((ab, i) => (
-                  <tr key={i} className="border-b border-neutral-800/50">
-                    <td className="py-1.5 pr-4 text-neutral-300 font-mono">{ab.path}</td>
-                    <td className="py-1.5 pr-4">
-                      <span className={ab.is_protected ? "text-emerald-400" : "text-red-400"}>
-                        {ab.is_protected ? "Yes" : "No"}
-                      </span>
-                    </td>
-                    <td className="py-1.5 text-neutral-400">{ab.auth_type}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-2">
+            {map.auth_boundaries.map((ab, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <span className="text-neutral-300 font-mono text-xs">{ab.path}</span>
+                <Badge
+                  className={`text-[10px] px-1.5 py-0 border shrink-0 ${
+                    ab.is_protected
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-red-500/10 text-red-400 border-red-500/20"
+                  }`}
+                >
+                  {ab.is_protected ? "protected" : "unprotected"}
+                </Badge>
+                <span className="text-xs text-neutral-500">{ab.auth_type}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -1,3 +1,5 @@
+"use client"
+
 import type { Severity } from "@/lib/api/types"
 import { severityClasses } from "./report-utils"
 
