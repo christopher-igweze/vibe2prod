@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     # --- FORGE Engine ---
     forge_enabled: bool = False
     forge_agentfield_url: str = "http://localhost:8080"
+    forge_node_id: str = "forge-engine"
+    agentfield_api_key: str = ""
     forge_default_model: str = "minimax/minimax-m2.5"
     forge_runtime: str = "open_code"
     forge_max_inner_retries: int = 3
