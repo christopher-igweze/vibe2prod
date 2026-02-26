@@ -1,25 +1,45 @@
-"""Supabase JWT verification middleware.
+"""Clerk JWT verification middleware.
 
-Extracts and validates the Bearer token from the Authorization header
-against the Supabase JWT secret.  Attaches ``request.state.user_id``
-for downstream route handlers.
+Verifies the Bearer token from the Authorization header using Clerk's
+JWKS endpoint (RS256).  Attaches ``request.state.user_id`` for
+downstream route handlers.
+
+Falls back to Supabase HS256 verification when clerk_jwks_url is not
+configured, for backward compatibility during migration.
 """
 
 from __future__ import annotations
 
+import logging
+
 import jwt
+from jwt import PyJWKClient
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.responses import Response
 
 from config import settings
 
+logger = logging.getLogger(__name__)
+
 # Paths that don't require authentication
 PUBLIC_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
 PUBLIC_PREFIXES = ("/api/webhook/",)
 
+# Cache the JWKS client (fetches and caches signing keys automatically)
+_jwks_client: PyJWKClient | None = None
+
+
+def _get_jwks_client() -> PyJWKClient | None:
+    global _jwks_client
+    if _jwks_client is None and settings.clerk_jwks_url:
+        _jwks_client = PyJWKClient(settings.clerk_jwks_url, cache_keys=True)
+    return _jwks_client
+
 
 class SupabaseAuthMiddleware(BaseHTTPMiddleware):
+    """Verifies Clerk RS256 JWTs (or legacy Supabase HS256 as fallback)."""
+
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
@@ -38,12 +58,25 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
         token = auth_header.removeprefix("Bearer ").strip()
 
         try:
-            payload = jwt.decode(
-                token,
-                settings.supabase_jwt_secret,
-                algorithms=["HS256"],
-                audience="authenticated",
-            )
+            jwks = _get_jwks_client()
+            if jwks:
+                # Clerk RS256 verification via JWKS
+                signing_key = jwks.get_signing_key_from_jwt(token)
+                payload = jwt.decode(
+                    token,
+                    signing_key.key,
+                    algorithms=["RS256"],
+                    options={"verify_aud": False},
+                )
+            else:
+                # Legacy Supabase HS256 fallback
+                payload = jwt.decode(
+                    token,
+                    settings.supabase_jwt_secret,
+                    algorithms=["HS256"],
+                    audience="authenticated",
+                )
+
             request.state.user_id = payload["sub"]
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token expired")
