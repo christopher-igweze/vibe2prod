@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from tier1.contracts import Tier1Evidence, Tier1Finding
+from tier1.patterns import PatternLibrary, evaluate_pattern_signals
 
 LOCKFILE_NAMES = {
     "package-lock.json",
@@ -327,6 +328,36 @@ class DeterministicScanner:
                 suggested_fix_stub="Add route-level or global rate limiting to protect critical endpoints from abuse spikes.",
             )
         )
+
+        # ── Pattern-library-driven checks ────────────────────────────
+        all_file_paths = [str(f.get("path") or "") for f in files]
+        dependency_names = list(facts.get("dependency_names") or [])
+        pattern_library = PatternLibrary.load_default()
+
+        for pattern in pattern_library.all():
+            score, evidence_list = evaluate_pattern_signals(
+                pattern,
+                signals=signals,
+                dependency_names=dependency_names,
+                all_file_paths=all_file_paths,
+            )
+            if score >= pattern.deterministic_threshold:
+                findings.append(
+                    self._build_check(
+                        check_id=pattern.id,
+                        title=pattern.name,
+                        description=pattern.description,
+                        category=pattern.category,
+                        severity=pattern.severity_default,
+                        engine="pattern_library",
+                        status="fail",
+                        confidence=min(score, 0.95),
+                        evidence=_evidence_from_rows(evidence_list),
+                        suggested_fix_stub=pattern.fix_strategy,
+                    )
+                )
+                findings[-1].pattern_id = pattern.id
+                findings[-1].pattern_slug = pattern.slug
 
         self._apply_severity_escalation(findings, sensitive_data or [])
         return findings
