@@ -34,6 +34,8 @@ export interface RepoStepProps {
   getToken: () => Promise<string | null>;
   repoUrl: string;
   setRepoUrl: (url: string) => void;
+  branch: string;
+  setBranch: (branch: string) => void;
   primerResult: PrimerResult | null;
   setPrimerResult: (result: PrimerResult | null) => void;
   setSuggestedFlows: (flows: string[]) => void;
@@ -50,6 +52,8 @@ export function RepoStep({
   getToken,
   repoUrl,
   setRepoUrl,
+  branch,
+  setBranch,
   primerResult,
   setPrimerResult,
   setSuggestedFlows,
@@ -75,9 +79,7 @@ export function RepoStep({
     return true;
   };
 
-  const handleAnalyze = async () => {
-    if (!validateUrl(repoUrl)) return;
-
+  const runPrimer = async () => {
     setPrimerLoading(true);
     setPrimerResult(null);
     setPrimerWarning(null);
@@ -85,9 +87,14 @@ export function RepoStep({
 
     try {
       const token = await getToken();
+      const primerBody: { repo_url: string; branch?: string } = {
+        repo_url: repoUrl.trim(),
+      };
+      if (branch) primerBody.branch = branch;
+
       const result = await apiFetch<PrimerResponse>("/api/primer", {
         method: "POST",
-        body: JSON.stringify({ repo_url: repoUrl.trim() }),
+        body: JSON.stringify(primerBody),
         token: token ?? undefined,
       });
 
@@ -110,13 +117,22 @@ export function RepoStep({
     }
   };
 
+  const handleContinue = () => {
+    if (!validateUrl(repoUrl)) return;
+    // Kick off primer in the background if not already done
+    if (!primerResult && !primerLoading) {
+      runPrimer();
+    }
+    onContinue();
+  };
+
   // Render helpers
   const primerJson = primerResult?.primer_json;
   const fileCount = Array.isArray(primerJson?.file_tree_sample)
     ? (primerJson.file_tree_sample as string[]).length
     : 0;
   const repoName = (primerJson?.repo_full_name as string) || "";
-  const defaultBranch = (primerJson?.default_branch as string) || "";
+  const displayBranch = branch || (primerJson?.default_branch as string) || "";
 
   return (
     <Card className="bg-neutral-950 border-neutral-800">
@@ -133,12 +149,15 @@ export function RepoStep({
         {/* GitHub Repo Selector */}
         <RepoSelector
           getToken={getToken}
-          onSelect={(url) => {
+          onSelect={(url, defaultBranchName) => {
             setRepoUrl(url);
+            setBranch(defaultBranchName);
             if (repoUrlError) setRepoUrlError(null);
             setRepoSelectorManual(false);
           }}
           selectedUrl={repoUrl}
+          selectedBranch={branch}
+          onBranchChange={setBranch}
           showManual={repoSelectorManual}
           onToggleManual={setRepoSelectorManual}
         />
@@ -148,35 +167,22 @@ export function RepoStep({
           <Label htmlFor="repo-url" className="text-neutral-300">
             GitHub URL
           </Label>
-          <div className="flex gap-2">
-            <Input
-              id="repo-url"
-              value={repoUrl}
-              onChange={(e) => {
-                setRepoUrl(e.target.value);
-                if (repoUrlError) setRepoUrlError(null);
-              }}
-              placeholder="https://github.com/owner/repo"
-              className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600 flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAnalyze();
-                }
-              }}
-            />
-            <Button
-              onClick={handleAnalyze}
-              disabled={primerLoading || !repoUrl.trim()}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
-            >
-              {primerLoading ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                "Analyze"
-              )}
-            </Button>
-          </div>
+          <Input
+            id="repo-url"
+            value={repoUrl}
+            onChange={(e) => {
+              setRepoUrl(e.target.value);
+              if (repoUrlError) setRepoUrlError(null);
+            }}
+            placeholder="https://github.com/owner/repo"
+            className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleContinue();
+              }
+            }}
+          />
           {repoUrlError && (
             <p className="text-sm text-red-400 flex items-center gap-1.5">
               <AlertTriangle className="size-3.5 shrink-0" />
@@ -229,10 +235,10 @@ export function RepoStep({
                       <p className="text-sm text-neutral-200 truncate">{repoName}</p>
                     </div>
                   )}
-                  {defaultBranch && (
+                  {displayBranch && (
                     <div>
                       <p className="text-xs text-neutral-500">Branch</p>
-                      <p className="text-sm text-neutral-200">{defaultBranch}</p>
+                      <p className="text-sm text-neutral-200">{displayBranch}</p>
                     </div>
                   )}
                   {fileCount > 0 && (
@@ -272,12 +278,21 @@ export function RepoStep({
         {/* Navigation */}
         <div className="flex justify-end pt-2">
           <Button
-            onClick={onContinue}
-            disabled={!repoUrl.trim()}
+            onClick={handleContinue}
+            disabled={!repoUrl.trim() || primerLoading}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
-            Continue
-            <ArrowRight className="size-4 ml-1" />
+            {primerLoading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                Continue
+                <ArrowRight className="size-4 ml-1" />
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

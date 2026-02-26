@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Github,
+  GitBranch,
   Loader2,
   AlertTriangle,
   CheckCircle2,
   Search,
   Lock,
   ExternalLink,
+  ChevronDown,
 } from "lucide-react";
 
 import { apiFetch, ApiError } from "@/lib/api/client";
@@ -34,6 +36,11 @@ interface GitHubRepo {
   default_branch: string;
 }
 
+interface GitHubBranch {
+  name: string;
+  protected: boolean;
+}
+
 interface GitHubStatus {
   connected: boolean;
   github_username?: string;
@@ -45,8 +52,10 @@ interface GitHubStatus {
 
 export interface RepoSelectorProps {
   getToken: () => Promise<string | null>;
-  onSelect: (url: string) => void;
+  onSelect: (url: string, defaultBranch: string) => void;
   selectedUrl: string;
+  selectedBranch: string;
+  onBranchChange: (branch: string) => void;
   showManual: boolean;
   onToggleManual: (manual: boolean) => void;
 }
@@ -59,6 +68,8 @@ export function RepoSelector({
   getToken,
   onSelect,
   selectedUrl,
+  selectedBranch,
+  onBranchChange,
   showManual,
   onToggleManual,
 }: RepoSelectorProps) {
@@ -71,6 +82,11 @@ export function RepoSelector({
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // Branch state
+  const [branches, setBranches] = useState<GitHubBranch[]>([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
+  const [branchDropdownOpen, setBranchDropdownOpen] = useState(false);
 
   // Check GitHub connection status on mount
   useEffect(() => {
@@ -141,6 +157,24 @@ export function RepoSelector({
       // Silently fail on load more -- user can retry
     } finally {
       setLoadingMore(false);
+    }
+  };
+
+  // Fetch branches when a repo is selected
+  const fetchBranches = async (owner: string, repoName: string) => {
+    setBranchesLoading(true);
+    setBranches([]);
+    try {
+      const token = await getToken();
+      const result = await apiFetch<GitHubBranch[]>(
+        `/api/github/repos/${owner}/${repoName}/branches?per_page=100`,
+        { token: token ?? undefined }
+      );
+      setBranches(result);
+    } catch {
+      // Silently fail — user can still proceed with default branch
+    } finally {
+      setBranchesLoading(false);
     }
   };
 
@@ -270,62 +304,118 @@ export function RepoSelector({
               const repoGitUrl = `https://github.com/${repo.full_name}`;
               const isSelected = selectedUrl === repoGitUrl;
               return (
-                <button
-                  key={repo.full_name}
-                  type="button"
-                  onClick={() => onSelect(repoGitUrl)}
-                  className={`w-full text-left rounded-lg border p-3 transition-colors ${
-                    isSelected
-                      ? "border-emerald-500/50 bg-emerald-500/5"
-                      : "border-neutral-800 hover:border-neutral-700 bg-neutral-900/30"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-neutral-200 truncate">
-                          {repo.name}
-                        </span>
-                        {repo.private && (
-                          <Badge
-                            variant="outline"
-                            className="border-neutral-700 text-neutral-500 text-[10px] px-1.5 py-0 h-4 shrink-0"
-                          >
-                            <Lock className="size-2.5 mr-0.5" />
-                            Private
-                          </Badge>
+                <div key={repo.full_name}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelect(repoGitUrl, repo.default_branch);
+                      fetchBranches(repo.owner, repo.name);
+                    }}
+                    className={`w-full text-left rounded-lg border p-3 transition-colors ${
+                      isSelected
+                        ? "border-emerald-500/50 bg-emerald-500/5"
+                        : "border-neutral-800 hover:border-neutral-700 bg-neutral-900/30"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-neutral-200 truncate">
+                            {repo.name}
+                          </span>
+                          {repo.private && (
+                            <Badge
+                              variant="outline"
+                              className="border-neutral-700 text-neutral-500 text-[10px] px-1.5 py-0 h-4 shrink-0"
+                            >
+                              <Lock className="size-2.5 mr-0.5" />
+                              Private
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-neutral-500 mt-0.5 truncate">
+                          {repo.owner}/{repo.name}
+                        </p>
+                        {repo.description && (
+                          <p className="text-xs text-neutral-400 mt-1 line-clamp-1">
+                            {repo.description}
+                          </p>
                         )}
                       </div>
-                      <p className="text-xs text-neutral-500 mt-0.5 truncate">
-                        {repo.owner}/{repo.name}
-                      </p>
-                      {repo.description && (
-                        <p className="text-xs text-neutral-400 mt-1 line-clamp-1">
-                          {repo.description}
-                        </p>
-                      )}
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        {repo.language && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-neutral-800 text-neutral-300 border-neutral-700 text-[10px] px-1.5 py-0 h-4"
+                          >
+                            {repo.language}
+                          </Badge>
+                        )}
+                        <span className="text-[10px] text-neutral-600">
+                          {formatDate(repo.updated_at)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      {repo.language && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-neutral-800 text-neutral-300 border-neutral-700 text-[10px] px-1.5 py-0 h-4"
-                        >
-                          {repo.language}
-                        </Badge>
-                      )}
-                      <span className="text-[10px] text-neutral-600">
-                        {formatDate(repo.updated_at)}
-                      </span>
-                    </div>
-                  </div>
+                    {isSelected && (
+                      <div className="flex items-center gap-1 mt-2 text-xs text-emerald-400">
+                        <CheckCircle2 className="size-3" />
+                        Selected
+                      </div>
+                    )}
+                  </button>
+                  {/* Branch selector — shown below the selected repo */}
                   {isSelected && (
-                    <div className="flex items-center gap-1 mt-2 text-xs text-emerald-400">
-                      <CheckCircle2 className="size-3" />
-                      Selected
+                    <div className="ml-3 mt-1 relative">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-neutral-800 bg-neutral-900 text-xs text-neutral-300 hover:border-neutral-700 transition-colors"
+                        >
+                          <GitBranch className="size-3 text-neutral-500" />
+                          {branchesLoading ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <span className="truncate max-w-[200px]">
+                              {selectedBranch || repo.default_branch}
+                            </span>
+                          )}
+                          <ChevronDown className="size-3 text-neutral-500" />
+                        </button>
+                        {branchDropdownOpen && branches.length > 0 && (
+                          <div className="absolute top-full left-0 mt-1 z-50 w-64 max-h-48 overflow-y-auto rounded-md border border-neutral-800 bg-neutral-900 shadow-lg">
+                            {branches.map((b) => (
+                              <button
+                                key={b.name}
+                                type="button"
+                                onClick={() => {
+                                  onBranchChange(b.name);
+                                  setBranchDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-3 py-1.5 text-xs transition-colors flex items-center gap-2 ${
+                                  (selectedBranch || repo.default_branch) === b.name
+                                    ? "bg-emerald-500/10 text-emerald-300"
+                                    : "text-neutral-300 hover:bg-neutral-800"
+                                }`}
+                              >
+                                <GitBranch className="size-3 shrink-0 text-neutral-500" />
+                                <span className="truncate">{b.name}</span>
+                                {b.name === repo.default_branch && (
+                                  <Badge
+                                    variant="outline"
+                                    className="border-neutral-700 text-neutral-500 text-[9px] px-1 py-0 h-3.5 ml-auto shrink-0"
+                                  >
+                                    default
+                                  </Badge>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
-                </button>
+                </div>
               );
             })
           )}
