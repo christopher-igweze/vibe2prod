@@ -450,6 +450,10 @@ export default function ReportPage() {
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeHighlight]}
+                  components={{
+                    img: ({ src, ...props }) =>
+                      src ? <img src={src} {...props} /> : null,
+                  }}
                 >
                   {markdownContent}
                 </ReactMarkdown>
