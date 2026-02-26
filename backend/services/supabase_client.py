@@ -759,6 +759,20 @@ async def update_fix_attempt(
     ).execute()
 
 
+async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
+    """Return recent scans for a user, newest first."""
+    client = _client()
+    row = (
+        client.table("scan_reports")
+        .select("id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,created_at,project_id")
+        .eq("user_id", str(user_id))
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return row.data or []
+
+
 async def get_scan_report(scan_id: UUID, user_id: str) -> dict | None:
     """Fetch a scan report row by ID, scoped to the requesting user."""
     client = _client()
