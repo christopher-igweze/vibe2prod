@@ -5,8 +5,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { apiFetch, ApiError } from "@/lib/api/client";
-import { QuotaLimits } from "@/lib/api/types";
+import { apiFetch } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +20,6 @@ interface ScanSummary {
 
 export default function DashboardPage() {
   const { getToken } = useAuth();
-  const [quota, setQuota] = useState<QuotaLimits | null>(null);
   const [scans, setScans] = useState<ScanSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,14 +28,7 @@ export default function DashboardPage() {
     async function load() {
       try {
         const token = (await getToken()) ?? undefined;
-        const [q, s] = await Promise.all([
-          apiFetch<QuotaLimits>("/api/limits", { token }).catch((e) => {
-            if (e instanceof ApiError && e.status === 403) return null;
-            throw e;
-          }),
-          apiFetch<ScanSummary[]>("/api/user/scans", { token }).catch(() => [] as ScanSummary[]),
-        ]);
-        if (q) setQuota(q);
+        const s = await apiFetch<ScanSummary[]>("/api/user/scans", { token }).catch(() => [] as ScanSummary[]);
         setScans(s);
       } catch {
         setError("Failed to load dashboard data");
@@ -52,9 +43,9 @@ export default function DashboardPage() {
     return (
       <div className="space-y-4">
         <div className="h-8 w-48 bg-neutral-800 rounded animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 bg-neutral-800 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-neutral-800 rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
@@ -78,30 +69,11 @@ export default function DashboardPage() {
         </Card>
       )}
 
-      {/* Quota cards */}
-      {quota && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-neutral-900 border-neutral-800 p-4">
-            <p className="text-xs text-neutral-500 uppercase tracking-wider">
-              Projects
-            </p>
-            <p className="text-2xl font-bold mt-1">
-              {quota.project_count}
-              <span className="text-neutral-500 text-base font-normal">
-                {" "}/ {quota.project_limit}
-              </span>
-            </p>
-          </Card>
-        </div>
-      )}
-
-      {/* Scan history / empty state */}
       {scans.length === 0 ? (
         <Card className="bg-neutral-900 border-neutral-800 border-dashed p-12 text-center">
-          <div className="text-4xl mb-4">🔍</div>
           <h2 className="text-lg font-semibold mb-2">No scans yet</h2>
           <p className="text-neutral-400 text-sm mb-6">
-            Paste a GitHub URL to run your first free audit.
+            Paste a GitHub URL to run your first audit.
           </p>
           <Link href="/scan/new">
             <Button className="bg-emerald-600 hover:bg-emerald-700">
@@ -125,19 +97,17 @@ export default function DashboardPage() {
                       {new Date(scan.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge
-                      variant={
-                        scan.status === "completed"
-                          ? "default"
-                          : scan.status === "failed"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {scan.status}
-                    </Badge>
-                  </div>
+                  <Badge
+                    variant={
+                      scan.status === "completed"
+                        ? "default"
+                        : scan.status === "failed"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                  >
+                    {scan.status}
+                  </Badge>
                 </div>
               </Card>
             </Link>
