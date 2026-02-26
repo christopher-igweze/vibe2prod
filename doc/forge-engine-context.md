@@ -2,7 +2,7 @@
 
 **Source repo:** `christopher-igweze/forge-engine`
 **Package:** `vibe2prod` (v0.3.0, Python 3.12+)
-**Last synced:** 2026-02-25
+**Last synced:** 2026-02-26
 
 This document describes the FORGE engine architecture and how vibe2prod integrates with it.
 
@@ -212,7 +212,9 @@ After a FORGE run, the repo contains:
   fix_plan.json                 # Agent 5
   triage_result.json            # Agent 6
   report/
-    forge-{run_id}.json         # Readiness report
+    discovery_report.json       # Discovery + triage report
+    discovery_report.html       # HTML version
+    forge-{run_id}.json         # Readiness report (post-remediation)
     forge-{run_id}.html         # HTML version
   telemetry/
     invocations.jsonl           # Per-agent metrics
@@ -221,6 +223,38 @@ After a FORGE run, the repo contains:
 .forge-checkpoints/             # Resume after crash
 .forge-worktrees/               # Isolated branches per fix
 ```
+
+---
+
+## Discovery Reports
+
+After the discovery + triage phase, FORGE generates a structured report in two formats: JSON (`discovery_report.json`) and HTML (`discovery_report.html`), stored under `.artifacts/report/`.
+
+**Report contents:**
+- **Findings table** — all findings sorted by severity, with tier assignments from triage
+- **Architecture context** — modules, entry points, data flows, auth boundaries (from Agent 1's `CodebaseMap`)
+- **Remediation plan** — execution order and dependency graph from the Fix Strategist
+- **Finding hotspots** — findings grouped by module to identify high-risk areas
+- **Repo stats** — LOC total, file count, primary language, runtime
+- **Cost** — total LLM cost for the discovery + triage run
+
+Per-finding "ripple tags" cross-reference each finding with the data flows it touches, making it easy to trace impact across the codebase.
+
+**Hive Discovery mode:** As an alternative to classic sequential discovery, FORGE supports swarm-based discovery via `config.discovery_mode = "swarm"`. This runs a hive of parallel workers that chunk the codebase and discover findings concurrently, then synthesizes results. Useful for large repos where classic discovery would be slow.
+
+---
+
+## LLM Output Normalization
+
+Raw LLM outputs are normalized before Pydantic validation to prevent silent dropping of findings:
+
+| Field | Normalization | Example |
+|-------|--------------|---------|
+| `category` | Aliases mapped to canonical values | `code_patterns` -> `quality`, `error_handling` -> `reliability`, `auth_flow`/`data_handling`/`infrastructure`/`auth` -> `security`, `perf` -> `performance` |
+| `priority` | Values < 1 clamped to 1 | `0` -> `1`, `-1` -> `1` |
+| `dependency` | List coerced to first element or empty string | `["F-001", "F-002"]` -> `"F-001"`, `[]` -> `""` |
+
+These normalizations run before Pydantic model construction, catching common LLM output variations that would otherwise cause validation failures and silently drop findings.
 
 ---
 
