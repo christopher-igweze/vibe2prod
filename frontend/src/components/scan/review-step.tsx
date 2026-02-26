@@ -193,13 +193,13 @@ export function ReviewStep({
           {quota && !quotaError && (
             <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-400">Scans remaining this month</span>
+                <span className="text-sm text-neutral-400">Projects</span>
                 <span className="text-sm font-medium text-neutral-200">
-                  {quota.reports_remaining} / {quota.reports_limit}
+                  {quota.project_count} / {quota.project_limit}
                 </span>
               </div>
               <Progress
-                value={((quota.reports_limit - quota.reports_remaining) / quota.reports_limit) * 100}
+                value={(quota.project_count / quota.project_limit) * 100}
                 className="mt-2 h-1.5 bg-neutral-800"
               />
             </div>
@@ -233,7 +233,7 @@ export function ReviewStep({
               onClick={onSubmit}
               disabled={
                 submitting ||
-                (quota !== null && quota.reports_remaining <= 0)
+                (quota !== null && quota.project_count >= quota.project_limit)
               }
               className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-32"
             >

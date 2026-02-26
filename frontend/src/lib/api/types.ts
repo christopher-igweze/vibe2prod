@@ -1,31 +1,147 @@
-// Mirrors backend/models/scan.py and backend/tier1/contracts.py
+// Mirrors backend/models/scan.py and FORGE discovery report schema
 
 export type Actionability = 'must_fix' | 'should_fix' | 'consider' | 'informational'
 export type Severity = 'critical' | 'high' | 'medium' | 'low'
-export type Category = 'security' | 'reliability' | 'scalability'
-export type FindingStatus = 'fail' | 'warn' | 'pass' | 'skip'
+export type Category = 'security' | 'architecture' | 'quality' | 'reliability' | 'performance'
 export type ScanStatus = 'pending' | 'scanning' | 'completed' | 'failed'
 export type ProjectOrigin = 'inspired' | 'external'
 export type SensitiveDataType = 'payments' | 'pii' | 'health' | 'auth_secrets' | 'none' | 'not_sure'
 
-export interface Tier1Finding {
-  check_id: string
+// ── FORGE Discovery Report types ──────────────────────────────────
+
+export interface FindingLocation {
+  file_path: string
+  line_start: number | null
+  line_end: number | null
+  snippet: string
+}
+
+export interface DiscoveryFinding {
+  id: string
   title: string
   description: string
   category: Category
   severity: Severity
-  status: FindingStatus
-  confidence: number
-  actionability: Actionability
-  data_flow: string
-  pattern_id: string
-  pattern_slug: string
-  engine: string
-  file_path: string
-  line_number: number | null
-  evidence: string
-  why_it_matters: string
+  audit_pass: boolean | null
+  locations: FindingLocation[]
   suggested_fix: string
+  confidence: number
+  cwe_id: string
+  owasp_ref: string
+  agent: string
+  tier: number
+  dedup_key: string
+}
+
+export interface RemediationItem {
+  finding_id: string
+  title: string
+  tier: number
+  priority: number
+  estimated_files: number
+  files_to_modify: string[]
+  depends_on: string[]
+  acceptance_criteria: string[]
+  approach: string
+  group: string
+}
+
+export interface RemediationDependency {
+  finding_id: string
+  depends_on_finding_id: string
+  reason: string
+}
+
+export interface RemediationPlan {
+  items: RemediationItem[]
+  dependencies: RemediationDependency[]
+  execution_levels: string[][]
+}
+
+export interface CodebaseModule {
+  name: string
+  path: string
+  purpose: string
+  files: string[]
+  loc: number
+  language: string
+}
+
+export interface DataFlow {
+  source: string
+  destination: string
+  data_type: string
+  is_authenticated: boolean
+}
+
+export interface AuthBoundary {
+  path: string
+  auth_type: string
+  is_protected: boolean
+}
+
+export interface EntryPoint {
+  path: string
+  type: string
+  is_public: boolean
+}
+
+export interface CodebaseMap {
+  modules: CodebaseModule[]
+  entry_points: EntryPoint[]
+  data_flows: DataFlow[]
+  auth_boundaries: AuthBoundary[]
+  architecture_summary: string
+  key_patterns: string[]
+  loc_total: number
+  file_count: number
+  primary_language: string
+  languages: string[]
+}
+
+export interface DependencyGraphSegment {
+  id: string
+  label: string
+  files: string[]
+  loc: number
+  finding_count: number
+  internal_deps: string[]
+  external_deps: string[]
+  entry_points: string[]
+}
+
+export interface DependencyGraph {
+  total_nodes: number
+  total_edges: number
+  total_segments: number
+  segments: DependencyGraphSegment[]
+}
+
+export interface ActionabilitySummary {
+  must_fix_count: number
+  should_fix_count: number
+  consider_count: number
+  informational_count: number
+  signal_to_noise_ratio: number
+}
+
+export interface DiscoveryReport {
+  run_id: string
+  generated_at: string
+  phase: string
+  duration_seconds: number
+  cost_usd: number
+  loc_total: number
+  file_count: number
+  primary_language: string
+  total_findings: number
+  severity_breakdown: Record<Severity, number>
+  category_breakdown: Record<string, number>
+  actionability_summary: ActionabilitySummary | null
+  findings: DiscoveryFinding[]
+  remediation_plan: RemediationPlan | null
+  codebase_map: CodebaseMap | null
+  dependency_graph: DependencyGraph | null
 }
 
 export interface ProjectIntake {
@@ -62,44 +178,10 @@ export interface PrimerResult {
   failure_reason: string | null
 }
 
-export interface ReportScores {
-  health_score: number
-  security_score: number
-  reliability_score: number
-  scalability_score: number
-}
-
-export interface ReportCounts {
-  findings_total: number
-  by_severity: Record<Severity, number>
-  by_category: Record<Category, number>
-  by_actionability: Record<Actionability, number>
-}
-
-export interface ReportSummary {
-  scores: ReportScores
-  counts: ReportCounts
-  strengths: string[]
-  execution_plan: string[]
-}
-
-export interface ReportArtifact {
-  content: string
-  mime_type: string
-  content_encoding: string
-  expires_at: string
-  filename: string
-}
-
 export interface QuotaLimits {
   tier: string
-  month_key: string
-  reports_generated: number
-  reports_limit: number
-  reports_remaining: number
   project_count: number
   project_limit: number
-  loc_cap: number
 }
 
 // Mirrors backend/api/routes/primer.py PrimerResponse

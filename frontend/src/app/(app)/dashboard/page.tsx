@@ -17,10 +17,6 @@ interface ScanSummary {
   repo_name: string;
   status: string;
   created_at: string;
-  health_score: number | null;
-  security_score: number | null;
-  reliability_score: number | null;
-  scalability_score: number | null;
 }
 
 export default function DashboardPage() {
@@ -87,29 +83,6 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-neutral-900 border-neutral-800 p-4">
             <p className="text-xs text-neutral-500 uppercase tracking-wider">
-              Reports This Month
-            </p>
-            <p className="text-2xl font-bold mt-1">
-              {quota.reports_generated}
-              <span className="text-neutral-500 text-base font-normal">
-                {" "}/ {quota.reports_limit}
-              </span>
-            </p>
-            <div className="mt-2 h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
-                style={{
-                  width: `${Math.min(
-                    100,
-                    (quota.reports_generated / quota.reports_limit) * 100
-                  )}%`,
-                }}
-              />
-            </div>
-          </Card>
-
-          <Card className="bg-neutral-900 border-neutral-800 p-4">
-            <p className="text-xs text-neutral-500 uppercase tracking-wider">
               Projects
             </p>
             <p className="text-2xl font-bold mt-1">
@@ -119,7 +92,6 @@ export default function DashboardPage() {
               </span>
             </p>
           </Card>
-
         </div>
       )}
 
@@ -154,11 +126,6 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    {scan.health_score != null && (
-                      <span className="text-lg font-bold">
-                        {scan.health_score}
-                      </span>
-                    )}
                     <Badge
                       variant={
                         scan.status === "completed"
