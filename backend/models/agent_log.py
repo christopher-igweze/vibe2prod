@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import Enum
-from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field
+
+from models._utils import utc_now
 
 
 class LogLevel(str, Enum):
@@ -50,5 +52,5 @@ class AgentLogEntry(BaseModel):
     agent: AgentName
     message: str
     level: LogLevel = LogLevel.info
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = Field(default_factory=utc_now)
     data: dict | None = None
