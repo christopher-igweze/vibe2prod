@@ -55,6 +55,7 @@ class AuditRequest(BaseModel):
     """Incoming request to start an audit."""
 
     repo_url: HttpUrl
+    branch: str | None = None  # If None, uses repo's default branch
     vibe_prompt: str | None = None
     project_charter: dict | None = None
     project_intake: ProjectIntake

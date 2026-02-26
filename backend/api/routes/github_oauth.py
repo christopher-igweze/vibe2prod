@@ -302,6 +302,62 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
     ]
 
 
+@router.get("/github/repos/{owner}/{repo}/branches")
+@limiter.limit(rate_limit_string())
+async def list_repo_branches(
+    owner: str, repo: str, request: Request, page: int = 1, per_page: int = 30
+):
+    """List branches for a specific GitHub repository."""
+    user_id: str = request.state.user_id
+    token = await db.get_github_access_token(user_id)
+    if not token:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "github_not_connected", "message": "GitHub is not connected."},
+        )
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.get(
+            f"https://api.github.com/repos/{owner}/{repo}/branches",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+            },
+            params={
+                "per_page": min(per_page, 100),
+                "page": page,
+            },
+        )
+
+    if resp.status_code == 401:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "github_token_expired",
+                "message": "GitHub token is invalid or expired. Reconnect in Settings.",
+            },
+        )
+    if resp.status_code == 404:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "repo_not_found", "message": "Repository not found."},
+        )
+    if resp.status_code >= 400:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_api_error", "message": "GitHub API error."},
+        )
+
+    branches = resp.json()
+    return [
+        {
+            "name": b["name"],
+            "protected": b.get("protected", False),
+        }
+        for b in branches
+    ]
+
+
 @router.get("/github/status")
 async def github_connection_status(request: Request):
     """Check if GitHub is connected for the current user."""
