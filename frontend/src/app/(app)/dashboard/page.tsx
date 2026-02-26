@@ -114,15 +114,6 @@ export default function DashboardPage() {
             </p>
           </Card>
 
-          <Card className="bg-neutral-900 border-neutral-800 p-4">
-            <p className="text-xs text-neutral-500 uppercase tracking-wider">
-              LOC Limit
-            </p>
-            <p className="text-2xl font-bold mt-1">
-              {(quota.loc_cap / 1000).toFixed(0)}k
-            </p>
-            <p className="text-xs text-neutral-500 mt-1">per repository</p>
-          </Card>
         </div>
       )}
 

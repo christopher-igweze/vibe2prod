@@ -258,16 +258,6 @@ async def _tier1_preflight(
     )
     loc_total = int(index_payload.get("loc_total") or 0)
 
-    if loc_total > settings.tier1_loc_cap:
-        raise _limit_exception(
-            "limit_loc_exceeded",
-            "Repository LOC exceeds the free tier cap.",
-            {
-                "loc_total": loc_total,
-                "loc_cap": settings.tier1_loc_cap,
-            },
-        )
-
     return {
         "existing_project": existing_project,
         "month_key": month_key,
