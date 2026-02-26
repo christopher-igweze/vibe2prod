@@ -1,6 +1,8 @@
 'use client'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// When running through ngrok/vercel, use relative paths (Next.js rewrites proxy to backend).
+// Only use absolute URL for direct local dev without proxy.
+const API_URL = ''
 
 export class ApiError extends Error {
   constructor(
