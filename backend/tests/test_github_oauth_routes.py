@@ -17,6 +17,7 @@ os.environ.setdefault("OPENROUTER_API_KEY", "test")
 os.environ.setdefault("DAYTONA_API_KEY", "test")
 os.environ.setdefault("GITHUB_CLIENT_ID", "test-client")
 os.environ.setdefault("GITHUB_CLIENT_SECRET", "test-secret")
+os.environ.setdefault("GITHUB_OAUTH_STATE_SECRET", "test-state-secret")
 
 from api.routes import github_oauth  # noqa: E402
 
@@ -38,7 +39,7 @@ class GithubOAuthRouteTests(unittest.TestCase):
     def test_get_auth_url_returns_stateful_redirect(self) -> None:
         with patch.object(github_oauth.settings, "github_client_id", "test-client"), patch.object(
             github_oauth.settings, "github_client_secret", "test-secret"
-        ):
+        ), patch.object(github_oauth.settings, "github_oauth_state_secret", "test-state-secret"):
             resp = self.client.post(
                 "/api/github-oauth",
                 json={
@@ -54,7 +55,7 @@ class GithubOAuthRouteTests(unittest.TestCase):
     def test_exchange_code_persists_connection(self) -> None:
         with patch.object(github_oauth.settings, "github_client_id", "test-client"), patch.object(
             github_oauth.settings, "github_client_secret", "test-secret"
-        ):
+        ), patch.object(github_oauth.settings, "github_oauth_state_secret", "test-state-secret"):
             auth_resp = self.client.post(
                 "/api/github-oauth",
                 json={
@@ -67,6 +68,8 @@ class GithubOAuthRouteTests(unittest.TestCase):
 
         with patch.object(github_oauth.settings, "github_client_id", "test-client"), patch.object(
             github_oauth.settings, "github_client_secret", "test-secret"
+        ), patch.object(
+            github_oauth.settings, "github_oauth_state_secret", "test-state-secret"
         ), patch(
             "api.routes.github_oauth._exchange_code_for_access_token",
             new=AsyncMock(return_value="gho_test_token"),
