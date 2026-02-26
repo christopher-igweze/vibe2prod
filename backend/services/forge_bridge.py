@@ -132,6 +132,7 @@ async def trigger_forge_scan(
     model_override: str | None = None,
     timeout: int = _SCAN_TIMEOUT,
     agentfield_url_override: str | None = None,
+    project_context: dict | None = None,
 ) -> ForgeRunResult:
     """Trigger a FORGE discovery scan (no fixes applied).
 
@@ -146,6 +147,8 @@ async def trigger_forge_scan(
     }
     if model_override:
         config["models"] = {"default": model_override}
+    if project_context:
+        config["project_context"] = project_context
 
     payload = {
         "input": {
@@ -168,6 +171,7 @@ async def trigger_forge_remediate(
     timeout: int = _REMEDIATE_TIMEOUT,
     agentfield_url_override: str | None = None,
     github_token: str | None = None,
+    project_context: dict | None = None,
 ) -> ForgeRunResult:
     """Trigger a full FORGE remediation run.
 
@@ -179,6 +183,7 @@ async def trigger_forge_remediate(
         timeout: Max wait time in seconds.
         agentfield_url_override: Override AgentField URL.
         github_token: GitHub token for PR creation.
+        project_context: User-provided project context for scan personalization.
     """
     agentfield_url = agentfield_url_override or settings.forge_agentfield_url
     api_key = settings.agentfield_api_key
@@ -186,6 +191,8 @@ async def trigger_forge_remediate(
     config: dict[str, Any] = {"mode": mode}
     if model_override:
         config["models"] = {"default": model_override}
+    if project_context:
+        config["project_context"] = project_context
 
     # Convert tier1 findings to dicts if they're model objects
     t1_dicts = None
