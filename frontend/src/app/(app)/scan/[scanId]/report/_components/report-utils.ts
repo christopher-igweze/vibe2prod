@@ -24,9 +24,9 @@ export const SEVERITY_CONFIG: Record<
   },
   low: {
     label: "Low",
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-400",
-    border: "border-emerald-500/20",
+    bg: "bg-blue-500/10",
+    text: "text-blue-400",
+    border: "border-blue-500/20",
   },
 }
 
