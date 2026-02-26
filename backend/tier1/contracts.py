@@ -27,6 +27,8 @@ class Tier1Finding(BaseModel):
     suggested_fix_stub: str
     pattern_id: str = ""  # links to VulnerabilityPattern (e.g. "VP-001")
     pattern_slug: str = ""  # machine-readable pattern identifier
+    actionability: str = ""  # must_fix | should_fix | consider | informational
+    data_flow: str = ""  # source → transformation → sink trace
 
 
 class Tier1ScanResult(BaseModel):
