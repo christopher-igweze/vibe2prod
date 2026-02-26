@@ -45,6 +45,8 @@ export function connectSSE(
 
       const decoder = new TextDecoder()
       let buffer = ''
+      let currentEvent = 'message'
+      let currentData = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -54,10 +56,13 @@ export function connectSSE(
         const lines = buffer.split('\n')
         buffer = lines.pop() || ''
 
-        let currentEvent = 'message'
-        let currentData = ''
+        for (const rawLine of lines) {
+          // sse-starlette uses \r\n — strip trailing \r
+          const line = rawLine.replace(/\r$/, '')
 
-        for (const line of lines) {
+          // Skip SSE comments (keepalive pings)
+          if (line.startsWith(':')) continue
+
           if (line.startsWith('event: ')) {
             currentEvent = line.slice(7).trim()
           } else if (line.startsWith('data: ')) {
