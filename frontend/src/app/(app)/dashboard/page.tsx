@@ -12,12 +12,15 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface ScanSummary {
-  scan_id: string;
+  id: string;
   repo_url: string;
+  repo_name: string;
   status: string;
   created_at: string;
-  health_score?: number;
-  findings_count?: number;
+  health_score: number | null;
+  security_score: number | null;
+  reliability_score: number | null;
+  scalability_score: number | null;
 }
 
 export default function DashboardPage() {
@@ -31,14 +34,17 @@ export default function DashboardPage() {
     async function load() {
       try {
         const token = (await getToken()) ?? undefined;
-        const q = await apiFetch<QuotaLimits>("/api/limits", { token });
-        setQuota(q);
-      } catch (e) {
-        if (e instanceof ApiError && e.status === 403) {
-          // Not onboarded yet — that's fine, just show empty state
-        } else {
-          setError("Failed to load dashboard data");
-        }
+        const [q, s] = await Promise.all([
+          apiFetch<QuotaLimits>("/api/limits", { token }).catch((e) => {
+            if (e instanceof ApiError && e.status === 403) return null;
+            throw e;
+          }),
+          apiFetch<ScanSummary[]>("/api/user/scans", { token }).catch(() => [] as ScanSummary[]),
+        ]);
+        if (q) setQuota(q);
+        setScans(s);
+      } catch {
+        setError("Failed to load dashboard data");
       } finally {
         setLoading(false);
       }
@@ -135,17 +141,20 @@ export default function DashboardPage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Recent Scans</h2>
           {scans.map((scan) => (
-            <Link key={scan.scan_id} href={`/scan/${scan.scan_id}`}>
+            <Link
+              key={scan.id}
+              href={scan.status === "completed" ? `/scan/${scan.id}/report` : `/scan/${scan.id}`}
+            >
               <Card className="bg-neutral-900 border-neutral-800 p-4 hover:border-neutral-700 transition-colors cursor-pointer">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">{scan.repo_url}</p>
+                    <p className="font-medium">{scan.repo_name || scan.repo_url}</p>
                     <p className="text-xs text-neutral-500 mt-1">
                       {new Date(scan.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    {scan.health_score !== undefined && (
+                    {scan.health_score != null && (
                       <span className="text-lg font-bold">
                         {scan.health_score}
                       </span>
