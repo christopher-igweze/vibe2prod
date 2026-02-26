@@ -377,6 +377,51 @@ async def increment_free_reports_generated(user_id: str, month_key: date) -> int
     return next_value
 
 
+async def increment_reports_if_under_cap(
+    user_id: str, month_key: date, cap: int
+) -> int | None:
+    """Atomically increment reports_generated only if under cap.
+
+    Uses optimistic concurrency: updates WHERE reports_generated = current
+    AND current < cap. Returns new count on success, None if cap reached
+    or concurrent update detected.
+    """
+    row = await get_or_create_free_usage_month(user_id, month_key)
+    current = int(row.get("reports_generated") or 0)
+
+    if current >= cap:
+        return None
+
+    next_value = current + 1
+    client = _client()
+    result = (
+        client.table("free_usage_monthly")
+        .update({"reports_generated": next_value})
+        .eq("id", row["id"])
+        .eq("reports_generated", current)  # optimistic lock
+        .execute()
+    )
+    if not result.data:
+        # Concurrent update beat us — re-read and check
+        refreshed = await get_or_create_free_usage_month(user_id, month_key)
+        if int(refreshed.get("reports_generated") or 0) >= cap:
+            return None
+        # Retry once with fresh value
+        fresh_current = int(refreshed.get("reports_generated") or 0)
+        retry = (
+            client.table("free_usage_monthly")
+            .update({"reports_generated": fresh_current + 1})
+            .eq("id", refreshed["id"])
+            .eq("reports_generated", fresh_current)
+            .execute()
+        )
+        if not retry.data:
+            return None
+        return fresh_current + 1
+
+    return next_value
+
+
 async def get_project_index(project_id: UUID, repo_sha: str) -> dict | None:
     """Return active cached project index for a commit SHA."""
     client = _client()
