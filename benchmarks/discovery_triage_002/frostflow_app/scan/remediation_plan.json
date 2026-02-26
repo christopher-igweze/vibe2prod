@@ -1,0 +1,10 @@
+{
+  "items": [],
+  "dependencies": [],
+  "execution_levels": [],
+  "deferred_finding_ids": [],
+  "dedup_summary": "",
+  "total_items": 0,
+  "estimated_invocations": 0,
+  "summary": "Parse error: 2 validation errors for RemediationPlan\nitems.25.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal\nitems.26.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal. Raw findings count: 36"
+}

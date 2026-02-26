@@ -1,0 +1,698 @@
+{
+  "findings": [
+    {
+      "id": "F-1245ead3",
+      "title": "Missing security headers in index.html",
+      "description": "The application index.html lacks critical security headers like Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, and X-XSS-Protection. These headers should be configured at the server/Docker level or via meta tags.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 22,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <!-- Missing security headers -->"
+        }
+      ],
+      "suggested_fix": "Add the following meta tags to the <head> section of index.html:\n1. <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\" />\n2. <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com\" />\n3. <meta http-equiv=\"X-Frame-Options\" content=\"SAMEORIGIN\" />\n4. <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n5. <meta http-equiv=\"X-XSS-Protection\" content=\"1; mode=block\" />\n\nFor production, configure these headers in the Nginx/Docker configuration instead (recommended approach).",
+      "confidence": 0.95,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-721ec12e",
+      "title": "Unsafe inline scripts in index.html (Chart.js CDN)",
+      "description": "The application loads Chart.js from CDN (https://cdn.jsdelivr.net/npm/chart.js) as an inline script without integrity checking. This bypasses CSP and could be exploited via CDN compromise.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 19,
+          "line_end": 21,
+          "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+        }
+      ],
+      "suggested_fix": "1. Install chart.js via npm instead (remove the comment's original reason by managing dependencies correctly):\n   npm install chart.js\n   \n2. Import it in your Angular component:\n   import Chart from 'chart.js/auto';\n   \n3. If CDN must be used, add Subresource Integrity (SRI):\n   <script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.5.1\" integrity=\"sha384-[hash]\" crossorigin=\"anonymous\"></script>\n   \n4. Update CSP to restrict external script loading:\n   script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net (with SRI, remove 'unsafe-inline')",
+      "confidence": 0.92,
+      "cwe_id": "CWE-345",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8089e689",
+      "title": "Font Awesome CSS loaded over HTTP without integrity check",
+      "description": "Font Awesome CSS is loaded from cdnjs.cloudflare.com without SRI (Subresource Integrity). If the CDN is compromised, malicious CSS injection is possible.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 14,
+          "line_end": 14,
+          "snippet": "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" />"
+        }
+      ],
+      "suggested_fix": "1. Add Subresource Integrity attribute:\n   <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" integrity=\"sha512-[hash]\" crossorigin=\"anonymous\" />\n   \n2. Or better, use Font Awesome package via npm (already used via @fortawesome packages in package.json). Remove this CDN link entirely and rely on the npm packages already installed.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-345",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c22dad9d",
+      "title": "Sensitive data stored in localStorage without encryption",
+      "description": "User credentials and personal data (user_name, user_email, user_id, user_role) are stored in localStorage as plain text in multiple components (sidebar.component.ts, owner-dashboard.component.ts, products.component.ts). localStorage is vulnerable to XSS attacks.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/components/sidebar/sidebar.component.ts",
+          "line_start": 9,
+          "line_end": 11,
+          "snippet": "ngOnInit() {\n    this.userRole = localStorage.getItem('user_role');"
+        },
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 37,
+          "line_end": 39,
+          "snippet": "public name: string = localStorage.getItem('user_name') || ''\n    email: string = localStorage.getItem('user_email') || ''\n    id: string = localStorage.getItem('user_id') || ''"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 82,
+          "line_end": 84,
+          "snippet": "const role = localStorage.getItem('user_role');\n    if (role === 'sales') {\n      this.viewMode = 'lookup';"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 159,
+          "line_end": 159,
+          "snippet": "created_by: localStorage.getItem('user_id') || \"\","
+        }
+      ],
+      "suggested_fix": "1. Replace localStorage with Supabase session management (already using Supabase.getCurrentUser()). Example:\n   \n   // Instead of:\n   const userId = localStorage.getItem('user_id');\n   \n   // Use:\n   const user = await this.supabase.getCurrentUser();\n   const userId = user?.id;\n   \n2. For role-based UI display, retrieve from user profile:\n   const profile = await this.supabase.getUserProfile(userId);\n   const role = profile.role;\n   \n3. Store only non-sensitive session tokens if needed, and mark them as HttpOnly/Secure in backend (Supabase handles this).\n   \n4. For user name/email display, fetch from the authenticated session object:\n   const { user } = await this.supabase.getSession();\n   const name = user?.user_metadata?.name || user?.email;",
+      "confidence": 0.94,
+      "cwe_id": "CWE-922",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e8a37ede",
+      "title": "localStorage.clear() in logout without session invalidation verification",
+      "description": "In owner-dashboard.component.ts, handleLogout() clears localStorage and calls signOut(), but there's no verification that the backend session was successfully revoked before clearing local data. An attacker could intercept and maintain a session.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 95,
+          "line_end": 101,
+          "snippet": "handleLogout() {\n        localStorage.clear()\n        this.supabase.signOut()\n        this.toast.show('Logout successful!', 'logout')\n        this.router.navigate(['/login'])\n    }"
+        }
+      ],
+      "suggested_fix": "Implement proper async logout with error handling:\n   \n   async handleLogout() {\n       try {\n           // Revoke session on server first\n           await this.supabase.signOut();\n           \n           // Only clear local data after successful server revocation\n           localStorage.clear();\n           sessionStorage.clear();\n           \n           this.toast.show('Logout successful!', 'logout');\n           this.router.navigate(['/login']);\n       } catch (error) {\n           console.error('Logout failed:', error);\n           this.toast.show('Logout failed. Please try again.', 'error');\n           // Force redirect anyway for security, but inform user\n           this.router.navigate(['/login']);\n       }\n   }",
+      "confidence": 0.88,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ddcf9d4e",
+      "title": "Missing CORS configuration validation",
+      "description": "The application uses @supabase/supabase-js but there's no explicit CORS configuration visible in the app config. If Supabase CORS settings are misconfigured, cross-origin requests could be vulnerable.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/app.config.ts",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core'\nimport { provideRouter } from '@angular/router'\nimport { provideHttpClient } from '@angular/common/http'\n\nimport { routes } from './app.routes'\n\nexport const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
+        }
+      ],
+      "suggested_fix": "1. Add HTTP interceptor for request validation and CORS headers:\n   \n   Create src/app/services/http.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   \n   export const corsInterceptor: HttpInterceptorFn = (req, next) => {\n     // Validate origin for Supabase requests\n     const supabaseUrl = 'https://[your-project].supabase.co';\n     \n     if (req.url.startsWith(supabaseUrl)) {\n       req = req.clone({\n         setHeaders: {\n           'X-Requested-With': 'XMLHttpRequest'\n         }\n       });\n     }\n     \n     return next(req);\n   };\n   ```\n   \n2. Update app.config.ts:\n   ```typescript\n   import { corsInterceptor } from './services/http.interceptor';\n   \n   export const appConfig: ApplicationConfig = {\n     providers: [\n       provideZoneChangeDetection({ eventCoalescing: true }),\n       provideRouter(routes),\n       provideHttpClient(\n         withInterceptors([corsInterceptor])\n       ),\n     ],\n   };\n   ```\n   \n3. In Supabase dashboard, verify CORS settings allow only your domain.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-346",
+      "owasp_ref": "A04:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3b97b45b",
+      "title": "No rate limiting on API requests",
+      "description": "The application makes direct calls to Supabase via supabase.service.ts without any visible rate limiting or request throttling. This makes it vulnerable to abuse and denial-of-service attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "// Based on references in components, service handles direct Supabase calls without throttling"
+        }
+      ],
+      "suggested_fix": "1. Create a rate-limiting interceptor for HTTP requests:\n   \n   src/app/services/rate-limit.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   import { inject } from '@angular/core';\n   import { delay, of, throwError } from 'rxjs';\n   import { catchError, retryWhen, scan } from 'rxjs/operators';\n   \n   const MAX_RETRIES = 3;\n   const DELAY_MS = 1000;\n   \n   export const rateLimitInterceptor: HttpInterceptorFn = (req, next) => {\n     return next(req).pipe(\n       retryWhen(errors =>\n         errors.pipe(\n           scan((count, error) => {\n             if (count >= MAX_RETRIES || error.status !== 429) {\n               throw error;\n             }\n             return count + 1;\n           }, 0),\n           delay(DELAY_MS)\n         )\n       ),\n       catchError(error => {\n         if (error.status === 429) {\n           console.error('Rate limit exceeded');\n           // Show user-friendly error\n         }\n         return throwError(() => error);\n       })\n     );\n   };\n   ```\n   \n2. Add to app.config.ts with other interceptors.\n   \n3. For login attempts specifically, add exponential backoff:\n   ```typescript\n   // In supabase.service.ts or login component\n   let loginAttempts = 0;\n   const maxAttempts = 5;\n   const backoffDelay = (attempt: number) => Math.pow(2, attempt) * 1000;\n   \n   async login(email: string, password: string) {\n     if (loginAttempts >= maxAttempts) {\n       throw new Error(`Too many login attempts. Try again in ${backoffDelay(loginAttempts)/1000}s`);\n     }\n     \n     try {\n       const result = await this.supabase.auth.signInWithPassword({email, password});\n       loginAttempts = 0; // Reset on success\n       return result;\n     } catch (error) {\n       loginAttempts++;\n       await delay(backoffDelay(loginAttempts));\n       throw error;\n     }\n   }\n   ```",
+      "confidence": 0.85,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-aba2df7e",
+      "title": "Debug mode/development tools exposed in production build",
+      "description": "The tsconfig.json has sourceMap support enabled, and main.ts includes .catch() with console.error(). In production builds, source maps and verbose error logging expose internal code structure and error details.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/main.ts",
+          "line_start": 4,
+          "line_end": 4,
+          "snippet": "bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err))"
+        },
+        {
+          "file_path": "angular.json",
+          "line_start": 39,
+          "line_end": 47,
+          "snippet": "\"development\": {\n                            \"optimization\": false,\n                            \"extractLicenses\": false,\n                            \"sourceMap\": true\n                        }"
+        }
+      ],
+      "suggested_fix": "1. Remove source maps from production build in angular.json:\n   \n   Change production config to:\n   ```json\n   \"production\": {\n     \"budgets\": [...],\n     \"outputHashing\": \"all\",\n     \"sourceMap\": false,\n     \"optimization\": true\n   }\n   ```\n   \n2. Replace console.error with user-friendly error handling in main.ts:\n   ```typescript\n   bootstrapApplication(AppComponent, appConfig).catch((err) => {\n     // Log to error tracking service (e.g., Sentry) instead of console\n     // In development: console.error(err);\n     // In production: silently track or show generic message\n     \n     if (!environment.production) {\n       console.error(err);\n     }\n     \n     // Show generic user message\n     const root = document.querySelector('app-root');\n     if (root) {\n       root.innerHTML = '<p>Application failed to load. Please refresh the page.</p>';\n     }\n   });\n   ```\n   \n3. Add error tracking service:\n   ```typescript\n   // src/app/services/error-tracking.service.ts\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorTrackingService {\n     logError(error: any) {\n       // Send to backend logging service or Sentry\n       // Do NOT expose stack traces to user\n     }\n   }\n   ```",
+      "confidence": 0.9,
+      "cwe_id": "CWE-532",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7b63d964",
+      "title": "Missing X-Content-Type-Options MIME type validation",
+      "description": "TypeScript is set to strict mode in tsconfig.json, but there's no HTTP header configuration to prevent MIME type sniffing. External resources (fonts, icons) could be served with wrong MIME types.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 22,
+          "snippet": "No explicit MIME type headers or X-Content-Type-Options meta tag present"
+        }
+      ],
+      "suggested_fix": "Add MIME type security headers (preferably in Nginx/Docker config, but also via meta):\n   \n   In index.html <head>:\n   ```html\n   <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n   ```\n   \n   In Docker Nginx config (recommended):\n   ```nginx\n   add_header X-Content-Type-Options \"nosniff\" always;\n   add_header X-Frame-Options \"SAMEORIGIN\" always;\n   add_header X-XSS-Protection \"1; mode=block\" always;\n   add_header Referrer-Policy \"strict-origin-when-cross-origin\" always;\n   \n   # Specify MIME types explicitly\n   types {\n     text/javascript js;\n     text/css css;\n     application/font-woff2 woff2;\n     application/font-woff woff;\n   }\n   ```",
+      "confidence": 0.85,
+      "cwe_id": "CWE-434",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-27e13b1f",
+      "title": "Hardcoded Supabase URL/Key risk in environment variable usage",
+      "description": "While the code references supabase.service.ts which likely initializes Supabase, there's no .env.example or documented environment variable naming convention visible. The anonymous key should be used only for public operations; service role key must not be exposed client-side.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "README.md",
+          "line_start": 67,
+          "line_end": 71,
+          "snippet": "3. **Configure Environment**\nCreate a `.env` file in the root directory:\n```env\nSUPABASE_URL=your_supabase_url\nSUPABASE_KEY=your_supabase_anon_key\nN8N_WEBHOOK_URL=your_n8n_webhook"
+        }
+      ],
+      "suggested_fix": "1. Create .env.example for documentation:\n   ```\n   # Supabase Configuration (use ANON key only, not service role key)\n   SUPABASE_URL=https://your-project.supabase.co\n   SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n   # DO NOT include SUPABASE_SERVICE_ROLE_KEY in client-side app\n   \n   # n8n Webhook (public endpoint is safe)\n   N8N_WEBHOOK_URL=https://n8n.example.com/webhook/...\n   ```\n   \n2. Update supabase.service.ts initialization to validate key type:\n   ```typescript\n   import { createClient } from '@supabase/supabase-js';\n   \n   const supabaseUrl = process.env['SUPABASE_URL'] || '';\n   const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || '';\n   \n   // Validate key format\n   if (!supabaseAnonKey.startsWith('eyJ')) {\n     throw new Error('Invalid Supabase key. Ensure SUPABASE_ANON_KEY is set (not service role key).');\n   }\n   \n   export const supabase = createClient(supabaseUrl, supabaseAnonKey);\n   ```\n   \n3. Ensure .env is in .gitignore and .env.example is in version control.\n   \n4. Add GitHub Actions/CI secret validation:\n   ```yaml\n   # In CI/CD pipeline, validate environment variables\n   - name: Validate Supabase Config\n     run: |\n       if [[ \"$SUPABASE_KEY\" == *\"service_role\"* ]]; then\n         echo \"ERROR: Service role key detected in client build\"\n         exit 1\n       fi\n   ```",
+      "confidence": 0.92,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f54e5b03",
+      "title": "No HSTS (HTTP Strict-Transport-Security) header configuration",
+      "description": "The application uses HTTPS (via Supabase), but there's no Strict-Transport-Security header configured to force HTTPS-only connections and prevent downgrade attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 5,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />"
+        }
+      ],
+      "suggested_fix": "Add HSTS header in Docker/Nginx configuration (preferred method):\n   \n   In Nginx config:\n   ```nginx\n   server {\n     add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n   }\n   ```\n   \n   Or in meta tag (less secure, but backup):\n   ```html\n   <meta http-equiv=\"Strict-Transport-Security\" content=\"max-age=31536000; includeSubDomains; preload\" />\n   ```\n   \n   Recommended policy:\n   - max-age=31536000 (1 year)\n   - includeSubDomains (apply to subdomains)\n   - preload (register with HSTS preload list)\n   \n   Register at https://hstspreload.org/",
+      "confidence": 0.88,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-cbd37a7a",
+      "title": "Toast error messages may expose system information",
+      "description": "In multiple components (reconciliation, products, analysis), error messages from Supabase are displayed directly to users via toast notifications without sanitization. This can expose database table names, API details, or internal error messages.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 129,
+          "line_end": 132,
+          "snippet": "} catch (error: any) {\n            console.error('Save failed', error);\n            this.toast.show('Error saving product: ' + error.message, 'error');"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 145,
+          "line_end": 147,
+          "snippet": "} catch (error: any) {\n        this.toast.show('Delete failed: ' + error.message, 'error');"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 243,
+          "line_end": 245,
+          "snippet": "} catch (error: any) {\n            console.error(error);\n            alert('Failed to void: ' + error.message);"
+        }
+      ],
+      "suggested_fix": "Create error message sanitizer service:\n   \n   src/app/services/error-message.service.ts:\n   ```typescript\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorMessageService {\n     getSafeMessage(error: any): string {\n       const message = error?.message || 'An error occurred';\n       \n       // Sanitize database/system information\n       const systemPatterns = [\n         /relation \"([^\"]+)\" does not exist/g,\n         /UNIQUE constraint failed/,\n         /database/i,\n         /sql:/i,\n         /table/i\n       ];\n       \n       let safe = message;\n       systemPatterns.forEach(pattern => {\n         safe = safe.replace(pattern, 'database operation');\n       });\n       \n       // Log actual error for debugging\n       if (error?.code || error?.details) {\n         console.error('[Detailed Error]', error);\n       }\n       \n       return safe || 'Operation failed. Please try again.';\n     }\n   }\n   ```\n   \n   Update components:\n   ```typescript\n   constructor(\n     private errorMessage: ErrorMessageService,\n     private toast: ToastService\n   ) {}\n   \n   async saveProduct() {\n     try {\n       // ...\n     } catch (error) {\n       const safeMessage = this.errorMessage.getSafeMessage(error);\n       this.toast.show(safeMessage, 'error');\n     }\n   }\n   ```",
+      "confidence": 0.8,
+      "cwe_id": "CWE-209",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1f36b779",
+      "title": "Missing Content-Security-Policy directives for Google Fonts",
+      "description": "The application preconnects to fonts.googleapis.com and fonts.gstatic.com without CSP directives that explicitly allow these resources, making it vulnerable to injection attacks if CSP is implemented.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 9,
+          "line_end": 12,
+          "snippet": "<link href=\"https://fonts.googleapis.com\" rel=\"preconnect\" />\n    <link crossorigin=\"\" href=\"https://fonts.gstatic.com\" rel=\"preconnect\" />\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap\"\n        rel=\"stylesheet\" />"
+        }
+      ],
+      "suggested_fix": "Update index.html with proper CSP-compliant font loading:\n   \n   ```html\n   <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" />\n   <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n   <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\" rel=\"stylesheet\" />\n   ```\n   \n   Update CSP header in Nginx:\n   ```nginx\n   add_header Content-Security-Policy \"default-src 'self'; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ...\" always;\n   ```\n   \n   Or via meta tag:\n   ```html\n   <meta http-equiv=\"Content-Security-Policy\" content=\"font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;\" />\n   ```",
+      "confidence": 0.82,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [],
+      "pass_summary": "",
+      "files_analyzed": 0
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "",
+      "files_analyzed": 0
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [
+        {
+          "id": "F-1245ead3",
+          "title": "Missing security headers in index.html",
+          "description": "The application index.html lacks critical security headers like Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, and X-XSS-Protection. These headers should be configured at the server/Docker level or via meta tags.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/index.html",
+              "line_start": 1,
+              "line_end": 22,
+              "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <!-- Missing security headers -->"
+            }
+          ],
+          "suggested_fix": "Add the following meta tags to the <head> section of index.html:\n1. <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\" />\n2. <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com\" />\n3. <meta http-equiv=\"X-Frame-Options\" content=\"SAMEORIGIN\" />\n4. <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n5. <meta http-equiv=\"X-XSS-Protection\" content=\"1; mode=block\" />\n\nFor production, configure these headers in the Nginx/Docker configuration instead (recommended approach).",
+          "confidence": 0.95,
+          "cwe_id": "CWE-693",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-721ec12e",
+          "title": "Unsafe inline scripts in index.html (Chart.js CDN)",
+          "description": "The application loads Chart.js from CDN (https://cdn.jsdelivr.net/npm/chart.js) as an inline script without integrity checking. This bypasses CSP and could be exploited via CDN compromise.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/index.html",
+              "line_start": 19,
+              "line_end": 21,
+              "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+            }
+          ],
+          "suggested_fix": "1. Install chart.js via npm instead (remove the comment's original reason by managing dependencies correctly):\n   npm install chart.js\n   \n2. Import it in your Angular component:\n   import Chart from 'chart.js/auto';\n   \n3. If CDN must be used, add Subresource Integrity (SRI):\n   <script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.5.1\" integrity=\"sha384-[hash]\" crossorigin=\"anonymous\"></script>\n   \n4. Update CSP to restrict external script loading:\n   script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net (with SRI, remove 'unsafe-inline')",
+          "confidence": 0.92,
+          "cwe_id": "CWE-345",
+          "owasp_ref": "A03:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-8089e689",
+          "title": "Font Awesome CSS loaded over HTTP without integrity check",
+          "description": "Font Awesome CSS is loaded from cdnjs.cloudflare.com without SRI (Subresource Integrity). If the CDN is compromised, malicious CSS injection is possible.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/index.html",
+              "line_start": 14,
+              "line_end": 14,
+              "snippet": "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" />"
+            }
+          ],
+          "suggested_fix": "1. Add Subresource Integrity attribute:\n   <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" integrity=\"sha512-[hash]\" crossorigin=\"anonymous\" />\n   \n2. Or better, use Font Awesome package via npm (already used via @fortawesome packages in package.json). Remove this CDN link entirely and rely on the npm packages already installed.",
+          "confidence": 0.9,
+          "cwe_id": "CWE-345",
+          "owasp_ref": "A03:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-c22dad9d",
+          "title": "Sensitive data stored in localStorage without encryption",
+          "description": "User credentials and personal data (user_name, user_email, user_id, user_role) are stored in localStorage as plain text in multiple components (sidebar.component.ts, owner-dashboard.component.ts, products.component.ts). localStorage is vulnerable to XSS attacks.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/app/components/sidebar/sidebar.component.ts",
+              "line_start": 9,
+              "line_end": 11,
+              "snippet": "ngOnInit() {\n    this.userRole = localStorage.getItem('user_role');"
+            },
+            {
+              "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+              "line_start": 37,
+              "line_end": 39,
+              "snippet": "public name: string = localStorage.getItem('user_name') || ''\n    email: string = localStorage.getItem('user_email') || ''\n    id: string = localStorage.getItem('user_id') || ''"
+            },
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 82,
+              "line_end": 84,
+              "snippet": "const role = localStorage.getItem('user_role');\n    if (role === 'sales') {\n      this.viewMode = 'lookup';"
+            },
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 159,
+              "line_end": 159,
+              "snippet": "created_by: localStorage.getItem('user_id') || \"\","
+            }
+          ],
+          "suggested_fix": "1. Replace localStorage with Supabase session management (already using Supabase.getCurrentUser()). Example:\n   \n   // Instead of:\n   const userId = localStorage.getItem('user_id');\n   \n   // Use:\n   const user = await this.supabase.getCurrentUser();\n   const userId = user?.id;\n   \n2. For role-based UI display, retrieve from user profile:\n   const profile = await this.supabase.getUserProfile(userId);\n   const role = profile.role;\n   \n3. Store only non-sensitive session tokens if needed, and mark them as HttpOnly/Secure in backend (Supabase handles this).\n   \n4. For user name/email display, fetch from the authenticated session object:\n   const { user } = await this.supabase.getSession();\n   const name = user?.user_metadata?.name || user?.email;",
+          "confidence": 0.94,
+          "cwe_id": "CWE-922",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-e8a37ede",
+          "title": "localStorage.clear() in logout without session invalidation verification",
+          "description": "In owner-dashboard.component.ts, handleLogout() clears localStorage and calls signOut(), but there's no verification that the backend session was successfully revoked before clearing local data. An attacker could intercept and maintain a session.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+              "line_start": 95,
+              "line_end": 101,
+              "snippet": "handleLogout() {\n        localStorage.clear()\n        this.supabase.signOut()\n        this.toast.show('Logout successful!', 'logout')\n        this.router.navigate(['/login'])\n    }"
+            }
+          ],
+          "suggested_fix": "Implement proper async logout with error handling:\n   \n   async handleLogout() {\n       try {\n           // Revoke session on server first\n           await this.supabase.signOut();\n           \n           // Only clear local data after successful server revocation\n           localStorage.clear();\n           sessionStorage.clear();\n           \n           this.toast.show('Logout successful!', 'logout');\n           this.router.navigate(['/login']);\n       } catch (error) {\n           console.error('Logout failed:', error);\n           this.toast.show('Logout failed. Please try again.', 'error');\n           // Force redirect anyway for security, but inform user\n           this.router.navigate(['/login']);\n       }\n   }",
+          "confidence": 0.88,
+          "cwe_id": "CWE-613",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-ddcf9d4e",
+          "title": "Missing CORS configuration validation",
+          "description": "The application uses @supabase/supabase-js but there's no explicit CORS configuration visible in the app config. If Supabase CORS settings are misconfigured, cross-origin requests could be vulnerable.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/app/app.config.ts",
+              "line_start": 1,
+              "line_end": 13,
+              "snippet": "import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core'\nimport { provideRouter } from '@angular/router'\nimport { provideHttpClient } from '@angular/common/http'\n\nimport { routes } from './app.routes'\n\nexport const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
+            }
+          ],
+          "suggested_fix": "1. Add HTTP interceptor for request validation and CORS headers:\n   \n   Create src/app/services/http.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   \n   export const corsInterceptor: HttpInterceptorFn = (req, next) => {\n     // Validate origin for Supabase requests\n     const supabaseUrl = 'https://[your-project].supabase.co';\n     \n     if (req.url.startsWith(supabaseUrl)) {\n       req = req.clone({\n         setHeaders: {\n           'X-Requested-With': 'XMLHttpRequest'\n         }\n       });\n     }\n     \n     return next(req);\n   };\n   ```\n   \n2. Update app.config.ts:\n   ```typescript\n   import { corsInterceptor } from './services/http.interceptor';\n   \n   export const appConfig: ApplicationConfig = {\n     providers: [\n       provideZoneChangeDetection({ eventCoalescing: true }),\n       provideRouter(routes),\n       provideHttpClient(\n         withInterceptors([corsInterceptor])\n       ),\n     ],\n   };\n   ```\n   \n3. In Supabase dashboard, verify CORS settings allow only your domain.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-346",
+          "owasp_ref": "A04:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-3b97b45b",
+          "title": "No rate limiting on API requests",
+          "description": "The application makes direct calls to Supabase via supabase.service.ts without any visible rate limiting or request throttling. This makes it vulnerable to abuse and denial-of-service attacks.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/app/services/supabase.service.ts",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "// Based on references in components, service handles direct Supabase calls without throttling"
+            }
+          ],
+          "suggested_fix": "1. Create a rate-limiting interceptor for HTTP requests:\n   \n   src/app/services/rate-limit.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   import { inject } from '@angular/core';\n   import { delay, of, throwError } from 'rxjs';\n   import { catchError, retryWhen, scan } from 'rxjs/operators';\n   \n   const MAX_RETRIES = 3;\n   const DELAY_MS = 1000;\n   \n   export const rateLimitInterceptor: HttpInterceptorFn = (req, next) => {\n     return next(req).pipe(\n       retryWhen(errors =>\n         errors.pipe(\n           scan((count, error) => {\n             if (count >= MAX_RETRIES || error.status !== 429) {\n               throw error;\n             }\n             return count + 1;\n           }, 0),\n           delay(DELAY_MS)\n         )\n       ),\n       catchError(error => {\n         if (error.status === 429) {\n           console.error('Rate limit exceeded');\n           // Show user-friendly error\n         }\n         return throwError(() => error);\n       })\n     );\n   };\n   ```\n   \n2. Add to app.config.ts with other interceptors.\n   \n3. For login attempts specifically, add exponential backoff:\n   ```typescript\n   // In supabase.service.ts or login component\n   let loginAttempts = 0;\n   const maxAttempts = 5;\n   const backoffDelay = (attempt: number) => Math.pow(2, attempt) * 1000;\n   \n   async login(email: string, password: string) {\n     if (loginAttempts >= maxAttempts) {\n       throw new Error(`Too many login attempts. Try again in ${backoffDelay(loginAttempts)/1000}s`);\n     }\n     \n     try {\n       const result = await this.supabase.auth.signInWithPassword({email, password});\n       loginAttempts = 0; // Reset on success\n       return result;\n     } catch (error) {\n       loginAttempts++;\n       await delay(backoffDelay(loginAttempts));\n       throw error;\n     }\n   }\n   ```",
+          "confidence": 0.85,
+          "cwe_id": "CWE-770",
+          "owasp_ref": "A05:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-aba2df7e",
+          "title": "Debug mode/development tools exposed in production build",
+          "description": "The tsconfig.json has sourceMap support enabled, and main.ts includes .catch() with console.error(). In production builds, source maps and verbose error logging expose internal code structure and error details.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/main.ts",
+              "line_start": 4,
+              "line_end": 4,
+              "snippet": "bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err))"
+            },
+            {
+              "file_path": "angular.json",
+              "line_start": 39,
+              "line_end": 47,
+              "snippet": "\"development\": {\n                            \"optimization\": false,\n                            \"extractLicenses\": false,\n                            \"sourceMap\": true\n                        }"
+            }
+          ],
+          "suggested_fix": "1. Remove source maps from production build in angular.json:\n   \n   Change production config to:\n   ```json\n   \"production\": {\n     \"budgets\": [...],\n     \"outputHashing\": \"all\",\n     \"sourceMap\": false,\n     \"optimization\": true\n   }\n   ```\n   \n2. Replace console.error with user-friendly error handling in main.ts:\n   ```typescript\n   bootstrapApplication(AppComponent, appConfig).catch((err) => {\n     // Log to error tracking service (e.g., Sentry) instead of console\n     // In development: console.error(err);\n     // In production: silently track or show generic message\n     \n     if (!environment.production) {\n       console.error(err);\n     }\n     \n     // Show generic user message\n     const root = document.querySelector('app-root');\n     if (root) {\n       root.innerHTML = '<p>Application failed to load. Please refresh the page.</p>';\n     }\n   });\n   ```\n   \n3. Add error tracking service:\n   ```typescript\n   // src/app/services/error-tracking.service.ts\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorTrackingService {\n     logError(error: any) {\n       // Send to backend logging service or Sentry\n       // Do NOT expose stack traces to user\n     }\n   }\n   ```",
+          "confidence": 0.9,
+          "cwe_id": "CWE-532",
+          "owasp_ref": "A09:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-7b63d964",
+          "title": "Missing X-Content-Type-Options MIME type validation",
+          "description": "TypeScript is set to strict mode in tsconfig.json, but there's no HTTP header configuration to prevent MIME type sniffing. External resources (fonts, icons) could be served with wrong MIME types.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/index.html",
+              "line_start": 1,
+              "line_end": 22,
+              "snippet": "No explicit MIME type headers or X-Content-Type-Options meta tag present"
+            }
+          ],
+          "suggested_fix": "Add MIME type security headers (preferably in Nginx/Docker config, but also via meta):\n   \n   In index.html <head>:\n   ```html\n   <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n   ```\n   \n   In Docker Nginx config (recommended):\n   ```nginx\n   add_header X-Content-Type-Options \"nosniff\" always;\n   add_header X-Frame-Options \"SAMEORIGIN\" always;\n   add_header X-XSS-Protection \"1; mode=block\" always;\n   add_header Referrer-Policy \"strict-origin-when-cross-origin\" always;\n   \n   # Specify MIME types explicitly\n   types {\n     text/javascript js;\n     text/css css;\n     application/font-woff2 woff2;\n     application/font-woff woff;\n   }\n   ```",
+          "confidence": 0.85,
+          "cwe_id": "CWE-434",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-27e13b1f",
+          "title": "Hardcoded Supabase URL/Key risk in environment variable usage",
+          "description": "While the code references supabase.service.ts which likely initializes Supabase, there's no .env.example or documented environment variable naming convention visible. The anonymous key should be used only for public operations; service role key must not be exposed client-side.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "README.md",
+              "line_start": 67,
+              "line_end": 71,
+              "snippet": "3. **Configure Environment**\nCreate a `.env` file in the root directory:\n```env\nSUPABASE_URL=your_supabase_url\nSUPABASE_KEY=your_supabase_anon_key\nN8N_WEBHOOK_URL=your_n8n_webhook"
+            }
+          ],
+          "suggested_fix": "1. Create .env.example for documentation:\n   ```\n   # Supabase Configuration (use ANON key only, not service role key)\n   SUPABASE_URL=https://your-project.supabase.co\n   SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n   # DO NOT include SUPABASE_SERVICE_ROLE_KEY in client-side app\n   \n   # n8n Webhook (public endpoint is safe)\n   N8N_WEBHOOK_URL=https://n8n.example.com/webhook/...\n   ```\n   \n2. Update supabase.service.ts initialization to validate key type:\n   ```typescript\n   import { createClient } from '@supabase/supabase-js';\n   \n   const supabaseUrl = process.env['SUPABASE_URL'] || '';\n   const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || '';\n   \n   // Validate key format\n   if (!supabaseAnonKey.startsWith('eyJ')) {\n     throw new Error('Invalid Supabase key. Ensure SUPABASE_ANON_KEY is set (not service role key).');\n   }\n   \n   export const supabase = createClient(supabaseUrl, supabaseAnonKey);\n   ```\n   \n3. Ensure .env is in .gitignore and .env.example is in version control.\n   \n4. Add GitHub Actions/CI secret validation:\n   ```yaml\n   # In CI/CD pipeline, validate environment variables\n   - name: Validate Supabase Config\n     run: |\n       if [[ \"$SUPABASE_KEY\" == *\"service_role\"* ]]; then\n         echo \"ERROR: Service role key detected in client build\"\n         exit 1\n       fi\n   ```",
+          "confidence": 0.92,
+          "cwe_id": "CWE-798",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f54e5b03",
+          "title": "No HSTS (HTTP Strict-Transport-Security) header configuration",
+          "description": "The application uses HTTPS (via Supabase), but there's no Strict-Transport-Security header configured to force HTTPS-only connections and prevent downgrade attacks.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/index.html",
+              "line_start": 1,
+              "line_end": 5,
+              "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />"
+            }
+          ],
+          "suggested_fix": "Add HSTS header in Docker/Nginx configuration (preferred method):\n   \n   In Nginx config:\n   ```nginx\n   server {\n     add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n   }\n   ```\n   \n   Or in meta tag (less secure, but backup):\n   ```html\n   <meta http-equiv=\"Strict-Transport-Security\" content=\"max-age=31536000; includeSubDomains; preload\" />\n   ```\n   \n   Recommended policy:\n   - max-age=31536000 (1 year)\n   - includeSubDomains (apply to subdomains)\n   - preload (register with HSTS preload list)\n   \n   Register at https://hstspreload.org/",
+          "confidence": 0.88,
+          "cwe_id": "CWE-295",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-cbd37a7a",
+          "title": "Toast error messages may expose system information",
+          "description": "In multiple components (reconciliation, products, analysis), error messages from Supabase are displayed directly to users via toast notifications without sanitization. This can expose database table names, API details, or internal error messages.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 129,
+              "line_end": 132,
+              "snippet": "} catch (error: any) {\n            console.error('Save failed', error);\n            this.toast.show('Error saving product: ' + error.message, 'error');"
+            },
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 145,
+              "line_end": 147,
+              "snippet": "} catch (error: any) {\n        this.toast.show('Delete failed: ' + error.message, 'error');"
+            },
+            {
+              "file_path": "src/app/pages/analysis/analysis.component.ts",
+              "line_start": 243,
+              "line_end": 245,
+              "snippet": "} catch (error: any) {\n            console.error(error);\n            alert('Failed to void: ' + error.message);"
+            }
+          ],
+          "suggested_fix": "Create error message sanitizer service:\n   \n   src/app/services/error-message.service.ts:\n   ```typescript\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorMessageService {\n     getSafeMessage(error: any): string {\n       const message = error?.message || 'An error occurred';\n       \n       // Sanitize database/system information\n       const systemPatterns = [\n         /relation \"([^\"]+)\" does not exist/g,\n         /UNIQUE constraint failed/,\n         /database/i,\n         /sql:/i,\n         /table/i\n       ];\n       \n       let safe = message;\n       systemPatterns.forEach(pattern => {\n         safe = safe.replace(pattern, 'database operation');\n       });\n       \n       // Log actual error for debugging\n       if (error?.code || error?.details) {\n         console.error('[Detailed Error]', error);\n       }\n       \n       return safe || 'Operation failed. Please try again.';\n     }\n   }\n   ```\n   \n   Update components:\n   ```typescript\n   constructor(\n     private errorMessage: ErrorMessageService,\n     private toast: ToastService\n   ) {}\n   \n   async saveProduct() {\n     try {\n       // ...\n     } catch (error) {\n       const safeMessage = this.errorMessage.getSafeMessage(error);\n       this.toast.show(safeMessage, 'error');\n     }\n   }\n   ```",
+          "confidence": 0.8,
+          "cwe_id": "CWE-209",
+          "owasp_ref": "A09:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-1f36b779",
+          "title": "Missing Content-Security-Policy directives for Google Fonts",
+          "description": "The application preconnects to fonts.googleapis.com and fonts.gstatic.com without CSP directives that explicitly allow these resources, making it vulnerable to injection attacks if CSP is implemented.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "infrastructure",
+          "locations": [
+            {
+              "file_path": "src/index.html",
+              "line_start": 9,
+              "line_end": 12,
+              "snippet": "<link href=\"https://fonts.googleapis.com\" rel=\"preconnect\" />\n    <link crossorigin=\"\" href=\"https://fonts.gstatic.com\" rel=\"preconnect\" />\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap\"\n        rel=\"stylesheet\" />"
+            }
+          ],
+          "suggested_fix": "Update index.html with proper CSP-compliant font loading:\n   \n   ```html\n   <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" />\n   <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n   <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\" rel=\"stylesheet\" />\n   ```\n   \n   Update CSP header in Nginx:\n   ```nginx\n   add_header Content-Security-Policy \"default-src 'self'; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ...\" always;\n   ```\n   \n   Or via meta tag:\n   ```html\n   <meta http-equiv=\"Content-Security-Policy\" content=\"font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;\" />\n   ```",
+          "confidence": 0.82,
+          "cwe_id": "CWE-693",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 11 infrastructure and configuration security issues: 3 critical (missing security headers, unsafe inline scripts, sensitive data in localStorage, missing environment variable validation), 5 high (CORS validation, rate limiting, error message exposure), and 3 medium (logout verification, HSTS, debug mode exposure). Most require Docker/Nginx configuration changes or Angular service layer modifications.",
+      "files_analyzed": 12
+    }
+  ],
+  "total_findings": 13,
+  "critical_count": 0,
+  "high_count": 4
+}

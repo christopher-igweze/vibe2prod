@@ -1,0 +1,414 @@
+{
+  "findings": [
+    {
+      "id": "F-c367abbe",
+      "title": "God module: supabase.service.ts exceeds 800 LOC with mixed responsibilities",
+      "description": "The Supabase service has grown to 847 LOC containing database operations, authentication logic, data transformation, webhook handling, and business logic across products, sales, inventory, staff, reconciliation, and metrics. This violates single responsibility principle and makes the service difficult to maintain and test.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 847,
+          "snippet": "Service handles: authentication, product CRUD, sales transactions, inventory management, staff profiles, reconciliation, metrics queries, webhook operations"
+        }
+      ],
+      "suggested_fix": "Split into domain-specific services: AuthService (auth operations), ProductService (already exists but incomplete), SalesService (sales queries), InventoryService (stock operations), StaffService (user management), ReconciliationService (financial operations), MetricsService (analytics queries). Consider implementing Repository pattern for data access abstraction.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d9e5d557",
+      "title": "Missing service layer abstraction for business logic",
+      "description": "Components (sales-dashboard, products, inventory, analysis) directly inject and call SupabaseService methods for data operations. This creates tight coupling between presentation and data layers, making it difficult to swap data sources or test components in isolation.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 1,
+          "line_end": 240,
+          "snippet": "Directly calls supabaseService.getProducts(), supabaseService.addProduct(), etc."
+        },
+        {
+          "file_path": "src/app/pages/inventory/inventory.component.ts",
+          "line_start": 1,
+          "line_end": 178,
+          "snippet": "Direct supabaseService calls for inventory operations"
+        },
+        {
+          "file_path": "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
+          "line_start": 1,
+          "line_end": 147,
+          "snippet": "Direct supabaseService calls for sales metrics"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 1,
+          "line_end": 292,
+          "snippet": "Direct supabaseService calls for analytics data"
+        }
+      ],
+      "suggested_fix": "Introduce domain-specific services (ProductService, SalesService, InventoryService, AnalyticsService) that encapsulate business logic and data access. Components should depend on these domain services, not SupabaseService directly. This creates a proper service layer between presentation and data access layers.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c47c069e",
+      "title": "Inconsistent service usage patterns across modules",
+      "description": "Some components use product.service.ts (ProductService exists with 149 LOC), while others bypass it and call SupabaseService directly. This inconsistency creates maintenance burden and confusion about the single source of truth for product-related operations.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/product.service.ts",
+          "line_start": 1,
+          "line_end": 149,
+          "snippet": "Exists but appears underutilized with limited scope"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "May or may not use ProductService consistently"
+        }
+      ],
+      "suggested_fix": "Audit all components to identify which ones should use ProductService vs SupabaseService. Either expand ProductService to be the authoritative product data gateway, or document why certain components bypass it. Apply same pattern consistently across all domain services.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9c0f6493",
+      "title": "Tightly coupled presentation and data access layers",
+      "description": "No repository pattern or data access abstraction layer exists. Components directly instantiate and call Supabase client operations, making it impossible to swap implementations or mock for testing without modifying component code.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 1,
+          "line_end": 139,
+          "snippet": "Direct Supabase operations without abstraction"
+        },
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 1,
+          "line_end": 82,
+          "snippet": "Direct service calls for analytics data"
+        },
+        {
+          "file_path": "src/app/pages/staff/staff.component.ts",
+          "line_start": 1,
+          "line_end": 113,
+          "snippet": "Direct staff data operations"
+        }
+      ],
+      "suggested_fix": "Implement Repository pattern or Data Access Object (DAO) pattern to abstract database operations. Create IProductRepository, ISalesRepository, IInventoryRepository interfaces. Components depend on abstractions, not concrete Supabase implementation. This enables easy testing and future data source migration.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b84ca2cd",
+      "title": "App-ui-components module mixing multiple concerns (620 LOC)",
+      "description": "The UI components module combines unrelated concerns: sidebar navigation, loading indicators, toast notifications, stock alerts, activity feed, and dashboard metrics. These should be organized by functional domain rather than UI type.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/components/",
+          "line_start": 1,
+          "line_end": 620,
+          "snippet": "Contains: sidebar (nav), loading (utility), toast (notification), stock-alerts (domain), activity-feed (domain), dashboard-metrics (domain)"
+        }
+      ],
+      "suggested_fix": "Reorganize by concern: src/app/components/layout/ (sidebar, layouts), src/app/components/shared/ (loading, toast), src/app/components/features/ (stock-alerts, activity-feed, dashboard-metrics). This aligns UI organization with feature boundaries.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-443e0421",
+      "title": "No abstraction for external API/webhook interactions",
+      "description": "WebhookService exists (40 LOC) but its integration with business logic is unclear. No adapter pattern for external system communication, making it difficult to trace data flow to external systems.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/webhook.service.ts",
+          "line_start": 1,
+          "line_end": 40,
+          "snippet": "Webhook operations appear isolated without clear integration pattern"
+        }
+      ],
+      "suggested_fix": "Define clear integration patterns for external systems. Create EventEmitterService or EventBusService for cross-module communication. Document webhook contract and versioning strategy. Consider using Adapter pattern to standardize external API interactions.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bc84797a",
+      "title": "Session management scattered across multiple services",
+      "description": "Auto-logout (74 LOC), page-reload (71 LOC), and loading (26 LOC) services handle session and state management in isolation. No unified session/state management strategy, leading to potential race conditions and inconsistent user experience.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/auto-logout.service.ts",
+          "line_start": 1,
+          "line_end": 74,
+          "snippet": "Manages session timeout independently"
+        },
+        {
+          "file_path": "src/app/services/page-reload.service.ts",
+          "line_start": 1,
+          "line_end": 71,
+          "snippet": "Manages page refresh independently"
+        },
+        {
+          "file_path": "src/app/services/loading.service.ts",
+          "line_start": 1,
+          "line_end": 26,
+          "snippet": "Manages loading state independently"
+        }
+      ],
+      "suggested_fix": "Create unified AppStateService or SessionStateService to manage loading, session, and navigation state. Use state management pattern (NgRx, Akita, or simple BehaviorSubject-based store) to centralize and coordinate state changes across the application.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-eb580527",
+      "title": "Configuration values and constants scattered across files",
+      "description": "Magic strings and hardcoded values likely exist throughout components and services (auth paths, table names, API endpoints). No centralized configuration module identified.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/app.config.ts",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "Config file exists but may be incomplete"
+        },
+        {
+          "file_path": "src/app/",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Constants likely scattered in supabase.service.ts (847 LOC) and throughout components"
+        }
+      ],
+      "suggested_fix": "Create comprehensive constants module: src/app/core/constants/ with: api-endpoints.ts, table-names.ts, error-messages.ts, validation-rules.ts. Centralize all magic strings. Move app.config.ts to src/app/core/config/ and expand with environment-specific configs.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6de5d0d5",
+      "title": "No clear feature module boundaries or lazy loading strategy",
+      "description": "All pages are loaded eagerly into app-core module. No feature modules defined for sales, inventory, admin, or analysis features. This prevents code splitting and lazy loading optimization.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/app.routes.ts",
+          "line_start": 1,
+          "line_end": 119,
+          "snippet": "All routes likely use component imports directly without lazy loading via loadComponent or loadChildren"
+        }
+      ],
+      "suggested_fix": "Organize feature modules: SalesModule, InventoryModule, AdminModule, AnalysisModule, ReconciliationModule. Each with its own routing. Import into AppModule. Use lazy loading with loadChildren in app.routes.ts to enable code splitting: { path: 'sales', loadChildren: () => import('./features/sales/sales.module').then(m => m.SalesModule) }",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8f7469e7",
+      "title": "Missing core module for singleton services",
+      "description": "Singleton services (SupabaseService, AuthService, ToastService, LoadingService) are scattered in src/app/services/ without clear separation from feature services. No CoreModule pattern to centralize and guard singleton instantiation.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/",
+          "line_start": 1,
+          "line_end": 520,
+          "snippet": "All services in flat structure without core/feature distinction"
+        }
+      ],
+      "suggested_fix": "Create CoreModule in src/app/core/ that provides singleton services: supabase.service.ts, auth.service.ts, toast.service.ts, notification.service.ts, app-state.service.ts. Create SharedModule in src/app/shared/ for reusable components, directives, pipes. Feature modules import SharedModule, not CoreModule.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5e04c519",
+      "title": "Potential circular dependency risk: layouts depend on components",
+      "description": "Admin-layout and main-layout components (part of app-layouts module) likely include sidebar and other UI components from app-ui-components. If those components import layout services, circular dependency exists.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/components/admin-layout/admin-layout.component.ts",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "Layout component may import shared UI components"
+        },
+        {
+          "file_path": "src/app/components/main-layout/main-layout.component.ts",
+          "line_start": 1,
+          "line_end": 36,
+          "snippet": "Layout component includes sidebar and other components"
+        }
+      ],
+      "suggested_fix": "Verify no circular imports exist between layout and UI component modules. Document explicit dependency direction: Layouts \u2192 UI Components \u2192 Services, never reverse. Add eslint-plugin-import rules to enforce no-cycle.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e084c06e",
+      "title": "Inconsistent error handling and logging strategy",
+      "description": "Error handling appears ad-hoc without centralized error handler, logging service, or consistent error reporting pattern. No error boundary or global error handler identified.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 847,
+          "snippet": "Error handling scattered throughout large service"
+        },
+        {
+          "file_path": "src/app/pages/",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Components likely have inconsistent error handling"
+        }
+      ],
+      "suggested_fix": "Create ErrorHandlingService or ErrorInterceptor for centralized error handling. Create LoggerService for consistent logging. Use HttpInterceptor to catch and normalize API errors. Create error-messages.ts for consistent error text. Implement global error handler via ErrorHandler token.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7b5cac41",
+      "title": "Analysis component significantly exceeds recommended size (292 LOC + 464 HTML + 1128 CSS)",
+      "description": "The analysis.component.ts (292 LOC), analysis.component.html (464 LOC), and analysis.component.css (1128 LOC) combine to form a very large feature component that likely contains multiple responsibilities and would benefit from decomposition into smaller sub-components.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 1,
+          "line_end": 292,
+          "snippet": "Large component with likely multiple data fetching and rendering responsibilities"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.html",
+          "line_start": 1,
+          "line_end": 464,
+          "snippet": "Large template with multiple sections"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.css",
+          "line_start": 1,
+          "line_end": 1128,
+          "snippet": "Excessive CSS likely for multiple unrelated UI sections"
+        }
+      ],
+      "suggested_fix": "Decompose analysis component into feature-specific sub-components: AnalysisOverviewComponent, AnalysisChartsComponent, AnalysisTrendsComponent, AnalysisExportComponent. Create shared/analysis/ folder for analysis-related UI components. Move CSS to individual components and use CSS modules or BEM naming for organization.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-50ffbbc5",
+      "title": "Products and inventory components large and potentially mixed in responsibility (240 LOC, 178 LOC)",
+      "description": "Products component (240 LOC) and inventory component (178 LOC) are among the largest page components. They likely combine CRUD operations, data display, filtering, and form handling without clear separation.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 1,
+          "line_end": 240,
+          "snippet": "Large component combining product list, add, edit, delete operations"
+        },
+        {
+          "file_path": "src/app/pages/inventory/inventory.component.ts",
+          "line_start": 1,
+          "line_end": 178,
+          "snippet": "Large component combining inventory management operations"
+        }
+      ],
+      "suggested_fix": "Consider extracting form logic into separate components: ProductFormComponent, InventoryFormComponent. Create reusable data-table component for list display. Separate concerns: ProductListComponent (display), ProductFormComponent (create/edit), ProductDetailComponent (view). Use smart/dumb component pattern.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 48,
+  "coupling_assessment": "The codebase exhibits HIGH coupling between layers. Components directly depend on SupabaseService for data access, creating tight coupling between presentation and data layers. There is no abstraction layer (Repository pattern, services) between components and the backend. Services themselves are tightly coupled with business logic scattered across SupabaseService (847 LOC). The lack of proper feature module boundaries increases coupling between unrelated features. State management is fragmented across multiple independent services (AutoLogoutService, PageReloadService, LoadingService, ToastService), increasing inter-service coupling.",
+  "layering_assessment": "The architecture lacks proper layering. Current structure: Components \u2192 SupabaseService \u2192 Supabase Backend. Missing: (1) Domain/Business Logic Layer - business rules and operations should not be in components or monolithic service; (2) Repository/Data Access Layer - abstraction between services and Supabase; (3) State Management Layer - no centralized state, scattered across services; (4) Core/Singleton Service Layer - no CoreModule pattern for guaranteed singletons. Correct layering should be: UI Components \u2192 Domain Services (Business Logic) \u2192 Data Access Services/Repositories \u2192 Data Sources. Currently, concerns are mixed across layers.",
+  "summary": "The FrostFlow codebase has moderate-to-significant structural issues impacting maintainability and scalability. The most critical problem is the monolithic Supabase service (847 LOC) handling mixed responsibilities across multiple domains. Second, components have no service layer abstraction and directly call data access methods, creating tight coupling. Third, no proper module structure exists - all features are loaded eagerly without lazy loading boundaries. Fourth, session/state management is fragmented across isolated services. The 'missing abstraction layer' issue permeates the architecture. Positive aspects: clear interfaces/types defined, routing with guards in place, consistent component structure, role-based access control. Recommendations: (1) Split SupabaseService into domain-specific services; (2) Create repository pattern for data access abstraction; (3) Implement CoreModule and proper feature modules with lazy loading; (4) Unify state/session management; (5) Extract and refactor large components (Analysis, Products, Inventory); (6) Centralize configuration and error handling. These changes would improve the score from 48 to 70+."
+}

@@ -1,0 +1,364 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-c22dad9d",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-3b97b45b",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-27e13b1f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-c367abbe",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-d9e5d557",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-b84ca2cd",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: src/app/components/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-eb580527",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8f7469e7",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: src/app/services/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-5e04c519",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e084c06e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_error_boundary",
+      "fix_template_id": "add-error-boundary",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1245ead3",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Known pattern: adding security meta tags to index.html. Single file modification with deterministic fix template.",
+      "fix_template_id": "security-headers-meta-tags",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-721ec12e",
+      "tier": 2,
+      "confidence": 0.92,
+      "rationale": "Requires npm package installation and component-level import changes. Spans 2-3 files (package.json, index.html, potentially chart-using components). Not a simple pattern\u2014requires dependency management decision.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "package.json",
+        "src/index.html",
+        "src/app/pages/analysis/analysis.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-8089e689",
+      "tier": 2,
+      "confidence": 0.9,
+      "rationale": "Add SRI attribute to index.html link tag or replace with npm package. Spans 1-2 files. Localized, scoped fix.",
+      "fix_template_id": "sri-integrity-attribute",
+      "relevant_files": [
+        "src/index.html"
+      ]
+    },
+    {
+      "finding_id": "F-e8a37ede",
+      "tier": 2,
+      "confidence": 0.88,
+      "rationale": "Add async/await error handling to handleLogout(). Single component file with clear, localized async flow fix. Scoped to owner-dashboard component.",
+      "fix_template_id": "async-logout-handler",
+      "relevant_files": [
+        "src/app/pages/owner-dashboard/owner-dashboard.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-ddcf9d4e",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Create HTTP interceptor service and update app.config.ts. Spans 2-3 files but is localized to app configuration and a new service. Clear scope.",
+      "fix_template_id": "cors-interceptor",
+      "relevant_files": [
+        "src/app/app.config.ts",
+        "src/app/services/http.interceptor.ts"
+      ]
+    },
+    {
+      "finding_id": "F-aba2df7e",
+      "tier": 2,
+      "confidence": 0.9,
+      "rationale": "Update angular.json sourceMap config and modify main.ts error handler. Spans 2 files, deterministic fix pattern for production build hardening.",
+      "fix_template_id": "source-map-removal-error-handling",
+      "relevant_files": [
+        "angular.json",
+        "src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-7b63d964",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Add meta tag to index.html. Known pattern, single file, deterministic fix.",
+      "fix_template_id": "mime-type-header-meta-tag",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-f54e5b03",
+      "tier": 1,
+      "confidence": 0.88,
+      "rationale": "Add HSTS meta tag or Nginx header. Known pattern, server-level configuration or single index.html update.",
+      "fix_template_id": "hsts-header-config",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-cbd37a7a",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Create ErrorMessageService and update 3+ component files to use it. Spans 4+ files (service + multiple component updates). Scoped fix across error handling.",
+      "fix_template_id": "error-message-sanitizer",
+      "relevant_files": [
+        "src/app/services/error-message.service.ts",
+        "src/app/pages/products/products.component.ts",
+        "src/app/pages/analysis/analysis.component.ts",
+        "src/app/pages/reconciliation/reconciliation.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-1f36b779",
+      "tier": 1,
+      "confidence": 0.82,
+      "rationale": "Fix preconnect tags and add CSP directives. Single index.html file, known pattern for font security.",
+      "fix_template_id": "google-fonts-csp-policy",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-6999fda7",
+      "tier": 1,
+      "confidence": 0.9,
+      "rationale": "Replace sequential awaits with Promise.all(). Single component file, deterministic performance pattern fix.",
+      "fix_template_id": "parallel-promise-execution",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-47b4b8cc",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Add pagination logic to ProductService and UI components. Spans 3-4 files: ProductService, stock-alerts component, products component, and template updates. Scoped, well-defined feature addition.",
+      "fix_template_id": "pagination-implementation",
+      "relevant_files": [
+        "src/app/services/product.service.ts",
+        "src/app/components/stock-alerts/stock-alerts.component.ts",
+        "src/app/pages/products/products.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-20078201",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Add debouncing to search input. Spans 2 files: component TypeScript and template. Localized performance fix.",
+      "fix_template_id": "debounce-search-input",
+      "relevant_files": [
+        "src/app/pages/products/products.component.ts",
+        "src/app/pages/products/products.component.html"
+      ]
+    },
+    {
+      "finding_id": "F-c6e85c65",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Remove Chart.js CDN script and implement lazy loading. Spans 2-3 files: index.html, analysis component, potentially new chart service. Scoped bundling/lazy-loading fix.",
+      "fix_template_id": "lazy-load-chart-lib",
+      "relevant_files": [
+        "src/index.html",
+        "src/app/pages/analysis/analysis.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-45205c10",
+      "tier": 1,
+      "confidence": 0.7,
+      "rationale": "Update package.json and app.config.ts icon imports to use tree-shaking. Single file update pattern (app.config.ts), deterministic optimization fix.",
+      "fix_template_id": "fontawesome-tree-shaking",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-f89e2d88",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Add ChangeDetectionStrategy.OnPush to 2-3 display components. Spans multiple component decorator updates but is a localized, repeatable pattern.",
+      "fix_template_id": "onpush-change-detection",
+      "relevant_files": [
+        "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+        "src/app/components/activity-feed/activity-feed.component.ts",
+        "src/app/components/stock-alerts/stock-alerts.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-452e9e24",
+      "tier": 2,
+      "confidence": 0.7,
+      "rationale": "Implement dynamic Chart.js import and route-level code splitting. Spans 2-3 files (analysis component, routes config). Scoped but requires route lazy-loading integration.",
+      "fix_template_id": "lazy-loaded-chart-route",
+      "relevant_files": [
+        "src/app/pages/analysis/analysis.component.ts",
+        "src/app/app.routes.ts",
+        "src/index.html"
+      ]
+    },
+    {
+      "finding_id": "F-7f64cef0",
+      "tier": 1,
+      "confidence": 0.75,
+      "rationale": "Add debounce to filterProducts(). Single component method update, deterministic optimization fix.",
+      "fix_template_id": "debounce-filter-method",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-927288d2",
+      "tier": 1,
+      "confidence": 0.7,
+      "rationale": "Replace manual subscription cleanup with DestroyRef pattern. Single component file, known Angular best-practice pattern.",
+      "fix_template_id": "destroyref-cleanup",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-c47c069e",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Audit and standardize service usage across 5+ component files. Requires architectural decision and cross-cutting refactoring of data access patterns throughout codebase.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "src/app/services/product.service.ts",
+        "src/app/pages/products/products.component.ts",
+        "src/app/components/stock-alerts/stock-alerts.component.ts",
+        "src/app/pages/inventory/inventory.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-9c0f6493",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Implement Repository/DAO abstraction pattern affecting 6+ files (reconciliation, owner-dashboard, staff, and all domain components). Cross-cutting architectural concern requiring refactoring of data access across entire codebase.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "src/app/pages/reconciliation/reconciliation.component.ts",
+        "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+        "src/app/pages/staff/staff.component.ts",
+        "src/app/services/supabase.service.ts",
+        "src/app/pages/products/products.component.ts",
+        "src/app/pages/sales-history/sales-history.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-443e0421",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Define adapter/integration pattern for external APIs. Spans 2-3 files: webhook service, event bus service, integration documentation. Scoped to external communication abstraction.",
+      "fix_template_id": "event-adapter-pattern",
+      "relevant_files": [
+        "src/app/services/webhook.service.ts"
+      ]
+    },
+    {
+      "finding_id": "F-bc84797a",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Create unified AppStateService consolidating session management. Affects 3+ existing services (auto-logout, page-reload, loading) and requires cross-cutting refactoring throughout app. Architectural state management concern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "src/app/services/auto-logout.service.ts",
+        "src/app/services/page-reload.service.ts",
+        "src/app/services/loading.service.ts"
+      ]
+    },
+    {
+      "finding_id": "F-6de5d0d5",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Restructure app into feature modules with lazy loading. Requires reorganizing 15+ files across features, modifying app.routes.ts, and changing module structure. Major architectural refactoring.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "src/app/app.routes.ts",
+        "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
+        "src/app/pages/sales-history/sales-history.component.ts",
+        "src/app/pages/inventory/inventory.component.ts",
+        "src/app/pages/analysis/analysis.component.ts"
+      ]
+    },
+    {
+      "finding_id": "F-7b5cac41",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Decompose analysis component into 4-5 sub-components. Spans 1 large component being split into multiple files. Scoped refactoring of single feature.",
+      "fix_template_id": "component-decomposition",
+      "relevant_files": [
+        "src/app/pages/analysis/analysis.component.ts",
+        "src/app/pages/analysis/analysis.component.html",
+        "src/app/pages/analysis/analysis.component.css"
+      ]
+    },
+    {
+      "finding_id": "F-50ffbbc5",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Extract form logic and create reusable components for products and inventory. Spans 2-3 files per feature. Scoped component refactoring.",
+      "fix_template_id": "smart-dumb-component-split",
+      "relevant_files": [
+        "src/app/pages/products/products.component.ts",
+        "src/app/pages/inventory/inventory.component.ts"
+      ]
+    }
+  ],
+  "tier_0_count": 2,
+  "tier_1_count": 13,
+  "tier_2_count": 14,
+  "tier_3_count": 7
+}

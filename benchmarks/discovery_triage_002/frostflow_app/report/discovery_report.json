@@ -1,0 +1,2249 @@
+{
+  "run_id": "368f1db82d2f",
+  "generated_at": "2026-02-26T02:11:51.375190+00:00",
+  "phase": "discovery",
+  "duration_seconds": 245.8,
+  "cost_usd": 0.7295,
+  "total_findings": 36,
+  "severity_breakdown": {
+    "high": 8,
+    "medium": 20,
+    "low": 8
+  },
+  "category_breakdown": {
+    "security": 13,
+    "performance": 9,
+    "architecture": 14
+  },
+  "findings": [
+    {
+      "id": "F-1245ead3",
+      "title": "Missing security headers in index.html",
+      "description": "The application index.html lacks critical security headers like Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, and X-XSS-Protection. These headers should be configured at the server/Docker level or via meta tags.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 22,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <!-- Missing security headers -->"
+        }
+      ],
+      "suggested_fix": "Add the following meta tags to the <head> section of index.html:\n1. <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\" />\n2. <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com\" />\n3. <meta http-equiv=\"X-Frame-Options\" content=\"SAMEORIGIN\" />\n4. <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n5. <meta http-equiv=\"X-XSS-Protection\" content=\"1; mode=block\" />\n\nFor production, configure these headers in the Nginx/Docker configuration instead (recommended approach).",
+      "confidence": 0.95,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-721ec12e",
+      "title": "Unsafe inline scripts in index.html (Chart.js CDN)",
+      "description": "The application loads Chart.js from CDN (https://cdn.jsdelivr.net/npm/chart.js) as an inline script without integrity checking. This bypasses CSP and could be exploited via CDN compromise.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 19,
+          "line_end": 21,
+          "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+        }
+      ],
+      "suggested_fix": "1. Install chart.js via npm instead (remove the comment's original reason by managing dependencies correctly):\n   npm install chart.js\n   \n2. Import it in your Angular component:\n   import Chart from 'chart.js/auto';\n   \n3. If CDN must be used, add Subresource Integrity (SRI):\n   <script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.5.1\" integrity=\"sha384-[hash]\" crossorigin=\"anonymous\"></script>\n   \n4. Update CSP to restrict external script loading:\n   script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net (with SRI, remove 'unsafe-inline')",
+      "confidence": 0.92,
+      "cwe_id": "CWE-345",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8089e689",
+      "title": "Font Awesome CSS loaded over HTTP without integrity check",
+      "description": "Font Awesome CSS is loaded from cdnjs.cloudflare.com without SRI (Subresource Integrity). If the CDN is compromised, malicious CSS injection is possible.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 14,
+          "line_end": 14,
+          "snippet": "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" />"
+        }
+      ],
+      "suggested_fix": "1. Add Subresource Integrity attribute:\n   <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" integrity=\"sha512-[hash]\" crossorigin=\"anonymous\" />\n   \n2. Or better, use Font Awesome package via npm (already used via @fortawesome packages in package.json). Remove this CDN link entirely and rely on the npm packages already installed.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-345",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c22dad9d",
+      "title": "Sensitive data stored in localStorage without encryption",
+      "description": "User credentials and personal data (user_name, user_email, user_id, user_role) are stored in localStorage as plain text in multiple components (sidebar.component.ts, owner-dashboard.component.ts, products.component.ts). localStorage is vulnerable to XSS attacks.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/components/sidebar/sidebar.component.ts",
+          "line_start": 9,
+          "line_end": 11,
+          "snippet": "ngOnInit() {\n    this.userRole = localStorage.getItem('user_role');"
+        },
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 37,
+          "line_end": 39,
+          "snippet": "public name: string = localStorage.getItem('user_name') || ''\n    email: string = localStorage.getItem('user_email') || ''\n    id: string = localStorage.getItem('user_id') || ''"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 82,
+          "line_end": 84,
+          "snippet": "const role = localStorage.getItem('user_role');\n    if (role === 'sales') {\n      this.viewMode = 'lookup';"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 159,
+          "line_end": 159,
+          "snippet": "created_by: localStorage.getItem('user_id') || \"\","
+        }
+      ],
+      "suggested_fix": "1. Replace localStorage with Supabase session management (already using Supabase.getCurrentUser()). Example:\n   \n   // Instead of:\n   const userId = localStorage.getItem('user_id');\n   \n   // Use:\n   const user = await this.supabase.getCurrentUser();\n   const userId = user?.id;\n   \n2. For role-based UI display, retrieve from user profile:\n   const profile = await this.supabase.getUserProfile(userId);\n   const role = profile.role;\n   \n3. Store only non-sensitive session tokens if needed, and mark them as HttpOnly/Secure in backend (Supabase handles this).\n   \n4. For user name/email display, fetch from the authenticated session object:\n   const { user } = await this.supabase.getSession();\n   const name = user?.user_metadata?.name || user?.email;",
+      "confidence": 0.94,
+      "cwe_id": "CWE-922",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e8a37ede",
+      "title": "localStorage.clear() in logout without session invalidation verification",
+      "description": "In owner-dashboard.component.ts, handleLogout() clears localStorage and calls signOut(), but there's no verification that the backend session was successfully revoked before clearing local data. An attacker could intercept and maintain a session.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 95,
+          "line_end": 101,
+          "snippet": "handleLogout() {\n        localStorage.clear()\n        this.supabase.signOut()\n        this.toast.show('Logout successful!', 'logout')\n        this.router.navigate(['/login'])\n    }"
+        }
+      ],
+      "suggested_fix": "Implement proper async logout with error handling:\n   \n   async handleLogout() {\n       try {\n           // Revoke session on server first\n           await this.supabase.signOut();\n           \n           // Only clear local data after successful server revocation\n           localStorage.clear();\n           sessionStorage.clear();\n           \n           this.toast.show('Logout successful!', 'logout');\n           this.router.navigate(['/login']);\n       } catch (error) {\n           console.error('Logout failed:', error);\n           this.toast.show('Logout failed. Please try again.', 'error');\n           // Force redirect anyway for security, but inform user\n           this.router.navigate(['/login']);\n       }\n   }",
+      "confidence": 0.88,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ddcf9d4e",
+      "title": "Missing CORS configuration validation",
+      "description": "The application uses @supabase/supabase-js but there's no explicit CORS configuration visible in the app config. If Supabase CORS settings are misconfigured, cross-origin requests could be vulnerable.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/app.config.ts",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core'\nimport { provideRouter } from '@angular/router'\nimport { provideHttpClient } from '@angular/common/http'\n\nimport { routes } from './app.routes'\n\nexport const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
+        }
+      ],
+      "suggested_fix": "1. Add HTTP interceptor for request validation and CORS headers:\n   \n   Create src/app/services/http.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   \n   export const corsInterceptor: HttpInterceptorFn = (req, next) => {\n     // Validate origin for Supabase requests\n     const supabaseUrl = 'https://[your-project].supabase.co';\n     \n     if (req.url.startsWith(supabaseUrl)) {\n       req = req.clone({\n         setHeaders: {\n           'X-Requested-With': 'XMLHttpRequest'\n         }\n       });\n     }\n     \n     return next(req);\n   };\n   ```\n   \n2. Update app.config.ts:\n   ```typescript\n   import { corsInterceptor } from './services/http.interceptor';\n   \n   export const appConfig: ApplicationConfig = {\n     providers: [\n       provideZoneChangeDetection({ eventCoalescing: true }),\n       provideRouter(routes),\n       provideHttpClient(\n         withInterceptors([corsInterceptor])\n       ),\n     ],\n   };\n   ```\n   \n3. In Supabase dashboard, verify CORS settings allow only your domain.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-346",
+      "owasp_ref": "A04:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3b97b45b",
+      "title": "No rate limiting on API requests",
+      "description": "The application makes direct calls to Supabase via supabase.service.ts without any visible rate limiting or request throttling. This makes it vulnerable to abuse and denial-of-service attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "// Based on references in components, service handles direct Supabase calls without throttling"
+        }
+      ],
+      "suggested_fix": "1. Create a rate-limiting interceptor for HTTP requests:\n   \n   src/app/services/rate-limit.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   import { inject } from '@angular/core';\n   import { delay, of, throwError } from 'rxjs';\n   import { catchError, retryWhen, scan } from 'rxjs/operators';\n   \n   const MAX_RETRIES = 3;\n   const DELAY_MS = 1000;\n   \n   export const rateLimitInterceptor: HttpInterceptorFn = (req, next) => {\n     return next(req).pipe(\n       retryWhen(errors =>\n         errors.pipe(\n           scan((count, error) => {\n             if (count >= MAX_RETRIES || error.status !== 429) {\n               throw error;\n             }\n             return count + 1;\n           }, 0),\n           delay(DELAY_MS)\n         )\n       ),\n       catchError(error => {\n         if (error.status === 429) {\n           console.error('Rate limit exceeded');\n           // Show user-friendly error\n         }\n         return throwError(() => error);\n       })\n     );\n   };\n   ```\n   \n2. Add to app.config.ts with other interceptors.\n   \n3. For login attempts specifically, add exponential backoff:\n   ```typescript\n   // In supabase.service.ts or login component\n   let loginAttempts = 0;\n   const maxAttempts = 5;\n   const backoffDelay = (attempt: number) => Math.pow(2, attempt) * 1000;\n   \n   async login(email: string, password: string) {\n     if (loginAttempts >= maxAttempts) {\n       throw new Error(`Too many login attempts. Try again in ${backoffDelay(loginAttempts)/1000}s`);\n     }\n     \n     try {\n       const result = await this.supabase.auth.signInWithPassword({email, password});\n       loginAttempts = 0; // Reset on success\n       return result;\n     } catch (error) {\n       loginAttempts++;\n       await delay(backoffDelay(loginAttempts));\n       throw error;\n     }\n   }\n   ```",
+      "confidence": 0.85,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-aba2df7e",
+      "title": "Debug mode/development tools exposed in production build",
+      "description": "The tsconfig.json has sourceMap support enabled, and main.ts includes .catch() with console.error(). In production builds, source maps and verbose error logging expose internal code structure and error details.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/main.ts",
+          "line_start": 4,
+          "line_end": 4,
+          "snippet": "bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err))"
+        },
+        {
+          "file_path": "angular.json",
+          "line_start": 39,
+          "line_end": 47,
+          "snippet": "\"development\": {\n                            \"optimization\": false,\n                            \"extractLicenses\": false,\n                            \"sourceMap\": true\n                        }"
+        }
+      ],
+      "suggested_fix": "1. Remove source maps from production build in angular.json:\n   \n   Change production config to:\n   ```json\n   \"production\": {\n     \"budgets\": [...],\n     \"outputHashing\": \"all\",\n     \"sourceMap\": false,\n     \"optimization\": true\n   }\n   ```\n   \n2. Replace console.error with user-friendly error handling in main.ts:\n   ```typescript\n   bootstrapApplication(AppComponent, appConfig).catch((err) => {\n     // Log to error tracking service (e.g., Sentry) instead of console\n     // In development: console.error(err);\n     // In production: silently track or show generic message\n     \n     if (!environment.production) {\n       console.error(err);\n     }\n     \n     // Show generic user message\n     const root = document.querySelector('app-root');\n     if (root) {\n       root.innerHTML = '<p>Application failed to load. Please refresh the page.</p>';\n     }\n   });\n   ```\n   \n3. Add error tracking service:\n   ```typescript\n   // src/app/services/error-tracking.service.ts\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorTrackingService {\n     logError(error: any) {\n       // Send to backend logging service or Sentry\n       // Do NOT expose stack traces to user\n     }\n   }\n   ```",
+      "confidence": 0.9,
+      "cwe_id": "CWE-532",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7b63d964",
+      "title": "Missing X-Content-Type-Options MIME type validation",
+      "description": "TypeScript is set to strict mode in tsconfig.json, but there's no HTTP header configuration to prevent MIME type sniffing. External resources (fonts, icons) could be served with wrong MIME types.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 22,
+          "snippet": "No explicit MIME type headers or X-Content-Type-Options meta tag present"
+        }
+      ],
+      "suggested_fix": "Add MIME type security headers (preferably in Nginx/Docker config, but also via meta):\n   \n   In index.html <head>:\n   ```html\n   <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n   ```\n   \n   In Docker Nginx config (recommended):\n   ```nginx\n   add_header X-Content-Type-Options \"nosniff\" always;\n   add_header X-Frame-Options \"SAMEORIGIN\" always;\n   add_header X-XSS-Protection \"1; mode=block\" always;\n   add_header Referrer-Policy \"strict-origin-when-cross-origin\" always;\n   \n   # Specify MIME types explicitly\n   types {\n     text/javascript js;\n     text/css css;\n     application/font-woff2 woff2;\n     application/font-woff woff;\n   }\n   ```",
+      "confidence": 0.85,
+      "cwe_id": "CWE-434",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-27e13b1f",
+      "title": "Hardcoded Supabase URL/Key risk in environment variable usage",
+      "description": "While the code references supabase.service.ts which likely initializes Supabase, there's no .env.example or documented environment variable naming convention visible. The anonymous key should be used only for public operations; service role key must not be exposed client-side.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "README.md",
+          "line_start": 67,
+          "line_end": 71,
+          "snippet": "3. **Configure Environment**\nCreate a `.env` file in the root directory:\n```env\nSUPABASE_URL=your_supabase_url\nSUPABASE_KEY=your_supabase_anon_key\nN8N_WEBHOOK_URL=your_n8n_webhook"
+        }
+      ],
+      "suggested_fix": "1. Create .env.example for documentation:\n   ```\n   # Supabase Configuration (use ANON key only, not service role key)\n   SUPABASE_URL=https://your-project.supabase.co\n   SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n   # DO NOT include SUPABASE_SERVICE_ROLE_KEY in client-side app\n   \n   # n8n Webhook (public endpoint is safe)\n   N8N_WEBHOOK_URL=https://n8n.example.com/webhook/...\n   ```\n   \n2. Update supabase.service.ts initialization to validate key type:\n   ```typescript\n   import { createClient } from '@supabase/supabase-js';\n   \n   const supabaseUrl = process.env['SUPABASE_URL'] || '';\n   const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || '';\n   \n   // Validate key format\n   if (!supabaseAnonKey.startsWith('eyJ')) {\n     throw new Error('Invalid Supabase key. Ensure SUPABASE_ANON_KEY is set (not service role key).');\n   }\n   \n   export const supabase = createClient(supabaseUrl, supabaseAnonKey);\n   ```\n   \n3. Ensure .env is in .gitignore and .env.example is in version control.\n   \n4. Add GitHub Actions/CI secret validation:\n   ```yaml\n   # In CI/CD pipeline, validate environment variables\n   - name: Validate Supabase Config\n     run: |\n       if [[ \"$SUPABASE_KEY\" == *\"service_role\"* ]]; then\n         echo \"ERROR: Service role key detected in client build\"\n         exit 1\n       fi\n   ```",
+      "confidence": 0.92,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f54e5b03",
+      "title": "No HSTS (HTTP Strict-Transport-Security) header configuration",
+      "description": "The application uses HTTPS (via Supabase), but there's no Strict-Transport-Security header configured to force HTTPS-only connections and prevent downgrade attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 5,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />"
+        }
+      ],
+      "suggested_fix": "Add HSTS header in Docker/Nginx configuration (preferred method):\n   \n   In Nginx config:\n   ```nginx\n   server {\n     add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n   }\n   ```\n   \n   Or in meta tag (less secure, but backup):\n   ```html\n   <meta http-equiv=\"Strict-Transport-Security\" content=\"max-age=31536000; includeSubDomains; preload\" />\n   ```\n   \n   Recommended policy:\n   - max-age=31536000 (1 year)\n   - includeSubDomains (apply to subdomains)\n   - preload (register with HSTS preload list)\n   \n   Register at https://hstspreload.org/",
+      "confidence": 0.88,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-cbd37a7a",
+      "title": "Toast error messages may expose system information",
+      "description": "In multiple components (reconciliation, products, analysis), error messages from Supabase are displayed directly to users via toast notifications without sanitization. This can expose database table names, API details, or internal error messages.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 129,
+          "line_end": 132,
+          "snippet": "} catch (error: any) {\n            console.error('Save failed', error);\n            this.toast.show('Error saving product: ' + error.message, 'error');"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 145,
+          "line_end": 147,
+          "snippet": "} catch (error: any) {\n        this.toast.show('Delete failed: ' + error.message, 'error');"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 243,
+          "line_end": 245,
+          "snippet": "} catch (error: any) {\n            console.error(error);\n            alert('Failed to void: ' + error.message);"
+        }
+      ],
+      "suggested_fix": "Create error message sanitizer service:\n   \n   src/app/services/error-message.service.ts:\n   ```typescript\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorMessageService {\n     getSafeMessage(error: any): string {\n       const message = error?.message || 'An error occurred';\n       \n       // Sanitize database/system information\n       const systemPatterns = [\n         /relation \"([^\"]+)\" does not exist/g,\n         /UNIQUE constraint failed/,\n         /database/i,\n         /sql:/i,\n         /table/i\n       ];\n       \n       let safe = message;\n       systemPatterns.forEach(pattern => {\n         safe = safe.replace(pattern, 'database operation');\n       });\n       \n       // Log actual error for debugging\n       if (error?.code || error?.details) {\n         console.error('[Detailed Error]', error);\n       }\n       \n       return safe || 'Operation failed. Please try again.';\n     }\n   }\n   ```\n   \n   Update components:\n   ```typescript\n   constructor(\n     private errorMessage: ErrorMessageService,\n     private toast: ToastService\n   ) {}\n   \n   async saveProduct() {\n     try {\n       // ...\n     } catch (error) {\n       const safeMessage = this.errorMessage.getSafeMessage(error);\n       this.toast.show(safeMessage, 'error');\n     }\n   }\n   ```",
+      "confidence": 0.8,
+      "cwe_id": "CWE-209",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1f36b779",
+      "title": "Missing Content-Security-Policy directives for Google Fonts",
+      "description": "The application preconnects to fonts.googleapis.com and fonts.gstatic.com without CSP directives that explicitly allow these resources, making it vulnerable to injection attacks if CSP is implemented.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 9,
+          "line_end": 12,
+          "snippet": "<link href=\"https://fonts.googleapis.com\" rel=\"preconnect\" />\n    <link crossorigin=\"\" href=\"https://fonts.gstatic.com\" rel=\"preconnect\" />\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap\"\n        rel=\"stylesheet\" />"
+        }
+      ],
+      "suggested_fix": "Update index.html with proper CSP-compliant font loading:\n   \n   ```html\n   <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" />\n   <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n   <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\" rel=\"stylesheet\" />\n   ```\n   \n   Update CSP header in Nginx:\n   ```nginx\n   add_header Content-Security-Policy \"default-src 'self'; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ...\" always;\n   ```\n   \n   Or via meta tag:\n   ```html\n   <meta http-equiv=\"Content-Security-Policy\" content=\"font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;\" />\n   ```",
+      "confidence": 0.82,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6999fda7",
+      "title": "Sequential API calls in dashboard metrics",
+      "description": "In dashboard-metrics.component.ts, getDashboardMetrics() and getSalesDashboardMetrics() are called sequentially with await, blocking parallel execution.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+          "line_start": 17,
+          "line_end": 21,
+          "snippet": "async ngOnInit() {\n    this.metrics = await this.supabase.getDashboardMetrics();\n    this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n}"
+        }
+      ],
+      "suggested_fix": "Use Promise.all() to parallelize both API calls: const [metrics, salesMetrics] = await Promise.all([this.supabase.getDashboardMetrics(), this.supabase.getSalesDashboardMetrics()]);",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-47b4b8cc",
+      "title": "Missing pagination on product list",
+      "description": "The product service loads all products without pagination or limit. In stock-alerts.component.ts and products.component.ts, loadProducts() fetches the entire product table which will cause performance degradation as inventory grows.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "line_start": 26,
+          "line_end": 28,
+          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 101,
+          "line_end": 103,
+          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
+        }
+      ],
+      "suggested_fix": "Implement pagination with limit/offset or cursor-based pagination. Add pagination controls to the UI and modify Supabase queries to use .range() with page size of 20-50 items.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-20078201",
+      "title": "No request debouncing on search input",
+      "description": "In products.component.ts, onSearch() is called on every input event without debouncing. Each keystroke triggers a full filter operation over all products.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 121,
+          "line_end": 125,
+          "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n}"
+        }
+      ],
+      "suggested_fix": "Use RxJS debounceTime(300) operator or Angular's updateOn: 'blur' for the search form control to prevent excessive filtering.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c6e85c65",
+      "title": "Chart.js loaded via CDN blocking render",
+      "description": "In index.html, Chart.js is loaded via a blocking <script> tag in the <head>. This delays First Contentful Paint and doesn't leverage Angular's build optimization.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 18,
+          "line_end": 19,
+          "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+        }
+      ],
+      "suggested_fix": "Install chart.js via npm and import it only in components that need it, or use dynamic import with IntersectionObserver to load Chart.js lazily when charts enter the viewport.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-45205c10",
+      "title": "Font Awesome full library import",
+      "description": "package.json imports @fortawesome/fontawesome-svg-core and multiple icon sets (free-brands, free-regular, free-solid). The free-solid set alone includes 2000+ icons, significantly increasing bundle size.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "package.json",
+          "line_start": 17,
+          "line_end": 22,
+          "snippet": "\"@fortawesome/angular-fontawesome\": \"^1.0.0\",\n\"@fortawesome/fontawesome-svg-core\": \"^7.1.0\",\n\"@fortawesome/free-brands-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-regular-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-solid-svg-icons\": \"^6.7.2\","
+        }
+      ],
+      "suggested_fix": "Use tree-shaking by importing only specific icons needed: import { faDashboard } from '@fortawesome/free-solid-svg-icons/faDashboard'; Then add them to the providers array in app.config.ts.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f89e2d88",
+      "title": "Missing OnPush change detection strategy",
+      "description": "Components use default change detection which runs on every change detection cycle. Components like dashboard-metrics, activity-feed, stock-alerts that only update based on service signals should use OnPush for better performance.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+          "line_start": 1,
+          "line_end": 15,
+          "snippet": "@Component({\n    selector: 'app-dashboard-metrics',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './dashboard-metrics.component.html',\n    styleUrls: ['./dashboard-metrics.component.css']\n})"
+        },
+        {
+          "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
+          "line_start": 19,
+          "line_end": 31,
+          "snippet": "@Component({\n    selector: 'app-activity-feed',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './activity-feed.component.html',\n    styleUrls: ['./activity-feed.component.css']\n})"
+        }
+      ],
+      "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components and use Signals for reactive state.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-452e9e24",
+      "title": "No lazy loading for Chart.js in analysis page",
+      "description": "The analysis.component.ts imports and uses Chart.js but it loads synchronously. With the CDN approach, the entire library is loaded even if users never visit the analytics tab.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { SupabaseService } from '../../services/supabase.service';"
+        },
+        {
+          "file_path": "src/index.html",
+          "line_start": 18,
+          "line_end": 19,
+          "snippet": "<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+        }
+      ],
+      "suggested_fix": "Use dynamic import or create a separate chart component loaded via loadComponent() in the route to code-split Chart.js away from the main bundle.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7f64cef0",
+      "title": "Inefficient filter in products component",
+      "description": "The filterProducts() method in products.component.ts creates a new array on every call using filter() which iterates all products. Combined with no debouncing on search, this causes repeated O(n) operations.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 117,
+          "line_end": 124,
+          "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
+        }
+      ],
+      "suggested_fix": "Apply debounce to search input and consider using a computed signal with memoization to avoid redundant filtering.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-927288d2",
+      "title": "Multiple realtime subscriptions without cleanup guarantee",
+      "description": "In owner-dashboard.component.ts, the notification subscription is created but ngOnDestroy only checks for truthiness. If startListening() fails or throws, subscriptions may leak.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 45,
+          "line_end": 56,
+          "snippet": "async ngOnInit() {\n        this.notificationSubscription = this.supabase.subscribeToNotifications((payload) => {\n            this.notifications.unshift(payload.new as Notification)\n            this.loadData();\n        })\n    }\n\n    ngOnDestroy() {\n        if (this.notificationSubscription) {\n            this.notificationSubscription.unsubscribe();\n        }\n    }"
+        }
+      ],
+      "suggested_fix": "Use DestroyRef from @angular/core to auto-unsubscribe on component destruction: private destroyRef = inject(DestroyRef); then this.destroyRef.onDestroy(() => this.notificationSubscription?.unsubscribe());",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c367abbe",
+      "title": "God module: supabase.service.ts exceeds 800 LOC with mixed responsibilities",
+      "description": "The Supabase service has grown to 847 LOC containing database operations, authentication logic, data transformation, webhook handling, and business logic across products, sales, inventory, staff, reconciliation, and metrics. This violates single responsibility principle and makes the service difficult to maintain and test.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 847,
+          "snippet": "Service handles: authentication, product CRUD, sales transactions, inventory management, staff profiles, reconciliation, metrics queries, webhook operations"
+        }
+      ],
+      "suggested_fix": "Split into domain-specific services: AuthService (auth operations), ProductService (already exists but incomplete), SalesService (sales queries), InventoryService (stock operations), StaffService (user management), ReconciliationService (financial operations), MetricsService (analytics queries). Consider implementing Repository pattern for data access abstraction.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d9e5d557",
+      "title": "Missing service layer abstraction for business logic",
+      "description": "Components (sales-dashboard, products, inventory, analysis) directly inject and call SupabaseService methods for data operations. This creates tight coupling between presentation and data layers, making it difficult to swap data sources or test components in isolation.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 1,
+          "line_end": 240,
+          "snippet": "Directly calls supabaseService.getProducts(), supabaseService.addProduct(), etc."
+        },
+        {
+          "file_path": "src/app/pages/inventory/inventory.component.ts",
+          "line_start": 1,
+          "line_end": 178,
+          "snippet": "Direct supabaseService calls for inventory operations"
+        },
+        {
+          "file_path": "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
+          "line_start": 1,
+          "line_end": 147,
+          "snippet": "Direct supabaseService calls for sales metrics"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 1,
+          "line_end": 292,
+          "snippet": "Direct supabaseService calls for analytics data"
+        }
+      ],
+      "suggested_fix": "Introduce domain-specific services (ProductService, SalesService, InventoryService, AnalyticsService) that encapsulate business logic and data access. Components should depend on these domain services, not SupabaseService directly. This creates a proper service layer between presentation and data access layers.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c47c069e",
+      "title": "Inconsistent service usage patterns across modules",
+      "description": "Some components use product.service.ts (ProductService exists with 149 LOC), while others bypass it and call SupabaseService directly. This inconsistency creates maintenance burden and confusion about the single source of truth for product-related operations.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/product.service.ts",
+          "line_start": 1,
+          "line_end": 149,
+          "snippet": "Exists but appears underutilized with limited scope"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "May or may not use ProductService consistently"
+        }
+      ],
+      "suggested_fix": "Audit all components to identify which ones should use ProductService vs SupabaseService. Either expand ProductService to be the authoritative product data gateway, or document why certain components bypass it. Apply same pattern consistently across all domain services.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9c0f6493",
+      "title": "Tightly coupled presentation and data access layers",
+      "description": "No repository pattern or data access abstraction layer exists. Components directly instantiate and call Supabase client operations, making it impossible to swap implementations or mock for testing without modifying component code.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 1,
+          "line_end": 139,
+          "snippet": "Direct Supabase operations without abstraction"
+        },
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 1,
+          "line_end": 82,
+          "snippet": "Direct service calls for analytics data"
+        },
+        {
+          "file_path": "src/app/pages/staff/staff.component.ts",
+          "line_start": 1,
+          "line_end": 113,
+          "snippet": "Direct staff data operations"
+        }
+      ],
+      "suggested_fix": "Implement Repository pattern or Data Access Object (DAO) pattern to abstract database operations. Create IProductRepository, ISalesRepository, IInventoryRepository interfaces. Components depend on abstractions, not concrete Supabase implementation. This enables easy testing and future data source migration.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b84ca2cd",
+      "title": "App-ui-components module mixing multiple concerns (620 LOC)",
+      "description": "The UI components module combines unrelated concerns: sidebar navigation, loading indicators, toast notifications, stock alerts, activity feed, and dashboard metrics. These should be organized by functional domain rather than UI type.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/components/",
+          "line_start": 1,
+          "line_end": 620,
+          "snippet": "Contains: sidebar (nav), loading (utility), toast (notification), stock-alerts (domain), activity-feed (domain), dashboard-metrics (domain)"
+        }
+      ],
+      "suggested_fix": "Reorganize by concern: src/app/components/layout/ (sidebar, layouts), src/app/components/shared/ (loading, toast), src/app/components/features/ (stock-alerts, activity-feed, dashboard-metrics). This aligns UI organization with feature boundaries.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 0,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-443e0421",
+      "title": "No abstraction for external API/webhook interactions",
+      "description": "WebhookService exists (40 LOC) but its integration with business logic is unclear. No adapter pattern for external system communication, making it difficult to trace data flow to external systems.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/webhook.service.ts",
+          "line_start": 1,
+          "line_end": 40,
+          "snippet": "Webhook operations appear isolated without clear integration pattern"
+        }
+      ],
+      "suggested_fix": "Define clear integration patterns for external systems. Create EventEmitterService or EventBusService for cross-module communication. Document webhook contract and versioning strategy. Consider using Adapter pattern to standardize external API interactions.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bc84797a",
+      "title": "Session management scattered across multiple services",
+      "description": "Auto-logout (74 LOC), page-reload (71 LOC), and loading (26 LOC) services handle session and state management in isolation. No unified session/state management strategy, leading to potential race conditions and inconsistent user experience.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/auto-logout.service.ts",
+          "line_start": 1,
+          "line_end": 74,
+          "snippet": "Manages session timeout independently"
+        },
+        {
+          "file_path": "src/app/services/page-reload.service.ts",
+          "line_start": 1,
+          "line_end": 71,
+          "snippet": "Manages page refresh independently"
+        },
+        {
+          "file_path": "src/app/services/loading.service.ts",
+          "line_start": 1,
+          "line_end": 26,
+          "snippet": "Manages loading state independently"
+        }
+      ],
+      "suggested_fix": "Create unified AppStateService or SessionStateService to manage loading, session, and navigation state. Use state management pattern (NgRx, Akita, or simple BehaviorSubject-based store) to centralize and coordinate state changes across the application.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-eb580527",
+      "title": "Configuration values and constants scattered across files",
+      "description": "Magic strings and hardcoded values likely exist throughout components and services (auth paths, table names, API endpoints). No centralized configuration module identified.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/app.config.ts",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "Config file exists but may be incomplete"
+        },
+        {
+          "file_path": "src/app/",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Constants likely scattered in supabase.service.ts (847 LOC) and throughout components"
+        }
+      ],
+      "suggested_fix": "Create comprehensive constants module: src/app/core/constants/ with: api-endpoints.ts, table-names.ts, error-messages.ts, validation-rules.ts. Centralize all magic strings. Move app.config.ts to src/app/core/config/ and expand with environment-specific configs.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6de5d0d5",
+      "title": "No clear feature module boundaries or lazy loading strategy",
+      "description": "All pages are loaded eagerly into app-core module. No feature modules defined for sales, inventory, admin, or analysis features. This prevents code splitting and lazy loading optimization.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/app.routes.ts",
+          "line_start": 1,
+          "line_end": 119,
+          "snippet": "All routes likely use component imports directly without lazy loading via loadComponent or loadChildren"
+        }
+      ],
+      "suggested_fix": "Organize feature modules: SalesModule, InventoryModule, AdminModule, AnalysisModule, ReconciliationModule. Each with its own routing. Import into AppModule. Use lazy loading with loadChildren in app.routes.ts to enable code splitting: { path: 'sales', loadChildren: () => import('./features/sales/sales.module').then(m => m.SalesModule) }",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8f7469e7",
+      "title": "Missing core module for singleton services",
+      "description": "Singleton services (SupabaseService, AuthService, ToastService, LoadingService) are scattered in src/app/services/ without clear separation from feature services. No CoreModule pattern to centralize and guard singleton instantiation.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/",
+          "line_start": 1,
+          "line_end": 520,
+          "snippet": "All services in flat structure without core/feature distinction"
+        }
+      ],
+      "suggested_fix": "Create CoreModule in src/app/core/ that provides singleton services: supabase.service.ts, auth.service.ts, toast.service.ts, notification.service.ts, app-state.service.ts. Create SharedModule in src/app/shared/ for reusable components, directives, pipes. Feature modules import SharedModule, not CoreModule.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 0,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5e04c519",
+      "title": "Potential circular dependency risk: layouts depend on components",
+      "description": "Admin-layout and main-layout components (part of app-layouts module) likely include sidebar and other UI components from app-ui-components. If those components import layout services, circular dependency exists.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/components/admin-layout/admin-layout.component.ts",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "Layout component may import shared UI components"
+        },
+        {
+          "file_path": "src/app/components/main-layout/main-layout.component.ts",
+          "line_start": 1,
+          "line_end": 36,
+          "snippet": "Layout component includes sidebar and other components"
+        }
+      ],
+      "suggested_fix": "Verify no circular imports exist between layout and UI component modules. Document explicit dependency direction: Layouts \u2192 UI Components \u2192 Services, never reverse. Add eslint-plugin-import rules to enforce no-cycle.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e084c06e",
+      "title": "Inconsistent error handling and logging strategy",
+      "description": "Error handling appears ad-hoc without centralized error handler, logging service, or consistent error reporting pattern. No error boundary or global error handler identified.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 847,
+          "snippet": "Error handling scattered throughout large service"
+        },
+        {
+          "file_path": "src/app/pages/",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Components likely have inconsistent error handling"
+        }
+      ],
+      "suggested_fix": "Create ErrorHandlingService or ErrorInterceptor for centralized error handling. Create LoggerService for consistent logging. Use HttpInterceptor to catch and normalize API errors. Create error-messages.ts for consistent error text. Implement global error handler via ErrorHandler token.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7b5cac41",
+      "title": "Analysis component significantly exceeds recommended size (292 LOC + 464 HTML + 1128 CSS)",
+      "description": "The analysis.component.ts (292 LOC), analysis.component.html (464 LOC), and analysis.component.css (1128 LOC) combine to form a very large feature component that likely contains multiple responsibilities and would benefit from decomposition into smaller sub-components.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 1,
+          "line_end": 292,
+          "snippet": "Large component with likely multiple data fetching and rendering responsibilities"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.html",
+          "line_start": 1,
+          "line_end": 464,
+          "snippet": "Large template with multiple sections"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.css",
+          "line_start": 1,
+          "line_end": 1128,
+          "snippet": "Excessive CSS likely for multiple unrelated UI sections"
+        }
+      ],
+      "suggested_fix": "Decompose analysis component into feature-specific sub-components: AnalysisOverviewComponent, AnalysisChartsComponent, AnalysisTrendsComponent, AnalysisExportComponent. Create shared/analysis/ folder for analysis-related UI components. Move CSS to individual components and use CSS modules or BEM naming for organization.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-50ffbbc5",
+      "title": "Products and inventory components large and potentially mixed in responsibility (240 LOC, 178 LOC)",
+      "description": "Products component (240 LOC) and inventory component (178 LOC) are among the largest page components. They likely combine CRUD operations, data display, filtering, and form handling without clear separation.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 1,
+          "line_end": 240,
+          "snippet": "Large component combining product list, add, edit, delete operations"
+        },
+        {
+          "file_path": "src/app/pages/inventory/inventory.component.ts",
+          "line_start": 1,
+          "line_end": 178,
+          "snippet": "Large component combining inventory management operations"
+        }
+      ],
+      "suggested_fix": "Consider extracting form logic into separate components: ProductFormComponent, InventoryFormComponent. Create reusable data-table component for list display. Separate concerns: ProductListComponent (display), ProductFormComponent (create/edit), ProductDetailComponent (view). Use smart/dumb component pattern.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 2,
+      "dedup_key": ""
+    }
+  ],
+  "remediation_plan": {
+    "items": [],
+    "dependencies": [],
+    "execution_levels": [],
+    "deferred_finding_ids": [],
+    "dedup_summary": "",
+    "total_items": 0,
+    "estimated_invocations": 0,
+    "summary": "Parse error: 2 validation errors for RemediationPlan\nitems.25.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal\nitems.26.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal. Raw findings count: 36"
+  },
+  "codebase_map": {
+    "modules": [
+      {
+        "name": "app-core",
+        "path": "src/app/",
+        "purpose": "Root application module containing bootstrap, routing, guards, and main component",
+        "files": [
+          "src/app/app.component.ts",
+          "src/app/app.component.html",
+          "src/app/app.component.css",
+          "src/app/app.component.spec.ts",
+          "src/app/app.config.ts",
+          "src/app/app.routes.ts",
+          "src/app/auth.guard.ts",
+          "src/app/auth.guard.spec.ts"
+        ],
+        "loc": 450,
+        "language": "typescript"
+      },
+      {
+        "name": "app-layouts",
+        "path": "src/app/components/",
+        "purpose": "Reusable layout components for admin and main interfaces",
+        "files": [
+          "src/app/components/admin-layout/admin-layout.component.ts",
+          "src/app/components/admin-layout/admin-layout.component.html",
+          "src/app/components/admin-layout/admin-layout.component.css",
+          "src/app/components/admin-layout/admin-layout.component.spec.ts",
+          "src/app/components/main-layout/main-layout.component.ts",
+          "src/app/components/main-layout/main-layout.component.html",
+          "src/app/components/main-layout/main-layout.component.css",
+          "src/app/components/main-layout/main-layout.component.spec.ts"
+        ],
+        "loc": 380,
+        "language": "typescript"
+      },
+      {
+        "name": "app-ui-components",
+        "path": "src/app/components/",
+        "purpose": "Shared UI components including sidebar, loading, toast, stock alerts, and activity feed",
+        "files": [
+          "src/app/components/sidebar/sidebar.component.ts",
+          "src/app/components/sidebar/sidebar.component.html",
+          "src/app/components/sidebar/sidebar.component.css",
+          "src/app/components/sidebar/sidebar.component.spec.ts",
+          "src/app/components/loading/loading.component.ts",
+          "src/app/components/loading/loading.component.html",
+          "src/app/components/loading/loading.component.css",
+          "src/app/components/toast/toast.component.ts",
+          "src/app/components/toast/toast.component.html",
+          "src/app/components/toast/toast.component.css",
+          "src/app/components/toast/toast.component.spec.ts",
+          "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "src/app/components/stock-alerts/stock-alerts.component.html",
+          "src/app/components/stock-alerts/stock-alerts.component.css",
+          "src/app/components/activity-feed/activity-feed.component.ts",
+          "src/app/components/activity-feed/activity-feed.component.html",
+          "src/app/components/activity-feed/activity-feed.component.css",
+          "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+          "src/app/components/dashboard-metrics/dashboard-metrics.component.html",
+          "src/app/components/dashboard-metrics/dashboard-metrics.component.css"
+        ],
+        "loc": 620,
+        "language": "typescript"
+      },
+      {
+        "name": "dashboard",
+        "path": "src/app/dashboard/",
+        "purpose": "Main dashboard page with metrics and overview",
+        "files": [
+          "src/app/dashboard/dashboard.component.ts",
+          "src/app/dashboard/dashboard.component.html",
+          "src/app/dashboard/dashboard.component.css",
+          "src/app/dashboard/dashboard.component.spec.ts"
+        ],
+        "loc": 180,
+        "language": "typescript"
+      },
+      {
+        "name": "login",
+        "path": "src/app/login/",
+        "purpose": "Authentication page for user login",
+        "files": [
+          "src/app/login/login.component.ts",
+          "src/app/login/login.component.html",
+          "src/app/login/login.component.css",
+          "src/app/login/login.component.spec.ts"
+        ],
+        "loc": 150,
+        "language": "typescript"
+      },
+      {
+        "name": "sales-pages",
+        "path": "src/app/pages/",
+        "purpose": "Sales management modules including dashboard, history, lookup, and receiving",
+        "files": [
+          "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
+          "src/app/pages/sales-dashboard/sales-dashboard.component.html",
+          "src/app/pages/sales-dashboard/sales-dashboard.component.css",
+          "src/app/pages/sales-dashboard/sales-dashboard.component.spec.ts",
+          "src/app/pages/sales-history/sales-history.component.ts",
+          "src/app/pages/sales-history/sales-history.component.html",
+          "src/app/pages/sales-history/sales-history.component.css",
+          "src/app/pages/sales-history/sales-history.component.spec.ts",
+          "src/app/pages/sales-lookup/sales-lookup.component.ts",
+          "src/app/pages/sales-lookup/sales-lookup.component.html",
+          "src/app/pages/sales-lookup/sales-lookup.component.css",
+          "src/app/pages/sales-lookup/sales-lookup.component.spec.ts",
+          "src/app/pages/sales-receive/sales-receive.component.ts",
+          "src/app/pages/sales-receive/sales-receive.component.html",
+          "src/app/pages/sales-receive/sales-receive.component.css",
+          "src/app/pages/sales-receive/sales-receive.component.spec.ts"
+        ],
+        "loc": 480,
+        "language": "typescript"
+      },
+      {
+        "name": "inventory-pages",
+        "path": "src/app/pages/",
+        "purpose": "Inventory and product management pages",
+        "files": [
+          "src/app/pages/inventory/inventory.component.ts",
+          "src/app/pages/inventory/inventory.component.html",
+          "src/app/pages/inventory/inventory.component.css",
+          "src/app/pages/inventory/inventory.component.spec.ts",
+          "src/app/pages/products/products.component.ts",
+          "src/app/pages/products/products.component.html",
+          "src/app/pages/products/products.component.css",
+          "src/app/pages/products/products.component.spec.ts"
+        ],
+        "loc": 320,
+        "language": "typescript"
+      },
+      {
+        "name": "owner-dashboard",
+        "path": "src/app/pages/",
+        "purpose": "Owner-specific dashboard with business analytics",
+        "files": [
+          "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "src/app/pages/owner-dashboard/owner-dashboard.component.html",
+          "src/app/pages/owner-dashboard/owner-dashboard.component.css",
+          "src/app/pages/owner-dashboard/owner-dashboard.component.spec.ts"
+        ],
+        "loc": 120,
+        "language": "typescript"
+      },
+      {
+        "name": "staff-management",
+        "path": "src/app/pages/",
+        "purpose": "Staff management and user administration",
+        "files": [
+          "src/app/pages/staff/staff.component.ts",
+          "src/app/pages/staff/staff.component.html",
+          "src/app/pages/staff/staff.component.css",
+          "src/app/pages/staff/staff.component.spec.ts"
+        ],
+        "loc": 100,
+        "language": "typescript"
+      },
+      {
+        "name": "analysis",
+        "path": "src/app/pages/",
+        "purpose": "AI-powered analysis and reporting module",
+        "files": [
+          "src/app/pages/analysis/analysis.component.ts",
+          "src/app/pages/analysis/analysis.component.html",
+          "src/app/pages/analysis/analysis.component.css"
+        ],
+        "loc": 90,
+        "language": "typescript"
+      },
+      {
+        "name": "reconciliation",
+        "path": "src/app/pages/",
+        "purpose": "Financial reconciliation and invoice management",
+        "files": [
+          "src/app/pages/reconciliation/reconciliation.component.ts",
+          "src/app/pages/reconciliation/reconciliation.component.html",
+          "src/app/pages/reconciliation/reconciliation.component.css",
+          "src/app/pages/reconciliation/reconciliation.component.spec.ts"
+        ],
+        "loc": 110,
+        "language": "typescript"
+      },
+      {
+        "name": "core-services",
+        "path": "src/app/services/",
+        "purpose": "Business logic services for data access, auth, notifications",
+        "files": [
+          "src/app/services/supabase.service.ts",
+          "src/app/services/supabase.service.spec.ts",
+          "src/app/services/product.service.ts",
+          "src/app/services/toast.service.ts",
+          "src/app/services/toast.service.spec.ts",
+          "src/app/services/loading.service.ts",
+          "src/app/services/auto-logout.service.ts",
+          "src/app/services/page-reload.service.ts",
+          "src/app/services/webhook.service.ts",
+          "src/app/services/webhook.service.spec.ts"
+        ],
+        "loc": 520,
+        "language": "typescript"
+      },
+      {
+        "name": "interfaces",
+        "path": "src/app/interfaces/",
+        "purpose": "TypeScript type definitions for domain models",
+        "files": [
+          "src/app/interfaces/user.ts",
+          "src/app/interfaces/product.ts",
+          "src/app/interfaces/sales.ts",
+          "src/app/interfaces/stock.ts",
+          "src/app/interfaces/invoice.ts",
+          "src/app/interfaces/profile.ts",
+          "src/app/interfaces/metrics.ts",
+          "src/app/interfaces/notification.ts",
+          "src/app/interfaces/reconciliation.ts",
+          "src/app/interfaces/subscription.ts",
+          "src/app/interfaces/ai-report.ts",
+          "src/app/interfaces/toast.ts"
+        ],
+        "loc": 280,
+        "language": "typescript"
+      },
+      {
+        "name": "enums",
+        "path": "src/app/enums/",
+        "purpose": "Enumerated values for role-based access control",
+        "files": [
+          "src/app/enums/role.ts"
+        ],
+        "loc": 20,
+        "language": "typescript"
+      }
+    ],
+    "dependencies": [
+      {
+        "name": "@angular/core",
+        "version": "19.2.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@angular/common",
+        "version": "19.2.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@angular/forms",
+        "version": "19.2.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@angular/router",
+        "version": "19.2.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@angular/platform-browser",
+        "version": "19.2.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@angular/platform-browser-dynamic",
+        "version": "19.2.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@supabase/supabase-js",
+        "version": "2.81.1",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "chart.js",
+        "version": "4.5.1",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@fortawesome/fontawesome-svg-core",
+        "version": "7.1.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@fortawesome/free-solid-svg-icons",
+        "version": "6.7.2",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "rxjs",
+        "version": "7.8.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "zone.js",
+        "version": "0.15.0",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "random-verse",
+        "version": "1.0.1",
+        "ecosystem": "npm",
+        "dev_only": false
+      },
+      {
+        "name": "@angular/cli",
+        "version": "19.2.8",
+        "ecosystem": "npm",
+        "dev_only": true
+      },
+      {
+        "name": "@angular-devkit/build-angular",
+        "version": "19.2.8",
+        "ecosystem": "npm",
+        "dev_only": true
+      },
+      {
+        "name": "typescript",
+        "version": "5.7.2",
+        "ecosystem": "npm",
+        "dev_only": true
+      },
+      {
+        "name": "karma",
+        "version": "6.4.0",
+        "ecosystem": "npm",
+        "dev_only": true
+      }
+    ],
+    "data_flows": [
+      {
+        "source": "Login Component",
+        "destination": "Supabase Service",
+        "data_type": "user credentials",
+        "is_authenticated": false
+      },
+      {
+        "source": "Supabase Service",
+        "destination": "Supabase Backend",
+        "data_type": "authentication tokens",
+        "is_authenticated": false
+      },
+      {
+        "source": "Authenticated Components",
+        "destination": "Supabase Service",
+        "data_type": "CRUD operations on products, sales, inventory",
+        "is_authenticated": true
+      },
+      {
+        "source": "Supabase Service",
+        "destination": "Components",
+        "data_type": "business data (users, products, sales, metrics)",
+        "is_authenticated": true
+      },
+      {
+        "source": "Dashboard Components",
+        "destination": "Supabase Service",
+        "data_type": "metrics queries",
+        "is_authenticated": true
+      },
+      {
+        "source": "Staff Component",
+        "destination": "Supabase Service",
+        "data_type": "user profile data",
+        "is_authenticated": true
+      },
+      {
+        "source": "Webhook Service",
+        "destination": "External Systems",
+        "data_type": "business events",
+        "is_authenticated": true
+      }
+    ],
+    "auth_boundaries": [
+      {
+        "path": "/login",
+        "auth_type": "none",
+        "is_protected": false
+      },
+      {
+        "path": "/dashboard",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-dashboard",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-history",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-lookup",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-receive",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/inventory",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/products",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/owner-dashboard",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/staff",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/analysis",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/reconciliation",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      }
+    ],
+    "entry_points": [
+      {
+        "path": "src/main.ts",
+        "type": "bootstrap",
+        "is_public": true
+      },
+      {
+        "path": "src/index.html",
+        "type": "webpage",
+        "is_public": true
+      },
+      {
+        "path": "/login",
+        "type": "route",
+        "is_public": true
+      },
+      {
+        "path": "/dashboard",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/sales-dashboard",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/sales-history",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/sales-lookup",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/sales-receive",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/inventory",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/products",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/owner-dashboard",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/staff",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/analysis",
+        "type": "route",
+        "is_public": false
+      },
+      {
+        "path": "/reconciliation",
+        "type": "route",
+        "is_public": false
+      }
+    ],
+    "tech_stack": {
+      "frontend": "Angular 19.2.0 + TypeScript",
+      "backend": "Supabase (PostgreSQL + Auth)",
+      "database": "PostgreSQL via Supabase client",
+      "hosting": "Docker + Nginx",
+      "packages": [
+        "@angular/core",
+        "@supabase/supabase-js",
+        "chart.js",
+        "@fortawesome/fontawesome-svg-core",
+        "rxjs",
+        "random-verse"
+      ]
+    },
+    "files": [
+      {
+        "path": "tsconfig.app.json",
+        "language": "json",
+        "loc": 11,
+        "purpose": ""
+      },
+      {
+        "path": "README.md",
+        "language": "markdown",
+        "loc": 113,
+        "purpose": ""
+      },
+      {
+        "path": "angular.json",
+        "language": "json",
+        "loc": 96,
+        "purpose": ""
+      },
+      {
+        "path": "package-lock.json",
+        "language": "json",
+        "loc": 15102,
+        "purpose": ""
+      },
+      {
+        "path": "package.json",
+        "language": "json",
+        "loc": 51,
+        "purpose": ""
+      },
+      {
+        "path": "tsconfig.json",
+        "language": "json",
+        "loc": 27,
+        "purpose": ""
+      },
+      {
+        "path": "tsconfig.spec.json",
+        "language": "json",
+        "loc": 10,
+        "purpose": ""
+      },
+      {
+        "path": "src/index.html",
+        "language": "html",
+        "loc": 27,
+        "purpose": ""
+      },
+      {
+        "path": "src/main.ts",
+        "language": "typescript",
+        "loc": 5,
+        "purpose": ""
+      },
+      {
+        "path": "src/styles.css",
+        "language": "css",
+        "loc": 1,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/app.component.html",
+        "language": "html",
+        "loc": 2,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/auth.guard.spec.ts",
+        "language": "typescript",
+        "loc": 17,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/app.routes.ts",
+        "language": "typescript",
+        "loc": 119,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/app.component.spec.ts",
+        "language": "typescript",
+        "loc": 31,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/auth.guard.ts",
+        "language": "typescript",
+        "loc": 37,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/app.component.ts",
+        "language": "typescript",
+        "loc": 111,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/app.config.ts",
+        "language": "typescript",
+        "loc": 13,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/app.component.css",
+        "language": "css",
+        "loc": 0,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/enums/role.ts",
+        "language": "typescript",
+        "loc": 5,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/dashboard/dashboard.component.spec.ts",
+        "language": "typescript",
+        "loc": 22,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/dashboard/dashboard.component.css",
+        "language": "css",
+        "loc": 0,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/dashboard/dashboard.component.html",
+        "language": "html",
+        "loc": 1,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/dashboard/dashboard.component.ts",
+        "language": "typescript",
+        "loc": 9,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/sidebar/sidebar.component.ts",
+        "language": "typescript",
+        "loc": 18,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/sidebar/sidebar.component.html",
+        "language": "html",
+        "loc": 89,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/sidebar/sidebar.component.css",
+        "language": "css",
+        "loc": 130,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/sidebar/sidebar.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/admin-layout/admin-layout.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/admin-layout/admin-layout.component.ts",
+        "language": "typescript",
+        "loc": 13,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/admin-layout/admin-layout.component.css",
+        "language": "css",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/admin-layout/admin-layout.component.html",
+        "language": "html",
+        "loc": 6,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/loading/loading.component.css",
+        "language": "css",
+        "loc": 73,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/loading/loading.component.html",
+        "language": "html",
+        "loc": 6,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/loading/loading.component.ts",
+        "language": "typescript",
+        "loc": 14,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/toast/toast.component.html",
+        "language": "html",
+        "loc": 1,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/toast/toast.component.css",
+        "language": "css",
+        "loc": 0,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/toast/toast.component.spec.ts",
+        "language": "typescript",
+        "loc": 22,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/toast/toast.component.ts",
+        "language": "typescript",
+        "loc": 74,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/stock-alerts/stock-alerts.component.css",
+        "language": "css",
+        "loc": 73,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/stock-alerts/stock-alerts.component.html",
+        "language": "html",
+        "loc": 15,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+        "language": "typescript",
+        "loc": 32,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/dashboard-metrics/dashboard-metrics.component.css",
+        "language": "css",
+        "loc": 74,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/dashboard-metrics/dashboard-metrics.component.html",
+        "language": "html",
+        "loc": 46,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+        "language": "typescript",
+        "loc": 29,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/main-layout/main-layout.component.ts",
+        "language": "typescript",
+        "loc": 36,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/main-layout/main-layout.component.css",
+        "language": "css",
+        "loc": 114,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/main-layout/main-layout.component.html",
+        "language": "html",
+        "loc": 19,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/main-layout/main-layout.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/activity-feed/activity-feed.component.css",
+        "language": "css",
+        "loc": 157,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/activity-feed/activity-feed.component.html",
+        "language": "html",
+        "loc": 36,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/components/activity-feed/activity-feed.component.ts",
+        "language": "typescript",
+        "loc": 40,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/reconciliation/reconciliation.component.html",
+        "language": "html",
+        "loc": 188,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/reconciliation/reconciliation.component.spec.ts",
+        "language": "typescript",
+        "loc": 22,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/reconciliation/reconciliation.component.css",
+        "language": "css",
+        "loc": 547,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/reconciliation/reconciliation.component.ts",
+        "language": "typescript",
+        "loc": 139,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/owner-dashboard/owner-dashboard.component.css",
+        "language": "css",
+        "loc": 753,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+        "language": "typescript",
+        "loc": 82,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/owner-dashboard/owner-dashboard.component.html",
+        "language": "html",
+        "loc": 54,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/owner-dashboard/owner-dashboard.component.spec.ts",
+        "language": "typescript",
+        "loc": 22,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/products/products.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/products/products.component.css",
+        "language": "css",
+        "loc": 633,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/products/products.component.ts",
+        "language": "typescript",
+        "loc": 240,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/products/products.component.html",
+        "language": "html",
+        "loc": 297,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/analysis/analysis.component.ts",
+        "language": "typescript",
+        "loc": 292,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/analysis/analysis.component.html",
+        "language": "html",
+        "loc": 464,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/analysis/analysis.component.css",
+        "language": "css",
+        "loc": 1128,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-dashboard/sales-dashboard.component.html",
+        "language": "html",
+        "loc": 144,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-dashboard/sales-dashboard.component.spec.ts",
+        "language": "typescript",
+        "loc": 22,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
+        "language": "typescript",
+        "loc": 147,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-dashboard/sales-dashboard.component.css",
+        "language": "css",
+        "loc": 361,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-history/sales-history.component.css",
+        "language": "css",
+        "loc": 304,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-history/sales-history.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-history/sales-history.component.html",
+        "language": "html",
+        "loc": 95,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-history/sales-history.component.ts",
+        "language": "typescript",
+        "loc": 108,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-receive/sales-receive.component.css",
+        "language": "css",
+        "loc": 314,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-receive/sales-receive.component.ts",
+        "language": "typescript",
+        "loc": 121,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-receive/sales-receive.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-receive/sales-receive.component.html",
+        "language": "html",
+        "loc": 97,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-lookup/sales-lookup.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-lookup/sales-lookup.component.css",
+        "language": "css",
+        "loc": 0,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-lookup/sales-lookup.component.ts",
+        "language": "typescript",
+        "loc": 11,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/sales-lookup/sales-lookup.component.html",
+        "language": "html",
+        "loc": 1,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/inventory/inventory.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/inventory/inventory.component.html",
+        "language": "html",
+        "loc": 239,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/inventory/inventory.component.ts",
+        "language": "typescript",
+        "loc": 178,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/inventory/inventory.component.css",
+        "language": "css",
+        "loc": 775,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/staff/staff.component.ts",
+        "language": "typescript",
+        "loc": 113,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/staff/staff.component.html",
+        "language": "html",
+        "loc": 154,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/staff/staff.component.spec.ts",
+        "language": "typescript",
+        "loc": 23,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/pages/staff/staff.component.css",
+        "language": "css",
+        "loc": 431,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/login/login.component.spec.ts",
+        "language": "typescript",
+        "loc": 22,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/login/login.component.ts",
+        "language": "typescript",
+        "loc": 68,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/login/login.component.css",
+        "language": "css",
+        "loc": 193,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/login/login.component.html",
+        "language": "html",
+        "loc": 56,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/toast.service.ts",
+        "language": "typescript",
+        "loc": 32,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/webhook.service.spec.ts",
+        "language": "typescript",
+        "loc": 16,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/toast.service.spec.ts",
+        "language": "typescript",
+        "loc": 16,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/loading.service.ts",
+        "language": "typescript",
+        "loc": 26,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/webhook.service.ts",
+        "language": "typescript",
+        "loc": 40,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/auto-logout.service.ts",
+        "language": "typescript",
+        "loc": 74,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/page-reload.service.ts",
+        "language": "typescript",
+        "loc": 71,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/supabase.service.spec.ts",
+        "language": "typescript",
+        "loc": 16,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/supabase.service.ts",
+        "language": "typescript",
+        "loc": 847,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/services/product.service.ts",
+        "language": "typescript",
+        "loc": 149,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/invoice.ts",
+        "language": "typescript",
+        "loc": 0,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/product.ts",
+        "language": "typescript",
+        "loc": 25,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/toast.ts",
+        "language": "typescript",
+        "loc": 5,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/stock.ts",
+        "language": "typescript",
+        "loc": 45,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/profile.ts",
+        "language": "typescript",
+        "loc": 28,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/ai-report.ts",
+        "language": "typescript",
+        "loc": 21,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/notification.ts",
+        "language": "typescript",
+        "loc": 8,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/sales.ts",
+        "language": "typescript",
+        "loc": 42,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/reconciliation.ts",
+        "language": "typescript",
+        "loc": 21,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/subscription.ts",
+        "language": "typescript",
+        "loc": 0,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/user.ts",
+        "language": "typescript",
+        "loc": 0,
+        "purpose": ""
+      },
+      {
+        "path": "src/app/interfaces/metrics.ts",
+        "language": "typescript",
+        "loc": 0,
+        "purpose": ""
+      }
+    ],
+    "loc_total": 27454,
+    "file_count": 116,
+    "primary_language": "json",
+    "languages": [
+      "css",
+      "html",
+      "json",
+      "markdown",
+      "typescript"
+    ],
+    "architecture_summary": "FrostFlow is an Angular 19 single-page application serving as an inventory and sales management system. The app uses Supabase for backend services including PostgreSQL database access and JWT authentication. It features role-based access control with an auth guard protecting all routes except login. The application includes multiple feature modules for sales tracking, inventory management, staff administration, financial reconciliation, and AI-powered analytics. Data flows through a central Supabase service that handles all database operations and authentication. The UI uses a layout-based architecture with admin and main layouts, sidebar navigation, and reusable components for loading states, toast notifications, and stock alerts. Chart.js is integrated for dashboard metrics visualization.",
+    "key_patterns": [
+      "Angular Router with Auth Guard protection",
+      "Supabase client service for database operations",
+      "Role-based access control via enum",
+      "Component-based layout architecture",
+      "Reactive programming with RxJS",
+      "Toast notification service pattern",
+      "Loading state management service",
+      "Auto-logout service for session management",
+      "Chart.js integration for metrics visualization",
+      "HTTP interceptors for auth headers"
+    ]
+  }
+}

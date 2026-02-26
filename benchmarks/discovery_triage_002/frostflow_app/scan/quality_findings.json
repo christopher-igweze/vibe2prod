@@ -1,0 +1,473 @@
+{
+  "findings": [
+    {
+      "id": "F-6999fda7",
+      "title": "Sequential API calls in dashboard metrics",
+      "description": "In dashboard-metrics.component.ts, getDashboardMetrics() and getSalesDashboardMetrics() are called sequentially with await, blocking parallel execution.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+          "line_start": 17,
+          "line_end": 21,
+          "snippet": "async ngOnInit() {\n    this.metrics = await this.supabase.getDashboardMetrics();\n    this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n}"
+        }
+      ],
+      "suggested_fix": "Use Promise.all() to parallelize both API calls: const [metrics, salesMetrics] = await Promise.all([this.supabase.getDashboardMetrics(), this.supabase.getSalesDashboardMetrics()]);",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-47b4b8cc",
+      "title": "Missing pagination on product list",
+      "description": "The product service loads all products without pagination or limit. In stock-alerts.component.ts and products.component.ts, loadProducts() fetches the entire product table which will cause performance degradation as inventory grows.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "line_start": 26,
+          "line_end": 28,
+          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 101,
+          "line_end": 103,
+          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
+        }
+      ],
+      "suggested_fix": "Implement pagination with limit/offset or cursor-based pagination. Add pagination controls to the UI and modify Supabase queries to use .range() with page size of 20-50 items.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-20078201",
+      "title": "No request debouncing on search input",
+      "description": "In products.component.ts, onSearch() is called on every input event without debouncing. Each keystroke triggers a full filter operation over all products.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 121,
+          "line_end": 125,
+          "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n}"
+        }
+      ],
+      "suggested_fix": "Use RxJS debounceTime(300) operator or Angular's updateOn: 'blur' for the search form control to prevent excessive filtering.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c6e85c65",
+      "title": "Chart.js loaded via CDN blocking render",
+      "description": "In index.html, Chart.js is loaded via a blocking <script> tag in the <head>. This delays First Contentful Paint and doesn't leverage Angular's build optimization.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 18,
+          "line_end": 19,
+          "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+        }
+      ],
+      "suggested_fix": "Install chart.js via npm and import it only in components that need it, or use dynamic import with IntersectionObserver to load Chart.js lazily when charts enter the viewport.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-45205c10",
+      "title": "Font Awesome full library import",
+      "description": "package.json imports @fortawesome/fontawesome-svg-core and multiple icon sets (free-brands, free-regular, free-solid). The free-solid set alone includes 2000+ icons, significantly increasing bundle size.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "package.json",
+          "line_start": 17,
+          "line_end": 22,
+          "snippet": "\"@fortawesome/angular-fontawesome\": \"^1.0.0\",\n\"@fortawesome/fontawesome-svg-core\": \"^7.1.0\",\n\"@fortawesome/free-brands-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-regular-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-solid-svg-icons\": \"^6.7.2\","
+        }
+      ],
+      "suggested_fix": "Use tree-shaking by importing only specific icons needed: import { faDashboard } from '@fortawesome/free-solid-svg-icons/faDashboard'; Then add them to the providers array in app.config.ts.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f89e2d88",
+      "title": "Missing OnPush change detection strategy",
+      "description": "Components use default change detection which runs on every change detection cycle. Components like dashboard-metrics, activity-feed, stock-alerts that only update based on service signals should use OnPush for better performance.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+          "line_start": 1,
+          "line_end": 15,
+          "snippet": "@Component({\n    selector: 'app-dashboard-metrics',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './dashboard-metrics.component.html',\n    styleUrls: ['./dashboard-metrics.component.css']\n})"
+        },
+        {
+          "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
+          "line_start": 19,
+          "line_end": 31,
+          "snippet": "@Component({\n    selector: 'app-activity-feed',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './activity-feed.component.html',\n    styleUrls: ['./activity-feed.component.css']\n})"
+        }
+      ],
+      "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components and use Signals for reactive state.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-452e9e24",
+      "title": "No lazy loading for Chart.js in analysis page",
+      "description": "The analysis.component.ts imports and uses Chart.js but it loads synchronously. With the CDN approach, the entire library is loaded even if users never visit the analytics tab.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { SupabaseService } from '../../services/supabase.service';"
+        },
+        {
+          "file_path": "src/index.html",
+          "line_start": 18,
+          "line_end": 19,
+          "snippet": "<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+        }
+      ],
+      "suggested_fix": "Use dynamic import or create a separate chart component loaded via loadComponent() in the route to code-split Chart.js away from the main bundle.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7f64cef0",
+      "title": "Inefficient filter in products component",
+      "description": "The filterProducts() method in products.component.ts creates a new array on every call using filter() which iterates all products. Combined with no debouncing on search, this causes repeated O(n) operations.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 117,
+          "line_end": 124,
+          "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
+        }
+      ],
+      "suggested_fix": "Apply debounce to search input and consider using a computed signal with memoization to avoid redundant filtering.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-927288d2",
+      "title": "Multiple realtime subscriptions without cleanup guarantee",
+      "description": "In owner-dashboard.component.ts, the notification subscription is created but ngOnDestroy only checks for truthiness. If startListening() fails or throws, subscriptions may leak.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 45,
+          "line_end": 56,
+          "snippet": "async ngOnInit() {\n        this.notificationSubscription = this.supabase.subscribeToNotifications((payload) => {\n            this.notifications.unshift(payload.new as Notification)\n            this.loadData();\n        })\n    }\n\n    ngOnDestroy() {\n        if (this.notificationSubscription) {\n            this.notificationSubscription.unsubscribe();\n        }\n    }"
+        }
+      ],
+      "suggested_fix": "Use DestroyRef from @angular/core to auto-unsubscribe on component destruction: private destroyRef = inject(DestroyRef); then this.destroyRef.onDestroy(() => this.notificationSubscription?.unsubscribe());",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": ""
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": "Found 8 code pattern issues including magic numbers, dead code, loose typing, debug logging, mixed patterns, and code duplication in retry logic."
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [
+        {
+          "id": "F-6999fda7",
+          "title": "Sequential API calls in dashboard metrics",
+          "description": "In dashboard-metrics.component.ts, getDashboardMetrics() and getSalesDashboardMetrics() are called sequentially with await, blocking parallel execution.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+              "line_start": 17,
+              "line_end": 21,
+              "snippet": "async ngOnInit() {\n    this.metrics = await this.supabase.getDashboardMetrics();\n    this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n}"
+            }
+          ],
+          "suggested_fix": "Use Promise.all() to parallelize both API calls: const [metrics, salesMetrics] = await Promise.all([this.supabase.getDashboardMetrics(), this.supabase.getSalesDashboardMetrics()]);",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-47b4b8cc",
+          "title": "Missing pagination on product list",
+          "description": "The product service loads all products without pagination or limit. In stock-alerts.component.ts and products.component.ts, loadProducts() fetches the entire product table which will cause performance degradation as inventory grows.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+              "line_start": 26,
+              "line_end": 28,
+              "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
+            },
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 101,
+              "line_end": 103,
+              "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
+            }
+          ],
+          "suggested_fix": "Implement pagination with limit/offset or cursor-based pagination. Add pagination controls to the UI and modify Supabase queries to use .range() with page size of 20-50 items.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-20078201",
+          "title": "No request debouncing on search input",
+          "description": "In products.component.ts, onSearch() is called on every input event without debouncing. Each keystroke triggers a full filter operation over all products.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 121,
+              "line_end": 125,
+              "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n}"
+            }
+          ],
+          "suggested_fix": "Use RxJS debounceTime(300) operator or Angular's updateOn: 'blur' for the search form control to prevent excessive filtering.",
+          "confidence": 0.8,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-c6e85c65",
+          "title": "Chart.js loaded via CDN blocking render",
+          "description": "In index.html, Chart.js is loaded via a blocking <script> tag in the <head>. This delays First Contentful Paint and doesn't leverage Angular's build optimization.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/index.html",
+              "line_start": 18,
+              "line_end": 19,
+              "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+            }
+          ],
+          "suggested_fix": "Install chart.js via npm and import it only in components that need it, or use dynamic import with IntersectionObserver to load Chart.js lazily when charts enter the viewport.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-45205c10",
+          "title": "Font Awesome full library import",
+          "description": "package.json imports @fortawesome/fontawesome-svg-core and multiple icon sets (free-brands, free-regular, free-solid). The free-solid set alone includes 2000+ icons, significantly increasing bundle size.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "package.json",
+              "line_start": 17,
+              "line_end": 22,
+              "snippet": "\"@fortawesome/angular-fontawesome\": \"^1.0.0\",\n\"@fortawesome/fontawesome-svg-core\": \"^7.1.0\",\n\"@fortawesome/free-brands-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-regular-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-solid-svg-icons\": \"^6.7.2\","
+            }
+          ],
+          "suggested_fix": "Use tree-shaking by importing only specific icons needed: import { faDashboard } from '@fortawesome/free-solid-svg-icons/faDashboard'; Then add them to the providers array in app.config.ts.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f89e2d88",
+          "title": "Missing OnPush change detection strategy",
+          "description": "Components use default change detection which runs on every change detection cycle. Components like dashboard-metrics, activity-feed, stock-alerts that only update based on service signals should use OnPush for better performance.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+              "line_start": 1,
+              "line_end": 15,
+              "snippet": "@Component({\n    selector: 'app-dashboard-metrics',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './dashboard-metrics.component.html',\n    styleUrls: ['./dashboard-metrics.component.css']\n})"
+            },
+            {
+              "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
+              "line_start": 19,
+              "line_end": 31,
+              "snippet": "@Component({\n    selector: 'app-activity-feed',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './activity-feed.component.html',\n    styleUrls: ['./activity-feed.component.css']\n})"
+            }
+          ],
+          "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components and use Signals for reactive state.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-452e9e24",
+          "title": "No lazy loading for Chart.js in analysis page",
+          "description": "The analysis.component.ts imports and uses Chart.js but it loads synchronously. With the CDN approach, the entire library is loaded even if users never visit the analytics tab.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/pages/analysis/analysis.component.ts",
+              "line_start": 1,
+              "line_end": 10,
+              "snippet": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { SupabaseService } from '../../services/supabase.service';"
+            },
+            {
+              "file_path": "src/index.html",
+              "line_start": 18,
+              "line_end": 19,
+              "snippet": "<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+            }
+          ],
+          "suggested_fix": "Use dynamic import or create a separate chart component loaded via loadComponent() in the route to code-split Chart.js away from the main bundle.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-7f64cef0",
+          "title": "Inefficient filter in products component",
+          "description": "The filterProducts() method in products.component.ts creates a new array on every call using filter() which iterates all products. Combined with no debouncing on search, this causes repeated O(n) operations.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 117,
+              "line_end": 124,
+              "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
+            }
+          ],
+          "suggested_fix": "Apply debounce to search input and consider using a computed signal with memoization to avoid redundant filtering.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-927288d2",
+          "title": "Multiple realtime subscriptions without cleanup guarantee",
+          "description": "In owner-dashboard.component.ts, the notification subscription is created but ngOnDestroy only checks for truthiness. If startListening() fails or throws, subscriptions may leak.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+              "line_start": 45,
+              "line_end": 56,
+              "snippet": "async ngOnInit() {\n        this.notificationSubscription = this.supabase.subscribeToNotifications((payload) => {\n            this.notifications.unshift(payload.new as Notification)\n            this.loadData();\n        })\n    }\n\n    ngOnDestroy() {\n        if (this.notificationSubscription) {\n            this.notificationSubscription.unsubscribe();\n        }\n    }"
+            }
+          ],
+          "suggested_fix": "Use DestroyRef from @angular/core to auto-unsubscribe on component destruction: private destroyRef = inject(DestroyRef); then this.destroyRef.onDestroy(() => this.notificationSubscription?.unsubscribe());",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 10 performance issues including missing pagination, sequential API calls, blocking CDN scripts, and missing OnPush change detection."
+    }
+  ],
+  "total_findings": 9
+}
