@@ -244,7 +244,8 @@ async def _tier1_preflight(
 
     owner, repo = await parse_repo_url(str(request_body.repo_url))
     repo_info = await get_repo_info(owner, repo, github_token)
-    repo_sha = await get_head_sha(owner, repo, repo_info.default_branch, github_token)
+    target_branch = request_body.branch or repo_info.default_branch
+    repo_sha = await get_head_sha(owner, repo, target_branch, github_token)
 
     indexer = DeterministicIndexer()
     index_payload = await indexer.build_or_reuse(
