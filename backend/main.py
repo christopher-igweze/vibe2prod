@@ -26,6 +26,7 @@ from api.routes import (
     onboarding,
     github_oauth,
     webhook,
+    webhook_clerk,
 )
 from config import settings
 
@@ -64,7 +65,7 @@ app = FastAPI(
 # ------------------------------------------------------------------ #
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$|^https://(www\.)?vibe2prod\.com$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -92,6 +93,7 @@ app.include_router(primer.router, prefix="/api", tags=["primer"])
 app.include_router(onboarding.router, prefix="/api", tags=["onboarding"])
 app.include_router(github_oauth.router, prefix="/api", tags=["github"])
 app.include_router(webhook.router, prefix="/api", tags=["webhook"])
+app.include_router(webhook_clerk.router, prefix="/api", tags=["webhook"])
 
 
 # ------------------------------------------------------------------ #
