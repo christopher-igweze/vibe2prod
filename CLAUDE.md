@@ -55,6 +55,9 @@ backend/
     context_store.py   → Context management
   sandbox/             → Daytona SDK integration for ephemeral containers
   models/              → Pydantic data models (scan, findings, builds, onboarding, etc.)
+benchmarks/
+  discovery_triage_001/  → 3x3 matrix benchmark (9 repos × 3 size groups)
+  discovery_triage_002/  → User-provided repo benchmarks + runner script (run_discovery.py)
 ```
 
 ## Key Patterns
@@ -63,9 +66,9 @@ backend/
 
 **Tier 1 pipeline:** `POST /api/audit` (tier1_only=true) → `Tier1Orchestrator.run()` → DeterministicIndexer (GitHub API clone, index with TTL) → DeterministicScanner (15 checks) → Tier1Reporter (OpenRouter LLM call) → Supabase artifact storage → SSE streaming via `/api/status/{scan_id}`
 
-**FORGE integration:** `POST /api/audit` (tier1_only=false) or `POST /api/fix` → `forge_bridge.trigger_forge_remediate()` → HTTP POST to AgentField → poll for completion → parse ForgeRunResult. FORGE is currently disabled (`FORGE_ENABLED=false`).
+**FORGE integration:** `POST /api/audit` (tier1_only=false) or `POST /api/fix` → `forge_bridge.trigger_forge_remediate()` → HTTP POST to AgentField → poll for completion → parse ForgeRunResult. The `/api/fix` route is fully wired: it validates the scan, triggers FORGE remediation in a `BackgroundTask`, stores results in Supabase, and updates scan status. FORGE is currently disabled (`FORGE_ENABLED=false`).
 
-**Config is strict:** `config.py` uses Pydantic BaseSettings with implicit `extra="forbid"`. Any env var in `.env` not declared in Settings will crash the app. When adding new env vars, add them to both `config.py` and `.env.example`.
+**Config is strict:** `config.py` uses Pydantic BaseSettings with implicit `extra="forbid"`. Any env var in `.env` not declared in Settings will crash the app. When adding new env vars, add them to both `config.py` and `.env.example`. FORGE-specific config fields include `forge_node_id` and `agentfield_api_key` (in addition to existing `forge_enabled`, `forge_agentfield_url`, `forge_default_model`).
 
 **Auth model:** Supabase JWT with `user_id` extracted from `sub` claim. All routes require auth except `/`, `/health`, `/docs`, `/api/webhook/*`.
 

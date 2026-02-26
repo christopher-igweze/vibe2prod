@@ -17,6 +17,7 @@ vibe2prod/
 │   ├── services/            # Supabase, GitHub, OpenRouter, FORGE bridge
 │   └── models/              # Pydantic data models
 ├── supabase/                # Database migrations & config
+├── benchmarks/              # FORGE discovery/triage benchmarks
 ├── doc/                     # FORGE engine integration context
 └── docker-compose.yml
 ```
@@ -48,7 +49,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 |--------|------|---------|
 | `POST` | `/api/audit` | Start a code audit (Tier 1 or FORGE) |
 | `GET` | `/api/status/{scan_id}` | SSE stream of audit progress |
-| `POST` | `/api/fix` | Trigger auto-fix (FORGE) |
+| `POST` | `/api/fix` | Trigger FORGE remediation (BackgroundTask, stores results in Supabase) |
 | `POST` | `/api/github/oauth/callback` | GitHub OAuth flow |
 | `POST` | `/api/webhook/github` | GitHub push/PR webhooks |
 | `GET` | `/health` | Health check |
@@ -62,6 +63,13 @@ For local CLI usage (code stays on your machine):
 pip install vibe2prod
 vibe2prod scan ./my-app
 ```
+
+## Benchmarks
+
+The `benchmarks/` directory contains FORGE discovery + triage benchmarks for measuring finding quality and cost:
+
+- **`discovery_triage_001/`** — 3x3 matrix (9 repos across 3 size groups), 297 total findings, $7.27 total cost
+- **`discovery_triage_002/`** — User-provided repo benchmarks with `run_discovery.py` runner script (auto-loads `OPENROUTER_API_KEY` from `backend/.env`, runs FORGE standalone against any GitHub URL or local path)
 
 ## Infrastructure
 
