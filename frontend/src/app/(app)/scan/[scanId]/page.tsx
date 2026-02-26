@@ -299,7 +299,7 @@ export default function ScanProgressPage() {
           {completeData.report_artifact_types?.includes("markdown") && (
             <Button variant="outline" asChild>
               <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/report-artifacts/${scanId}?artifact_type=markdown`}
+                href={`/api/report-artifacts/${scanId}?artifact_type=markdown`}
                 download
               >
                 <Download className="size-4" />
@@ -310,7 +310,7 @@ export default function ScanProgressPage() {
           {completeData.report_artifact_types?.includes("pdf") && (
             <Button variant="outline" asChild>
               <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/report-artifacts/${scanId}?artifact_type=pdf`}
+                href={`/api/report-artifacts/${scanId}?artifact_type=pdf`}
                 download
               >
                 <Download className="size-4" />

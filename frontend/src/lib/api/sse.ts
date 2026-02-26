@@ -8,8 +8,9 @@ export interface SSEEvent {
 export type SSECallback = (event: SSEEvent) => void
 export type SSEErrorCallback = (error: { status?: number; message: string }) => void
 
-// Relative path — Next.js rewrites proxy /api/* to the backend
-const API_URL = ''
+// SSE goes through a Next.js API route (/app/api/status/[scanId]/route.ts)
+// that streams the backend response via Web Streams API. Next.js rewrites
+// buffer responses and break SSE, but a proper route handler streams fine.
 
 /**
  * Connect to an SSE stream using fetch + ReadableStream.
@@ -26,7 +27,7 @@ export function connectSSE(
 
   ;(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/status/${scanId}`, {
+      const response = await fetch(`/api/status/${scanId}`, {
         headers: { Authorization: `Bearer ${token}` },
         signal: controller.signal,
       })
