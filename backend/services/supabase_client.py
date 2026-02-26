@@ -594,3 +594,117 @@ async def save_education(
                 "cto_perspective": card.cto_perspective,
             }
         ).eq("id", str(card.action_item_id)).execute()
+
+
+# ------------------------------------------------------------------ #
+# Action item lookups (for /api/fix route)
+# ------------------------------------------------------------------ #
+
+
+async def get_action_item(action_item_id: UUID, user_id: str) -> dict | None:
+    """Fetch a single action item by ID, scoped to the requesting user."""
+    client = _client()
+    row = (
+        client.table("action_items")
+        .select("*")
+        .eq("id", str(action_item_id))
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None
+    return row.data[0]
+
+
+async def update_action_item_fix_status(
+    action_item_id: UUID, fix_status: str
+) -> None:
+    """Update the fix_status on an action item (open/in_progress/fixed/wont_fix)."""
+    client = _client()
+    client.table("action_items").update(
+        {"fix_status": fix_status}
+    ).eq("id", str(action_item_id)).execute()
+
+
+# ------------------------------------------------------------------ #
+# Fix attempts (FORGE integration)
+# ------------------------------------------------------------------ #
+
+
+async def create_fix_attempt(
+    *,
+    action_item_id: UUID,
+    project_id: UUID,
+    user_id: str,
+) -> UUID:
+    """Insert a new fix_attempts row and return its ID."""
+    client = _client()
+    row = (
+        client.table("fix_attempts")
+        .insert(
+            {
+                "action_item_id": str(action_item_id),
+                "project_id": str(project_id),
+                "user_id": str(user_id),
+                "status": "pending",
+            }
+        )
+        .execute()
+    )
+    return UUID(row.data[0]["id"])
+
+
+async def update_fix_attempt(
+    fix_attempt_id: UUID,
+    *,
+    status: str,
+    pr_url: str | None = None,
+    agent_logs: dict | None = None,
+) -> None:
+    """Update a fix_attempt row with FORGE results."""
+    client = _client()
+    update_data: dict = {"status": status}
+    if pr_url is not None:
+        update_data["pr_url"] = pr_url
+    if agent_logs is not None:
+        update_data["agent_logs"] = agent_logs
+    if status == "running":
+        update_data["started_at"] = datetime.now(timezone.utc).isoformat()
+    if status in ("success", "failed"):
+        update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+
+    client.table("fix_attempts").update(update_data).eq(
+        "id", str(fix_attempt_id)
+    ).execute()
+
+
+async def get_scan_report(scan_id: UUID, user_id: str) -> dict | None:
+    """Fetch a scan report row by ID, scoped to the requesting user."""
+    client = _client()
+    row = (
+        client.table("scan_reports")
+        .select("*")
+        .eq("id", str(scan_id))
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None
+    return row.data[0]
+
+
+async def get_project(project_id: UUID) -> dict | None:
+    """Fetch a project row by ID."""
+    client = _client()
+    row = (
+        client.table("projects")
+        .select("*")
+        .eq("id", str(project_id))
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None
+    return row.data[0]
