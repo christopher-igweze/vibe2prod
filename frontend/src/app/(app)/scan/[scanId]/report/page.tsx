@@ -42,6 +42,38 @@ import { Separator } from "@/components/ui/separator"
 
 /* ---------- types ---------- */
 
+interface ScanDetail {
+  id: string
+  status: string
+  health_score: number | null
+  security_score: number | null
+  reliability_score: number | null
+  scalability_score: number | null
+  report_data: {
+    findings: Array<{
+      id: string
+      title: string
+      description: string
+      category: string
+      severity: string
+      file_path: string
+      line_number: number | null
+      code_snippet?: string
+    }>
+    tier1?: {
+      summary?: {
+        counts?: {
+          by_actionability?: Record<string, number>
+        }
+        strengths?: string[]
+        next_steps?: string[]
+      }
+    }
+  } | null
+  repo_name?: string
+  repo_url?: string
+}
+
 interface ReportData {
   scores: {
     health_score: number
@@ -182,24 +214,52 @@ export default function ReportPage() {
         return
       }
 
-      const artifact = await apiFetch<ReportArtifact>(
-        `/api/report-artifacts/${scanId}?artifact_type=markdown`,
-        { token }
-      )
+      // Fetch scan detail (structured data) and markdown artifact in parallel
+      const [scanDetail, artifact] = await Promise.all([
+        apiFetch<ScanDetail>(`/api/user/scans/${scanId}`, { token }),
+        apiFetch<ReportArtifact>(
+          `/api/report-artifacts/${scanId}?artifact_type=markdown`,
+          { token }
+        ).catch(() => null),
+      ])
 
-      let markdownContent: string
-      if (artifact.content_encoding === "base64") {
-        markdownContent = atob(artifact.content)
-      } else {
-        markdownContent = artifact.content
+      // Scores from structured data
+      const scores = {
+        health_score: scanDetail.health_score ?? 0,
+        security_score: scanDetail.security_score ?? 0,
+        reliability_score: scanDetail.reliability_score ?? 0,
+        scalability_score: scanDetail.scalability_score ?? 0,
       }
 
-      const findings = parseFindingsFromMarkdown(markdownContent)
-      const scores = parseScoresFromMarkdown(markdownContent) || {
-        health_score: 0,
-        security_score: 0,
-        reliability_score: 0,
-        scalability_score: 0,
+      // Findings from report_data
+      const rawFindings = scanDetail.report_data?.findings ?? []
+      const findings: Tier1Finding[] = rawFindings.map((f) => ({
+        check_id: f.id || "",
+        title: f.title,
+        description: f.description,
+        category: (f.category || "security") as Tier1Finding["category"],
+        severity: (f.severity || "medium") as Tier1Finding["severity"],
+        status: "fail" as const,
+        confidence: 1,
+        actionability: "should_fix" as const,
+        data_flow: "",
+        pattern_id: "",
+        pattern_slug: "",
+        engine: "",
+        file_path: f.file_path || "",
+        line_number: f.line_number,
+        evidence: f.code_snippet || "",
+        why_it_matters: "",
+        suggested_fix: "",
+      }))
+
+      // Markdown content
+      let markdownContent = ""
+      if (artifact) {
+        markdownContent =
+          artifact.content_encoding === "base64"
+            ? atob(artifact.content)
+            : artifact.content
       }
 
       setReport({ scores, findings, markdownContent })
