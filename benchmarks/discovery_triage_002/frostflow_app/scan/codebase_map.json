@@ -1,98 +1,37 @@
 {
   "modules": [
     {
-      "name": "app-core",
-      "path": "src/app/",
-      "purpose": "Root application module containing bootstrap, routing, guards, and main component",
+      "name": "authentication",
+      "path": "src/app/auth/",
+      "purpose": "Authentication and route protection",
       "files": [
-        "src/app/app.component.ts",
-        "src/app/app.component.html",
-        "src/app/app.component.css",
-        "src/app/app.component.spec.ts",
-        "src/app/app.config.ts",
-        "src/app/app.routes.ts",
         "src/app/auth.guard.ts",
-        "src/app/auth.guard.spec.ts"
+        "src/app/auth.guard.spec.ts",
+        "src/app/login/login.component.ts",
+        "src/app/login/login.component.html",
+        "src/app/login/login.component.css",
+        "src/app/login/login.component.spec.ts"
       ],
-      "loc": 450,
-      "language": "typescript"
-    },
-    {
-      "name": "app-layouts",
-      "path": "src/app/components/",
-      "purpose": "Reusable layout components for admin and main interfaces",
-      "files": [
-        "src/app/components/admin-layout/admin-layout.component.ts",
-        "src/app/components/admin-layout/admin-layout.component.html",
-        "src/app/components/admin-layout/admin-layout.component.css",
-        "src/app/components/admin-layout/admin-layout.component.spec.ts",
-        "src/app/components/main-layout/main-layout.component.ts",
-        "src/app/components/main-layout/main-layout.component.html",
-        "src/app/components/main-layout/main-layout.component.css",
-        "src/app/components/main-layout/main-layout.component.spec.ts"
-      ],
-      "loc": 380,
-      "language": "typescript"
-    },
-    {
-      "name": "app-ui-components",
-      "path": "src/app/components/",
-      "purpose": "Shared UI components including sidebar, loading, toast, stock alerts, and activity feed",
-      "files": [
-        "src/app/components/sidebar/sidebar.component.ts",
-        "src/app/components/sidebar/sidebar.component.html",
-        "src/app/components/sidebar/sidebar.component.css",
-        "src/app/components/sidebar/sidebar.component.spec.ts",
-        "src/app/components/loading/loading.component.ts",
-        "src/app/components/loading/loading.component.html",
-        "src/app/components/loading/loading.component.css",
-        "src/app/components/toast/toast.component.ts",
-        "src/app/components/toast/toast.component.html",
-        "src/app/components/toast/toast.component.css",
-        "src/app/components/toast/toast.component.spec.ts",
-        "src/app/components/stock-alerts/stock-alerts.component.ts",
-        "src/app/components/stock-alerts/stock-alerts.component.html",
-        "src/app/components/stock-alerts/stock-alerts.component.css",
-        "src/app/components/activity-feed/activity-feed.component.ts",
-        "src/app/components/activity-feed/activity-feed.component.html",
-        "src/app/components/activity-feed/activity-feed.component.css",
-        "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-        "src/app/components/dashboard-metrics/dashboard-metrics.component.html",
-        "src/app/components/dashboard-metrics/dashboard-metrics.component.css"
-      ],
-      "loc": 620,
+      "loc": 350,
       "language": "typescript"
     },
     {
       "name": "dashboard",
       "path": "src/app/dashboard/",
-      "purpose": "Main dashboard page with metrics and overview",
+      "purpose": "Main dashboard view with metrics and navigation",
       "files": [
         "src/app/dashboard/dashboard.component.ts",
         "src/app/dashboard/dashboard.component.html",
         "src/app/dashboard/dashboard.component.css",
         "src/app/dashboard/dashboard.component.spec.ts"
       ],
-      "loc": 180,
+      "loc": 200,
       "language": "typescript"
     },
     {
-      "name": "login",
-      "path": "src/app/login/",
-      "purpose": "Authentication page for user login",
-      "files": [
-        "src/app/login/login.component.ts",
-        "src/app/login/login.component.html",
-        "src/app/login/login.component.css",
-        "src/app/login/login.component.spec.ts"
-      ],
-      "loc": 150,
-      "language": "typescript"
-    },
-    {
-      "name": "sales-pages",
-      "path": "src/app/pages/",
-      "purpose": "Sales management modules including dashboard, history, lookup, and receiving",
+      "name": "sales-management",
+      "path": "src/app/pages/sales-dashboard/",
+      "purpose": "Sales dashboard and transaction handling",
       "files": [
         "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
         "src/app/pages/sales-dashboard/sales-dashboard.component.html",
@@ -111,100 +50,182 @@
         "src/app/pages/sales-receive/sales-receive.component.css",
         "src/app/pages/sales-receive/sales-receive.component.spec.ts"
       ],
-      "loc": 480,
+      "loc": 800,
       "language": "typescript"
     },
     {
-      "name": "inventory-pages",
-      "path": "src/app/pages/",
-      "purpose": "Inventory and product management pages",
+      "name": "inventory-management",
+      "path": "src/app/pages/inventory/",
+      "purpose": "Inventory tracking and stock management",
       "files": [
         "src/app/pages/inventory/inventory.component.ts",
         "src/app/pages/inventory/inventory.component.html",
         "src/app/pages/inventory/inventory.component.css",
-        "src/app/pages/inventory/inventory.component.spec.ts",
+        "src/app/pages/inventory/inventory.component.spec.ts"
+      ],
+      "loc": 200,
+      "language": "typescript"
+    },
+    {
+      "name": "products",
+      "path": "src/app/pages/products/",
+      "purpose": "Product catalog management",
+      "files": [
         "src/app/pages/products/products.component.ts",
         "src/app/pages/products/products.component.html",
         "src/app/pages/products/products.component.css",
         "src/app/pages/products/products.component.spec.ts"
       ],
-      "loc": 320,
-      "language": "typescript"
-    },
-    {
-      "name": "owner-dashboard",
-      "path": "src/app/pages/",
-      "purpose": "Owner-specific dashboard with business analytics",
-      "files": [
-        "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
-        "src/app/pages/owner-dashboard/owner-dashboard.component.html",
-        "src/app/pages/owner-dashboard/owner-dashboard.component.css",
-        "src/app/pages/owner-dashboard/owner-dashboard.component.spec.ts"
-      ],
-      "loc": 120,
-      "language": "typescript"
-    },
-    {
-      "name": "staff-management",
-      "path": "src/app/pages/",
-      "purpose": "Staff management and user administration",
-      "files": [
-        "src/app/pages/staff/staff.component.ts",
-        "src/app/pages/staff/staff.component.html",
-        "src/app/pages/staff/staff.component.css",
-        "src/app/pages/staff/staff.component.spec.ts"
-      ],
-      "loc": 100,
-      "language": "typescript"
-    },
-    {
-      "name": "analysis",
-      "path": "src/app/pages/",
-      "purpose": "AI-powered analysis and reporting module",
-      "files": [
-        "src/app/pages/analysis/analysis.component.ts",
-        "src/app/pages/analysis/analysis.component.html",
-        "src/app/pages/analysis/analysis.component.css"
-      ],
-      "loc": 90,
+      "loc": 180,
       "language": "typescript"
     },
     {
       "name": "reconciliation",
-      "path": "src/app/pages/",
-      "purpose": "Financial reconciliation and invoice management",
+      "path": "src/app/pages/reconciliation/",
+      "purpose": "Financial reconciliation and reporting",
       "files": [
         "src/app/pages/reconciliation/reconciliation.component.ts",
         "src/app/pages/reconciliation/reconciliation.component.html",
         "src/app/pages/reconciliation/reconciliation.component.css",
         "src/app/pages/reconciliation/reconciliation.component.spec.ts"
       ],
-      "loc": 110,
+      "loc": 200,
+      "language": "typescript"
+    },
+    {
+      "name": "analysis",
+      "path": "src/app/pages/analysis/",
+      "purpose": "Business intelligence and AI-powered analytics",
+      "files": [
+        "src/app/pages/analysis/analysis.component.ts",
+        "src/app/pages/analysis/analysis.component.html",
+        "src/app/pages/analysis/analysis.component.css"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "staff-management",
+      "path": "src/app/pages/staff/",
+      "purpose": "Staff user management",
+      "files": [
+        "src/app/pages/staff/staff.component.ts",
+        "src/app/pages/staff/staff.component.html",
+        "src/app/pages/staff/staff.component.css",
+        "src/app/pages/staff/staff.component.spec.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "owner-dashboard",
+      "path": "src/app/pages/owner-dashboard/",
+      "purpose": "High-level owner overview and metrics",
+      "files": [
+        "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+        "src/app/pages/owner-dashboard/owner-dashboard.component.html",
+        "src/app/pages/owner-dashboard/owner-dashboard.component.css",
+        "src/app/pages/owner-dashboard/owner-dashboard.component.spec.ts"
+      ],
+      "loc": 180,
+      "language": "typescript"
+    },
+    {
+      "name": "layout-components",
+      "path": "src/app/components/",
+      "purpose": "Reusable layout components (sidebar, headers, layouts)",
+      "files": [
+        "src/app/components/sidebar/sidebar.component.ts",
+        "src/app/components/sidebar/sidebar.component.html",
+        "src/app/components/sidebar/sidebar.component.css",
+        "src/app/components/sidebar/sidebar.component.spec.ts",
+        "src/app/components/admin-layout/admin-layout.component.ts",
+        "src/app/components/admin-layout/admin-layout.component.html",
+        "src/app/components/admin-layout/admin-layout.component.css",
+        "src/app/components/admin-layout/admin-layout.component.spec.ts",
+        "src/app/components/main-layout/main-layout.component.ts",
+        "src/app/components/main-layout/main-layout.component.html",
+        "src/app/components/main-layout/main-layout.component.css",
+        "src/app/components/main-layout/main-layout.component.spec.ts"
+      ],
+      "loc": 400,
+      "language": "typescript"
+    },
+    {
+      "name": "dashboard-metrics",
+      "path": "src/app/components/dashboard-metrics/",
+      "purpose": "KPI and metrics display components",
+      "files": [
+        "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+        "src/app/components/dashboard-metrics/dashboard-metrics.component.html",
+        "src/app/components/dashboard-metrics/dashboard-metrics.component.css"
+      ],
+      "loc": 120,
+      "language": "typescript"
+    },
+    {
+      "name": "stock-alerts",
+      "path": "src/app/components/stock-alerts/",
+      "purpose": "Low stock alert notifications",
+      "files": [
+        "src/app/components/stock-alerts/stock-alerts.component.ts",
+        "src/app/components/stock-alerts/stock-alerts.component.html",
+        "src/app/components/stock-alerts/stock-alerts.component.css"
+      ],
+      "loc": 100,
+      "language": "typescript"
+    },
+    {
+      "name": "activity-feed",
+      "path": "src/app/components/activity-feed/",
+      "purpose": "Activity timeline and event feed",
+      "files": [
+        "src/app/components/activity-feed/activity-feed.component.ts",
+        "src/app/components/activity-feed/activity-feed.component.html",
+        "src/app/components/activity-feed/activity-feed.component.css"
+      ],
+      "loc": 80,
+      "language": "typescript"
+    },
+    {
+      "name": "ui-components",
+      "path": "src/app/components/loading/",
+      "purpose": "Loading spinner and toast notification UI",
+      "files": [
+        "src/app/components/loading/loading.component.ts",
+        "src/app/components/loading/loading.component.html",
+        "src/app/components/loading/loading.component.css",
+        "src/app/components/toast/toast.component.ts",
+        "src/app/components/toast/toast.component.html",
+        "src/app/components/toast/toast.component.css",
+        "src/app/components/toast/toast.component.spec.ts"
+      ],
+      "loc": 200,
       "language": "typescript"
     },
     {
       "name": "core-services",
       "path": "src/app/services/",
-      "purpose": "Business logic services for data access, auth, notifications",
+      "purpose": "Supabase client, auth state, and API services",
       "files": [
         "src/app/services/supabase.service.ts",
         "src/app/services/supabase.service.spec.ts",
         "src/app/services/product.service.ts",
+        "src/app/services/webhook.service.ts",
+        "src/app/services/webhook.service.spec.ts",
         "src/app/services/toast.service.ts",
         "src/app/services/toast.service.spec.ts",
         "src/app/services/loading.service.ts",
         "src/app/services/auto-logout.service.ts",
-        "src/app/services/page-reload.service.ts",
-        "src/app/services/webhook.service.ts",
-        "src/app/services/webhook.service.spec.ts"
+        "src/app/services/page-reload.service.ts"
       ],
-      "loc": 520,
+      "loc": 450,
       "language": "typescript"
     },
     {
       "name": "interfaces",
       "path": "src/app/interfaces/",
-      "purpose": "TypeScript type definitions for domain models",
+      "purpose": "TypeScript type definitions for domain entities",
       "files": [
         "src/app/interfaces/user.ts",
         "src/app/interfaces/product.ts",
@@ -219,17 +240,32 @@
         "src/app/interfaces/ai-report.ts",
         "src/app/interfaces/toast.ts"
       ],
-      "loc": 280,
+      "loc": 300,
       "language": "typescript"
     },
     {
       "name": "enums",
       "path": "src/app/enums/",
-      "purpose": "Enumerated values for role-based access control",
+      "purpose": "Enumerated constants for user roles and status",
       "files": [
         "src/app/enums/role.ts"
       ],
-      "loc": 20,
+      "loc": 30,
+      "language": "typescript"
+    },
+    {
+      "name": "app-core",
+      "path": "src/app/",
+      "purpose": "Root Angular application component and routing",
+      "files": [
+        "src/app/app.component.ts",
+        "src/app/app.component.html",
+        "src/app/app.component.css",
+        "src/app/app.component.spec.ts",
+        "src/app/app.routes.ts",
+        "src/app/app.config.ts"
+      ],
+      "loc": 150,
       "language": "typescript"
     }
   ],
@@ -247,25 +283,13 @@
       "dev_only": false
     },
     {
-      "name": "@angular/forms",
-      "version": "19.2.0",
-      "ecosystem": "npm",
-      "dev_only": false
-    },
-    {
       "name": "@angular/router",
       "version": "19.2.0",
       "ecosystem": "npm",
       "dev_only": false
     },
     {
-      "name": "@angular/platform-browser",
-      "version": "19.2.0",
-      "ecosystem": "npm",
-      "dev_only": false
-    },
-    {
-      "name": "@angular/platform-browser-dynamic",
+      "name": "@angular/forms",
       "version": "19.2.0",
       "ecosystem": "npm",
       "dev_only": false
@@ -277,8 +301,8 @@
       "dev_only": false
     },
     {
-      "name": "chart.js",
-      "version": "4.5.1",
+      "name": "@fortawesome/angular-fontawesome",
+      "version": "1.0.0",
       "ecosystem": "npm",
       "dev_only": false
     },
@@ -295,14 +319,8 @@
       "dev_only": false
     },
     {
-      "name": "rxjs",
-      "version": "7.8.0",
-      "ecosystem": "npm",
-      "dev_only": false
-    },
-    {
-      "name": "zone.js",
-      "version": "0.15.0",
+      "name": "chart.js",
+      "version": "4.5.1",
       "ecosystem": "npm",
       "dev_only": false
     },
@@ -313,145 +331,115 @@
       "dev_only": false
     },
     {
-      "name": "@angular/cli",
-      "version": "19.2.8",
+      "name": "rxjs",
+      "version": "7.8.0",
       "ecosystem": "npm",
-      "dev_only": true
-    },
-    {
-      "name": "@angular-devkit/build-angular",
-      "version": "19.2.8",
-      "ecosystem": "npm",
-      "dev_only": true
-    },
-    {
-      "name": "typescript",
-      "version": "5.7.2",
-      "ecosystem": "npm",
-      "dev_only": true
-    },
-    {
-      "name": "karma",
-      "version": "6.4.0",
-      "ecosystem": "npm",
-      "dev_only": true
+      "dev_only": false
     }
   ],
   "data_flows": [
     {
+      "source": "Angular Components",
+      "destination": "Supabase Client Service",
+      "data_type": "JSON objects (products, sales, users)",
+      "is_authenticated": true
+    },
+    {
+      "source": "Supabase Service",
+      "destination": "Supabase Backend (PostgreSQL)",
+      "data_type": "SQL queries via Supabase JS client",
+      "is_authenticated": true
+    },
+    {
       "source": "Login Component",
-      "destination": "Supabase Service",
-      "data_type": "user credentials",
+      "destination": "Supabase Auth",
+      "data_type": "User credentials",
       "is_authenticated": false
     },
     {
-      "source": "Supabase Service",
-      "destination": "Supabase Backend",
-      "data_type": "authentication tokens",
-      "is_authenticated": false
-    },
-    {
-      "source": "Authenticated Components",
-      "destination": "Supabase Service",
-      "data_type": "CRUD operations on products, sales, inventory",
-      "is_authenticated": true
-    },
-    {
-      "source": "Supabase Service",
-      "destination": "Components",
-      "data_type": "business data (users, products, sales, metrics)",
-      "is_authenticated": true
-    },
-    {
-      "source": "Dashboard Components",
-      "destination": "Supabase Service",
-      "data_type": "metrics queries",
-      "is_authenticated": true
-    },
-    {
-      "source": "Staff Component",
-      "destination": "Supabase Service",
-      "data_type": "user profile data",
+      "source": "Sales Dashboard",
+      "destination": "Product Service",
+      "data_type": "Product inventory data",
       "is_authenticated": true
     },
     {
       "source": "Webhook Service",
-      "destination": "External Systems",
-      "data_type": "business events",
-      "is_authenticated": true
+      "destination": "External Webhooks",
+      "data_type": "Event notifications",
+      "is_authenticated": false
     }
   ],
   "auth_boundaries": [
     {
+      "path": "/dashboard/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/sales-dashboard/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/sales-history/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/sales-lookup/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/sales-receive/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/inventory/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/products/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/reconciliation/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/analysis/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/staff/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/owner-dashboard/**",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
       "path": "/login",
       "auth_type": "none",
       "is_protected": false
-    },
-    {
-      "path": "/dashboard",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/sales-dashboard",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/sales-history",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/sales-lookup",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/sales-receive",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/inventory",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/products",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/owner-dashboard",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/staff",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/analysis",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
-    },
-    {
-      "path": "/reconciliation",
-      "auth_type": "supabase-jwt",
-      "is_protected": true
     }
   ],
   "entry_points": [
     {
       "path": "src/main.ts",
-      "type": "bootstrap",
+      "type": "spa-bootstraps",
       "is_public": true
     },
     {
       "path": "src/index.html",
-      "type": "webpage",
+      "type": "spa-entry",
       "is_public": true
     },
     {
@@ -466,59 +454,14 @@
     },
     {
       "path": "/sales-dashboard",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/sales-history",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/sales-lookup",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/sales-receive",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/inventory",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/products",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/owner-dashboard",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/staff",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/analysis",
-      "type": "route",
-      "is_public": false
-    },
-    {
-      "path": "/reconciliation",
       "type": "route",
       "is_public": false
     }
   ],
   "tech_stack": {
     "frontend": "Angular 19.2.0 + TypeScript",
-    "backend": "Supabase (PostgreSQL + Auth)",
-    "database": "PostgreSQL via Supabase client",
+    "backend": "Supabase (PostgreSQL + Auth + Realtime)",
+    "database": "PostgreSQL via Supabase",
     "hosting": "Docker + Nginx",
     "packages": [
       "@angular/core",
@@ -1237,17 +1180,15 @@
     "markdown",
     "typescript"
   ],
-  "architecture_summary": "FrostFlow is an Angular 19 single-page application serving as an inventory and sales management system. The app uses Supabase for backend services including PostgreSQL database access and JWT authentication. It features role-based access control with an auth guard protecting all routes except login. The application includes multiple feature modules for sales tracking, inventory management, staff administration, financial reconciliation, and AI-powered analytics. Data flows through a central Supabase service that handles all database operations and authentication. The UI uses a layout-based architecture with admin and main layouts, sidebar navigation, and reusable components for loading states, toast notifications, and stock alerts. Chart.js is integrated for dashboard metrics visualization.",
+  "architecture_summary": "A full-stack Angular 19 SPA application for inventory and sales management (FrostFlow). Uses Supabase as BaaS for PostgreSQL database, authentication, and realtime subscriptions. Features role-based access (Admin, Staff) via auth guards. Multiple business modules: sales tracking, inventory management, reconciliation, AI-powered analytics, and staff management. Supports webhook integrations and includes dashboard metrics visualization with Chart.js.",
   "key_patterns": [
-    "Angular Router with Auth Guard protection",
-    "Supabase client service for database operations",
-    "Role-based access control via enum",
-    "Component-based layout architecture",
-    "Reactive programming with RxJS",
-    "Toast notification service pattern",
-    "Loading state management service",
-    "Auto-logout service for session management",
-    "Chart.js integration for metrics visualization",
-    "HTTP interceptors for auth headers"
+    "Angular 19 standalone components architecture",
+    "Supabase client service with singleton pattern",
+    "Auth guard for route protection",
+    "Lazy-loaded feature modules via Angular Router",
+    "Role-based access control (enums/role.ts)",
+    "Reactive services with RxJS observables",
+    "Toast notification service for user feedback",
+    "Auto-logout service for session management"
   ]
 }

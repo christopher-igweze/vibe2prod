@@ -1,161 +1,316 @@
 {
-  "run_id": "368f1db82d2f",
-  "generated_at": "2026-02-26T02:11:51.375190+00:00",
+  "run_id": "480a1994d6e8",
+  "generated_at": "2026-02-26T02:33:13.119912+00:00",
   "phase": "discovery",
-  "duration_seconds": 245.8,
-  "cost_usd": 0.7295,
-  "total_findings": 36,
+  "duration_seconds": 446.1,
+  "cost_usd": 0.7606,
+  "loc_total": 27454,
+  "file_count": 116,
+  "primary_language": "json",
+  "total_findings": 59,
   "severity_breakdown": {
-    "high": 8,
-    "medium": 20,
+    "critical": 1,
+    "high": 17,
+    "medium": 33,
     "low": 8
   },
   "category_breakdown": {
-    "security": 13,
+    "security": 40,
     "performance": 9,
-    "architecture": 14
+    "architecture": 10
   },
   "findings": [
     {
-      "id": "F-1245ead3",
-      "title": "Missing security headers in index.html",
-      "description": "The application index.html lacks critical security headers like Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, and X-XSS-Protection. These headers should be configured at the server/Docker level or via meta tags.",
+      "id": "F-c1f0183f",
+      "title": "Sensitive user data stored in browser localStorage without encryption",
+      "description": "User credentials and profile information (user_id, user_role, user_name, user_email) are stored in plain text in localStorage. This violates secure token storage practices and exposes sensitive data to XSS attacks and malicious scripts.",
       "category": "security",
-      "severity": "high",
-      "audit_pass": "infrastructure",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
       "locations": [
         {
-          "file_path": "src/index.html",
-          "line_start": 1,
-          "line_end": 22,
-          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <!-- Missing security headers -->"
-        }
-      ],
-      "suggested_fix": "Add the following meta tags to the <head> section of index.html:\n1. <meta http-equiv=\"X-UA-Compatible\" content=\"ie=edge\" />\n2. <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com\" />\n3. <meta http-equiv=\"X-Frame-Options\" content=\"SAMEORIGIN\" />\n4. <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n5. <meta http-equiv=\"X-XSS-Protection\" content=\"1; mode=block\" />\n\nFor production, configure these headers in the Nginx/Docker configuration instead (recommended approach).",
-      "confidence": 0.95,
-      "cwe_id": "CWE-693",
-      "owasp_ref": "A01:2021",
-      "agent": "security_auditor",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-721ec12e",
-      "title": "Unsafe inline scripts in index.html (Chart.js CDN)",
-      "description": "The application loads Chart.js from CDN (https://cdn.jsdelivr.net/npm/chart.js) as an inline script without integrity checking. This bypasses CSP and could be exploited via CDN compromise.",
-      "category": "security",
-      "severity": "high",
-      "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "src/index.html",
-          "line_start": 19,
-          "line_end": 21,
-          "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
-        }
-      ],
-      "suggested_fix": "1. Install chart.js via npm instead (remove the comment's original reason by managing dependencies correctly):\n   npm install chart.js\n   \n2. Import it in your Angular component:\n   import Chart from 'chart.js/auto';\n   \n3. If CDN must be used, add Subresource Integrity (SRI):\n   <script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.5.1\" integrity=\"sha384-[hash]\" crossorigin=\"anonymous\"></script>\n   \n4. Update CSP to restrict external script loading:\n   script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net (with SRI, remove 'unsafe-inline')",
-      "confidence": 0.92,
-      "cwe_id": "CWE-345",
-      "owasp_ref": "A03:2021",
-      "agent": "security_auditor",
-      "tier": 2,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-8089e689",
-      "title": "Font Awesome CSS loaded over HTTP without integrity check",
-      "description": "Font Awesome CSS is loaded from cdnjs.cloudflare.com without SRI (Subresource Integrity). If the CDN is compromised, malicious CSS injection is possible.",
-      "category": "security",
-      "severity": "medium",
-      "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "src/index.html",
-          "line_start": 14,
-          "line_end": 14,
-          "snippet": "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" />"
-        }
-      ],
-      "suggested_fix": "1. Add Subresource Integrity attribute:\n   <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" integrity=\"sha512-[hash]\" crossorigin=\"anonymous\" />\n   \n2. Or better, use Font Awesome package via npm (already used via @fortawesome packages in package.json). Remove this CDN link entirely and rely on the npm packages already installed.",
-      "confidence": 0.9,
-      "cwe_id": "CWE-345",
-      "owasp_ref": "A03:2021",
-      "agent": "security_auditor",
-      "tier": 2,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-c22dad9d",
-      "title": "Sensitive data stored in localStorage without encryption",
-      "description": "User credentials and personal data (user_name, user_email, user_id, user_role) are stored in localStorage as plain text in multiple components (sidebar.component.ts, owner-dashboard.component.ts, products.component.ts). localStorage is vulnerable to XSS attacks.",
-      "category": "security",
-      "severity": "high",
-      "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "src/app/components/sidebar/sidebar.component.ts",
-          "line_start": 9,
-          "line_end": 11,
-          "snippet": "ngOnInit() {\n    this.userRole = localStorage.getItem('user_role');"
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 45,
+          "line_end": 48,
+          "snippet": "localStorage.setItem('user_id', data.session.user.id)\nlocalStorage.setItem('user_role', profile!.role)\nlocalStorage.setItem('user_name', profile!.name)\nlocalStorage.setItem('user_email', profile!.email)"
         },
         {
           "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
           "line_start": 37,
-          "line_end": 39,
-          "snippet": "public name: string = localStorage.getItem('user_name') || ''\n    email: string = localStorage.getItem('user_email') || ''\n    id: string = localStorage.getItem('user_id') || ''"
+          "line_end": 40,
+          "snippet": "public name: string = localStorage.getItem('user_name') || ''\nemail: string = localStorage.getItem('user_email') || ''\nid: string = localStorage.getItem('user_id') || ''"
+        },
+        {
+          "file_path": "src/app/components/sidebar/sidebar.component.ts",
+          "line_start": 13,
+          "line_end": 15,
+          "snippet": "ngOnInit() {\n    this.userRole = localStorage.getItem('user_role');\n  }"
         },
         {
           "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 82,
-          "line_end": 84,
-          "snippet": "const role = localStorage.getItem('user_role');\n    if (role === 'sales') {\n      this.viewMode = 'lookup';"
-        },
-        {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 159,
-          "line_end": 159,
-          "snippet": "created_by: localStorage.getItem('user_id') || \"\","
+          "line_start": 103,
+          "line_end": 103,
+          "snippet": "created_by: localStorage.getItem('user_id') || \"\""
         }
       ],
-      "suggested_fix": "1. Replace localStorage with Supabase session management (already using Supabase.getCurrentUser()). Example:\n   \n   // Instead of:\n   const userId = localStorage.getItem('user_id');\n   \n   // Use:\n   const user = await this.supabase.getCurrentUser();\n   const userId = user?.id;\n   \n2. For role-based UI display, retrieve from user profile:\n   const profile = await this.supabase.getUserProfile(userId);\n   const role = profile.role;\n   \n3. Store only non-sensitive session tokens if needed, and mark them as HttpOnly/Secure in backend (Supabase handles this).\n   \n4. For user name/email display, fetch from the authenticated session object:\n   const { user } = await this.supabase.getSession();\n   const name = user?.user_metadata?.name || user?.email;",
-      "confidence": 0.94,
-      "cwe_id": "CWE-922",
-      "owasp_ref": "A01:2021",
+      "suggested_fix": "Replace localStorage with Supabase session management. Use Supabase's built-in session handling which stores tokens in secure, HTTP-only cookies. Remove all manual localStorage.setItem() calls and instead retrieve user data from Supabase's getSession() or getUser() methods. Store only non-sensitive identifiers if needed, and never store role/email in localStorage. Example: const { data: { session } } = await supabase.auth.getSession(); // Use session.user directly instead of localStorage",
+      "confidence": 0.98,
+      "cwe_id": "CWE-522",
+      "owasp_ref": "A02:2021",
       "agent": "security_auditor",
       "tier": 1,
       "dedup_key": ""
     },
     {
-      "id": "F-e8a37ede",
-      "title": "localStorage.clear() in logout without session invalidation verification",
-      "description": "In owner-dashboard.component.ts, handleLogout() clears localStorage and calls signOut(), but there's no verification that the backend session was successfully revoked before clearing local data. An attacker could intercept and maintain a session.",
+      "id": "F-42d2bd19",
+      "title": "Missing token refresh mechanism and session expiration validation",
+      "description": "The application uses Supabase JWT tokens but does not implement automatic token refresh or validate token expiration before making API calls. Expired tokens will silently fail, causing poor UX and potential security gaps where stale sessions remain active.",
       "category": "security",
-      "severity": "medium",
-      "audit_pass": "infrastructure",
+      "severity": "high",
+      "audit_pass": "auth_flow",
       "locations": [
         {
-          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
-          "line_start": 95,
-          "line_end": 101,
-          "snippet": "handleLogout() {\n        localStorage.clear()\n        this.supabase.signOut()\n        this.toast.show('Logout successful!', 'logout')\n        this.router.navigate(['/login'])\n    }"
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "// File exists but full implementation not shown - need to verify token refresh logic"
+        },
+        {
+          "file_path": "src/app/auth.guard.ts",
+          "line_start": 6,
+          "line_end": 30,
+          "snippet": "export const authGuard: CanActivateFn = async (route, state) => {\n    const supabase = inject(SupabaseService)\n    const router = inject(Router)\n\n    const user = await supabase.getCurrentUser()\n\n    if (!user) {\n        router.navigate(['/login'])\n        return false\n    }\n    // Missing: Check token expiration and refresh"
         }
       ],
-      "suggested_fix": "Implement proper async logout with error handling:\n   \n   async handleLogout() {\n       try {\n           // Revoke session on server first\n           await this.supabase.signOut();\n           \n           // Only clear local data after successful server revocation\n           localStorage.clear();\n           sessionStorage.clear();\n           \n           this.toast.show('Logout successful!', 'logout');\n           this.router.navigate(['/login']);\n       } catch (error) {\n           console.error('Logout failed:', error);\n           this.toast.show('Logout failed. Please try again.', 'error');\n           // Force redirect anyway for security, but inform user\n           this.router.navigate(['/login']);\n       }\n   }",
-      "confidence": 0.88,
+      "suggested_fix": "Implement token refresh in the Supabase service. Add a method to refresh the session before expiration: async refreshSessionIfNeeded() { const { data: { session } } = await this.supabase.auth.getSession(); if (session && this.isTokenExpiringSoon(session)) { await this.supabase.auth.refreshSession(); } }. Call this method in authGuard before checking user permissions. Consider using Supabase's built-in onAuthStateChange() to automatically handle token refresh events.",
+      "confidence": 0.92,
       "cwe_id": "CWE-613",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bd6c5412",
+      "title": "Insufficient role-based access control in auth guard",
+      "description": "The authGuard checks if roles array exists and has length > 0, but requires roles to be explicitly defined in route data. Routes without defined roles default to denying access (returning false), but this creates an error state rather than graceful handling. More critically, there's no validation that profile.role actually matches UserRole enum values.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/auth.guard.ts",
+          "line_start": 15,
+          "line_end": 23,
+          "snippet": "const requiredRoles = route.data['roles'] as UserRole[]\n    if (!requiredRoles || requiredRoles.length === 0) {\n        return false\n    }\n\n    const profile = await supabase.getUserProfile(user.id)\n\n    if (!profile || !profile.is_active) {\n        await supabase.signOut()\n        router.navigate(['/login'])\n        return false\n    }\n\n    const userRole: UserRole = profile.role as UserRole\n    if (requiredRoles.includes(userRole)) {\n        return true\n    }"
+        }
+      ],
+      "suggested_fix": "Add enum validation and fix the guard logic: (1) Validate that profile.role is a valid UserRole enum value before casting: if (!Object.values(UserRole).includes(profile.role)) { await supabase.signOut(); router.navigate(['/login']); return false; } (2) For routes without roles defined, should either deny with error logging or allow publicly. Current implicit deny is confusing. (3) Add logging when role mismatch occurs for audit purposes: console.warn(`Unauthorized access attempt: user ${user.id} with role ${profile.role} tried to access ${route.data['roles']}`);",
+      "confidence": 0.85,
+      "cwe_id": "CWE-269",
       "owasp_ref": "A01:2021",
       "agent": "security_auditor",
       "tier": 2,
       "dedup_key": ""
     },
     {
-      "id": "F-ddcf9d4e",
-      "title": "Missing CORS configuration validation",
-      "description": "The application uses @supabase/supabase-js but there's no explicit CORS configuration visible in the app config. If Supabase CORS settings are misconfigured, cross-origin requests could be vulnerable.",
+      "id": "F-56d17445",
+      "title": "No CSRF protection on form submissions",
+      "description": "The login form and other POST operations (product creation, mismatch resolution) use HTTP methods without visible CSRF token validation. While Supabase may provide backend protection, frontend-level CSRF tokens are not implemented or validated.",
       "category": "security",
       "severity": "medium",
-      "audit_pass": "infrastructure",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 25,
+          "line_end": 32,
+          "snippet": "async handleLogin() {\n        const { data, error } = await this.supabase.signInWithPassword(\n            this.email.value!,\n            this.password.value!\n        )\n\n        if (error) {\n            console.error('Login failed:', error.message)"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 142,
+          "line_end": 155,
+          "snippet": "async saveProduct() {\n        if (this.productForm.invalid) {\n            const errors = this.getFormErrors();\n            const invalidFields = Object.keys(errors).join(', ');\n            this.toast.show(`Please fill all required fields: ${invalidFields}`, 'error');\n            return;\n        }\n\n        this.isSubmitting = true;\n        const formValue = this.productForm.getRawValue();"
+        }
+      ],
+      "suggested_fix": "Implement CSRF protection using Angular's built-in HttpClientXsrfModule. In app.config.ts, add: provideHttpClientXsrfProtection() and configure the token header/param names. Ensure all POST/PUT/DELETE requests include the X-XSRF-TOKEN header. This is typically handled automatically by Angular if properly configured in the HTTP interceptor. Verify Supabase client is using Angular HttpClient with XSRF interceptor enabled.",
+      "confidence": 0.78,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5537a13e",
+      "title": "Hardcoded role checks without centralized authorization service",
+      "description": "Role-based access is checked in multiple components using hardcoded string comparisons (e.g., 'admin', 'sales'). This scattered logic makes it difficult to audit and maintain authorization rules, and there's no centralized policy enforcement.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/components/sidebar/sidebar.component.html",
+          "line_start": 24,
+          "line_end": 26,
+          "snippet": "<!-- Admin Section -->\n        <ng-container *ngIf=\"userRole === 'admin'\">"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 127,
+          "line_end": 131,
+          "snippet": "const role = localStorage.getItem('user_role');\n        if (role === 'sales') {\n            this.viewMode = 'lookup';\n        }"
+        },
+        {
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 38,
+          "line_end": 46,
+          "snippet": "if (profile && profile.role === UserRole.admin) {\n                this.toast.show('Login successful!', 'login')\n                this.router.navigate(['/admin'])\n            } else if (profile && profile.role === UserRole.sales) {\n                this.toast.show('Login successful!', 'login')\n                this.router.navigate(['/sales'])\n            }"
+        }
+      ],
+      "suggested_fix": "Create a centralized authorization service: export class AuthorizationService { hasRole(requiredRole: UserRole): boolean { return this.getCurrentUserRole() === requiredRole; } canAccess(feature: string): boolean { const userRole = this.getCurrentUserRole(); const rolePermissions = { [UserRole.admin]: ['inventory', 'staff', 'products'], [UserRole.sales]: ['sales_dashboard'] }; return rolePermissions[userRole]?.includes(feature) || false; } } Inject this service into components instead of checking localStorage directly. Use it in templates as *ngIf=\"authService.hasRole(UserRole.admin)\"",
+      "confidence": 0.87,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-78cf2f6b",
+      "title": "No protection against account enumeration via login endpoint",
+      "description": "The login component shows detailed error messages that could allow attackers to enumerate valid user accounts (e.g., 'Login failed: User not found' vs 'Login failed: Invalid password').",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 26,
+          "line_end": 30,
+          "snippet": "if (error) {\n            console.error('Login failed:', error.message)\n            this.toast.show('Login failed: ' + error.message, 'error')\n            return\n        }"
+        }
+      ],
+      "suggested_fix": "Use generic error messages for login failures: if (error) { this.toast.show('Invalid email or password', 'error'); return; } Do not expose whether the email exists or if the password is wrong. Log detailed errors server-side only for debugging purposes. This prevents account enumeration attacks while maintaining good UX.",
+      "confidence": 0.89,
+      "cwe_id": "CWE-203",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-18f75306",
+      "title": "Disabled user accounts not immediately revoked on login",
+      "description": "While the code checks if profile.is_active is false and signs out the user, it still allows them to proceed to role-based routing before the check happens. The check occurs after session creation, not as part of the authentication flow.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 35,
+          "line_end": 50,
+          "snippet": "if (data.session) {\n            const profile = await this.supabase.getUserProfile(\n                data.session.user.id\n            )\n\n            if (profile && !profile.is_active) {\n                await this.supabase.signOut()\n                this.toast.show('Your account has been disabled. Contact admin.', 'error')\n                return\n            }\n\n            if (profile && profile.role === UserRole.admin) {\n                this.toast.show('Login successful!', 'login')\n                this.router.navigate(['/admin'])\n            }"
+        }
+      ],
+      "suggested_fix": "The logic is actually correct, but should be moved earlier or used in conjunction with Supabase RLS policies. Ensure database Row Level Security (RLS) policies on all sensitive tables enforce is_active = true. This way, even if a disabled user somehow gets past frontend checks, they cannot access data. Also consider: (1) calling getRLS-protected endpoints before showing dashboard, (2) implementing automatic logout if is_active becomes false during session (already done in app.component.ts with realtime subscription)",
+      "confidence": 0.72,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d97e7e83",
+      "title": "Missing Content Security Policy (CSP) headers",
+      "description": "No Content Security Policy is defined in index.html or server configuration. This leaves the application vulnerable to XSS attacks and allows arbitrary script execution.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 18,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\" />\n    <!-- Missing: <meta http-equiv=\"Content-Security-Policy\" ...> -->"
+        }
+      ],
+      "suggested_fix": "Add CSP meta tag to index.html: <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co; font-src 'self' https://fonts.gstatic.com;\">. Additionally, configure CSP in server headers (Nginx/Docker) for better enforcement. Review and restrict external CDN dependencies (Chart.js from CDN should ideally be bundled).",
+      "confidence": 0.91,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4b77336e",
+      "title": "Automatic logout service may not properly invalidate tokens",
+      "description": "The auto-logout.service is referenced but not shown in provided code. If it relies only on client-side timers without backend session invalidation, tokens could remain valid server-side even after logout.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/app.component.ts",
+          "line_start": 35,
+          "line_end": 40,
+          "snippet": "if (user) {\n            await this.checkUserStatus(user.id);\n            this.setupProfileSubscription(user.id);\n            this.autoLogout.initListener();\n        }"
+        },
+        {
+          "file_path": "src/app/services/auto-logout.service.ts",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "// File not provided - cannot verify implementation"
+        }
+      ],
+      "suggested_fix": "Verify that auto-logout.service.ts properly calls supabase.auth.signOut() which invalidates the session server-side. Ensure: (1) Client-side timer triggers server-side logout, not just local cleanup. (2) All HTTP interceptors immediately clear authentication state upon 401 response. (3) Refresh tokens are also invalidated. If auto-logout is only client-side, add: await this.supabase.auth.signOut(); this.router.navigate(['/login']);",
+      "confidence": 0.68,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-de75c8cb",
+      "title": "Password visibility toggle exposes input value in DOM",
+      "description": "The password visibility toggle feature switches between input type='password' and type='text', but this could expose passwords if DOM is inspected or if there's a DOM-based XSS vulnerability.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 52,
+          "line_end": 54,
+          "snippet": "togglePasswordVisibility() {\n        this.passwordVisible = !this.passwordVisible\n    }"
+        },
+        {
+          "file_path": "src/app/login/login.component.html",
+          "line_start": 35,
+          "line_end": 40,
+          "snippet": "<input\n                            id=\"password\"\n                            [type]=\"passwordVisible ? 'text' : 'password'\"\n                            placeholder=\"Enter your password\"\n                            [formControl]=\"password\"\n                        />"
+        }
+      ],
+      "suggested_fix": "This is an acceptable UX pattern, but mitigate risks by: (1) Ensuring password value is never logged or stored in memory longer than needed. (2) Add a disclaimer that password visibility is for user convenience only. (3) Consider requiring HTTPS-only and using secure cookie flags. (4) On logout, explicitly clear password FormControl: this.password.reset(); (5) Never cache passwords in sessionStorage or localStorage.",
+      "confidence": 0.65,
+      "cwe_id": "CWE-524",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d0232d73",
+      "title": "No explicit HTTP-only and Secure cookie configuration visible",
+      "description": "While Supabase handles session cookies internally, there's no evidence that the application is enforcing HTTP-only and Secure flags or validating cookie security policies.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
       "locations": [
         {
           "file_path": "src/app/app.config.ts",
@@ -164,31 +319,524 @@
           "snippet": "import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core'\nimport { provideRouter } from '@angular/router'\nimport { provideHttpClient } from '@angular/common/http'\n\nimport { routes } from './app.routes'\n\nexport const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
         }
       ],
-      "suggested_fix": "1. Add HTTP interceptor for request validation and CORS headers:\n   \n   Create src/app/services/http.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   \n   export const corsInterceptor: HttpInterceptorFn = (req, next) => {\n     // Validate origin for Supabase requests\n     const supabaseUrl = 'https://[your-project].supabase.co';\n     \n     if (req.url.startsWith(supabaseUrl)) {\n       req = req.clone({\n         setHeaders: {\n           'X-Requested-With': 'XMLHttpRequest'\n         }\n       });\n     }\n     \n     return next(req);\n   };\n   ```\n   \n2. Update app.config.ts:\n   ```typescript\n   import { corsInterceptor } from './services/http.interceptor';\n   \n   export const appConfig: ApplicationConfig = {\n     providers: [\n       provideZoneChangeDetection({ eventCoalescing: true }),\n       provideRouter(routes),\n       provideHttpClient(\n         withInterceptors([corsInterceptor])\n       ),\n     ],\n   };\n   ```\n   \n3. In Supabase dashboard, verify CORS settings allow only your domain.",
-      "confidence": 0.8,
-      "cwe_id": "CWE-346",
-      "owasp_ref": "A04:2021",
+      "suggested_fix": "Add HttpClientXsrfModule and ensure Supabase client is configured with secure defaults: provideHttpClientWithInterceptors([xsrfInterceptor]). In Supabase initialization, verify session storage is set to 'memory' not 'localStorage'. Configure app to require HTTPS in production. Add HTTP security headers in Nginx/Docker config: add_header Strict-Transport-Security 'max-age=31536000; includeSubDomains' always; add_header X-Content-Type-Options 'nosniff' always;",
+      "confidence": 0.79,
+      "cwe_id": "CWE-614",
+      "owasp_ref": "A02:2021",
       "agent": "security_auditor",
       "tier": 2,
       "dedup_key": ""
     },
     {
-      "id": "F-3b97b45b",
-      "title": "No rate limiting on API requests",
-      "description": "The application makes direct calls to Supabase via supabase.service.ts without any visible rate limiting or request throttling. This makes it vulnerable to abuse and denial-of-service attacks.",
+      "id": "F-03af30c7",
+      "title": "No protection against brute force login attempts",
+      "description": "The login endpoint has no rate limiting, account lockout mechanism, or progressive delay. An attacker can attempt unlimited login tries without consequences.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 20,
+          "line_end": 50,
+          "snippet": "async handleLogin() {\n        const { data, error } = await this.supabase.signInWithPassword(\n            this.email.value!,\n            this.password.value!\n        )"
+        }
+      ],
+      "suggested_fix": "Implement client-side rate limiting using a service: export class RateLimitService { private loginAttempts: { [email: string]: { count: number; timestamp: number } } = {}; canAttemptLogin(email: string): boolean { const key = email; const now = Date.now(); if (this.loginAttempts[key] && now - this.loginAttempts[key].timestamp < 900000) { if (this.loginAttempts[key].count >= 5) return false; } return true; } recordAttempt(email: string) { this.loginAttempts[email] = { count: (this.loginAttempts[email]?.count || 0) + 1, timestamp: Date.now() }; } }. Call canAttemptLogin() before handleLogin(). For server-side: use Supabase's built-in auth protection or implement fail2ban rules.",
+      "confidence": 0.88,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-eb76e672",
+      "title": "Sensitive modal operations lack authorization checks",
+      "description": "The reconciliation modal that allows admins to void transactions and the product pricing modal allow sensitive operations without re-confirming authorization or checking permissions beyond initial route guard.",
       "category": "security",
       "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 86,
+          "line_end": 107,
+          "snippet": "async processResolution(item: ReconciliationMismatch, finalQty: number, note: string) {\n        try {\n            await this.supabase.resolveMismatch(item, finalQty, note)\n            this.toast.show('Mismatch resolved successfully', 'success');\n\n            this.loadData()\n        } catch (error) {\n            console.error(error)\n            this.toast.show('Failed to resolve mismatch', 'error');\n        }\n    }"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 161,
+          "line_end": 180,
+          "snippet": "async voidTransaction(invoice: GroupedSale) {\n        if (!this.isVoidingMode) {\n            this.isVoidingMode = true;\n            return;\n        }\n\n        if (!this.voidReason || this.voidReason.trim().length < 5) {\n            alert('Please provide a valid reason (min 5 characters)');\n            return;\n        }\n\n        if (!confirm(`Are you sure you want to VOID Invoice #${invoice.invoice_id}?`)) return;"
+        }
+      ],
+      "suggested_fix": "Add server-side authorization checks for sensitive operations: (1) Before calling supabase.resolveMismatch() or supabase.voidSale(), verify user role is admin by calling a protected endpoint. (2) Supabase RLS policies should enforce: CREATE POLICY \"Only admins can resolve mismatches\" ON mismatches FOR UPDATE USING (auth.jwt() ->> 'role' = 'admin'); (3) Require secondary confirmation using email verification or TOTP for financial transactions. (4) Implement audit logging for all sensitive operations on backend.",
+      "confidence": 0.83,
+      "cwe_id": "CWE-269",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-698a3df9",
+      "title": "Sensitive user data stored in localStorage without encryption",
+      "description": "User credentials and sensitive profile information (user_id, user_name, user_email, user_role) are stored in plaintext in localStorage. This exposes data to XSS attacks and local storage enumeration. localStorage is accessible to any JavaScript code running in the origin and persists across sessions.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/components/sidebar/sidebar.component.ts",
+          "line_start": 14,
+          "line_end": 16,
+          "snippet": "ngOnInit() {\n    this.userRole = localStorage.getItem('user_role');\n  }"
+        },
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 42,
+          "line_end": 44,
+          "snippet": "public name: string = localStorage.getItem('user_name') || ''\nemail: string = localStorage.getItem('user_email') || ''\nid: string = localStorage.getItem('user_id') || ''"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 68,
+          "line_end": 68,
+          "snippet": "created_by: localStorage.getItem('user_id') || \"\","
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 113,
+          "line_end": 113,
+          "snippet": "if (!this.currentUser) return;"
+        }
+      ],
+      "suggested_fix": "Replace localStorage with sessionStorage for sensitive data, or better yet, use Angular's state management (signals/services) to hold user context in memory. If persistence is required, implement encryption-at-rest using a library like TweetNaCl.js or libsodium.js. Example: Instead of `localStorage.getItem('user_id')`, use `this.authService.getCurrentUserId()` where the service manages state securely.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-312",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-abb019f3",
+      "title": "Missing input validation on reconciliation modal form inputs",
+      "description": "The reconciliation component accepts manual quantity input without type validation or sanitization. The form uses ngModel binding directly to template without HTML5 input constraints or Angular validation. Negative values are checked only at confirmation stage, allowing malformed data in the form state.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.html",
+          "line_start": 108,
+          "line_end": 112,
+          "snippet": "<div class=\"manual-input-box\" *ngIf=\"resolutionType === 'manual'\">\n                    <input type=\"number\" [(ngModel)]=\"manualQty\" class=\"form-input\" min=\"0\">\n                    <span class=\"unit\">units</span>\n                </div>"
+        },
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 103,
+          "line_end": 107,
+          "snippet": "if (this.resolutionType === 'manual' && this.manualQty < 0) {\n            this.toast.show('Quantity cannot be negative', 'error');\n            return;\n        }"
+        }
+      ],
+      "suggested_fix": "Add HTML5 input constraints and Angular form validation: (1) Use ReactiveFormsModule with FormControl for manualQty with Validators.min(0), Validators.max(999999), Validators.required. (2) Add step='1' and pattern='[0-9]*' to input. (3) Disable submit button until form is valid. Example: `<input type=\"number\" formControl=\"manualQtyControl\" class=\"form-input\" min=\"0\" max=\"999999\" step=\"1\" required>`",
+      "confidence": 0.85,
+      "cwe_id": "CWE-20",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-18fb8b23",
+      "title": "Unvalidated product search input allowing potential XSS",
+      "description": "The products component accepts searchTerm from user input without sanitization and directly filters products based on string matching. While this doesn't directly render untrusted HTML, the pattern is vulnerable if search results are later displayed with interpolation in templates without property binding.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 87,
+          "line_end": 94,
+          "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n  }\n\n  filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.html",
+          "line_start": 84,
+          "line_end": 86,
+          "snippet": "<span class=\"search-icon\">search</span>\n                <input type=\"text\" (input)=\"onSearch($event)\" placeholder=\"Search products, SKU, or category...\"\n                    class=\"search-input\">"
+        }
+      ],
+      "suggested_fix": "Implement input sanitization and validation: (1) Add length limits to search input: `maxlength=\"100\"`. (2) Use Angular's DomSanitizer if results must be rendered as HTML (unlikely here). (3) Validate searchTerm on input: `onSearch(event: any) { const value = (event.target.value || '').trim().slice(0, 100); if(/^[a-zA-Z0-9\\s\\-]*$/.test(value)) { this.searchTerm = value; this.filterProducts(); } }`. (4) Ensure template uses property binding: `{{ product.name }}` (already correct).",
+      "confidence": 0.7,
+      "cwe_id": "CWE-79",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-70c6a34a",
+      "title": "Missing CSRF protection on state-changing operations",
+      "description": "The application uses Angular's default HTTP client setup without explicit CSRF token handling in headers. While Supabase handles auth via JWT, state-changing operations like void transactions, product deletion, and reconciliation updates do not include CSRF tokens. The code relies solely on authentication without additional CSRF protection.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 149,
+          "line_end": 173,
+          "snippet": "async voidTransaction(invoice: GroupedSale) {\n        if (!this.isVoidingMode) {\n            this.isVoidingMode = true;\n            return;\n        }\n\n        if (!this.voidReason || this.voidReason.trim().length < 5) {\n            alert('Please provide a valid reason (min 5 characters)');\n            return;\n        }\n\n        if (!confirm(`Are you sure you want to VOID Invoice #${invoice.invoice_id}?...`)) return;\n\n        this.isLoading = true;\n        try {\n            for (const item of invoice.items) {\n                await this.supabase.voidSale(\n                    item.id,\n                    item.product_id,\n                    item.quantity,\n                    this.voidReason\n                );\n            }\n        }"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 176,
+          "line_end": 185,
+          "snippet": "async deleteProduct(id: string) {\n    if (confirm('Are you sure you want to delete this product?')) {\n      this.isSubmitting = true;\n      try {\n        await this.productService.deleteProduct(id);\n        this.toast.show('Product deleted successfully', 'success');\n      } catch (error: any) {\n        this.toast.show('Delete failed: ' + error.message, 'error');\n      } finally {\n        this.isSubmitting = false;\n      }\n    }\n  }"
+        }
+      ],
+      "suggested_fix": "Implement CSRF protection via HTTP headers: (1) Configure Angular's HttpClientXsrfModule in app.config.ts: `import { provideHttpClient, withXsrfConfiguration } from '@angular/common/http'; ...provideHttpClient(withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' }))`. (2) Ensure backend validates XSRF tokens on state-changing requests. (3) Alternative: Use SameSite=Strict cookies (server-side config) which mitigates CSRF without explicit tokens.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-76fc7a5a",
+      "title": "Unvalidated object assignment in reconciliation resolution",
+      "description": "The reconciliation component uses ngModel for form binding without strict type validation. The manualQty field accepts any value from input and is used directly in calculation without type coercion validation. The resolutionNote field is also unvalidated and passed directly to backend.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 83,
+          "line_end": 102,
+          "snippet": "async confirmResolution() {\n        if (!this.selectedMismatch) return;\n\n        if (this.resolutionType === 'manual' && this.manualQty < 0) {\n            this.toast.show('Quantity cannot be negative', 'error');\n            return;\n        }\n\n        let note = this.resolutionNote;\n        if (!note) {\n            if (this.resolutionType === 'owner') note = 'Owner count accepted via Admin';\n            if (this.resolutionType === 'sales') note = 'Sales count accepted via Admin';\n            if (this.resolutionType === 'manual') note = 'Manual Admin Override';\n        }\n\n        await this.processResolution(this.selectedMismatch, this.manualQty, note);"
+        },
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.html",
+          "line_start": 116,
+          "line_end": 120,
+          "snippet": "<div class=\"form-group mt-4\">\n                <label>Resolution Note (Optional)</label>\n                <input type=\"text\" [(ngModel)]=\"resolutionNote\" class=\"form-input\"\n                    placeholder=\"e.g. Verified with CCTV...\">\n            </div>"
+        }
+      ],
+      "suggested_fix": "Use reactive forms with validators: (1) Replace ngModel with FormGroup: `this.resolutionForm = this.fb.group({ manualQty: [0, [Validators.required, Validators.min(0), Validators.max(999999), Validators.pattern(/^[0-9]+$/)]], resolutionNote: ['', [Validators.maxLength(500)]] })`. (2) In template: `<input type=\"number\" formControlName=\"manualQty\" min=\"0\" max=\"999999\" step=\"1\">`. (3) Validate before submission: `if (this.resolutionForm.invalid) { return; }`. (4) Sanitize note input: `note = note.trim().slice(0, 500);`",
+      "confidence": 0.8,
+      "cwe_id": "CWE-20",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d487e8cb",
+      "title": "Unencrypted sensitive data in API responses and state",
+      "description": "The application receives and stores sensitive financial data (transaction amounts, customer details, stock counts) in component state and displays them in the DOM without explicit encryption or protection. The data flows from Supabase (over HTTPS, which is good) but is stored in plaintext in memory and potentially in browser caches.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 18,
+          "line_end": 35,
+          "snippet": "financials = {\n        totalRevenue: 0,\n        cashAtHand: 0,\n        bankTransfer: 0,\n        credit: 0\n    };\n\n    filters = {\n        date: new Date().toISOString().slice(0, 7),\n        staff: 'all',\n        payment: 'all'\n    };\n    staffList: UserProfile[] = [];"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.html",
+          "line_start": 98,
+          "line_end": 113,
+          "snippet": "<div class=\"financial-cards-row\">\n                <div class=\"fin-card bg-blue-50 border-blue-200\">\n                    <span class=\"label text-blue-800\">Total Revenue</span>\n                    <span class=\"value text-blue-900\">{{ financials.totalRevenue | currency:'NGN':'symbol-narrow'\n                        }}</span>\n                </div>\n\n                <div class=\"fin-card bg-green-50 border-green-200\">\n                    <span class=\"label text-green-800\">\ud83d\udcb5 Cash at Hand</span>\n                    <span class=\"value text-green-900\">{{ financials.cashAtHand | currency:'NGN':'symbol-narrow'\n                        }}</span>\n                </div>"
+        }
+      ],
+      "suggested_fix": "Implement data protection measures: (1) Use Content Security Policy (CSP) headers to prevent DOM-based data exfiltration: `Content-Security-Policy: default-src 'self'; script-src 'self';`. (2) Set `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate` on responses containing financial data. (3) Add `pragma: no-cache` headers. (4) Clear sensitive state on logout: `this.financials = { totalRevenue: 0, ... }` in logout handler. (5) Consider using Angular's OnDestroy to clear sensitive arrays: `ngOnDestroy() { this.financials = null; }`",
+      "confidence": 0.75,
+      "cwe_id": "CWE-922",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e0c240db",
+      "title": "Unvalidated receipt/invoice data passed to DOM without sanitization",
+      "description": "The reconciliation and analysis components display invoice data (item summaries, descriptions, product names) directly in templates using string interpolation. While data comes from database, if any field is user-controlled or vulnerable to injection upstream, it could render malicious content.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.html",
+          "line_start": 31,
+          "line_end": 36,
+          "snippet": "<tr *ngFor=\"let m of mismatches\" [id]=\"'mismatch-' + m.id\" [class.highlight]=\"highlightId == m.id\">\n                    <td>\n                        <span class=\"font-medium\">{{ m.products?.name }}</span>\n                    </td>\n                    <td>\n                        <span class=\"stock-val owner\">{{ m.owner_quantity }}</span>\n                    </td>"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.html",
+          "line_start": 122,
+          "line_end": 138,
+          "snippet": "<tr *ngFor=\"let sale of groupedSales\" (click)=\"viewReceipt(sale)\"\n                                class=\"cursor-pointer hover-bg\">\n                                <td class=\"text-muted\">{{ sale.time }}</td>\n                                <td class=\"font-mono text-primary font-bold\">{{ sale.invoice_id }}</td>\n                                <td>\n                                    <div class=\"flex items-center gap-2\">\n\n                                        <span class=\"text-sm\">{{ sale.staff_name }}</span>\n                                    </div>\n                                </td>\n                                <td class=\"text-truncate max-w-200\" title=\"{{sale.item_summary}}\">\n                                    {{ sale.item_summary }}\n                                </td>"
+        }
+      ],
+      "suggested_fix": "Add DomSanitizer checks and input validation at data loading stage: (1) In analysis.component.ts loadHistory(), validate invoice IDs: `const id = (row.invoice_id || '').replace(/[^a-zA-Z0-9\\-_]/g, '') || `UNK-${Date.now()}`;`. (2) For item_summary, truncate and sanitize: `g.item_summary = (g.items.map((i: Sale) => (i.products?.name || '').substring(0, 50)).join(', ')).substring(0, 200);`. (3) In templates, use [textContent] or {{}} with safe values (already done, but validate at source). (4) Add Content Security Policy to prevent inline script execution.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-79",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4338b4bc",
+      "title": "Void transaction reason field lacks length and content validation",
+      "description": "The voidReason input accepts text up to 500 characters potentially with SQL-like or malicious payloads. The validation only checks for minimum length (5 chars) but doesn't sanitize for special characters or SQL injection patterns. This data is sent to the backend without parameterized query verification visible in the frontend.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 148,
+          "line_end": 158,
+          "snippet": "async voidTransaction(invoice: GroupedSale) {\n        if (!this.isVoidingMode) {\n            this.isVoidingMode = true;\n            return;\n        }\n\n        if (!this.voidReason || this.voidReason.trim().length < 5) {\n            alert('Please provide a valid reason (min 5 characters)');\n            return;\n        }"
+        },
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.html",
+          "line_start": 189,
+          "line_end": 192,
+          "snippet": "<!-- Void Reason (Appears Only When Voiding) -->\n                        <div *ngIf=\"isVoidingMode\" class=\"void-reason-box\">\n                            <textarea [(ngModel)]=\"voidReason\" placeholder=\"Why are you voiding this transaction?\"\n                                class=\"form-textarea\" rows=\"3\"></textarea>"
+        }
+      ],
+      "suggested_fix": "Add input sanitization and length validation: (1) In component: `const sanitizedReason = this.voidReason.trim().slice(0, 200).replace(/[<>\"'%;()&+]/g, '');` before sending to backend. (2) In template, add maxlength and pattern: `<textarea [(ngModel)]=\"voidReason\" maxlength=\"200\" placeholder=\"...\" class=\"form-textarea\"></textarea>`. (3) Use reactive forms: `reasonControl: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(200), Validators.pattern(/^[a-zA-Z0-9\\s\\.,\\-()]*$/)]]`. (4) Ensure backend also validates reason field with parameterized queries.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-20",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-957db625",
+      "title": "Missing Content Security Policy headers",
+      "description": "The application does not implement CSP headers (visible in HTML or server config). This increases risk of XSS attacks, data exfiltration via third-party scripts, and unauthorized API calls. The inline styles and potential for unsafe-inline scripts are not mitigated.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 20,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\" />\n    <link href=\"https://fonts.googleapis.com\" rel=\"preconnect\" />\n    <link crossorigin=\"\" href=\"https://fonts.gstatic.com\" rel=\"preconnect\" />\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap\"\n        rel=\"stylesheet\" />\n    <link\n        href=\"https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap\"\n        rel=\"stylesheet\" />\n    <!-- Add this line for Font Awesome -->\n    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" />"
+        }
+      ],
+      "suggested_fix": "Add CSP meta tag in index.html head and configure server headers: (1) Add to <head> in src/index.html: `<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.supabase.co; frame-ancestors 'none'; form-action 'self';\">`. (2) Configure in Nginx/Docker: Add `add_header Content-Security-Policy \"default-src 'self'; ...\";` to server block. (3) Add additional headers: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0540295d",
+      "title": "Unvalidated numerical input in expense and stock calculations",
+      "description": "The analysis component calculates financial metrics (totalSpent, netProfit) from database values without validating that amounts are valid positive numbers. If backend data is corrupted or user manipulates data upstream, calculations could produce NaN or Infinity values.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 213,
+          "line_end": 228,
+          "snippet": "calculateExpenseMetrics() {\n        let total = 0;\n        let goods = 0;\n        let logistic = 0;\n\n        this.expenses.forEach(e => {\n            const cost = e.total_cost || 0;\n            const fee = e.logistics_fee || 0;\n            goods += cost;\n            logistic += fee;\n            total += (cost + fee);\n        });\n\n        this.expenseMetrics = {\n            totalSpent: total,\n            goodsCost: goods,\n            logisticsCost: logistic,\n            netProfit: this.financials.totalRevenue - total\n        };"
+        }
+      ],
+      "suggested_fix": "Add numeric validation and bounds checking: (1) Validate each value: `const cost = typeof e.total_cost === 'number' && e.total_cost >= 0 ? e.total_cost : 0;`. (2) Add max value checks: `if (cost > 999999999) cost = 999999999;`. (3) After calculation, validate result: `this.expenseMetrics.netProfit = Math.max(-999999999, Math.min(999999999, this.financials.totalRevenue - total));`. (4) Add Number.isFinite() checks: `if (!Number.isFinite(total)) { total = 0; }`. (5) Example: `const cost = Math.max(0, Math.min(999999999, parseFloat(e.total_cost) || 0));`",
+      "confidence": 0.65,
+      "cwe_id": "CWE-190",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-149d6002",
+      "title": "Hardcoded CDN URL for external scripts without integrity checks",
+      "description": "The application loads Chart.js from CDN without Subresource Integrity (SRI) verification. If the CDN is compromised or MITM attack occurs, malicious script could be loaded. Font Awesome and Google Fonts are also loaded from external sources without SRI.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 18,
+          "line_end": 20,
+          "snippet": "    <script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+        },
+        {
+          "file_path": "src/index.html",
+          "line_start": 14,
+          "line_end": 16,
+          "snippet": "    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" />"
+        }
+      ],
+      "suggested_fix": "Add Subresource Integrity (SRI) hashes and verify remote sources: (1) For Chart.js, add integrity hash: `<script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.5.1\" integrity=\"sha384-<HASH>\" crossorigin=\"anonymous\"></script>` (get hash from jsDelivr or npm). (2) For Font Awesome: `<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" integrity=\"sha384-<HASH>\" crossorigin=\"anonymous\">`. (3) For Google Fonts, add nonce or preload: `<link rel=\"preload\" href=\"https://fonts.googleapis.com/css2?...\" as=\"style\">`. (4) Update CSP to require SRI: `script-src 'self' https: 'require-sri-for-script';`. (5) Prefer npm packages over CDN when possible.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-345",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1e816ad4",
+      "title": "No validation on product image URLs before rendering",
+      "description": "The products component displays product images from database URLs without validation or sanitization. Malicious users with database access could inject data: URIs, javascript: protocols, or third-party tracking URLs that could exfiltrate user data or execute scripts.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.html",
+          "line_start": 119,
+          "line_end": 123,
+          "snippet": "<div class=\"product-image\">\n                                    <span class=\"material-symbols-outlined\" *ngIf=\"!product.image_url\">image</span>\n                                    <img *ngIf=\"product.image_url\" [src]=\"product.image_url\" alt=\"\">\n                                </div>"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.html",
+          "line_start": 166,
+          "line_end": 170,
+          "snippet": "<div class=\"product-image\">\n                            <span class=\"material-symbols-outlined\" *ngIf=\"!product.image_url\">image</span>\n                            <img *ngIf=\"product.image_url\" [src]=\"product.image_url\" alt=\"\">\n                        </div>"
+        }
+      ],
+      "suggested_fix": "Validate and sanitize image URLs before rendering: (1) In ProductsComponent constructor, inject DomSanitizer: `constructor(private sanitizer: DomSanitizer) {}`. (2) Create a sanitization method: `getSafeImageUrl(url: string | null | undefined): SafeUrl { if (!url || typeof url !== 'string') return this.sanitizer.bypassSecurityTrustUrl(''); const validated = /^https:\\/\\//.test(url) && !url.includes('javascript:') && !url.includes('data:') ? url : ''; return this.sanitizer.bypassSecurityTrustUrl(validated); }`. (3) In template: `<img *ngIf=\"product.image_url\" [src]=\"getSafeImageUrl(product.image_url)\" alt=\"\">`. (4) Better: Use CSP `img-src 'self' https://trusted-domain.com;` to whitelist allowed image sources.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-79",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7ab8ac84",
+      "title": "Unvalidated modal element ID concatenation creating potential DOM-based XSS",
+      "description": "The reconciliation component creates dynamic element IDs by concatenating data without sanitization. If mismatch.id contains special characters, it could break out of the ID attribute and inject attributes or event handlers.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "data_handling",
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.html",
+          "line_start": 31,
+          "line_end": 31,
+          "snippet": "<tr *ngFor=\"let m of mismatches\" [id]=\"'mismatch-' + m.id\" [class.highlight]=\"highlightId == m.id\">"
+        },
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 68,
+          "line_end": 74,
+          "snippet": "if (this.highlightId) {\n            setTimeout(() => {\n                const el = document.getElementById(\n                    'mismatch-' + this.highlightId\n                )\n                if (el) {\n                    el.scrollIntoView({ behavior: 'smooth', block: 'center' })\n                }"
+        }
+      ],
+      "suggested_fix": "Validate and sanitize ID values: (1) In ReconciliationComponent.loadData(), sanitize IDs: `const sanitizedId = (m.id || '').replace(/[^a-zA-Z0-9\\-_]/g, '').substring(0, 50) || `mismatch-${index}`;`. (2) Store cleaned ID in mismatch object. (3) In template: `[id]=\"'mismatch-' + (m.id | slice:0:50)\"` or use *ngFor index: `[id]=\"'mismatch-' + $index\"`. (4) In component: Use template reference instead of direct DOM access: `<tr #mismatchRow [id]=\"'mismatch-' + m.id\">` and `@ViewChild('mismatchRow') mismatchRow: HTMLTableRowElement;`. (5) Better approach: `const el = Array.from(document.querySelectorAll('[data-mismatch-id]')).find(e => e.getAttribute('data-mismatch-id') === this.highlightId);`",
+      "confidence": 0.85,
+      "cwe_id": "CWE-79",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0a565311",
+      "title": "Missing HTTPS enforcement and security headers configuration",
+      "description": "The application lacks explicit HTTPS enforcement, HSTS headers, X-Frame-Options, X-Content-Type-Options, and other critical security headers. The index.html loads external resources (Google Fonts, FontAwesome CDN, Chart.js CDN) over HTTPS but there's no Content-Security-Policy configured. Angular production builds don't automatically enforce these headers without explicit server configuration.",
+      "category": "security",
+      "severity": "high",
       "audit_pass": "infrastructure",
       "locations": [
         {
-          "file_path": "src/app/services/supabase.service.ts",
+          "file_path": "src/index.html",
           "line_start": 1,
-          "line_end": 50,
-          "snippet": "// Based on references in components, service handles direct Supabase calls without throttling"
+          "line_end": 25,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\" />\n    <link href=\"https://fonts.googleapis.com\" rel=\"preconnect\" />\n    <link crossorigin=\"\" href=\"https://fonts.gstatic.com\" rel=\"preconnect\" />"
         }
       ],
-      "suggested_fix": "1. Create a rate-limiting interceptor for HTTP requests:\n   \n   src/app/services/rate-limit.interceptor.ts:\n   ```typescript\n   import { HttpInterceptorFn } from '@angular/common/http';\n   import { inject } from '@angular/core';\n   import { delay, of, throwError } from 'rxjs';\n   import { catchError, retryWhen, scan } from 'rxjs/operators';\n   \n   const MAX_RETRIES = 3;\n   const DELAY_MS = 1000;\n   \n   export const rateLimitInterceptor: HttpInterceptorFn = (req, next) => {\n     return next(req).pipe(\n       retryWhen(errors =>\n         errors.pipe(\n           scan((count, error) => {\n             if (count >= MAX_RETRIES || error.status !== 429) {\n               throw error;\n             }\n             return count + 1;\n           }, 0),\n           delay(DELAY_MS)\n         )\n       ),\n       catchError(error => {\n         if (error.status === 429) {\n           console.error('Rate limit exceeded');\n           // Show user-friendly error\n         }\n         return throwError(() => error);\n       })\n     );\n   };\n   ```\n   \n2. Add to app.config.ts with other interceptors.\n   \n3. For login attempts specifically, add exponential backoff:\n   ```typescript\n   // In supabase.service.ts or login component\n   let loginAttempts = 0;\n   const maxAttempts = 5;\n   const backoffDelay = (attempt: number) => Math.pow(2, attempt) * 1000;\n   \n   async login(email: string, password: string) {\n     if (loginAttempts >= maxAttempts) {\n       throw new Error(`Too many login attempts. Try again in ${backoffDelay(loginAttempts)/1000}s`);\n     }\n     \n     try {\n       const result = await this.supabase.auth.signInWithPassword({email, password});\n       loginAttempts = 0; // Reset on success\n       return result;\n     } catch (error) {\n       loginAttempts++;\n       await delay(backoffDelay(loginAttempts));\n       throw error;\n     }\n   }\n   ```",
-      "confidence": 0.85,
+      "suggested_fix": "Add security headers via Nginx configuration in Docker setup: Add 'Strict-Transport-Security: max-age=31536000; includeSubDomains' for HSTS, 'X-Content-Type-Options: nosniff', 'X-Frame-Options: DENY', 'Referrer-Policy: strict-origin-when-cross-origin'. Implement Content-Security-Policy header restricting scripts to 'self' and trusted CDN origins. Add meta tags in index.html: <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: https:;\">",
+      "confidence": 0.95,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7fd735c6",
+      "title": "Sensitive data stored in localStorage without encryption",
+      "description": "User credentials and profile information (user_id, user_name, user_email, user_role) are stored in plaintext localStorage. This is vulnerable to XSS attacks and can leak sensitive information if browser storage is compromised. localStorage is accessible to any JavaScript in the same origin, including malicious scripts injected via XSS.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/components/sidebar/sidebar.component.ts",
+          "line_start": 8,
+          "line_end": 10,
+          "snippet": "ngOnInit() {\n    this.userRole = localStorage.getItem('user_role');\n  }"
+        },
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 57,
+          "line_end": 59,
+          "snippet": "public name: string = localStorage.getItem('user_name') || ''\n    email: string = localStorage.getItem('user_email') || ''\n    id: string = localStorage.getItem('user_id') || ''"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 78,
+          "line_end": 79,
+          "snippet": "const role = localStorage.getItem('user_role');"
+        }
+      ],
+      "suggested_fix": "Replace localStorage with sessionStorage for temporary session data. Never store sensitive credentials in any client-side storage. Instead: (1) Use JWT tokens with HttpOnly, Secure, SameSite cookies managed by the browser, (2) Retrieve user profile from authenticated endpoints on app load, (3) Store non-sensitive state in sessionStorage only if necessary, (4) Consider using Angular's memory-based state management (signals/services) for runtime data. Remove all localStorage.setItem calls for sensitive data from login/auth flow.",
+      "confidence": 0.98,
+      "cwe_id": "CWE-200",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6e8a75c9",
+      "title": "No rate limiting on API endpoints",
+      "description": "The Supabase service makes multiple API calls (authentication, data queries, realtime subscriptions) without apparent rate limiting. No throttling mechanism is visible in the SupabaseService, and Angular HttpClient is configured without rate limit interceptors. This exposes the application to brute-force attacks, DOS, and resource exhaustion.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/app.config.ts",
+          "line_start": 1,
+          "line_end": 14,
+          "snippet": "export const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
+        },
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 98,
+          "line_end": 112,
+          "snippet": "async loadData() {\n        this.isLoading = true\n        this.mismatches = await this.supabase.getPendingMismatches()\n        this.totalMismatches = this.mismatches.length\n        this.criticalItems = this.mismatches.filter(\n            (m) => m.difference > 5\n        ).length\n        this.isLoading = false"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting at multiple layers: (1) In HttpClient interceptor: Use RxJS debounceTime/throttleTime operators to limit request frequency, (2) Add exponential backoff retry logic, (3) Implement login attempt rate limiting (max 5 attempts per 15 minutes), (4) Server-side: Configure Supabase Realtime connection limits and query rate limiting, (5) Add client-side request queuing with max concurrent requests. Example interceptor: `provideHttpClient(withInterceptors([rateLimitInterceptor]))` using custom interceptor that tracks request counts and rejects excessive requests.",
+      "confidence": 0.92,
       "cwe_id": "CWE-770",
       "owasp_ref": "A05:2021",
       "agent": "security_auditor",
@@ -196,304 +844,315 @@
       "dedup_key": ""
     },
     {
-      "id": "F-aba2df7e",
-      "title": "Debug mode/development tools exposed in production build",
-      "description": "The tsconfig.json has sourceMap support enabled, and main.ts includes .catch() with console.error(). In production builds, source maps and verbose error logging expose internal code structure and error details.",
+      "id": "F-de0c7c3c",
+      "title": "CORS configuration not visible - potential origin bypass",
+      "description": "No explicit CORS configuration is visible in the provided code. The application uses Supabase backend but Angular's HttpClient default CORS policy and Supabase's CORS settings are not documented. Without explicit CORS configuration, the application may be vulnerable to cross-origin attacks or overly permissive configurations.",
       "category": "security",
       "severity": "medium",
       "audit_pass": "infrastructure",
       "locations": [
         {
-          "file_path": "src/main.ts",
-          "line_start": 4,
-          "line_end": 4,
-          "snippet": "bootstrapApplication(AppComponent, appConfig).catch((err) => console.error(err))"
-        },
-        {
-          "file_path": "angular.json",
-          "line_start": 39,
-          "line_end": 47,
-          "snippet": "\"development\": {\n                            \"optimization\": false,\n                            \"extractLicenses\": false,\n                            \"sourceMap\": true\n                        }"
-        }
-      ],
-      "suggested_fix": "1. Remove source maps from production build in angular.json:\n   \n   Change production config to:\n   ```json\n   \"production\": {\n     \"budgets\": [...],\n     \"outputHashing\": \"all\",\n     \"sourceMap\": false,\n     \"optimization\": true\n   }\n   ```\n   \n2. Replace console.error with user-friendly error handling in main.ts:\n   ```typescript\n   bootstrapApplication(AppComponent, appConfig).catch((err) => {\n     // Log to error tracking service (e.g., Sentry) instead of console\n     // In development: console.error(err);\n     // In production: silently track or show generic message\n     \n     if (!environment.production) {\n       console.error(err);\n     }\n     \n     // Show generic user message\n     const root = document.querySelector('app-root');\n     if (root) {\n       root.innerHTML = '<p>Application failed to load. Please refresh the page.</p>';\n     }\n   });\n   ```\n   \n3. Add error tracking service:\n   ```typescript\n   // src/app/services/error-tracking.service.ts\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorTrackingService {\n     logError(error: any) {\n       // Send to backend logging service or Sentry\n       // Do NOT expose stack traces to user\n     }\n   }\n   ```",
-      "confidence": 0.9,
-      "cwe_id": "CWE-532",
-      "owasp_ref": "A09:2021",
-      "agent": "security_auditor",
-      "tier": 2,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-7b63d964",
-      "title": "Missing X-Content-Type-Options MIME type validation",
-      "description": "TypeScript is set to strict mode in tsconfig.json, but there's no HTTP header configuration to prevent MIME type sniffing. External resources (fonts, icons) could be served with wrong MIME types.",
-      "category": "security",
-      "severity": "low",
-      "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "src/index.html",
+          "file_path": "src/app/app.config.ts",
           "line_start": 1,
-          "line_end": 22,
-          "snippet": "No explicit MIME type headers or X-Content-Type-Options meta tag present"
+          "line_end": 14,
+          "snippet": "export const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
         }
       ],
-      "suggested_fix": "Add MIME type security headers (preferably in Nginx/Docker config, but also via meta):\n   \n   In index.html <head>:\n   ```html\n   <meta http-equiv=\"X-Content-Type-Options\" content=\"nosniff\" />\n   ```\n   \n   In Docker Nginx config (recommended):\n   ```nginx\n   add_header X-Content-Type-Options \"nosniff\" always;\n   add_header X-Frame-Options \"SAMEORIGIN\" always;\n   add_header X-XSS-Protection \"1; mode=block\" always;\n   add_header Referrer-Policy \"strict-origin-when-cross-origin\" always;\n   \n   # Specify MIME types explicitly\n   types {\n     text/javascript js;\n     text/css css;\n     application/font-woff2 woff2;\n     application/font-woff woff;\n   }\n   ```",
+      "suggested_fix": "Define explicit CORS configuration: (1) In Supabase project settings, restrict allowed origins to production domain only (never allow wildcard '*'), (2) In Angular HttpClient interceptor, ensure credentials are sent with requests: `withCredentials: true`, (3) Document CORS policy in deployment configuration, (4) Add CORS validation tests. Example: `provideHttpClient(withXsrfConfiguration({cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN'}))`. For Docker/Nginx deployment, add: `add_header 'Access-Control-Allow-Origin' 'https://yourdomain.com' always;`",
       "confidence": 0.85,
-      "cwe_id": "CWE-434",
-      "owasp_ref": "A01:2021",
-      "agent": "security_auditor",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-27e13b1f",
-      "title": "Hardcoded Supabase URL/Key risk in environment variable usage",
-      "description": "While the code references supabase.service.ts which likely initializes Supabase, there's no .env.example or documented environment variable naming convention visible. The anonymous key should be used only for public operations; service role key must not be exposed client-side.",
-      "category": "security",
-      "severity": "high",
-      "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "README.md",
-          "line_start": 67,
-          "line_end": 71,
-          "snippet": "3. **Configure Environment**\nCreate a `.env` file in the root directory:\n```env\nSUPABASE_URL=your_supabase_url\nSUPABASE_KEY=your_supabase_anon_key\nN8N_WEBHOOK_URL=your_n8n_webhook"
-        }
-      ],
-      "suggested_fix": "1. Create .env.example for documentation:\n   ```\n   # Supabase Configuration (use ANON key only, not service role key)\n   SUPABASE_URL=https://your-project.supabase.co\n   SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n   # DO NOT include SUPABASE_SERVICE_ROLE_KEY in client-side app\n   \n   # n8n Webhook (public endpoint is safe)\n   N8N_WEBHOOK_URL=https://n8n.example.com/webhook/...\n   ```\n   \n2. Update supabase.service.ts initialization to validate key type:\n   ```typescript\n   import { createClient } from '@supabase/supabase-js';\n   \n   const supabaseUrl = process.env['SUPABASE_URL'] || '';\n   const supabaseAnonKey = process.env['SUPABASE_ANON_KEY'] || '';\n   \n   // Validate key format\n   if (!supabaseAnonKey.startsWith('eyJ')) {\n     throw new Error('Invalid Supabase key. Ensure SUPABASE_ANON_KEY is set (not service role key).');\n   }\n   \n   export const supabase = createClient(supabaseUrl, supabaseAnonKey);\n   ```\n   \n3. Ensure .env is in .gitignore and .env.example is in version control.\n   \n4. Add GitHub Actions/CI secret validation:\n   ```yaml\n   # In CI/CD pipeline, validate environment variables\n   - name: Validate Supabase Config\n     run: |\n       if [[ \"$SUPABASE_KEY\" == *\"service_role\"* ]]; then\n         echo \"ERROR: Service role key detected in client build\"\n         exit 1\n       fi\n   ```",
-      "confidence": 0.92,
-      "cwe_id": "CWE-798",
-      "owasp_ref": "A01:2021",
-      "agent": "security_auditor",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-f54e5b03",
-      "title": "No HSTS (HTTP Strict-Transport-Security) header configuration",
-      "description": "The application uses HTTPS (via Supabase), but there's no Strict-Transport-Security header configured to force HTTPS-only connections and prevent downgrade attacks.",
-      "category": "security",
-      "severity": "medium",
-      "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "src/index.html",
-          "line_start": 1,
-          "line_end": 5,
-          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />"
-        }
-      ],
-      "suggested_fix": "Add HSTS header in Docker/Nginx configuration (preferred method):\n   \n   In Nginx config:\n   ```nginx\n   server {\n     add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains; preload\" always;\n   }\n   ```\n   \n   Or in meta tag (less secure, but backup):\n   ```html\n   <meta http-equiv=\"Strict-Transport-Security\" content=\"max-age=31536000; includeSubDomains; preload\" />\n   ```\n   \n   Recommended policy:\n   - max-age=31536000 (1 year)\n   - includeSubDomains (apply to subdomains)\n   - preload (register with HSTS preload list)\n   \n   Register at https://hstspreload.org/",
-      "confidence": 0.88,
-      "cwe_id": "CWE-295",
-      "owasp_ref": "A02:2021",
-      "agent": "security_auditor",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-cbd37a7a",
-      "title": "Toast error messages may expose system information",
-      "description": "In multiple components (reconciliation, products, analysis), error messages from Supabase are displayed directly to users via toast notifications without sanitization. This can expose database table names, API details, or internal error messages.",
-      "category": "security",
-      "severity": "low",
-      "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 129,
-          "line_end": 132,
-          "snippet": "} catch (error: any) {\n            console.error('Save failed', error);\n            this.toast.show('Error saving product: ' + error.message, 'error');"
-        },
-        {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 145,
-          "line_end": 147,
-          "snippet": "} catch (error: any) {\n        this.toast.show('Delete failed: ' + error.message, 'error');"
-        },
-        {
-          "file_path": "src/app/pages/analysis/analysis.component.ts",
-          "line_start": 243,
-          "line_end": 245,
-          "snippet": "} catch (error: any) {\n            console.error(error);\n            alert('Failed to void: ' + error.message);"
-        }
-      ],
-      "suggested_fix": "Create error message sanitizer service:\n   \n   src/app/services/error-message.service.ts:\n   ```typescript\n   import { Injectable } from '@angular/core';\n   \n   @Injectable({ providedIn: 'root' })\n   export class ErrorMessageService {\n     getSafeMessage(error: any): string {\n       const message = error?.message || 'An error occurred';\n       \n       // Sanitize database/system information\n       const systemPatterns = [\n         /relation \"([^\"]+)\" does not exist/g,\n         /UNIQUE constraint failed/,\n         /database/i,\n         /sql:/i,\n         /table/i\n       ];\n       \n       let safe = message;\n       systemPatterns.forEach(pattern => {\n         safe = safe.replace(pattern, 'database operation');\n       });\n       \n       // Log actual error for debugging\n       if (error?.code || error?.details) {\n         console.error('[Detailed Error]', error);\n       }\n       \n       return safe || 'Operation failed. Please try again.';\n     }\n   }\n   ```\n   \n   Update components:\n   ```typescript\n   constructor(\n     private errorMessage: ErrorMessageService,\n     private toast: ToastService\n   ) {}\n   \n   async saveProduct() {\n     try {\n       // ...\n     } catch (error) {\n       const safeMessage = this.errorMessage.getSafeMessage(error);\n       this.toast.show(safeMessage, 'error');\n     }\n   }\n   ```",
-      "confidence": 0.8,
-      "cwe_id": "CWE-209",
-      "owasp_ref": "A09:2021",
+      "cwe_id": "CWE-346",
+      "owasp_ref": "A04:2021",
       "agent": "security_auditor",
       "tier": 2,
       "dedup_key": ""
     },
     {
-      "id": "F-1f36b779",
-      "title": "Missing Content-Security-Policy directives for Google Fonts",
-      "description": "The application preconnects to fonts.googleapis.com and fonts.gstatic.com without CSP directives that explicitly allow these resources, making it vulnerable to injection attacks if CSP is implemented.",
+      "id": "F-426e0471",
+      "title": "External CDN dependencies without Subresource Integrity (SRI)",
+      "description": "The application loads Chart.js from CDN (cdn.jsdelivr.net) and FontAwesome (cdnjs.cloudflare.com) in index.html without Subresource Integrity hashes. This makes the application vulnerable to CDN compromise attacks where malicious code could be injected.",
       "category": "security",
-      "severity": "low",
+      "severity": "medium",
       "audit_pass": "infrastructure",
-      "locations": [
-        {
-          "file_path": "src/index.html",
-          "line_start": 9,
-          "line_end": 12,
-          "snippet": "<link href=\"https://fonts.googleapis.com\" rel=\"preconnect\" />\n    <link crossorigin=\"\" href=\"https://fonts.gstatic.com\" rel=\"preconnect\" />\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap\"\n        rel=\"stylesheet\" />"
-        }
-      ],
-      "suggested_fix": "Update index.html with proper CSP-compliant font loading:\n   \n   ```html\n   <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\" />\n   <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin />\n   <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\" rel=\"stylesheet\" />\n   ```\n   \n   Update CSP header in Nginx:\n   ```nginx\n   add_header Content-Security-Policy \"default-src 'self'; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ...\" always;\n   ```\n   \n   Or via meta tag:\n   ```html\n   <meta http-equiv=\"Content-Security-Policy\" content=\"font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;\" />\n   ```",
-      "confidence": 0.82,
-      "cwe_id": "CWE-693",
-      "owasp_ref": "A01:2021",
-      "agent": "security_auditor",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-6999fda7",
-      "title": "Sequential API calls in dashboard metrics",
-      "description": "In dashboard-metrics.component.ts, getDashboardMetrics() and getSalesDashboardMetrics() are called sequentially with await, blocking parallel execution.",
-      "category": "performance",
-      "severity": "medium",
-      "audit_pass": "performance",
-      "locations": [
-        {
-          "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-          "line_start": 17,
-          "line_end": 21,
-          "snippet": "async ngOnInit() {\n    this.metrics = await this.supabase.getDashboardMetrics();\n    this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n}"
-        }
-      ],
-      "suggested_fix": "Use Promise.all() to parallelize both API calls: const [metrics, salesMetrics] = await Promise.all([this.supabase.getDashboardMetrics(), this.supabase.getSalesDashboardMetrics()]);",
-      "confidence": 0.9,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-47b4b8cc",
-      "title": "Missing pagination on product list",
-      "description": "The product service loads all products without pagination or limit. In stock-alerts.component.ts and products.component.ts, loadProducts() fetches the entire product table which will cause performance degradation as inventory grows.",
-      "category": "performance",
-      "severity": "high",
-      "audit_pass": "performance",
-      "locations": [
-        {
-          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
-          "line_start": 26,
-          "line_end": 28,
-          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
-        },
-        {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 101,
-          "line_end": 103,
-          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
-        }
-      ],
-      "suggested_fix": "Implement pagination with limit/offset or cursor-based pagination. Add pagination controls to the UI and modify Supabase queries to use .range() with page size of 20-50 items.",
-      "confidence": 0.85,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
-      "tier": 2,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-20078201",
-      "title": "No request debouncing on search input",
-      "description": "In products.component.ts, onSearch() is called on every input event without debouncing. Each keystroke triggers a full filter operation over all products.",
-      "category": "performance",
-      "severity": "medium",
-      "audit_pass": "performance",
-      "locations": [
-        {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 121,
-          "line_end": 125,
-          "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n}"
-        }
-      ],
-      "suggested_fix": "Use RxJS debounceTime(300) operator or Angular's updateOn: 'blur' for the search form control to prevent excessive filtering.",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
-      "tier": 2,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-c6e85c65",
-      "title": "Chart.js loaded via CDN blocking render",
-      "description": "In index.html, Chart.js is loaded via a blocking <script> tag in the <head>. This delays First Contentful Paint and doesn't leverage Angular's build optimization.",
-      "category": "performance",
-      "severity": "medium",
-      "audit_pass": "performance",
       "locations": [
         {
           "file_path": "src/index.html",
           "line_start": 18,
-          "line_end": 19,
-          "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+          "line_end": 22,
+          "snippet": "    <!-- Add this line for Font Awesome -->\n    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" />\n</head>\n\n<body>\n    <app-root></app-root>\n    <!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n    <script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
         }
       ],
-      "suggested_fix": "Install chart.js via npm and import it only in components that need it, or use dynamic import with IntersectionObserver to load Chart.js lazily when charts enter the viewport.",
-      "confidence": 0.75,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
+      "suggested_fix": "Add Subresource Integrity (SRI) hashes to all external resources: For Chart.js: `<script src=\"https://cdn.jsdelivr.net/npm/chart.js\" integrity=\"sha384-...\" crossorigin=\"anonymous\"></script>` (replace ... with actual hash). For FontAwesome: `<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css\" integrity=\"sha384-...\" crossorigin=\"anonymous\">`. Better approach: Install dependencies via npm (chart.js and font-awesome packages) to include them in your bundle instead of using CDN, eliminating CDN risk.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-494",
+      "owasp_ref": "A08:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-db72b047",
+      "title": "Verbose error messages exposed to users in production",
+      "description": "Error handling in multiple components logs full error objects and stack traces to console and toast notifications. In reconciliation.component.ts line 168 and analysis.component.ts, errors are caught and displayed with potentially sensitive details. Production users could see database errors, API paths, and implementation details.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 162,
+          "line_end": 173,
+          "snippet": "try {\n            await this.supabase.resolveMismatch(item, finalQty, note)\n            this.toast.show('Mismatch resolved successfully', 'success');\n\n            this.loadData()\n        } catch (error) {\n            console.error(error)\n            this.toast.show('Failed to resolve mismatch', 'error');\n        }"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 117,
+          "line_end": 125,
+          "snippet": "catch (error: any) {\n      console.error('Save failed', error);\n      this.toast.show('Error saving product: ' + error.message, 'error');\n    }"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 139,
+          "line_end": 144,
+          "snippet": "catch (error: any) {\n        this.toast.show('Delete failed: ' + error.message, 'error');\n      }"
+        }
+      ],
+      "suggested_fix": "Implement proper error handling: (1) In production, show generic error messages to users ('An error occurred. Please try again.' or 'Unable to save changes'), (2) Log detailed errors server-side only (via error logging service like Sentry), (3) Remove console.error calls or wrap in development-only checks: `if (!environment.production) console.error(error)`, (4) Never expose error.message to UI, (5) Create error boundary service that maps backend error codes to user-friendly messages. Example: `private handleError(error: any) { if (environment.production) { return 'An unexpected error occurred'; } return error.message; }`",
+      "confidence": 0.88,
+      "cwe_id": "CWE-209",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
       "tier": 2,
       "dedup_key": ""
     },
     {
-      "id": "F-45205c10",
-      "title": "Font Awesome full library import",
-      "description": "package.json imports @fortawesome/fontawesome-svg-core and multiple icon sets (free-brands, free-regular, free-solid). The free-solid set alone includes 2000+ icons, significantly increasing bundle size.",
-      "category": "performance",
+      "id": "F-b5b71a73",
+      "title": "Debug mode potentially enabled in production",
+      "description": "The README mentions 'Angular v19+' and app.component.ts initializes multiple debug-friendly subscriptions and signal effects. No environment-specific configuration visible that would disable debug features in production builds. Source maps may be exposed in production bundle.",
+      "category": "security",
       "severity": "medium",
-      "audit_pass": "performance",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/app.component.ts",
+          "line_start": 28,
+          "line_end": 35,
+          "snippet": "async ngOnInit() {\n        const routerEvent = toSignal(this.router.events, { injector: this.injector });\n        effect(() => {\n            const event = routerEvent();\n            if (event instanceof NavigationStart) {\n                this.loadingService.show();\n            }"
+        },
+        {
+          "file_path": "angular.json",
+          "line_start": 24,
+          "line_end": 40,
+          "snippet": "\"configurations\": {\n                        \"production\": {\n                            \"budgets\": [\n                                {\n                                    \"type\": \"initial\",\n                                    \"maximumWarning\": \"1MB\",\n                                    \"maximumError\": \"2MB\"\n                                },\n                                {\n                                    \"type\": \"anyComponentStyle\",\n                                    \"maximumWarning\": \"10kB\",\n                                    \"maximumError\": \"20kB\"\n                                }\n                            ],\n                            \"outputHashing\": \"all\"\n                        },"
+        }
+      ],
+      "suggested_fix": "Create environment files: (1) Add `src/environments/environment.ts` (dev) and `src/environments/environment.prod.ts` (prod), (2) Set `production: false/true` flags, (3) In production config: `sourceMap: false, optimization: true, outputHashing: 'all'`, (4) Update angular.json to use environment files in configuration, (5) Conditionally enable console logs: `if (!environment.production) console.log()`, (6) In tsconfig.prod.json add optimization flags. Ensure build command uses: `ng build --configuration production`.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-215",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-23301803",
+      "title": "Known vulnerable dependency versions",
+      "description": "package.json uses @supabase/supabase-js@^2.81.1 with npm override for @supabase/gotrue-js@2.61.0. The caret (^) allows minor version updates. Chart.js@^4.5.1, RxJS@~7.8.0 are specified with loose versioning. No lock file security audit visible. Potential known CVEs in transitive dependencies.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "package.json",
+          "line_start": 7,
+          "line_end": 25,
+          "snippet": "\"dependencies\": {\n        \"@angular/common\": \"^19.2.0\",\n        \"@angular/compiler\": \"^19.2.0\",\n        \"@angular/core\": \"^19.2.0\",\n        \"@supabase/supabase-js\": \"^2.81.1\",\n        \"chart.js\": \"^4.5.1\",\n        \"random-verse\": \"^1.0.1\",\n        \"rxjs\": \"~7.8.0\","
+        }
+      ],
+      "suggested_fix": "Implement dependency security management: (1) Run `npm audit` and `npm audit fix` to resolve known vulnerabilities, (2) Use exact versions for critical dependencies (replace ^ and ~ with =): `@supabase/supabase-js: 2.81.1`, (3) Add pre-commit hook using husky: `npm install husky --save-dev && husky install`, (4) Configure GitHub Dependabot or npm audit CI/CD checks, (5) Remove 'random-verse' dependency if not critical (it's unused), (6) Add `npm ci` instead of `npm install` in Docker builds to use lock file. In CI/CD: add `- run: npm audit --audit-level=moderate` step.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-1104",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1f0893bd",
+      "title": "Missing request timeout configuration",
+      "description": "Angular HttpClient is configured without explicit timeout settings. Long-running requests or network hangs could leave connections open indefinitely, consuming resources and enabling slowloris-style DOS attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/app.config.ts",
+          "line_start": 1,
+          "line_end": 14,
+          "snippet": "export const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
+        }
+      ],
+      "suggested_fix": "Add HTTP timeout configuration with interceptor: (1) Create custom HTTP interceptor that adds timeout: `timeout(30000)` (30 seconds), (2) Apply to all HTTP calls: `provideHttpClient(withInterceptors([timeoutInterceptor]))`, (3) For critical API calls, use shorter timeouts. Example interceptor: `export function timeoutInterceptor(req: HttpRequest<any>, next: HttpHandlerFn) { return next(req).pipe(timeout(30000)); }` or use `req.clone()` with explicit settings. Consider different timeouts: file uploads (60s), normal API (30s), login (15s).",
+      "confidence": 0.82,
+      "cwe_id": "CWE-754",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-55ede58d",
+      "title": "No CSRF protection configured",
+      "description": "Angular provides built-in CSRF protection via HttpClientXsrfModule, but there's no visible configuration in app.config.ts or mention of CSRF tokens in API calls. The backend Supabase authentication may handle some CSRF protection, but explicit client-side configuration is missing.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/app.config.ts",
+          "line_start": 1,
+          "line_end": 14,
+          "snippet": "export const appConfig: ApplicationConfig = {\n    providers: [\n        provideZoneChangeDetection({ eventCoalescing: true }),\n        provideRouter(routes),\n        provideHttpClient(),\n    ],\n}"
+        }
+      ],
+      "suggested_fix": "Add CSRF protection: (1) In app.config.ts, add XSRF configuration: `withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' })`, (2) Ensure backend sets XSRF-TOKEN cookie with SameSite=Strict, (3) For state-changing operations (POST, PUT, DELETE), verify XSRF token is sent in headers. Updated config: `provideHttpClient(withXsrfConfiguration({cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN'}), withInterceptors([...]))`",
+      "confidence": 0.78,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2f630785",
+      "title": "No Content Security Policy (CSP) headers configured",
+      "description": "Application loads external resources (Google Fonts, FontAwesome CDN, Chart.js) but has no CSP header to restrict script/style sources. This leaves the app vulnerable to XSS and malicious injection attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/index.html",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "<!doctype html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"utf-8\" />\n    <title>FrostflowApp</title>\n    <base href=\"/\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <link rel=\"icon\" type=\"image/x-icon\" href=\"favicon.ico\" />"
+        }
+      ],
+      "suggested_fix": "Implement CSP headers: (1) Add to index.html meta tag or configure in Nginx/Docker: `<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'self'; script-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;\">`, (2) In Nginx add header: `add_header Content-Security-Policy \"default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com 'unsafe-inline';\" always;`, (3) Consider moving to 'unsafe-inline' alternatives using nonce attributes for dynamic styles.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0c384ec9",
+      "title": "Unused dependency 'random-verse' increases attack surface",
+      "description": "package.json includes 'random-verse@^1.0.1' which appears unused in the codebase (no import statements found). Including unused dependencies increases the dependency tree size and potential vulnerability surface.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
       "locations": [
         {
           "file_path": "package.json",
           "line_start": 17,
-          "line_end": 22,
-          "snippet": "\"@fortawesome/angular-fontawesome\": \"^1.0.0\",\n\"@fortawesome/fontawesome-svg-core\": \"^7.1.0\",\n\"@fortawesome/free-brands-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-regular-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-solid-svg-icons\": \"^6.7.2\","
+          "line_end": 17,
+          "snippet": "\"random-verse\": \"^1.0.1\","
         }
       ],
-      "suggested_fix": "Use tree-shaking by importing only specific icons needed: import { faDashboard } from '@fortawesome/free-solid-svg-icons/faDashboard'; Then add them to the providers array in app.config.ts.",
-      "confidence": 0.7,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
+      "suggested_fix": "Remove unused dependency: Run `npm uninstall random-verse` and remove from package.json. Verify it's not imported anywhere with: `grep -r 'random-verse' src/`. This reduces dependency footprint and maintenance burden.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-1104",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
       "tier": 1,
       "dedup_key": ""
     },
     {
-      "id": "F-f89e2d88",
-      "title": "Missing OnPush change detection strategy",
-      "description": "Components use default change detection which runs on every change detection cycle. Components like dashboard-metrics, activity-feed, stock-alerts that only update based on service signals should use OnPush for better performance.",
+      "id": "F-1ec1253e",
+      "title": "Overly permissive TypeScript configuration may hide type errors",
+      "description": "tsconfig.json uses `skipLibCheck: true` which skips type checking for declaration files. This can hide vulnerabilities in type definitions and third-party packages. Using `strict: true` but with skipLibCheck reduces effectiveness.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "tsconfig.json",
+          "line_start": 7,
+          "line_end": 15,
+          "snippet": "\"compilerOptions\": {\n        \"outDir\": \"./dist/out-tsc\",\n        \"strict\": true,\n        \"noImplicitOverride\": true,\n        \"noPropertyAccessFromIndexSignature\": true,\n        \"noImplicitReturns\": true,\n        \"noFallthroughCasesInSwitch\": true,\n        \"skipLibCheck\": true,"
+        }
+      ],
+      "suggested_fix": "Review skipLibCheck necessity: Consider setting `skipLibCheck: false` to enable full type checking, or if necessary, use `skipDefaultLibCheck: true` instead (faster, checks only necessary libs). For critical security builds, enable all type checks: set `skipLibCheck: false` in CI/CD pipeline at least.",
+      "confidence": 0.65,
+      "cwe_id": "CWE-1104",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": 1,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4f41d295",
+      "title": "No auto-logout timeout visible in configuration",
+      "description": "While auto-logout service exists (auto-logout.service.ts mentioned), timeout duration is not configurable or visible in settings. Default timeout values could be too long or users can't adjust for security-sensitive environments.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "src/app/app.component.ts",
+          "line_start": 1,
+          "line_end": 15,
+          "snippet": "import { Component, OnInit, OnDestroy, ChangeDetectorRef, ApplicationRef, effect, Injector, NgZone } from '@angular/core';\nimport { toSignal } from '@angular/core/rxjs-interop';\nimport { Router, RouterOutlet, NavigationStart, NavigationEnd, NavigationCancel, NavigationError } from '@angular/router'\nimport { ToastComponent } from './components/toast/toast.component'\nimport { SupabaseService } from './services/supabase.service'\nimport { LoadingComponent } from './components/loading/loading.component'\nimport { LoadingService } from './services/loading.service'\nimport { AutoLogoutService } from './services/auto-logout.service'\nimport { PageReloadService } from './services/page-reload.service';"
+        }
+      ],
+      "suggested_fix": "Configure explicit auto-logout timeout: (1) Create environment-based configuration: `export const SESSION_TIMEOUT = environment.production ? 15 * 60 * 1000 : 30 * 60 * 1000` (15min prod, 30min dev), (2) Make timeout configurable per role: admin 15min, sales 30min, (3) Warn users before timeout (5-min warning dialog), (4) Update AutoLogoutService to use this config value. Document timeout values in security policy.",
+      "confidence": 0.72,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f8d2892c",
+      "title": "Missing pagination on products list",
+      "description": "The products.component.ts loads all products without any pagination. For large product catalogs, this will cause significant performance degradation with thousands of records fetched simultaneously.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 79,
+          "line_end": 82,
+          "snippet": "effect(() => {\n      this.products = this.productService.products();\n      this.loading = this.productService.loading();\n      this.filterProducts();\n      this.calculateStats();\n    });"
+        }
+      ],
+      "suggested_fix": "Implement server-side pagination in ProductService with limit/offset or cursor-based pagination. Add pagination controls to the template with page size of 20-50 items.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-64c4e97e",
+      "title": "No caching for dashboard metrics API calls",
+      "description": "DashboardMetricsComponent makes two separate API calls (getDashboardMetrics, getSalesDashboardMetrics) every time the component initializes. These values change infrequently but are fetched repeatedly on navigation.",
       "category": "performance",
       "severity": "medium",
       "audit_pass": "performance",
       "locations": [
         {
           "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-          "line_start": 1,
-          "line_end": 15,
-          "snippet": "@Component({\n    selector: 'app-dashboard-metrics',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './dashboard-metrics.component.html',\n    styleUrls: ['./dashboard-metrics.component.css']\n})"
-        },
-        {
-          "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
-          "line_start": 19,
-          "line_end": 31,
-          "snippet": "@Component({\n    selector: 'app-activity-feed',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './activity-feed.component.html',\n    styleUrls: ['./activity-feed.component.css']\n})"
+          "line_start": 20,
+          "line_end": 24,
+          "snippet": "async ngOnInit() {\n        this.metrics = await this.supabase.getDashboardMetrics();\n        this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n    }"
         }
       ],
-      "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components and use Signals for reactive state.",
+      "suggested_fix": "Add caching to SupabaseService methods with a TTL (e.g., 5 minutes) using RxJS shareReplay or a simple Map-based cache. Reuse cached data if available and not expired.",
       "confidence": 0.85,
       "cwe_id": "",
       "owasp_ref": "",
@@ -502,28 +1161,22 @@
       "dedup_key": ""
     },
     {
-      "id": "F-452e9e24",
-      "title": "No lazy loading for Chart.js in analysis page",
-      "description": "The analysis.component.ts imports and uses Chart.js but it loads synchronously. With the CDN approach, the entire library is loaded even if users never visit the analytics tab.",
+      "id": "F-d0caaf77",
+      "title": "Missing pagination on sales history",
+      "description": "The analysis component loads all sales history for a given month without pagination. For high-volume retail, this could result in hundreds or thousands of records being loaded at once.",
       "category": "performance",
-      "severity": "medium",
+      "severity": "high",
       "audit_pass": "performance",
       "locations": [
         {
           "file_path": "src/app/pages/analysis/analysis.component.ts",
-          "line_start": 1,
-          "line_end": 10,
-          "snippet": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { SupabaseService } from '../../services/supabase.service';"
-        },
-        {
-          "file_path": "src/index.html",
-          "line_start": 18,
-          "line_end": 19,
-          "snippet": "<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+          "line_start": 101,
+          "line_end": 108,
+          "snippet": "async loadHistory() {\n        const { start, end } = this.getDateRange();\n        const rawSales = await this.supabase.getSalesHistory(start, end);\n        const filtered = rawSales.filter((s: Sale) => {\n            if (this.filters.staff !== 'all' && s.recorded_by !== this.filters.staff) return false;\n            if (this.filters.payment !== 'all' && s.payment_method !== this.filters.payment) return false;\n            return true;\n        });"
         }
       ],
-      "suggested_fix": "Use dynamic import or create a separate chart component loaded via loadComponent() in the route to code-split Chart.js away from the main bundle.",
-      "confidence": 0.7,
+      "suggested_fix": "Implement pagination in getSalesHistory with page/limit parameters. Load initial 50 records and implement infinite scroll or pagination controls for additional pages.",
+      "confidence": 0.9,
       "cwe_id": "",
       "owasp_ref": "",
       "agent": "quality_auditor",
@@ -531,11 +1184,40 @@
       "dedup_key": ""
     },
     {
-      "id": "F-7f64cef0",
-      "title": "Inefficient filter in products component",
-      "description": "The filterProducts() method in products.component.ts creates a new array on every call using filter() which iterates all products. Combined with no debouncing on search, this causes repeated O(n) operations.",
+      "id": "F-52dbf45b",
+      "title": "Unbounded realtime subscription without throttling",
+      "description": "The owner-dashboard subscribes to notifications via realtime but loads all unread notifications on init without limiting the result set. Additionally, the activity feed loads last 10 sales with no pagination controls.",
       "category": "performance",
-      "severity": "low",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 56,
+          "line_end": 60,
+          "snippet": "async loadData() {\n        this.notifications = await this.supabase.getUnreadNotifications()\n    }"
+        },
+        {
+          "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
+          "line_start": 32,
+          "line_end": 35,
+          "snippet": "async loadData() {\n        const sales: Sale[] = await this.supabase.getRecentSales(); // Returns last 10\n        this.recentActivity = sales.map((s) => ({..."
+        }
+      ],
+      "suggested_fix": "Add .limit(50) or similar to notification queries. Consider adding a 'load more' mechanism for activity feeds.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7fe9e07e",
+      "title": "Repeated computation in filter loop",
+      "description": "The products component filters all products on every search input change without debouncing. This causes unnecessary recalculation on each keystroke.",
+      "category": "performance",
+      "severity": "medium",
       "audit_pass": "performance",
       "locations": [
         {
@@ -543,43 +1225,130 @@
           "line_start": 117,
           "line_end": 124,
           "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 126,
+          "line_end": 129,
+          "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n  }"
         }
       ],
-      "suggested_fix": "Apply debounce to search input and consider using a computed signal with memoization to avoid redundant filtering.",
+      "suggested_fix": "Add debounce (300ms) to the onSearch method using RxJS debounceTime operator. This prevents filtering on every keystroke.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b2f7ef50",
+      "title": "Missing OnPush change detection strategy",
+      "description": "Components use default change detection which causes unnecessary re-renders. The dashboard-metrics, activity-feed, and stock-alerts components would benefit from OnPush strategy.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+          "line_start": 9,
+          "line_end": 17,
+          "snippet": "@Component({\n    selector: 'app-dashboard-metrics',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './dashboard-metrics.component.html',\n    styleUrls: ['./dashboard-metrics.component.css']\n})"
+        },
+        {
+          "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
+          "line_start": 22,
+          "line_end": 30,
+          "snippet": "@Component({\n    selector: 'app-activity-feed',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './activity-feed.component.html',\n    styleUrls: ['./activity-feed.component.css']\n})"
+        },
+        {
+          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "line_start": 11,
+          "line_end": 19,
+          "snippet": "@Component({\n    selector: 'app-stock-alerts',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './stock-alerts.component.html',\n    styleUrls: ['./stock-alerts.component.css']\n})"
+        }
+      ],
+      "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components. This reduces change detection cycles significantly.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d1dd7fc6",
+      "title": "No eager loading of relations in queries",
+      "description": "The sales history query appears to fetch raw data then map it, but likely doesn't use Supabase's select with related tables (products, users). This causes potential N+1 pattern when accessing s.users?.name and s.products?.name in templates.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 101,
+          "line_end": 150,
+          "snippet": "const rawSales = await this.supabase.getSalesHistory(start, end);\n        // ...\n        grouped[id].items.push(row);\n        // later in template:\n        staff_name: row.users?.name || 'Unknown',\n        // and in activity-feed:\n        user: s.users?.name || 'Staff',\n        description: `${s.quantity} ${s.unit_type} of ${s.products?.name}`"
+        }
+      ],
+      "suggested_fix": "Use Supabase's .select('*, products(*), users(*)') or equivalent to eagerly load related tables in a single query instead of separate requests.",
       "confidence": 0.75,
       "cwe_id": "",
       "owasp_ref": "",
       "agent": "quality_auditor",
-      "tier": 1,
+      "tier": 2,
       "dedup_key": ""
     },
     {
-      "id": "F-927288d2",
-      "title": "Multiple realtime subscriptions without cleanup guarantee",
-      "description": "In owner-dashboard.component.ts, the notification subscription is created but ngOnDestroy only checks for truthiness. If startListening() fails or throws, subscriptions may leak.",
+      "id": "F-47cc921e",
+      "title": "Multiple sequential async calls in component init",
+      "description": "Analysis component makes 5 sequential await calls in ngOnInit, blocking UI render until all complete. These could be parallelized with Promise.all.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 63,
+          "line_end": 73,
+          "snippet": "async ngOnInit() {\n        this.isLoading = true;\n        this.currentUser = await this.supabase.getCurrentUser();\n        await Promise.all([\n            this.loadMetrics(),\n            this.loadAiReport(),\n            this.loadHistory(),\n            this.loadExpenses(),\n            this.loadStaff()\n        ]);"
+        }
+      ],
+      "suggested_fix": "The Promise.all is good but getCurrentUser() is outside it. Move getCurrentUser() inside Promise.all or use Promise.allSettled to prevent one failure from blocking others.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": 2,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9f368be0",
+      "title": "Realtime subscriptions without cleanup guarantee",
+      "description": "StockAlertsComponent starts listening in ngOnInit but the stopListening() is called in ngOnDestroy. If component is destroyed before data loads, there could be a race condition.",
       "category": "performance",
       "severity": "low",
       "audit_pass": "performance",
       "locations": [
         {
-          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
-          "line_start": 45,
-          "line_end": 56,
-          "snippet": "async ngOnInit() {\n        this.notificationSubscription = this.supabase.subscribeToNotifications((payload) => {\n            this.notifications.unshift(payload.new as Notification)\n            this.loadData();\n        })\n    }\n\n    ngOnDestroy() {\n        if (this.notificationSubscription) {\n            this.notificationSubscription.unsubscribe();\n        }\n    }"
+          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "line_start": 37,
+          "line_end": 42,
+          "snippet": "async ngOnInit() {\n        this.productService.startListening();\n        await this.productService.loadProducts();\n    }\n    ngOnDestroy() {\n        this.productService.stopListening();\n    }"
         }
       ],
-      "suggested_fix": "Use DestroyRef from @angular/core to auto-unsubscribe on component destruction: private destroyRef = inject(DestroyRef); then this.destroyRef.onDestroy(() => this.notificationSubscription?.unsubscribe());",
+      "suggested_fix": "Consider using a subject with takeUntilDestroyed() or a similar pattern to ensure cleanup happens reliably. Also, verify that startListening() properly handles multiple calls.",
       "confidence": 0.7,
       "cwe_id": "",
       "owasp_ref": "",
       "agent": "quality_auditor",
-      "tier": 1,
+      "tier": 2,
       "dedup_key": ""
     },
     {
-      "id": "F-c367abbe",
+      "id": "F-a3be4172",
       "title": "God module: supabase.service.ts exceeds 800 LOC with mixed responsibilities",
-      "description": "The Supabase service has grown to 847 LOC containing database operations, authentication logic, data transformation, webhook handling, and business logic across products, sales, inventory, staff, reconciliation, and metrics. This violates single responsibility principle and makes the service difficult to maintain and test.",
+      "description": "The Supabase service file contains 847 lines of code handling authentication, data access, webhook management, and business logic all in a single service. This violates single responsibility principle and makes the module difficult to test and maintain. Multiple unrelated concerns (auth, CRUD operations, webhook handling) are tightly coupled together.",
       "category": "architecture",
       "severity": "high",
       "audit_pass": null,
@@ -588,10 +1357,10 @@
           "file_path": "src/app/services/supabase.service.ts",
           "line_start": 1,
           "line_end": 847,
-          "snippet": "Service handles: authentication, product CRUD, sales transactions, inventory management, staff profiles, reconciliation, metrics queries, webhook operations"
+          "snippet": "Service contains: authentication logic, product queries, sales queries, inventory queries, staff management, reconciliation logic, webhook integration, and more"
         }
       ],
-      "suggested_fix": "Split into domain-specific services: AuthService (auth operations), ProductService (already exists but incomplete), SalesService (sales queries), InventoryService (stock operations), StaffService (user management), ReconciliationService (financial operations), MetricsService (analytics queries). Consider implementing Repository pattern for data access abstraction.",
+      "suggested_fix": "Split into domain-specific services: AuthService (auth logic), ProductDataService (product CRUD), SalesDataService (sales operations), InventoryDataService (stock management), ReconciliationDataService, and WebhookService (already exists but logic may be duplicated)",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
@@ -600,39 +1369,51 @@
       "dedup_key": ""
     },
     {
-      "id": "F-d9e5d557",
-      "title": "Missing service layer abstraction for business logic",
-      "description": "Components (sales-dashboard, products, inventory, analysis) directly inject and call SupabaseService methods for data operations. This creates tight coupling between presentation and data layers, making it difficult to swap data sources or test components in isolation.",
+      "id": "F-063717cd",
+      "title": "Missing service layer abstraction: Components directly access Supabase service",
+      "description": "Multiple page components (sales-dashboard, inventory, products, reconciliation, analysis, staff, owner-dashboard) directly inject and call the monolithic Supabase service. This creates tight coupling between presentation layer and data access, making it difficult to swap implementations, test components in isolation, or refactor data access patterns.",
       "category": "architecture",
       "severity": "high",
       "audit_pass": null,
       "locations": [
         {
-          "file_path": "src/app/pages/products/products.component.ts",
+          "file_path": "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
           "line_start": 1,
-          "line_end": 240,
-          "snippet": "Directly calls supabaseService.getProducts(), supabaseService.addProduct(), etc."
+          "line_end": 147,
+          "snippet": "Direct SupabaseService dependency"
         },
         {
           "file_path": "src/app/pages/inventory/inventory.component.ts",
           "line_start": 1,
           "line_end": 178,
-          "snippet": "Direct supabaseService calls for inventory operations"
+          "snippet": "Direct SupabaseService dependency"
         },
         {
-          "file_path": "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
+          "file_path": "src/app/pages/products/products.component.ts",
           "line_start": 1,
-          "line_end": 147,
-          "snippet": "Direct supabaseService calls for sales metrics"
+          "line_end": 240,
+          "snippet": "Direct SupabaseService dependency"
+        },
+        {
+          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "line_start": 1,
+          "line_end": 139,
+          "snippet": "Direct SupabaseService dependency"
         },
         {
           "file_path": "src/app/pages/analysis/analysis.component.ts",
           "line_start": 1,
           "line_end": 292,
-          "snippet": "Direct supabaseService calls for analytics data"
+          "snippet": "Direct SupabaseService dependency"
+        },
+        {
+          "file_path": "src/app/pages/staff/staff.component.ts",
+          "line_start": 1,
+          "line_end": 113,
+          "snippet": "Direct SupabaseService dependency"
         }
       ],
-      "suggested_fix": "Introduce domain-specific services (ProductService, SalesService, InventoryService, AnalyticsService) that encapsulate business logic and data access. Components should depend on these domain services, not SupabaseService directly. This creates a proper service layer between presentation and data access layers.",
+      "suggested_fix": "Introduce facade/domain services that wrap Supabase service: SalesService, InventoryService, ProductService (extend existing), ReconciliationService, AnalysisService, StaffService. Components should depend on these domain services, not directly on Supabase.",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
@@ -641,9 +1422,9 @@
       "dedup_key": ""
     },
     {
-      "id": "F-c47c069e",
-      "title": "Inconsistent service usage patterns across modules",
-      "description": "Some components use product.service.ts (ProductService exists with 149 LOC), while others bypass it and call SupabaseService directly. This inconsistency creates maintenance burden and confusion about the single source of truth for product-related operations.",
+      "id": "F-7df6be37",
+      "title": "Inconsistent service architecture: ProductService exists but logic may be duplicated in SupabaseService",
+      "description": "ProductService (149 LOC) exists alongside SupabaseService, but unclear separation of responsibilities. Components may be calling both services or the pattern is inconsistently applied across the codebase. This creates confusion about which service should be used for product operations.",
       "category": "architecture",
       "severity": "medium",
       "audit_pass": null,
@@ -652,16 +1433,16 @@
           "file_path": "src/app/services/product.service.ts",
           "line_start": 1,
           "line_end": 149,
-          "snippet": "Exists but appears underutilized with limited scope"
+          "snippet": "Domain service for products exists"
         },
         {
-          "file_path": "src/app/pages/products/products.component.ts",
+          "file_path": "src/app/services/supabase.service.ts",
           "line_start": 1,
-          "line_end": 50,
-          "snippet": "May or may not use ProductService consistently"
+          "line_end": 847,
+          "snippet": "Also contains product-related queries and mutations"
         }
       ],
-      "suggested_fix": "Audit all components to identify which ones should use ProductService vs SupabaseService. Either expand ProductService to be the authoritative product data gateway, or document why certain components bypass it. Apply same pattern consistently across all domain services.",
+      "suggested_fix": "Establish clear pattern: ProductService should be the only product facade, delegating to SupabaseService for data access. Apply same pattern to other domains (Sales, Inventory, Reconciliation, etc.). Remove duplicate logic from SupabaseService.",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
@@ -670,33 +1451,33 @@
       "dedup_key": ""
     },
     {
-      "id": "F-9c0f6493",
-      "title": "Tightly coupled presentation and data access layers",
-      "description": "No repository pattern or data access abstraction layer exists. Components directly instantiate and call Supabase client operations, making it impossible to swap implementations or mock for testing without modifying component code.",
+      "id": "F-6e6f17aa",
+      "title": "Sales-management module lacks cohesion with 4 distinct components handling related concerns",
+      "description": "The sales-management module (800 LOC, 16 files) contains 4 separate components (sales-dashboard, sales-history, sales-lookup, sales-receive) that appear to handle different aspects of sales but lack clear service layer abstraction. Components likely duplicate similar Supabase calls and business logic. No shared sales service layer to coordinate these concerns.",
       "category": "architecture",
-      "severity": "high",
+      "severity": "medium",
       "audit_pass": null,
       "locations": [
         {
-          "file_path": "src/app/pages/reconciliation/reconciliation.component.ts",
+          "file_path": "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
           "line_start": 1,
-          "line_end": 139,
-          "snippet": "Direct Supabase operations without abstraction"
+          "line_end": 147,
+          "snippet": "Sales dashboard component"
         },
         {
-          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "file_path": "src/app/pages/sales-history/sales-history.component.ts",
           "line_start": 1,
-          "line_end": 82,
-          "snippet": "Direct service calls for analytics data"
+          "line_end": 108,
+          "snippet": "Sales history component"
         },
         {
-          "file_path": "src/app/pages/staff/staff.component.ts",
+          "file_path": "src/app/pages/sales-receive/sales-receive.component.ts",
           "line_start": 1,
-          "line_end": 113,
-          "snippet": "Direct staff data operations"
+          "line_end": 121,
+          "snippet": "Sales receive component"
         }
       ],
-      "suggested_fix": "Implement Repository pattern or Data Access Object (DAO) pattern to abstract database operations. Create IProductRepository, ISalesRepository, IInventoryRepository interfaces. Components depend on abstractions, not concrete Supabase implementation. This enables easy testing and future data source migration.",
+      "suggested_fix": "Create SalesService facade that coordinates sales operations across dashboard, history, and receive functionality. Extract shared queries and mutations to service. Components should use SalesService instead of direct Supabase calls.",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
@@ -705,9 +1486,9 @@
       "dedup_key": ""
     },
     {
-      "id": "F-b84ca2cd",
-      "title": "App-ui-components module mixing multiple concerns (620 LOC)",
-      "description": "The UI components module combines unrelated concerns: sidebar navigation, loading indicators, toast notifications, stock alerts, activity feed, and dashboard metrics. These should be organized by functional domain rather than UI type.",
+      "id": "F-bc3a2d70",
+      "title": "Layout and UI components tightly coupled with business logic containers",
+      "description": "Layout components (sidebar, admin-layout, main-layout) are located in src/app/components/ alongside UI components (loading, toast, dashboard-metrics, stock-alerts, activity-feed). Layout containers that manage business state should be separated from pure UI components. Current organization makes it unclear which components handle presentation vs. state management.",
       "category": "architecture",
       "severity": "medium",
       "audit_pass": null,
@@ -715,11 +1496,11 @@
         {
           "file_path": "src/app/components/",
           "line_start": 1,
-          "line_end": 620,
-          "snippet": "Contains: sidebar (nav), loading (utility), toast (notification), stock-alerts (domain), activity-feed (domain), dashboard-metrics (domain)"
+          "line_end": 400,
+          "snippet": "Mixed layout containers and UI components: sidebar (18 LOC), admin-layout (13 LOC), main-layout (36 LOC) alongside dashboard-metrics (29 LOC), stock-alerts (32 LOC), activity-feed (40 LOC)"
         }
       ],
-      "suggested_fix": "Reorganize by concern: src/app/components/layout/ (sidebar, layouts), src/app/components/shared/ (loading, toast), src/app/components/features/ (stock-alerts, activity-feed, dashboard-metrics). This aligns UI organization with feature boundaries.",
+      "suggested_fix": "Reorganize: Move layout components to src/app/layouts/ or src/app/shell/. Keep src/app/components/ for pure presentational/shared UI components. Consider nesting smart components with their related smart components.",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
@@ -728,200 +1509,9 @@
       "dedup_key": ""
     },
     {
-      "id": "F-443e0421",
-      "title": "No abstraction for external API/webhook interactions",
-      "description": "WebhookService exists (40 LOC) but its integration with business logic is unclear. No adapter pattern for external system communication, making it difficult to trace data flow to external systems.",
-      "category": "architecture",
-      "severity": "medium",
-      "audit_pass": null,
-      "locations": [
-        {
-          "file_path": "src/app/services/webhook.service.ts",
-          "line_start": 1,
-          "line_end": 40,
-          "snippet": "Webhook operations appear isolated without clear integration pattern"
-        }
-      ],
-      "suggested_fix": "Define clear integration patterns for external systems. Create EventEmitterService or EventBusService for cross-module communication. Document webhook contract and versioning strategy. Consider using Adapter pattern to standardize external API interactions.",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "architecture_reviewer",
-      "tier": 2,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-bc84797a",
-      "title": "Session management scattered across multiple services",
-      "description": "Auto-logout (74 LOC), page-reload (71 LOC), and loading (26 LOC) services handle session and state management in isolation. No unified session/state management strategy, leading to potential race conditions and inconsistent user experience.",
-      "category": "architecture",
-      "severity": "medium",
-      "audit_pass": null,
-      "locations": [
-        {
-          "file_path": "src/app/services/auto-logout.service.ts",
-          "line_start": 1,
-          "line_end": 74,
-          "snippet": "Manages session timeout independently"
-        },
-        {
-          "file_path": "src/app/services/page-reload.service.ts",
-          "line_start": 1,
-          "line_end": 71,
-          "snippet": "Manages page refresh independently"
-        },
-        {
-          "file_path": "src/app/services/loading.service.ts",
-          "line_start": 1,
-          "line_end": 26,
-          "snippet": "Manages loading state independently"
-        }
-      ],
-      "suggested_fix": "Create unified AppStateService or SessionStateService to manage loading, session, and navigation state. Use state management pattern (NgRx, Akita, or simple BehaviorSubject-based store) to centralize and coordinate state changes across the application.",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "architecture_reviewer",
-      "tier": 3,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-eb580527",
-      "title": "Configuration values and constants scattered across files",
-      "description": "Magic strings and hardcoded values likely exist throughout components and services (auth paths, table names, API endpoints). No centralized configuration module identified.",
-      "category": "architecture",
-      "severity": "medium",
-      "audit_pass": null,
-      "locations": [
-        {
-          "file_path": "src/app/app.config.ts",
-          "line_start": 1,
-          "line_end": 13,
-          "snippet": "Config file exists but may be incomplete"
-        },
-        {
-          "file_path": "src/app/",
-          "line_start": 1,
-          "line_end": 1,
-          "snippet": "Constants likely scattered in supabase.service.ts (847 LOC) and throughout components"
-        }
-      ],
-      "suggested_fix": "Create comprehensive constants module: src/app/core/constants/ with: api-endpoints.ts, table-names.ts, error-messages.ts, validation-rules.ts. Centralize all magic strings. Move app.config.ts to src/app/core/config/ and expand with environment-specific configs.",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "architecture_reviewer",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-6de5d0d5",
-      "title": "No clear feature module boundaries or lazy loading strategy",
-      "description": "All pages are loaded eagerly into app-core module. No feature modules defined for sales, inventory, admin, or analysis features. This prevents code splitting and lazy loading optimization.",
-      "category": "architecture",
-      "severity": "medium",
-      "audit_pass": null,
-      "locations": [
-        {
-          "file_path": "src/app/app.routes.ts",
-          "line_start": 1,
-          "line_end": 119,
-          "snippet": "All routes likely use component imports directly without lazy loading via loadComponent or loadChildren"
-        }
-      ],
-      "suggested_fix": "Organize feature modules: SalesModule, InventoryModule, AdminModule, AnalysisModule, ReconciliationModule. Each with its own routing. Import into AppModule. Use lazy loading with loadChildren in app.routes.ts to enable code splitting: { path: 'sales', loadChildren: () => import('./features/sales/sales.module').then(m => m.SalesModule) }",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "architecture_reviewer",
-      "tier": 3,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-8f7469e7",
-      "title": "Missing core module for singleton services",
-      "description": "Singleton services (SupabaseService, AuthService, ToastService, LoadingService) are scattered in src/app/services/ without clear separation from feature services. No CoreModule pattern to centralize and guard singleton instantiation.",
-      "category": "architecture",
-      "severity": "low",
-      "audit_pass": null,
-      "locations": [
-        {
-          "file_path": "src/app/services/",
-          "line_start": 1,
-          "line_end": 520,
-          "snippet": "All services in flat structure without core/feature distinction"
-        }
-      ],
-      "suggested_fix": "Create CoreModule in src/app/core/ that provides singleton services: supabase.service.ts, auth.service.ts, toast.service.ts, notification.service.ts, app-state.service.ts. Create SharedModule in src/app/shared/ for reusable components, directives, pipes. Feature modules import SharedModule, not CoreModule.",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "architecture_reviewer",
-      "tier": 0,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-5e04c519",
-      "title": "Potential circular dependency risk: layouts depend on components",
-      "description": "Admin-layout and main-layout components (part of app-layouts module) likely include sidebar and other UI components from app-ui-components. If those components import layout services, circular dependency exists.",
-      "category": "architecture",
-      "severity": "low",
-      "audit_pass": null,
-      "locations": [
-        {
-          "file_path": "src/app/components/admin-layout/admin-layout.component.ts",
-          "line_start": 1,
-          "line_end": 13,
-          "snippet": "Layout component may import shared UI components"
-        },
-        {
-          "file_path": "src/app/components/main-layout/main-layout.component.ts",
-          "line_start": 1,
-          "line_end": 36,
-          "snippet": "Layout component includes sidebar and other components"
-        }
-      ],
-      "suggested_fix": "Verify no circular imports exist between layout and UI component modules. Document explicit dependency direction: Layouts \u2192 UI Components \u2192 Services, never reverse. Add eslint-plugin-import rules to enforce no-cycle.",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "architecture_reviewer",
-      "tier": 3,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-e084c06e",
-      "title": "Inconsistent error handling and logging strategy",
-      "description": "Error handling appears ad-hoc without centralized error handler, logging service, or consistent error reporting pattern. No error boundary or global error handler identified.",
-      "category": "architecture",
-      "severity": "medium",
-      "audit_pass": null,
-      "locations": [
-        {
-          "file_path": "src/app/services/supabase.service.ts",
-          "line_start": 1,
-          "line_end": 847,
-          "snippet": "Error handling scattered throughout large service"
-        },
-        {
-          "file_path": "src/app/pages/",
-          "line_start": 1,
-          "line_end": 1,
-          "snippet": "Components likely have inconsistent error handling"
-        }
-      ],
-      "suggested_fix": "Create ErrorHandlingService or ErrorInterceptor for centralized error handling. Create LoggerService for consistent logging. Use HttpInterceptor to catch and normalize API errors. Create error-messages.ts for consistent error text. Implement global error handler via ErrorHandler token.",
-      "confidence": 0.8,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "architecture_reviewer",
-      "tier": 1,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-7b5cac41",
-      "title": "Analysis component significantly exceeds recommended size (292 LOC + 464 HTML + 1128 CSS)",
-      "description": "The analysis.component.ts (292 LOC), analysis.component.html (464 LOC), and analysis.component.css (1128 LOC) combine to form a very large feature component that likely contains multiple responsibilities and would benefit from decomposition into smaller sub-components.",
+      "id": "F-7b9b51cb",
+      "title": "Analysis component (292 LOC) has large TypeScript footprint suggesting mixed responsibilities",
+      "description": "The analysis component contains 292 lines of TypeScript logic alongside 464 lines of HTML and 1128 lines of CSS. This suggests the component may be handling AI report generation logic, data transformation, visualization setup, and presentation\u2014multiple responsibilities that should be separated.",
       "category": "architecture",
       "severity": "medium",
       "audit_pass": null,
@@ -930,22 +1520,80 @@
           "file_path": "src/app/pages/analysis/analysis.component.ts",
           "line_start": 1,
           "line_end": 292,
-          "snippet": "Large component with likely multiple data fetching and rendering responsibilities"
-        },
-        {
-          "file_path": "src/app/pages/analysis/analysis.component.html",
-          "line_start": 1,
-          "line_end": 464,
-          "snippet": "Large template with multiple sections"
-        },
-        {
-          "file_path": "src/app/pages/analysis/analysis.component.css",
-          "line_start": 1,
-          "line_end": 1128,
-          "snippet": "Excessive CSS likely for multiple unrelated UI sections"
+          "snippet": "Large component combining presentation and business logic"
         }
       ],
-      "suggested_fix": "Decompose analysis component into feature-specific sub-components: AnalysisOverviewComponent, AnalysisChartsComponent, AnalysisTrendsComponent, AnalysisExportComponent. Create shared/analysis/ folder for analysis-related UI components. Move CSS to individual components and use CSS modules or BEM naming for organization.",
+      "suggested_fix": "Extract AI report generation and data transformation logic into AnalysisService. Create smaller presentational sub-components for report display sections. Component should only handle view state and delegate to service for calculations and API calls.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-22868288",
+      "title": "Authentication logic scattered across multiple locations",
+      "description": "Auth logic is spread across: auth.guard.ts (37 LOC), login.component.ts (68 LOC), and likely within supabase.service.ts (847 LOC). No centralized AuthService facade exists, making it unclear where authentication state is managed and how to extend auth functionality consistently.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/auth.guard.ts",
+          "line_start": 1,
+          "line_end": 37,
+          "snippet": "Route guard with auth logic"
+        },
+        {
+          "file_path": "src/app/login/login.component.ts",
+          "line_start": 1,
+          "line_end": 68,
+          "snippet": "Login component with auth logic"
+        },
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 847,
+          "snippet": "Auth logic mixed with data access"
+        },
+        {
+          "file_path": "src/app/services/auto-logout.service.ts",
+          "line_start": 1,
+          "line_end": 74,
+          "snippet": "Auto-logout service with auth session logic"
+        }
+      ],
+      "suggested_fix": "Create centralized AuthenticationService that consolidates: login/logout logic, session management, token refresh, and auth state. Auth guard and login component should use AuthenticationService exclusively. Move auth-related logic from SupabaseService to AuthenticationService.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b70ff1c0",
+      "title": "Webhook and notification services lack clear abstraction boundaries",
+      "description": "WebhookService (40 LOC), ToastService (32 LOC), and notification-related logic may be scattered. Unclear how external webhooks, internal notifications, and user-facing toasts coordinate. Potential for duplicate notification handling logic.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/webhook.service.ts",
+          "line_start": 1,
+          "line_end": 40,
+          "snippet": "Webhook integration service"
+        },
+        {
+          "file_path": "src/app/services/toast.service.ts",
+          "line_start": 1,
+          "line_end": 32,
+          "snippet": "Toast notification service"
+        }
+      ],
+      "suggested_fix": "Establish clear notification flow: External events \u2192 WebhookService \u2192 internal domain events \u2192 ToastService (for UI feedback). Document when each service should be used. Consider creating NotificationCoordinatorService if cross-cutting logic exists.",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
@@ -954,32 +1602,61 @@
       "dedup_key": ""
     },
     {
-      "id": "F-50ffbbc5",
-      "title": "Products and inventory components large and potentially mixed in responsibility (240 LOC, 178 LOC)",
-      "description": "Products component (240 LOC) and inventory component (178 LOC) are among the largest page components. They likely combine CRUD operations, data display, filtering, and form handling without clear separation.",
+      "id": "F-452dada5",
+      "title": "Cross-cutting concerns (Loading, AutoLogout, PageReload) lack centralized orchestration",
+      "description": "Three utility services manage application-wide concerns: LoadingService (26 LOC), AutoLogoutService (74 LOC), PageReloadService (71 LOC). These services likely have complex interdependencies and subscribe to shared state but lack orchestration. No clear owner for managing their lifecycle and interactions.",
       "category": "architecture",
       "severity": "low",
       "audit_pass": null,
       "locations": [
         {
-          "file_path": "src/app/pages/products/products.component.ts",
+          "file_path": "src/app/services/loading.service.ts",
           "line_start": 1,
-          "line_end": 240,
-          "snippet": "Large component combining product list, add, edit, delete operations"
+          "line_end": 26,
+          "snippet": "Global loading state"
         },
         {
-          "file_path": "src/app/pages/inventory/inventory.component.ts",
+          "file_path": "src/app/services/auto-logout.service.ts",
           "line_start": 1,
-          "line_end": 178,
-          "snippet": "Large component combining inventory management operations"
+          "line_end": 74,
+          "snippet": "Session auto-logout logic"
+        },
+        {
+          "file_path": "src/app/services/page-reload.service.ts",
+          "line_start": 1,
+          "line_end": 71,
+          "snippet": "Page reload and state management"
         }
       ],
-      "suggested_fix": "Consider extracting form logic into separate components: ProductFormComponent, InventoryFormComponent. Create reusable data-table component for list display. Separate concerns: ProductListComponent (display), ProductFormComponent (create/edit), ProductDetailComponent (view). Use smart/dumb component pattern.",
+      "suggested_fix": "Create AppStateService or StateOrchestrationService that manages loading, session, and page state as cohesive unit. These utilities should not directly manage global state independently but coordinate through central service.",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
       "agent": "architecture_reviewer",
-      "tier": 2,
+      "tier": 3,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-47d2432a",
+      "title": "Missing repository pattern for data persistence abstraction",
+      "description": "All data access goes directly through SupabaseService without repository pattern. No abstraction layer between business logic (components/services) and Supabase SDK. If database provider needs to change (e.g., from Supabase to Firebase), all components and services require modification.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src/app/services/supabase.service.ts",
+          "line_start": 1,
+          "line_end": 847,
+          "snippet": "Direct Supabase SDK usage throughout"
+        }
+      ],
+      "suggested_fix": "Implement Repository pattern with typed repositories for each domain entity: ProductRepository, SalesRepository, InventoryRepository, etc. These should abstract Supabase SDK and expose domain-specific methods. Facilitates testing with mock repositories and easier migration to different backends.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": 3,
       "dedup_key": ""
     }
   ],
@@ -991,103 +1668,42 @@
     "dedup_summary": "",
     "total_items": 0,
     "estimated_invocations": 0,
-    "summary": "Parse error: 2 validation errors for RemediationPlan\nitems.25.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal\nitems.26.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal. Raw findings count: 36"
+    "summary": "Parse error: 1 validation error for RemediationPlan\ndependencies.3.depends_on_finding_id\n  Input should be a valid string [type=string_type, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type. Raw findings count: 59"
   },
   "codebase_map": {
     "modules": [
       {
-        "name": "app-core",
-        "path": "src/app/",
-        "purpose": "Root application module containing bootstrap, routing, guards, and main component",
+        "name": "authentication",
+        "path": "src/app/auth/",
+        "purpose": "Authentication and route protection",
         "files": [
-          "src/app/app.component.ts",
-          "src/app/app.component.html",
-          "src/app/app.component.css",
-          "src/app/app.component.spec.ts",
-          "src/app/app.config.ts",
-          "src/app/app.routes.ts",
           "src/app/auth.guard.ts",
-          "src/app/auth.guard.spec.ts"
+          "src/app/auth.guard.spec.ts",
+          "src/app/login/login.component.ts",
+          "src/app/login/login.component.html",
+          "src/app/login/login.component.css",
+          "src/app/login/login.component.spec.ts"
         ],
-        "loc": 450,
-        "language": "typescript"
-      },
-      {
-        "name": "app-layouts",
-        "path": "src/app/components/",
-        "purpose": "Reusable layout components for admin and main interfaces",
-        "files": [
-          "src/app/components/admin-layout/admin-layout.component.ts",
-          "src/app/components/admin-layout/admin-layout.component.html",
-          "src/app/components/admin-layout/admin-layout.component.css",
-          "src/app/components/admin-layout/admin-layout.component.spec.ts",
-          "src/app/components/main-layout/main-layout.component.ts",
-          "src/app/components/main-layout/main-layout.component.html",
-          "src/app/components/main-layout/main-layout.component.css",
-          "src/app/components/main-layout/main-layout.component.spec.ts"
-        ],
-        "loc": 380,
-        "language": "typescript"
-      },
-      {
-        "name": "app-ui-components",
-        "path": "src/app/components/",
-        "purpose": "Shared UI components including sidebar, loading, toast, stock alerts, and activity feed",
-        "files": [
-          "src/app/components/sidebar/sidebar.component.ts",
-          "src/app/components/sidebar/sidebar.component.html",
-          "src/app/components/sidebar/sidebar.component.css",
-          "src/app/components/sidebar/sidebar.component.spec.ts",
-          "src/app/components/loading/loading.component.ts",
-          "src/app/components/loading/loading.component.html",
-          "src/app/components/loading/loading.component.css",
-          "src/app/components/toast/toast.component.ts",
-          "src/app/components/toast/toast.component.html",
-          "src/app/components/toast/toast.component.css",
-          "src/app/components/toast/toast.component.spec.ts",
-          "src/app/components/stock-alerts/stock-alerts.component.ts",
-          "src/app/components/stock-alerts/stock-alerts.component.html",
-          "src/app/components/stock-alerts/stock-alerts.component.css",
-          "src/app/components/activity-feed/activity-feed.component.ts",
-          "src/app/components/activity-feed/activity-feed.component.html",
-          "src/app/components/activity-feed/activity-feed.component.css",
-          "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-          "src/app/components/dashboard-metrics/dashboard-metrics.component.html",
-          "src/app/components/dashboard-metrics/dashboard-metrics.component.css"
-        ],
-        "loc": 620,
+        "loc": 350,
         "language": "typescript"
       },
       {
         "name": "dashboard",
         "path": "src/app/dashboard/",
-        "purpose": "Main dashboard page with metrics and overview",
+        "purpose": "Main dashboard view with metrics and navigation",
         "files": [
           "src/app/dashboard/dashboard.component.ts",
           "src/app/dashboard/dashboard.component.html",
           "src/app/dashboard/dashboard.component.css",
           "src/app/dashboard/dashboard.component.spec.ts"
         ],
-        "loc": 180,
+        "loc": 200,
         "language": "typescript"
       },
       {
-        "name": "login",
-        "path": "src/app/login/",
-        "purpose": "Authentication page for user login",
-        "files": [
-          "src/app/login/login.component.ts",
-          "src/app/login/login.component.html",
-          "src/app/login/login.component.css",
-          "src/app/login/login.component.spec.ts"
-        ],
-        "loc": 150,
-        "language": "typescript"
-      },
-      {
-        "name": "sales-pages",
-        "path": "src/app/pages/",
-        "purpose": "Sales management modules including dashboard, history, lookup, and receiving",
+        "name": "sales-management",
+        "path": "src/app/pages/sales-dashboard/",
+        "purpose": "Sales dashboard and transaction handling",
         "files": [
           "src/app/pages/sales-dashboard/sales-dashboard.component.ts",
           "src/app/pages/sales-dashboard/sales-dashboard.component.html",
@@ -1106,100 +1722,182 @@
           "src/app/pages/sales-receive/sales-receive.component.css",
           "src/app/pages/sales-receive/sales-receive.component.spec.ts"
         ],
-        "loc": 480,
+        "loc": 800,
         "language": "typescript"
       },
       {
-        "name": "inventory-pages",
-        "path": "src/app/pages/",
-        "purpose": "Inventory and product management pages",
+        "name": "inventory-management",
+        "path": "src/app/pages/inventory/",
+        "purpose": "Inventory tracking and stock management",
         "files": [
           "src/app/pages/inventory/inventory.component.ts",
           "src/app/pages/inventory/inventory.component.html",
           "src/app/pages/inventory/inventory.component.css",
-          "src/app/pages/inventory/inventory.component.spec.ts",
+          "src/app/pages/inventory/inventory.component.spec.ts"
+        ],
+        "loc": 200,
+        "language": "typescript"
+      },
+      {
+        "name": "products",
+        "path": "src/app/pages/products/",
+        "purpose": "Product catalog management",
+        "files": [
           "src/app/pages/products/products.component.ts",
           "src/app/pages/products/products.component.html",
           "src/app/pages/products/products.component.css",
           "src/app/pages/products/products.component.spec.ts"
         ],
-        "loc": 320,
-        "language": "typescript"
-      },
-      {
-        "name": "owner-dashboard",
-        "path": "src/app/pages/",
-        "purpose": "Owner-specific dashboard with business analytics",
-        "files": [
-          "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
-          "src/app/pages/owner-dashboard/owner-dashboard.component.html",
-          "src/app/pages/owner-dashboard/owner-dashboard.component.css",
-          "src/app/pages/owner-dashboard/owner-dashboard.component.spec.ts"
-        ],
-        "loc": 120,
-        "language": "typescript"
-      },
-      {
-        "name": "staff-management",
-        "path": "src/app/pages/",
-        "purpose": "Staff management and user administration",
-        "files": [
-          "src/app/pages/staff/staff.component.ts",
-          "src/app/pages/staff/staff.component.html",
-          "src/app/pages/staff/staff.component.css",
-          "src/app/pages/staff/staff.component.spec.ts"
-        ],
-        "loc": 100,
-        "language": "typescript"
-      },
-      {
-        "name": "analysis",
-        "path": "src/app/pages/",
-        "purpose": "AI-powered analysis and reporting module",
-        "files": [
-          "src/app/pages/analysis/analysis.component.ts",
-          "src/app/pages/analysis/analysis.component.html",
-          "src/app/pages/analysis/analysis.component.css"
-        ],
-        "loc": 90,
+        "loc": 180,
         "language": "typescript"
       },
       {
         "name": "reconciliation",
-        "path": "src/app/pages/",
-        "purpose": "Financial reconciliation and invoice management",
+        "path": "src/app/pages/reconciliation/",
+        "purpose": "Financial reconciliation and reporting",
         "files": [
           "src/app/pages/reconciliation/reconciliation.component.ts",
           "src/app/pages/reconciliation/reconciliation.component.html",
           "src/app/pages/reconciliation/reconciliation.component.css",
           "src/app/pages/reconciliation/reconciliation.component.spec.ts"
         ],
-        "loc": 110,
+        "loc": 200,
+        "language": "typescript"
+      },
+      {
+        "name": "analysis",
+        "path": "src/app/pages/analysis/",
+        "purpose": "Business intelligence and AI-powered analytics",
+        "files": [
+          "src/app/pages/analysis/analysis.component.ts",
+          "src/app/pages/analysis/analysis.component.html",
+          "src/app/pages/analysis/analysis.component.css"
+        ],
+        "loc": 150,
+        "language": "typescript"
+      },
+      {
+        "name": "staff-management",
+        "path": "src/app/pages/staff/",
+        "purpose": "Staff user management",
+        "files": [
+          "src/app/pages/staff/staff.component.ts",
+          "src/app/pages/staff/staff.component.html",
+          "src/app/pages/staff/staff.component.css",
+          "src/app/pages/staff/staff.component.spec.ts"
+        ],
+        "loc": 150,
+        "language": "typescript"
+      },
+      {
+        "name": "owner-dashboard",
+        "path": "src/app/pages/owner-dashboard/",
+        "purpose": "High-level owner overview and metrics",
+        "files": [
+          "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "src/app/pages/owner-dashboard/owner-dashboard.component.html",
+          "src/app/pages/owner-dashboard/owner-dashboard.component.css",
+          "src/app/pages/owner-dashboard/owner-dashboard.component.spec.ts"
+        ],
+        "loc": 180,
+        "language": "typescript"
+      },
+      {
+        "name": "layout-components",
+        "path": "src/app/components/",
+        "purpose": "Reusable layout components (sidebar, headers, layouts)",
+        "files": [
+          "src/app/components/sidebar/sidebar.component.ts",
+          "src/app/components/sidebar/sidebar.component.html",
+          "src/app/components/sidebar/sidebar.component.css",
+          "src/app/components/sidebar/sidebar.component.spec.ts",
+          "src/app/components/admin-layout/admin-layout.component.ts",
+          "src/app/components/admin-layout/admin-layout.component.html",
+          "src/app/components/admin-layout/admin-layout.component.css",
+          "src/app/components/admin-layout/admin-layout.component.spec.ts",
+          "src/app/components/main-layout/main-layout.component.ts",
+          "src/app/components/main-layout/main-layout.component.html",
+          "src/app/components/main-layout/main-layout.component.css",
+          "src/app/components/main-layout/main-layout.component.spec.ts"
+        ],
+        "loc": 400,
+        "language": "typescript"
+      },
+      {
+        "name": "dashboard-metrics",
+        "path": "src/app/components/dashboard-metrics/",
+        "purpose": "KPI and metrics display components",
+        "files": [
+          "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
+          "src/app/components/dashboard-metrics/dashboard-metrics.component.html",
+          "src/app/components/dashboard-metrics/dashboard-metrics.component.css"
+        ],
+        "loc": 120,
+        "language": "typescript"
+      },
+      {
+        "name": "stock-alerts",
+        "path": "src/app/components/stock-alerts/",
+        "purpose": "Low stock alert notifications",
+        "files": [
+          "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "src/app/components/stock-alerts/stock-alerts.component.html",
+          "src/app/components/stock-alerts/stock-alerts.component.css"
+        ],
+        "loc": 100,
+        "language": "typescript"
+      },
+      {
+        "name": "activity-feed",
+        "path": "src/app/components/activity-feed/",
+        "purpose": "Activity timeline and event feed",
+        "files": [
+          "src/app/components/activity-feed/activity-feed.component.ts",
+          "src/app/components/activity-feed/activity-feed.component.html",
+          "src/app/components/activity-feed/activity-feed.component.css"
+        ],
+        "loc": 80,
+        "language": "typescript"
+      },
+      {
+        "name": "ui-components",
+        "path": "src/app/components/loading/",
+        "purpose": "Loading spinner and toast notification UI",
+        "files": [
+          "src/app/components/loading/loading.component.ts",
+          "src/app/components/loading/loading.component.html",
+          "src/app/components/loading/loading.component.css",
+          "src/app/components/toast/toast.component.ts",
+          "src/app/components/toast/toast.component.html",
+          "src/app/components/toast/toast.component.css",
+          "src/app/components/toast/toast.component.spec.ts"
+        ],
+        "loc": 200,
         "language": "typescript"
       },
       {
         "name": "core-services",
         "path": "src/app/services/",
-        "purpose": "Business logic services for data access, auth, notifications",
+        "purpose": "Supabase client, auth state, and API services",
         "files": [
           "src/app/services/supabase.service.ts",
           "src/app/services/supabase.service.spec.ts",
           "src/app/services/product.service.ts",
+          "src/app/services/webhook.service.ts",
+          "src/app/services/webhook.service.spec.ts",
           "src/app/services/toast.service.ts",
           "src/app/services/toast.service.spec.ts",
           "src/app/services/loading.service.ts",
           "src/app/services/auto-logout.service.ts",
-          "src/app/services/page-reload.service.ts",
-          "src/app/services/webhook.service.ts",
-          "src/app/services/webhook.service.spec.ts"
+          "src/app/services/page-reload.service.ts"
         ],
-        "loc": 520,
+        "loc": 450,
         "language": "typescript"
       },
       {
         "name": "interfaces",
         "path": "src/app/interfaces/",
-        "purpose": "TypeScript type definitions for domain models",
+        "purpose": "TypeScript type definitions for domain entities",
         "files": [
           "src/app/interfaces/user.ts",
           "src/app/interfaces/product.ts",
@@ -1214,17 +1912,32 @@
           "src/app/interfaces/ai-report.ts",
           "src/app/interfaces/toast.ts"
         ],
-        "loc": 280,
+        "loc": 300,
         "language": "typescript"
       },
       {
         "name": "enums",
         "path": "src/app/enums/",
-        "purpose": "Enumerated values for role-based access control",
+        "purpose": "Enumerated constants for user roles and status",
         "files": [
           "src/app/enums/role.ts"
         ],
-        "loc": 20,
+        "loc": 30,
+        "language": "typescript"
+      },
+      {
+        "name": "app-core",
+        "path": "src/app/",
+        "purpose": "Root Angular application component and routing",
+        "files": [
+          "src/app/app.component.ts",
+          "src/app/app.component.html",
+          "src/app/app.component.css",
+          "src/app/app.component.spec.ts",
+          "src/app/app.routes.ts",
+          "src/app/app.config.ts"
+        ],
+        "loc": 150,
         "language": "typescript"
       }
     ],
@@ -1242,25 +1955,13 @@
         "dev_only": false
       },
       {
-        "name": "@angular/forms",
-        "version": "19.2.0",
-        "ecosystem": "npm",
-        "dev_only": false
-      },
-      {
         "name": "@angular/router",
         "version": "19.2.0",
         "ecosystem": "npm",
         "dev_only": false
       },
       {
-        "name": "@angular/platform-browser",
-        "version": "19.2.0",
-        "ecosystem": "npm",
-        "dev_only": false
-      },
-      {
-        "name": "@angular/platform-browser-dynamic",
+        "name": "@angular/forms",
         "version": "19.2.0",
         "ecosystem": "npm",
         "dev_only": false
@@ -1272,8 +1973,8 @@
         "dev_only": false
       },
       {
-        "name": "chart.js",
-        "version": "4.5.1",
+        "name": "@fortawesome/angular-fontawesome",
+        "version": "1.0.0",
         "ecosystem": "npm",
         "dev_only": false
       },
@@ -1290,14 +1991,8 @@
         "dev_only": false
       },
       {
-        "name": "rxjs",
-        "version": "7.8.0",
-        "ecosystem": "npm",
-        "dev_only": false
-      },
-      {
-        "name": "zone.js",
-        "version": "0.15.0",
+        "name": "chart.js",
+        "version": "4.5.1",
         "ecosystem": "npm",
         "dev_only": false
       },
@@ -1308,145 +2003,115 @@
         "dev_only": false
       },
       {
-        "name": "@angular/cli",
-        "version": "19.2.8",
+        "name": "rxjs",
+        "version": "7.8.0",
         "ecosystem": "npm",
-        "dev_only": true
-      },
-      {
-        "name": "@angular-devkit/build-angular",
-        "version": "19.2.8",
-        "ecosystem": "npm",
-        "dev_only": true
-      },
-      {
-        "name": "typescript",
-        "version": "5.7.2",
-        "ecosystem": "npm",
-        "dev_only": true
-      },
-      {
-        "name": "karma",
-        "version": "6.4.0",
-        "ecosystem": "npm",
-        "dev_only": true
+        "dev_only": false
       }
     ],
     "data_flows": [
       {
+        "source": "Angular Components",
+        "destination": "Supabase Client Service",
+        "data_type": "JSON objects (products, sales, users)",
+        "is_authenticated": true
+      },
+      {
+        "source": "Supabase Service",
+        "destination": "Supabase Backend (PostgreSQL)",
+        "data_type": "SQL queries via Supabase JS client",
+        "is_authenticated": true
+      },
+      {
         "source": "Login Component",
-        "destination": "Supabase Service",
-        "data_type": "user credentials",
+        "destination": "Supabase Auth",
+        "data_type": "User credentials",
         "is_authenticated": false
       },
       {
-        "source": "Supabase Service",
-        "destination": "Supabase Backend",
-        "data_type": "authentication tokens",
-        "is_authenticated": false
-      },
-      {
-        "source": "Authenticated Components",
-        "destination": "Supabase Service",
-        "data_type": "CRUD operations on products, sales, inventory",
-        "is_authenticated": true
-      },
-      {
-        "source": "Supabase Service",
-        "destination": "Components",
-        "data_type": "business data (users, products, sales, metrics)",
-        "is_authenticated": true
-      },
-      {
-        "source": "Dashboard Components",
-        "destination": "Supabase Service",
-        "data_type": "metrics queries",
-        "is_authenticated": true
-      },
-      {
-        "source": "Staff Component",
-        "destination": "Supabase Service",
-        "data_type": "user profile data",
+        "source": "Sales Dashboard",
+        "destination": "Product Service",
+        "data_type": "Product inventory data",
         "is_authenticated": true
       },
       {
         "source": "Webhook Service",
-        "destination": "External Systems",
-        "data_type": "business events",
-        "is_authenticated": true
+        "destination": "External Webhooks",
+        "data_type": "Event notifications",
+        "is_authenticated": false
       }
     ],
     "auth_boundaries": [
       {
+        "path": "/dashboard/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-dashboard/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-history/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-lookup/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/sales-receive/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/inventory/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/products/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/reconciliation/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/analysis/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/staff/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
+        "path": "/owner-dashboard/**",
+        "auth_type": "supabase-jwt",
+        "is_protected": true
+      },
+      {
         "path": "/login",
         "auth_type": "none",
         "is_protected": false
-      },
-      {
-        "path": "/dashboard",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/sales-dashboard",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/sales-history",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/sales-lookup",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/sales-receive",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/inventory",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/products",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/owner-dashboard",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/staff",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/analysis",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
-      },
-      {
-        "path": "/reconciliation",
-        "auth_type": "supabase-jwt",
-        "is_protected": true
       }
     ],
     "entry_points": [
       {
         "path": "src/main.ts",
-        "type": "bootstrap",
+        "type": "spa-bootstraps",
         "is_public": true
       },
       {
         "path": "src/index.html",
-        "type": "webpage",
+        "type": "spa-entry",
         "is_public": true
       },
       {
@@ -1461,59 +2126,14 @@
       },
       {
         "path": "/sales-dashboard",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/sales-history",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/sales-lookup",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/sales-receive",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/inventory",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/products",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/owner-dashboard",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/staff",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/analysis",
-        "type": "route",
-        "is_public": false
-      },
-      {
-        "path": "/reconciliation",
         "type": "route",
         "is_public": false
       }
     ],
     "tech_stack": {
       "frontend": "Angular 19.2.0 + TypeScript",
-      "backend": "Supabase (PostgreSQL + Auth)",
-      "database": "PostgreSQL via Supabase client",
+      "backend": "Supabase (PostgreSQL + Auth + Realtime)",
+      "database": "PostgreSQL via Supabase",
       "hosting": "Docker + Nginx",
       "packages": [
         "@angular/core",
@@ -2232,18 +2852,16 @@
       "markdown",
       "typescript"
     ],
-    "architecture_summary": "FrostFlow is an Angular 19 single-page application serving as an inventory and sales management system. The app uses Supabase for backend services including PostgreSQL database access and JWT authentication. It features role-based access control with an auth guard protecting all routes except login. The application includes multiple feature modules for sales tracking, inventory management, staff administration, financial reconciliation, and AI-powered analytics. Data flows through a central Supabase service that handles all database operations and authentication. The UI uses a layout-based architecture with admin and main layouts, sidebar navigation, and reusable components for loading states, toast notifications, and stock alerts. Chart.js is integrated for dashboard metrics visualization.",
+    "architecture_summary": "A full-stack Angular 19 SPA application for inventory and sales management (FrostFlow). Uses Supabase as BaaS for PostgreSQL database, authentication, and realtime subscriptions. Features role-based access (Admin, Staff) via auth guards. Multiple business modules: sales tracking, inventory management, reconciliation, AI-powered analytics, and staff management. Supports webhook integrations and includes dashboard metrics visualization with Chart.js.",
     "key_patterns": [
-      "Angular Router with Auth Guard protection",
-      "Supabase client service for database operations",
-      "Role-based access control via enum",
-      "Component-based layout architecture",
-      "Reactive programming with RxJS",
-      "Toast notification service pattern",
-      "Loading state management service",
-      "Auto-logout service for session management",
-      "Chart.js integration for metrics visualization",
-      "HTTP interceptors for auth headers"
+      "Angular 19 standalone components architecture",
+      "Supabase client service with singleton pattern",
+      "Auth guard for route protection",
+      "Lazy-loaded feature modules via Angular Router",
+      "Role-based access control (enums/role.ts)",
+      "Reactive services with RxJS observables",
+      "Toast notification service for user feedback",
+      "Auto-logout service for session management"
     ]
   }
 }

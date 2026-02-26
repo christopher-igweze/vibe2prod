@@ -70,71 +70,76 @@
 <body>
     <div class="header">
         <h1>FORGE Discovery Report</h1>
-        <div class="subtitle">Run ID: 368f1db82d2f &bull; Generated: 2026-02-26 02:11 UTC</div>
+        <div class="subtitle">Run ID: 480a1994d6e8 &bull; Generated: 2026-02-26 02:33 UTC</div>
     </div>
 
     <div class="meta">
-        <span>36 findings</span>
-        <span>246s runtime</span>
-        <span>$0.7295 cost</span>
+        <span>59 findings</span>
+        <span>27,454 LOC</span>
+        <span>116 files</span>
+        <span>446s runtime</span>
+        <span>$0.7606 cost</span>
     </div>
 
     <div class="sev-summary">
-        <div class="sev-box high"><div class="num">8</div><div class="lbl">high</div></div>
-<div class="sev-box medium"><div class="num">20</div><div class="lbl">medium</div></div>
+        <div class="sev-box critical"><div class="num">1</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">17</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">33</div><div class="lbl">medium</div></div>
 <div class="sev-box low"><div class="num">8</div><div class="lbl">low</div></div>
 
     </div>
 
     <h2>Architecture Context</h2>
-<div class="arch-summary">FrostFlow is an Angular 19 single-page application serving as an inventory and sales management system. The app uses Supabase for backend services including PostgreSQL database access and JWT authentication. It features role-based access control with an auth guard protecting all routes except login. The application includes multiple feature modules for sales tracking, inventory management, staff administration, financial reconciliation, and AI-powered analytics. Data flows through a central Supabase service that handles all database operations and authentication. The UI uses a layout-based architecture with admin and main layouts, sidebar navigation, and reusable components for loading states, toast notifications, and stock alerts. Chart.js is integrated for dashboard metrics visualization.</div>
-<div class="arch-grid"><div class="arch-card"><h4>Modules (14)</h4><div class="mono">src/app/ &mdash; Root application module containing bootstrap, routing, guards, and main component (450 LOC)</div>
-<div class="mono">src/app/components/ &mdash; Reusable layout components for admin and main interfaces (380 LOC)</div>
-<div class="mono">src/app/components/ &mdash; Shared UI components including sidebar, loading, toast, stock alerts, and activity feed (620 LOC)</div>
-<div class="mono">src/app/dashboard/ &mdash; Main dashboard page with metrics and overview (180 LOC)</div>
-<div class="mono">src/app/login/ &mdash; Authentication page for user login (150 LOC)</div>
-<div class="mono">src/app/pages/ &mdash; Sales management modules including dashboard, history, lookup, and receiving (480 LOC)</div>
-<div class="mono">src/app/pages/ &mdash; Inventory and product management pages (320 LOC)</div>
-<div class="mono">src/app/pages/ &mdash; Owner-specific dashboard with business analytics (120 LOC)</div>
-<div class="mono">src/app/pages/ &mdash; Staff management and user administration (100 LOC)</div>
-<div class="mono">src/app/pages/ &mdash; AI-powered analysis and reporting module (90 LOC)</div>
-<div class="mono">src/app/pages/ &mdash; Financial reconciliation and invoice management (110 LOC)</div>
-<div class="mono">src/app/services/ &mdash; Business logic services for data access, auth, notifications (520 LOC)</div>
-</div><div class="arch-card"><h4>Entry Points (14)</h4><div class="mono">src/main.ts <span class="flow-type">bootstrap</span> (public)</div>
-<div class="mono">src/index.html <span class="flow-type">webpage</span> (public)</div>
+<div class="arch-summary">A full-stack Angular 19 SPA application for inventory and sales management (FrostFlow). Uses Supabase as BaaS for PostgreSQL database, authentication, and realtime subscriptions. Features role-based access (Admin, Staff) via auth guards. Multiple business modules: sales tracking, inventory management, reconciliation, AI-powered analytics, and staff management. Supports webhook integrations and includes dashboard metrics visualization with Chart.js.</div>
+<div class="arch-grid"><div class="arch-card"><h4>Modules (18)</h4><div class="mono">src/app/auth/ &mdash; Authentication and route protection (350 LOC)</div>
+<div class="mono">src/app/dashboard/ &mdash; Main dashboard view with metrics and navigation (200 LOC)</div>
+<div class="mono">src/app/pages/sales-dashboard/ &mdash; Sales dashboard and transaction handling (800 LOC)</div>
+<div class="mono">src/app/pages/inventory/ &mdash; Inventory tracking and stock management (200 LOC)</div>
+<div class="mono">src/app/pages/products/ &mdash; Product catalog management (180 LOC)</div>
+<div class="mono">src/app/pages/reconciliation/ &mdash; Financial reconciliation and reporting (200 LOC)</div>
+<div class="mono">src/app/pages/analysis/ &mdash; Business intelligence and AI-powered analytics (150 LOC)</div>
+<div class="mono">src/app/pages/staff/ &mdash; Staff user management (150 LOC)</div>
+<div class="mono">src/app/pages/owner-dashboard/ &mdash; High-level owner overview and metrics (180 LOC)</div>
+<div class="mono">src/app/components/ &mdash; Reusable layout components (sidebar, headers, layouts) (400 LOC)</div>
+<div class="mono">src/app/components/dashboard-metrics/ &mdash; KPI and metrics display components (120 LOC)</div>
+<div class="mono">src/app/components/stock-alerts/ &mdash; Low stock alert notifications (100 LOC)</div>
+</div><div class="arch-card"><h4>Entry Points (5)</h4><div class="mono">src/main.ts <span class="flow-type">spa-bootstraps</span> (public)</div>
+<div class="mono">src/index.html <span class="flow-type">spa-entry</span> (public)</div>
 <div class="mono">/login <span class="flow-type">route</span> (public)</div>
 <div class="mono">/dashboard <span class="flow-type">route</span> (internal)</div>
 <div class="mono">/sales-dashboard <span class="flow-type">route</span> (internal)</div>
-<div class="mono">/sales-history <span class="flow-type">route</span> (internal)</div>
-<div class="mono">/sales-lookup <span class="flow-type">route</span> (internal)</div>
-<div class="mono">/sales-receive <span class="flow-type">route</span> (internal)</div>
 </div></div>
-<h3>Key Patterns</h3><div style="margin-bottom:1rem"><span class="pattern-tag">Angular Router with Auth Guard protection</span> <span class="pattern-tag">Supabase client service for database operations</span> <span class="pattern-tag">Role-based access control via enum</span> <span class="pattern-tag">Component-based layout architecture</span> <span class="pattern-tag">Reactive programming with RxJS</span> <span class="pattern-tag">Toast notification service pattern</span> <span class="pattern-tag">Loading state management service</span> <span class="pattern-tag">Auto-logout service for session management</span> <span class="pattern-tag">Chart.js integration for metrics visualization</span> <span class="pattern-tag">HTTP interceptors for auth headers</span></div>
-<h3>Data Flows (7)</h3>
-<div class="flow-row"><span class="flow-src">Login Component</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Service</span> <span class="flow-type">user credentials</span> <span class="flow-auth no">no auth</span></div>
-<div class="flow-row"><span class="flow-src">Supabase Service</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Backend</span> <span class="flow-type">authentication tokens</span> <span class="flow-auth no">no auth</span></div>
-<div class="flow-row"><span class="flow-src">Authenticated Components</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Service</span> <span class="flow-type">CRUD operations on products, sales, inventory</span> <span class="flow-auth yes">auth</span></div>
-<div class="flow-row"><span class="flow-src">Supabase Service</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Components</span> <span class="flow-type">business data (users, products, sales, metrics)</span> <span class="flow-auth yes">auth</span></div>
-<div class="flow-row"><span class="flow-src">Dashboard Components</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Service</span> <span class="flow-type">metrics queries</span> <span class="flow-auth yes">auth</span></div>
-<div class="flow-row"><span class="flow-src">Staff Component</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Service</span> <span class="flow-type">user profile data</span> <span class="flow-auth yes">auth</span></div>
-<div class="flow-row"><span class="flow-src">Webhook Service</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">External Systems</span> <span class="flow-type">business events</span> <span class="flow-auth yes">auth</span></div>
+<h3>Key Patterns</h3><div style="margin-bottom:1rem"><span class="pattern-tag">Angular 19 standalone components architecture</span> <span class="pattern-tag">Supabase client service with singleton pattern</span> <span class="pattern-tag">Auth guard for route protection</span> <span class="pattern-tag">Lazy-loaded feature modules via Angular Router</span> <span class="pattern-tag">Role-based access control (enums/role.ts)</span> <span class="pattern-tag">Reactive services with RxJS observables</span> <span class="pattern-tag">Toast notification service for user feedback</span> <span class="pattern-tag">Auto-logout service for session management</span></div>
+<h3>Data Flows (5)</h3>
+<div class="flow-row"><span class="flow-src">Angular Components</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Client Service</span> <span class="flow-type">JSON objects (products, sales, users)</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">Supabase Service</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Backend (PostgreSQL)</span> <span class="flow-type">SQL queries via Supabase JS client</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">Login Component</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase Auth</span> <span class="flow-type">User credentials</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Sales Dashboard</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Product Service</span> <span class="flow-type">Product inventory data</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">Webhook Service</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">External Webhooks</span> <span class="flow-type">Event notifications</span> <span class="flow-auth no">no auth</span></div>
 
 <h3>Auth Boundaries (12)</h3>
+<div class="auth-row"><span class="auth-path">/dashboard/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/sales-dashboard/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/sales-history/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/sales-lookup/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/sales-receive/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/inventory/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/products/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/reconciliation/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/analysis/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/staff/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
+<div class="auth-row"><span class="auth-path">/owner-dashboard/**</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
 <div class="auth-row"><span class="auth-path">/login</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
-<div class="auth-row"><span class="auth-path">/dashboard</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/sales-dashboard</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/sales-history</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/sales-lookup</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/sales-receive</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/inventory</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/products</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/owner-dashboard</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/staff</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/analysis</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
-<div class="auth-row"><span class="auth-path">/reconciliation</span><span class="auth-badge protected">protected</span> <span class="auth-type">supabase-jwt</span></div>
 
 <h3>Finding Hotspots by Module</h3>
-<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">app-core</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">47</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">app-core</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">22</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">products</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">16</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">analysis</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">14</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">core-services</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">13</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">layout-components</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">11</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">reconciliation</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">11</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">owner-dashboard</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:60%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">4</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">sales-management</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">2</span></div>
 
 
     <h2>All Findings</h2>
@@ -142,11 +147,44 @@
         <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
         <tbody>
         <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Sensitive user data stored in browser localStorage without encryption</strong>
+                <div class="desc">User credentials and profile information (user_id, user_role, user_name, user_email) are stored in plain text in localStorage. This violates secure token storage practices and exposes sensitive data to XSS attacks and malicious scripts.</div>
+                
+            </td>
+            <td class="loc">src/app/login/login.component.ts:45</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
             <td><span class="severity high">high</span></td>
             <td>security</td>
             <td>
-                <strong>Missing security headers in index.html</strong>
-                <div class="desc">The application index.html lacks critical security headers like Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, and X-XSS-Protection. These headers should be configured at the server/Docker level or via meta tags.</div>
+                <strong>Missing token refresh mechanism and session expiration validation</strong>
+                <div class="desc">The application uses Supabase JWT tokens but does not implement automatic token refresh or validate token expiration before making API calls. Expired tokens will silently fail, causing poor UX and potential security gaps where stale sessions remain active.</div>
+                
+            </td>
+            <td class="loc">src/app/services/supabase.service.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Insufficient role-based access control in auth guard</strong>
+                <div class="desc">The authGuard checks if roles array exists and has length &gt; 0, but requires roles to be explicitly defined in route data. Routes without defined roles default to denying access (returning false), but this creates an error state rather than graceful handling. More critically, there's no validation that profile.role actually matches UserRole enum values.</div>
+                
+            </td>
+            <td class="loc">src/app/auth.guard.ts:15</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing Content Security Policy (CSP) headers</strong>
+                <div class="desc">No Content Security Policy is defined in index.html or server configuration. This leaves the application vulnerable to XSS attacks and allows arbitrary script execution.</div>
                 
             </td>
             <td class="loc">src/index.html:1</td>
@@ -156,44 +194,132 @@
             <td><span class="severity high">high</span></td>
             <td>security</td>
             <td>
-                <strong>Unsafe inline scripts in index.html (Chart.js CDN)</strong>
-                <div class="desc">The application loads Chart.js from CDN (https://cdn.jsdelivr.net/npm/chart.js) as an inline script without integrity checking. This bypasses CSP and could be exploited via CDN compromise.</div>
+                <strong>No protection against brute force login attempts</strong>
+                <div class="desc">The login endpoint has no rate limiting, account lockout mechanism, or progressive delay. An attacker can attempt unlimited login tries without consequences.</div>
                 
             </td>
-            <td class="loc">src/index.html:19</td>
+            <td class="loc">src/app/login/login.component.ts:20</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Sensitive user data stored in localStorage without encryption</strong>
+                <div class="desc">User credentials and sensitive profile information (user_id, user_name, user_email, user_role) are stored in plaintext in localStorage. This exposes data to XSS attacks and local storage enumeration. localStorage is accessible to any JavaScript code running in the origin and persists across sessions.</div>
+                
+            </td>
+            <td class="loc">src/app/components/sidebar/sidebar.component.ts:14</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing Content Security Policy headers</strong>
+                <div class="desc">The application does not implement CSP headers (visible in HTML or server config). This increases risk of XSS attacks, data exfiltration via third-party scripts, and unauthorized API calls. The inline styles and potential for unsafe-inline scripts are not mitigated.</div>
+                
+            </td>
+            <td class="loc">src/index.html:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Hardcoded CDN URL for external scripts without integrity checks</strong>
+                <div class="desc">The application loads Chart.js from CDN without Subresource Integrity (SRI) verification. If the CDN is compromised or MITM attack occurs, malicious script could be loaded. Font Awesome and Google Fonts are also loaded from external sources without SRI.</div>
+                
+            </td>
+            <td class="loc">src/index.html:18</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No validation on product image URLs before rendering</strong>
+                <div class="desc">The products component displays product images from database URLs without validation or sanitization. Malicious users with database access could inject data: URIs, javascript: protocols, or third-party tracking URLs that could exfiltrate user data or execute scripts.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/products/products.component.html:119</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity high">high</span></td>
             <td>security</td>
             <td>
-                <strong>Sensitive data stored in localStorage without encryption</strong>
-                <div class="desc">User credentials and personal data (user_name, user_email, user_id, user_role) are stored in localStorage as plain text in multiple components (sidebar.component.ts, owner-dashboard.component.ts, products.component.ts). localStorage is vulnerable to XSS attacks.</div>
+                <strong>Unvalidated modal element ID concatenation creating potential DOM-based XSS</strong>
+                <div class="desc">The reconciliation component creates dynamic element IDs by concatenating data without sanitization. If mismatch.id contains special characters, it could break out of the ID attribute and inject attributes or event handlers.</div>
                 
             </td>
-            <td class="loc">src/app/components/sidebar/sidebar.component.ts:9</td>
+            <td class="loc">src/app/pages/reconciliation/reconciliation.component.html:31</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing HTTPS enforcement and security headers configuration</strong>
+                <div class="desc">The application lacks explicit HTTPS enforcement, HSTS headers, X-Frame-Options, X-Content-Type-Options, and other critical security headers. The index.html loads external resources (Google Fonts, FontAwesome CDN, Chart.js CDN) over HTTPS but there's no Content-Security-Policy configured. Angular production builds don't automatically enforce these headers without explicit server configuration.</div>
+                
+            </td>
+            <td class="loc">src/index.html:1</td>
             <td><span class="tier">T1</span></td>
         </tr>
         <tr>
             <td><span class="severity high">high</span></td>
             <td>security</td>
             <td>
-                <strong>Hardcoded Supabase URL/Key risk in environment variable usage</strong>
-                <div class="desc">While the code references supabase.service.ts which likely initializes Supabase, there's no .env.example or documented environment variable naming convention visible. The anonymous key should be used only for public operations; service role key must not be exposed client-side.</div>
+                <strong>Sensitive data stored in localStorage without encryption</strong>
+                <div class="desc">User credentials and profile information (user_id, user_name, user_email, user_role) are stored in plaintext localStorage. This is vulnerable to XSS attacks and can leak sensitive information if browser storage is compromised. localStorage is accessible to any JavaScript in the same origin, including malicious scripts injected via XSS.</div>
                 
             </td>
-            <td class="loc">README.md:67</td>
+            <td class="loc">src/app/components/sidebar/sidebar.component.ts:8</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No rate limiting on API endpoints</strong>
+                <div class="desc">The Supabase service makes multiple API calls (authentication, data queries, realtime subscriptions) without apparent rate limiting. No throttling mechanism is visible in the SupabaseService, and Angular HttpClient is configured without rate limit interceptors. This exposes the application to brute-force attacks, DOS, and resource exhaustion.</div>
+                
+            </td>
+            <td class="loc">src/app/app.config.ts:1</td>
             <td><span class="tier">T1</span></td>
         </tr>
         <tr>
             <td><span class="severity high">high</span></td>
             <td>performance</td>
             <td>
-                <strong>Missing pagination on product list</strong>
-                <div class="desc">The product service loads all products without pagination or limit. In stock-alerts.component.ts and products.component.ts, loadProducts() fetches the entire product table which will cause performance degradation as inventory grows.</div>
+                <strong>Missing pagination on products list</strong>
+                <div class="desc">The products.component.ts loads all products without any pagination. For large product catalogs, this will cause significant performance degradation with thousands of records fetched simultaneously.</div>
                 
             </td>
-            <td class="loc">src/app/components/stock-alerts/stock-alerts.component.ts:26</td>
+            <td class="loc">src/app/pages/products/products.component.ts:79</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Missing pagination on sales history</strong>
+                <div class="desc">The analysis component loads all sales history for a given month without pagination. For high-volume retail, this could result in hundreds or thousands of records being loaded at once.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:101</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>No eager loading of relations in queries</strong>
+                <div class="desc">The sales history query appears to fetch raw data then map it, but likely doesn't use Supabase's select with related tables (products, users). This causes potential N+1 pattern when accessing s.users?.name and s.products?.name in templates.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:101</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
@@ -201,7 +327,7 @@
             <td>architecture</td>
             <td>
                 <strong>God module: supabase.service.ts exceeds 800 LOC with mixed responsibilities</strong>
-                <div class="desc">The Supabase service has grown to 847 LOC containing database operations, authentication logic, data transformation, webhook handling, and business logic across products, sales, inventory, staff, reconciliation, and metrics. This violates single responsibility principle and makes the service difficult to maintain and test.</div>
+                <div class="desc">The Supabase service file contains 847 lines of code handling authentication, data access, webhook management, and business logic all in a single service. This violates single responsibility principle and makes the module difficult to test and maintain. Multiple unrelated concerns (auth, CRUD operations, webhook handling) are tightly coupled together.</div>
                 
             </td>
             <td class="loc">src/app/services/supabase.service.ts:1</td>
@@ -211,52 +337,74 @@
             <td><span class="severity high">high</span></td>
             <td>architecture</td>
             <td>
-                <strong>Missing service layer abstraction for business logic</strong>
-                <div class="desc">Components (sales-dashboard, products, inventory, analysis) directly inject and call SupabaseService methods for data operations. This creates tight coupling between presentation and data layers, making it difficult to swap data sources or test components in isolation.</div>
+                <strong>Missing service layer abstraction: Components directly access Supabase service</strong>
+                <div class="desc">Multiple page components (sales-dashboard, inventory, products, reconciliation, analysis, staff, owner-dashboard) directly inject and call the monolithic Supabase service. This creates tight coupling between presentation layer and data access, making it difficult to swap implementations, test components in isolation, or refactor data access patterns.</div>
                 
             </td>
-            <td class="loc">src/app/pages/products/products.component.ts:1</td>
-            <td><span class="tier">T3</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity high">high</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>Tightly coupled presentation and data access layers</strong>
-                <div class="desc">No repository pattern or data access abstraction layer exists. Components directly instantiate and call Supabase client operations, making it impossible to swap implementations or mock for testing without modifying component code.</div>
-                
-            </td>
-            <td class="loc">src/app/pages/reconciliation/reconciliation.component.ts:1</td>
+            <td class="loc">src/app/pages/sales-dashboard/sales-dashboard.component.ts:1</td>
             <td><span class="tier">T3</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>security</td>
             <td>
-                <strong>Font Awesome CSS loaded over HTTP without integrity check</strong>
-                <div class="desc">Font Awesome CSS is loaded from cdnjs.cloudflare.com without SRI (Subresource Integrity). If the CDN is compromised, malicious CSS injection is possible.</div>
+                <strong>No CSRF protection on form submissions</strong>
+                <div class="desc">The login form and other POST operations (product creation, mismatch resolution) use HTTP methods without visible CSRF token validation. While Supabase may provide backend protection, frontend-level CSRF tokens are not implemented or validated.</div>
                 
             </td>
-            <td class="loc">src/index.html:14</td>
+            <td class="loc">src/app/login/login.component.ts:25</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Hardcoded role checks without centralized authorization service</strong>
+                <div class="desc">Role-based access is checked in multiple components using hardcoded string comparisons (e.g., 'admin', 'sales'). This scattered logic makes it difficult to audit and maintain authorization rules, and there's no centralized policy enforcement.</div>
+                
+            </td>
+            <td class="loc">src/app/components/sidebar/sidebar.component.html:24</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No protection against account enumeration via login endpoint</strong>
+                <div class="desc">The login component shows detailed error messages that could allow attackers to enumerate valid user accounts (e.g., 'Login failed: User not found' vs 'Login failed: Invalid password').</div>
+                
+            </td>
+            <td class="loc">src/app/login/login.component.ts:26</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Disabled user accounts not immediately revoked on login</strong>
+                <div class="desc">While the code checks if profile.is_active is false and signs out the user, it still allows them to proceed to role-based routing before the check happens. The check occurs after session creation, not as part of the authentication flow.</div>
+                
+            </td>
+            <td class="loc">src/app/login/login.component.ts:35</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>security</td>
             <td>
-                <strong>localStorage.clear() in logout without session invalidation verification</strong>
-                <div class="desc">In owner-dashboard.component.ts, handleLogout() clears localStorage and calls signOut(), but there's no verification that the backend session was successfully revoked before clearing local data. An attacker could intercept and maintain a session.</div>
+                <strong>Automatic logout service may not properly invalidate tokens</strong>
+                <div class="desc">The auto-logout.service is referenced but not shown in provided code. If it relies only on client-side timers without backend session invalidation, tokens could remain valid server-side even after logout.</div>
                 
             </td>
-            <td class="loc">src/app/pages/owner-dashboard/owner-dashboard.component.ts:95</td>
-            <td><span class="tier">T2</span></td>
+            <td class="loc">src/app/app.component.ts:35</td>
+            <td><span class="tier">T1</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>security</td>
             <td>
-                <strong>Missing CORS configuration validation</strong>
-                <div class="desc">The application uses @supabase/supabase-js but there's no explicit CORS configuration visible in the app config. If Supabase CORS settings are misconfigured, cross-origin requests could be vulnerable.</div>
+                <strong>No explicit HTTP-only and Secure cookie configuration visible</strong>
+                <div class="desc">While Supabase handles session cookies internally, there's no evidence that the application is enforcing HTTP-only and Secure flags or validating cookie security policies.</div>
                 
             </td>
             <td class="loc">src/app/app.config.ts:1</td>
@@ -266,30 +414,173 @@
             <td><span class="severity medium">medium</span></td>
             <td>security</td>
             <td>
-                <strong>No rate limiting on API requests</strong>
-                <div class="desc">The application makes direct calls to Supabase via supabase.service.ts without any visible rate limiting or request throttling. This makes it vulnerable to abuse and denial-of-service attacks.</div>
+                <strong>Sensitive modal operations lack authorization checks</strong>
+                <div class="desc">The reconciliation modal that allows admins to void transactions and the product pricing modal allow sensitive operations without re-confirming authorization or checking permissions beyond initial route guard.</div>
                 
             </td>
-            <td class="loc">src/app/services/supabase.service.ts:1</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity medium">medium</span></td>
-            <td>security</td>
-            <td>
-                <strong>Debug mode/development tools exposed in production build</strong>
-                <div class="desc">The tsconfig.json has sourceMap support enabled, and main.ts includes .catch() with console.error(). In production builds, source maps and verbose error logging expose internal code structure and error details.</div>
-                
-            </td>
-            <td class="loc">src/main.ts:4</td>
+            <td class="loc">src/app/pages/reconciliation/reconciliation.component.ts:86</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>security</td>
             <td>
-                <strong>No HSTS (HTTP Strict-Transport-Security) header configuration</strong>
-                <div class="desc">The application uses HTTPS (via Supabase), but there's no Strict-Transport-Security header configured to force HTTPS-only connections and prevent downgrade attacks.</div>
+                <strong>Missing input validation on reconciliation modal form inputs</strong>
+                <div class="desc">The reconciliation component accepts manual quantity input without type validation or sanitization. The form uses ngModel binding directly to template without HTML5 input constraints or Angular validation. Negative values are checked only at confirmation stage, allowing malformed data in the form state.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/reconciliation/reconciliation.component.html:108</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unvalidated product search input allowing potential XSS</strong>
+                <div class="desc">The products component accepts searchTerm from user input without sanitization and directly filters products based on string matching. While this doesn't directly render untrusted HTML, the pattern is vulnerable if search results are later displayed with interpolation in templates without property binding.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/products/products.component.ts:87</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing CSRF protection on state-changing operations</strong>
+                <div class="desc">The application uses Angular's default HTTP client setup without explicit CSRF token handling in headers. While Supabase handles auth via JWT, state-changing operations like void transactions, product deletion, and reconciliation updates do not include CSRF tokens. The code relies solely on authentication without additional CSRF protection.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:149</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unvalidated object assignment in reconciliation resolution</strong>
+                <div class="desc">The reconciliation component uses ngModel for form binding without strict type validation. The manualQty field accepts any value from input and is used directly in calculation without type coercion validation. The resolutionNote field is also unvalidated and passed directly to backend.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/reconciliation/reconciliation.component.ts:83</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unencrypted sensitive data in API responses and state</strong>
+                <div class="desc">The application receives and stores sensitive financial data (transaction amounts, customer details, stock counts) in component state and displays them in the DOM without explicit encryption or protection. The data flows from Supabase (over HTTPS, which is good) but is stored in plaintext in memory and potentially in browser caches.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:18</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unvalidated receipt/invoice data passed to DOM without sanitization</strong>
+                <div class="desc">The reconciliation and analysis components display invoice data (item summaries, descriptions, product names) directly in templates using string interpolation. While data comes from database, if any field is user-controlled or vulnerable to injection upstream, it could render malicious content.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/reconciliation/reconciliation.component.html:31</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Void transaction reason field lacks length and content validation</strong>
+                <div class="desc">The voidReason input accepts text up to 500 characters potentially with SQL-like or malicious payloads. The validation only checks for minimum length (5 chars) but doesn't sanitize for special characters or SQL injection patterns. This data is sent to the backend without parameterized query verification visible in the frontend.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:148</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>CORS configuration not visible - potential origin bypass</strong>
+                <div class="desc">No explicit CORS configuration is visible in the provided code. The application uses Supabase backend but Angular's HttpClient default CORS policy and Supabase's CORS settings are not documented. Without explicit CORS configuration, the application may be vulnerable to cross-origin attacks or overly permissive configurations.</div>
+                
+            </td>
+            <td class="loc">src/app/app.config.ts:1</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>External CDN dependencies without Subresource Integrity (SRI)</strong>
+                <div class="desc">The application loads Chart.js from CDN (cdn.jsdelivr.net) and FontAwesome (cdnjs.cloudflare.com) in index.html without Subresource Integrity hashes. This makes the application vulnerable to CDN compromise attacks where malicious code could be injected.</div>
+                
+            </td>
+            <td class="loc">src/index.html:18</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Verbose error messages exposed to users in production</strong>
+                <div class="desc">Error handling in multiple components logs full error objects and stack traces to console and toast notifications. In reconciliation.component.ts line 168 and analysis.component.ts, errors are caught and displayed with potentially sensitive details. Production users could see database errors, API paths, and implementation details.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/reconciliation/reconciliation.component.ts:162</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Debug mode potentially enabled in production</strong>
+                <div class="desc">The README mentions 'Angular v19+' and app.component.ts initializes multiple debug-friendly subscriptions and signal effects. No environment-specific configuration visible that would disable debug features in production builds. Source maps may be exposed in production bundle.</div>
+                
+            </td>
+            <td class="loc">src/app/app.component.ts:28</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Known vulnerable dependency versions</strong>
+                <div class="desc">package.json uses @supabase/supabase-js@^2.81.1 with npm override for @supabase/gotrue-js@2.61.0. The caret (^) allows minor version updates. Chart.js@^4.5.1, RxJS@~7.8.0 are specified with loose versioning. No lock file security audit visible. Potential known CVEs in transitive dependencies.</div>
+                
+            </td>
+            <td class="loc">package.json:7</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing request timeout configuration</strong>
+                <div class="desc">Angular HttpClient is configured without explicit timeout settings. Long-running requests or network hangs could leave connections open indefinitely, consuming resources and enabling slowloris-style DOS attacks.</div>
+                
+            </td>
+            <td class="loc">src/app/app.config.ts:1</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No CSRF protection configured</strong>
+                <div class="desc">Angular provides built-in CSRF protection via HttpClientXsrfModule, but there's no visible configuration in app.config.ts or mention of CSRF tokens in API calls. The backend Supabase authentication may handle some CSRF protection, but explicit client-side configuration is missing.</div>
+                
+            </td>
+            <td class="loc">src/app/app.config.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Content Security Policy (CSP) headers configured</strong>
+                <div class="desc">Application loads external resources (Google Fonts, FontAwesome CDN, Chart.js) but has no CSP header to restrict script/style sources. This leaves the app vulnerable to XSS and malicious injection attacks.</div>
                 
             </td>
             <td class="loc">src/index.html:1</td>
@@ -299,74 +590,63 @@
             <td><span class="severity medium">medium</span></td>
             <td>performance</td>
             <td>
-                <strong>Sequential API calls in dashboard metrics</strong>
-                <div class="desc">In dashboard-metrics.component.ts, getDashboardMetrics() and getSalesDashboardMetrics() are called sequentially with await, blocking parallel execution.</div>
+                <strong>No caching for dashboard metrics API calls</strong>
+                <div class="desc">DashboardMetricsComponent makes two separate API calls (getDashboardMetrics, getSalesDashboardMetrics) every time the component initializes. These values change infrequently but are fetched repeatedly on navigation.</div>
                 
             </td>
-            <td class="loc">src/app/components/dashboard-metrics/dashboard-metrics.component.ts:17</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity medium">medium</span></td>
-            <td>performance</td>
-            <td>
-                <strong>No request debouncing on search input</strong>
-                <div class="desc">In products.component.ts, onSearch() is called on every input event without debouncing. Each keystroke triggers a full filter operation over all products.</div>
-                
-            </td>
-            <td class="loc">src/app/pages/products/products.component.ts:121</td>
+            <td class="loc">src/app/components/dashboard-metrics/dashboard-metrics.component.ts:20</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>performance</td>
             <td>
-                <strong>Chart.js loaded via CDN blocking render</strong>
-                <div class="desc">In index.html, Chart.js is loaded via a blocking &lt;script&gt; tag in the &lt;head&gt;. This delays First Contentful Paint and doesn't leverage Angular's build optimization.</div>
+                <strong>Unbounded realtime subscription without throttling</strong>
+                <div class="desc">The owner-dashboard subscribes to notifications via realtime but loads all unread notifications on init without limiting the result set. Additionally, the activity feed loads last 10 sales with no pagination controls.</div>
                 
             </td>
-            <td class="loc">src/index.html:18</td>
+            <td class="loc">src/app/pages/owner-dashboard/owner-dashboard.component.ts:56</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>performance</td>
             <td>
-                <strong>Font Awesome full library import</strong>
-                <div class="desc">package.json imports @fortawesome/fontawesome-svg-core and multiple icon sets (free-brands, free-regular, free-solid). The free-solid set alone includes 2000+ icons, significantly increasing bundle size.</div>
+                <strong>Repeated computation in filter loop</strong>
+                <div class="desc">The products component filters all products on every search input change without debouncing. This causes unnecessary recalculation on each keystroke.</div>
                 
             </td>
-            <td class="loc">package.json:17</td>
-            <td><span class="tier">T1</span></td>
+            <td class="loc">src/app/pages/products/products.component.ts:117</td>
+            <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>performance</td>
             <td>
                 <strong>Missing OnPush change detection strategy</strong>
-                <div class="desc">Components use default change detection which runs on every change detection cycle. Components like dashboard-metrics, activity-feed, stock-alerts that only update based on service signals should use OnPush for better performance.</div>
+                <div class="desc">Components use default change detection which causes unnecessary re-renders. The dashboard-metrics, activity-feed, and stock-alerts components would benefit from OnPush strategy.</div>
                 
             </td>
-            <td class="loc">src/app/components/dashboard-metrics/dashboard-metrics.component.ts:1</td>
+            <td class="loc">src/app/components/dashboard-metrics/dashboard-metrics.component.ts:9</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>performance</td>
             <td>
-                <strong>No lazy loading for Chart.js in analysis page</strong>
-                <div class="desc">The analysis.component.ts imports and uses Chart.js but it loads synchronously. With the CDN approach, the entire library is loaded even if users never visit the analytics tab.</div>
+                <strong>Multiple sequential async calls in component init</strong>
+                <div class="desc">Analysis component makes 5 sequential await calls in ngOnInit, blocking UI render until all complete. These could be parallelized with Promise.all.</div>
                 
             </td>
-            <td class="loc">src/app/pages/analysis/analysis.component.ts:1</td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:63</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
             <td><span class="severity medium">medium</span></td>
             <td>architecture</td>
             <td>
-                <strong>Inconsistent service usage patterns across modules</strong>
-                <div class="desc">Some components use product.service.ts (ProductService exists with 149 LOC), while others bypass it and call SupabaseService directly. This inconsistency creates maintenance burden and confusion about the single source of truth for product-related operations.</div>
+                <strong>Inconsistent service architecture: ProductService exists but logic may be duplicated in SupabaseService</strong>
+                <div class="desc">ProductService (149 LOC) exists alongside SupabaseService, but unclear separation of responsibilities. Components may be calling both services or the pattern is inconsistently applied across the codebase. This creates confusion about which service should be used for product operations.</div>
                 
             </td>
             <td class="loc">src/app/services/product.service.ts:1</td>
@@ -376,8 +656,19 @@
             <td><span class="severity medium">medium</span></td>
             <td>architecture</td>
             <td>
-                <strong>App-ui-components module mixing multiple concerns (620 LOC)</strong>
-                <div class="desc">The UI components module combines unrelated concerns: sidebar navigation, loading indicators, toast notifications, stock alerts, activity feed, and dashboard metrics. These should be organized by functional domain rather than UI type.</div>
+                <strong>Sales-management module lacks cohesion with 4 distinct components handling related concerns</strong>
+                <div class="desc">The sales-management module (800 LOC, 16 files) contains 4 separate components (sales-dashboard, sales-history, sales-lookup, sales-receive) that appear to handle different aspects of sales but lack clear service layer abstraction. Components likely duplicate similar Supabase calls and business logic. No shared sales service layer to coordinate these concerns.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/sales-dashboard/sales-dashboard.component.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Layout and UI components tightly coupled with business logic containers</strong>
+                <div class="desc">Layout components (sidebar, admin-layout, main-layout) are located in src/app/components/ alongside UI components (loading, toast, dashboard-metrics, stock-alerts, activity-feed). Layout containers that manage business state should be separated from pure UI components. Current organization makes it unclear which components handle presentation vs. state management.</div>
                 
             </td>
             <td class="loc">src/app/components/:1</td>
@@ -387,155 +678,122 @@
             <td><span class="severity medium">medium</span></td>
             <td>architecture</td>
             <td>
-                <strong>No abstraction for external API/webhook interactions</strong>
-                <div class="desc">WebhookService exists (40 LOC) but its integration with business logic is unclear. No adapter pattern for external system communication, making it difficult to trace data flow to external systems.</div>
+                <strong>Analysis component (292 LOC) has large TypeScript footprint suggesting mixed responsibilities</strong>
+                <div class="desc">The analysis component contains 292 lines of TypeScript logic alongside 464 lines of HTML and 1128 lines of CSS. This suggests the component may be handling AI report generation logic, data transformation, visualization setup, and presentation—multiple responsibilities that should be separated.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Authentication logic scattered across multiple locations</strong>
+                <div class="desc">Auth logic is spread across: auth.guard.ts (37 LOC), login.component.ts (68 LOC), and likely within supabase.service.ts (847 LOC). No centralized AuthService facade exists, making it unclear where authentication state is managed and how to extend auth functionality consistently.</div>
+                
+            </td>
+            <td class="loc">src/app/auth.guard.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing repository pattern for data persistence abstraction</strong>
+                <div class="desc">All data access goes directly through SupabaseService without repository pattern. No abstraction layer between business logic (components/services) and Supabase SDK. If database provider needs to change (e.g., from Supabase to Firebase), all components and services require modification.</div>
+                
+            </td>
+            <td class="loc">src/app/services/supabase.service.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Password visibility toggle exposes input value in DOM</strong>
+                <div class="desc">The password visibility toggle feature switches between input type='password' and type='text', but this could expose passwords if DOM is inspected or if there's a DOM-based XSS vulnerability.</div>
+                
+            </td>
+            <td class="loc">src/app/login/login.component.ts:52</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unvalidated numerical input in expense and stock calculations</strong>
+                <div class="desc">The analysis component calculates financial metrics (totalSpent, netProfit) from database values without validating that amounts are valid positive numbers. If backend data is corrupted or user manipulates data upstream, calculations could produce NaN or Infinity values.</div>
+                
+            </td>
+            <td class="loc">src/app/pages/analysis/analysis.component.ts:213</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unused dependency 'random-verse' increases attack surface</strong>
+                <div class="desc">package.json includes 'random-verse@^1.0.1' which appears unused in the codebase (no import statements found). Including unused dependencies increases the dependency tree size and potential vulnerability surface.</div>
+                
+            </td>
+            <td class="loc">package.json:17</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Overly permissive TypeScript configuration may hide type errors</strong>
+                <div class="desc">tsconfig.json uses `skipLibCheck: true` which skips type checking for declaration files. This can hide vulnerabilities in type definitions and third-party packages. Using `strict: true` but with skipLibCheck reduces effectiveness.</div>
+                
+            </td>
+            <td class="loc">tsconfig.json:7</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>No auto-logout timeout visible in configuration</strong>
+                <div class="desc">While auto-logout service exists (auto-logout.service.ts mentioned), timeout duration is not configurable or visible in settings. Default timeout values could be too long or users can't adjust for security-sensitive environments.</div>
+                
+            </td>
+            <td class="loc">src/app/app.component.ts:1</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Realtime subscriptions without cleanup guarantee</strong>
+                <div class="desc">StockAlertsComponent starts listening in ngOnInit but the stopListening() is called in ngOnDestroy. If component is destroyed before data loads, there could be a race condition.</div>
+                
+            </td>
+            <td class="loc">src/app/components/stock-alerts/stock-alerts.component.ts:37</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Webhook and notification services lack clear abstraction boundaries</strong>
+                <div class="desc">WebhookService (40 LOC), ToastService (32 LOC), and notification-related logic may be scattered. Unclear how external webhooks, internal notifications, and user-facing toasts coordinate. Potential for duplicate notification handling logic.</div>
                 
             </td>
             <td class="loc">src/app/services/webhook.service.ts:1</td>
             <td><span class="tier">T2</span></td>
         </tr>
         <tr>
-            <td><span class="severity medium">medium</span></td>
+            <td><span class="severity low">low</span></td>
             <td>architecture</td>
             <td>
-                <strong>Session management scattered across multiple services</strong>
-                <div class="desc">Auto-logout (74 LOC), page-reload (71 LOC), and loading (26 LOC) services handle session and state management in isolation. No unified session/state management strategy, leading to potential race conditions and inconsistent user experience.</div>
+                <strong>Cross-cutting concerns (Loading, AutoLogout, PageReload) lack centralized orchestration</strong>
+                <div class="desc">Three utility services manage application-wide concerns: LoadingService (26 LOC), AutoLogoutService (74 LOC), PageReloadService (71 LOC). These services likely have complex interdependencies and subscribe to shared state but lack orchestration. No clear owner for managing their lifecycle and interactions.</div>
                 
             </td>
-            <td class="loc">src/app/services/auto-logout.service.ts:1</td>
+            <td class="loc">src/app/services/loading.service.ts:1</td>
             <td><span class="tier">T3</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity medium">medium</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>Configuration values and constants scattered across files</strong>
-                <div class="desc">Magic strings and hardcoded values likely exist throughout components and services (auth paths, table names, API endpoints). No centralized configuration module identified.</div>
-                
-            </td>
-            <td class="loc">src/app/app.config.ts:1</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity medium">medium</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>No clear feature module boundaries or lazy loading strategy</strong>
-                <div class="desc">All pages are loaded eagerly into app-core module. No feature modules defined for sales, inventory, admin, or analysis features. This prevents code splitting and lazy loading optimization.</div>
-                
-            </td>
-            <td class="loc">src/app/app.routes.ts:1</td>
-            <td><span class="tier">T3</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity medium">medium</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>Inconsistent error handling and logging strategy</strong>
-                <div class="desc">Error handling appears ad-hoc without centralized error handler, logging service, or consistent error reporting pattern. No error boundary or global error handler identified.</div>
-                
-            </td>
-            <td class="loc">src/app/services/supabase.service.ts:1</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity medium">medium</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>Analysis component significantly exceeds recommended size (292 LOC + 464 HTML + 1128 CSS)</strong>
-                <div class="desc">The analysis.component.ts (292 LOC), analysis.component.html (464 LOC), and analysis.component.css (1128 LOC) combine to form a very large feature component that likely contains multiple responsibilities and would benefit from decomposition into smaller sub-components.</div>
-                
-            </td>
-            <td class="loc">src/app/pages/analysis/analysis.component.ts:1</td>
-            <td><span class="tier">T2</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>security</td>
-            <td>
-                <strong>Missing X-Content-Type-Options MIME type validation</strong>
-                <div class="desc">TypeScript is set to strict mode in tsconfig.json, but there's no HTTP header configuration to prevent MIME type sniffing. External resources (fonts, icons) could be served with wrong MIME types.</div>
-                
-            </td>
-            <td class="loc">src/index.html:1</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>security</td>
-            <td>
-                <strong>Toast error messages may expose system information</strong>
-                <div class="desc">In multiple components (reconciliation, products, analysis), error messages from Supabase are displayed directly to users via toast notifications without sanitization. This can expose database table names, API details, or internal error messages.</div>
-                
-            </td>
-            <td class="loc">src/app/pages/products/products.component.ts:129</td>
-            <td><span class="tier">T2</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>security</td>
-            <td>
-                <strong>Missing Content-Security-Policy directives for Google Fonts</strong>
-                <div class="desc">The application preconnects to fonts.googleapis.com and fonts.gstatic.com without CSP directives that explicitly allow these resources, making it vulnerable to injection attacks if CSP is implemented.</div>
-                
-            </td>
-            <td class="loc">src/index.html:9</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>performance</td>
-            <td>
-                <strong>Inefficient filter in products component</strong>
-                <div class="desc">The filterProducts() method in products.component.ts creates a new array on every call using filter() which iterates all products. Combined with no debouncing on search, this causes repeated O(n) operations.</div>
-                
-            </td>
-            <td class="loc">src/app/pages/products/products.component.ts:117</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>performance</td>
-            <td>
-                <strong>Multiple realtime subscriptions without cleanup guarantee</strong>
-                <div class="desc">In owner-dashboard.component.ts, the notification subscription is created but ngOnDestroy only checks for truthiness. If startListening() fails or throws, subscriptions may leak.</div>
-                
-            </td>
-            <td class="loc">src/app/pages/owner-dashboard/owner-dashboard.component.ts:45</td>
-            <td><span class="tier">T1</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>Missing core module for singleton services</strong>
-                <div class="desc">Singleton services (SupabaseService, AuthService, ToastService, LoadingService) are scattered in src/app/services/ without clear separation from feature services. No CoreModule pattern to centralize and guard singleton instantiation.</div>
-                
-            </td>
-            <td class="loc">src/app/services/:1</td>
-            <td><span class="tier">T0</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>Potential circular dependency risk: layouts depend on components</strong>
-                <div class="desc">Admin-layout and main-layout components (part of app-layouts module) likely include sidebar and other UI components from app-ui-components. If those components import layout services, circular dependency exists.</div>
-                
-            </td>
-            <td class="loc">src/app/components/admin-layout/admin-layout.component.ts:1</td>
-            <td><span class="tier">T3</span></td>
-        </tr>
-        <tr>
-            <td><span class="severity low">low</span></td>
-            <td>architecture</td>
-            <td>
-                <strong>Products and inventory components large and potentially mixed in responsibility (240 LOC, 178 LOC)</strong>
-                <div class="desc">Products component (240 LOC) and inventory component (178 LOC) are among the largest page components. They likely combine CRUD operations, data display, filtering, and form handling without clear separation.</div>
-                
-            </td>
-            <td class="loc">src/app/pages/products/products.component.ts:1</td>
-            <td><span class="tier">T2</span></td>
         </tr></tbody>
     </table>
 

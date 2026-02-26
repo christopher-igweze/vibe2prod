@@ -1,21 +1,67 @@
 {
   "findings": [
     {
-      "id": "F-6999fda7",
-      "title": "Sequential API calls in dashboard metrics",
-      "description": "In dashboard-metrics.component.ts, getDashboardMetrics() and getSalesDashboardMetrics() are called sequentially with await, blocking parallel execution.",
+      "id": "F-f8d2892c",
+      "title": "Missing pagination on products list",
+      "description": "The products.component.ts loads all products without any pagination. For large product catalogs, this will cause significant performance degradation with thousands of records fetched simultaneously.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 79,
+          "line_end": 82,
+          "snippet": "effect(() => {\n      this.products = this.productService.products();\n      this.loading = this.productService.loading();\n      this.filterProducts();\n      this.calculateStats();\n    });"
+        }
+      ],
+      "suggested_fix": "Implement server-side pagination in ProductService with limit/offset or cursor-based pagination. Add pagination controls to the template with page size of 20-50 items.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-64c4e97e",
+      "title": "No caching for dashboard metrics API calls",
+      "description": "DashboardMetricsComponent makes two separate API calls (getDashboardMetrics, getSalesDashboardMetrics) every time the component initializes. These values change infrequently but are fetched repeatedly on navigation.",
       "category": "performance",
       "severity": "medium",
       "audit_pass": "performance",
       "locations": [
         {
           "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-          "line_start": 17,
-          "line_end": 21,
-          "snippet": "async ngOnInit() {\n    this.metrics = await this.supabase.getDashboardMetrics();\n    this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n}"
+          "line_start": 20,
+          "line_end": 24,
+          "snippet": "async ngOnInit() {\n        this.metrics = await this.supabase.getDashboardMetrics();\n        this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n    }"
         }
       ],
-      "suggested_fix": "Use Promise.all() to parallelize both API calls: const [metrics, salesMetrics] = await Promise.all([this.supabase.getDashboardMetrics(), this.supabase.getSalesDashboardMetrics()]);",
+      "suggested_fix": "Add caching to SupabaseService methods with a TTL (e.g., 5 minutes) using RxJS shareReplay or a simple Map-based cache. Reuse cached data if available and not expired.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d0caaf77",
+      "title": "Missing pagination on sales history",
+      "description": "The analysis component loads all sales history for a given month without pagination. For high-volume retail, this could result in hundreds or thousands of records being loaded at once.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 101,
+          "line_end": 108,
+          "snippet": "async loadHistory() {\n        const { start, end } = this.getDateRange();\n        const rawSales = await this.supabase.getSalesHistory(start, end);\n        const filtered = rawSales.filter((s: Sale) => {\n            if (this.filters.staff !== 'all' && s.recorded_by !== this.filters.staff) return false;\n            if (this.filters.payment !== 'all' && s.payment_method !== this.filters.payment) return false;\n            return true;\n        });"
+        }
+      ],
+      "suggested_fix": "Implement pagination in getSalesHistory with page/limit parameters. Load initial 50 records and implement infinite scroll or pagination controls for additional pages.",
       "confidence": 0.9,
       "cwe_id": "",
       "owasp_ref": "",
@@ -24,50 +70,27 @@
       "dedup_key": ""
     },
     {
-      "id": "F-47b4b8cc",
-      "title": "Missing pagination on product list",
-      "description": "The product service loads all products without pagination or limit. In stock-alerts.component.ts and products.component.ts, loadProducts() fetches the entire product table which will cause performance degradation as inventory grows.",
-      "category": "performance",
-      "severity": "high",
-      "audit_pass": "performance",
-      "locations": [
-        {
-          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
-          "line_start": 26,
-          "line_end": 28,
-          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
-        },
-        {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 101,
-          "line_end": 103,
-          "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
-        }
-      ],
-      "suggested_fix": "Implement pagination with limit/offset or cursor-based pagination. Add pagination controls to the UI and modify Supabase queries to use .range() with page size of 20-50 items.",
-      "confidence": 0.85,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
-      "tier": null,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-20078201",
-      "title": "No request debouncing on search input",
-      "description": "In products.component.ts, onSearch() is called on every input event without debouncing. Each keystroke triggers a full filter operation over all products.",
+      "id": "F-52dbf45b",
+      "title": "Unbounded realtime subscription without throttling",
+      "description": "The owner-dashboard subscribes to notifications via realtime but loads all unread notifications on init without limiting the result set. Additionally, the activity feed loads last 10 sales with no pagination controls.",
       "category": "performance",
       "severity": "medium",
       "audit_pass": "performance",
       "locations": [
         {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 121,
-          "line_end": 125,
-          "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n}"
+          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+          "line_start": 56,
+          "line_end": 60,
+          "snippet": "async loadData() {\n        this.notifications = await this.supabase.getUnreadNotifications()\n    }"
+        },
+        {
+          "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
+          "line_start": 32,
+          "line_end": 35,
+          "snippet": "async loadData() {\n        const sales: Sale[] = await this.supabase.getRecentSales(); // Returns last 10\n        this.recentActivity = sales.map((s) => ({..."
         }
       ],
-      "suggested_fix": "Use RxJS debounceTime(300) operator or Angular's updateOn: 'blur' for the search form control to prevent excessive filtering.",
+      "suggested_fix": "Add .limit(50) or similar to notification queries. Consider adding a 'load more' mechanism for activity feeds.",
       "confidence": 0.8,
       "cwe_id": "",
       "owasp_ref": "",
@@ -76,22 +99,28 @@
       "dedup_key": ""
     },
     {
-      "id": "F-c6e85c65",
-      "title": "Chart.js loaded via CDN blocking render",
-      "description": "In index.html, Chart.js is loaded via a blocking <script> tag in the <head>. This delays First Contentful Paint and doesn't leverage Angular's build optimization.",
+      "id": "F-7fe9e07e",
+      "title": "Repeated computation in filter loop",
+      "description": "The products component filters all products on every search input change without debouncing. This causes unnecessary recalculation on each keystroke.",
       "category": "performance",
       "severity": "medium",
       "audit_pass": "performance",
       "locations": [
         {
-          "file_path": "src/index.html",
-          "line_start": 18,
-          "line_end": 19,
-          "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 117,
+          "line_end": 124,
+          "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
+        },
+        {
+          "file_path": "src/app/pages/products/products.component.ts",
+          "line_start": 126,
+          "line_end": 129,
+          "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n  }"
         }
       ],
-      "suggested_fix": "Install chart.js via npm and import it only in components that need it, or use dynamic import with IntersectionObserver to load Chart.js lazily when charts enter the viewport.",
-      "confidence": 0.75,
+      "suggested_fix": "Add debounce (300ms) to the onSearch method using RxJS debounceTime operator. This prevents filtering on every keystroke.",
+      "confidence": 0.9,
       "cwe_id": "",
       "owasp_ref": "",
       "agent": "quality_auditor",
@@ -99,50 +128,33 @@
       "dedup_key": ""
     },
     {
-      "id": "F-45205c10",
-      "title": "Font Awesome full library import",
-      "description": "package.json imports @fortawesome/fontawesome-svg-core and multiple icon sets (free-brands, free-regular, free-solid). The free-solid set alone includes 2000+ icons, significantly increasing bundle size.",
-      "category": "performance",
-      "severity": "medium",
-      "audit_pass": "performance",
-      "locations": [
-        {
-          "file_path": "package.json",
-          "line_start": 17,
-          "line_end": 22,
-          "snippet": "\"@fortawesome/angular-fontawesome\": \"^1.0.0\",\n\"@fortawesome/fontawesome-svg-core\": \"^7.1.0\",\n\"@fortawesome/free-brands-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-regular-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-solid-svg-icons\": \"^6.7.2\","
-        }
-      ],
-      "suggested_fix": "Use tree-shaking by importing only specific icons needed: import { faDashboard } from '@fortawesome/free-solid-svg-icons/faDashboard'; Then add them to the providers array in app.config.ts.",
-      "confidence": 0.7,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
-      "tier": null,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-f89e2d88",
+      "id": "F-b2f7ef50",
       "title": "Missing OnPush change detection strategy",
-      "description": "Components use default change detection which runs on every change detection cycle. Components like dashboard-metrics, activity-feed, stock-alerts that only update based on service signals should use OnPush for better performance.",
+      "description": "Components use default change detection which causes unnecessary re-renders. The dashboard-metrics, activity-feed, and stock-alerts components would benefit from OnPush strategy.",
       "category": "performance",
       "severity": "medium",
       "audit_pass": "performance",
       "locations": [
         {
           "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-          "line_start": 1,
-          "line_end": 15,
+          "line_start": 9,
+          "line_end": 17,
           "snippet": "@Component({\n    selector: 'app-dashboard-metrics',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './dashboard-metrics.component.html',\n    styleUrls: ['./dashboard-metrics.component.css']\n})"
         },
         {
           "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
-          "line_start": 19,
-          "line_end": 31,
+          "line_start": 22,
+          "line_end": 30,
           "snippet": "@Component({\n    selector: 'app-activity-feed',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './activity-feed.component.html',\n    styleUrls: ['./activity-feed.component.css']\n})"
+        },
+        {
+          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "line_start": 11,
+          "line_end": 19,
+          "snippet": "@Component({\n    selector: 'app-stock-alerts',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './stock-alerts.component.html',\n    styleUrls: ['./stock-alerts.component.css']\n})"
         }
       ],
-      "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components and use Signals for reactive state.",
+      "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components. This reduces change detection cycles significantly.",
       "confidence": 0.85,
       "cwe_id": "",
       "owasp_ref": "",
@@ -151,50 +163,21 @@
       "dedup_key": ""
     },
     {
-      "id": "F-452e9e24",
-      "title": "No lazy loading for Chart.js in analysis page",
-      "description": "The analysis.component.ts imports and uses Chart.js but it loads synchronously. With the CDN approach, the entire library is loaded even if users never visit the analytics tab.",
+      "id": "F-d1dd7fc6",
+      "title": "No eager loading of relations in queries",
+      "description": "The sales history query appears to fetch raw data then map it, but likely doesn't use Supabase's select with related tables (products, users). This causes potential N+1 pattern when accessing s.users?.name and s.products?.name in templates.",
       "category": "performance",
-      "severity": "medium",
+      "severity": "high",
       "audit_pass": "performance",
       "locations": [
         {
           "file_path": "src/app/pages/analysis/analysis.component.ts",
-          "line_start": 1,
-          "line_end": 10,
-          "snippet": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { SupabaseService } from '../../services/supabase.service';"
-        },
-        {
-          "file_path": "src/index.html",
-          "line_start": 18,
-          "line_end": 19,
-          "snippet": "<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+          "line_start": 101,
+          "line_end": 150,
+          "snippet": "const rawSales = await this.supabase.getSalesHistory(start, end);\n        // ...\n        grouped[id].items.push(row);\n        // later in template:\n        staff_name: row.users?.name || 'Unknown',\n        // and in activity-feed:\n        user: s.users?.name || 'Staff',\n        description: `${s.quantity} ${s.unit_type} of ${s.products?.name}`"
         }
       ],
-      "suggested_fix": "Use dynamic import or create a separate chart component loaded via loadComponent() in the route to code-split Chart.js away from the main bundle.",
-      "confidence": 0.7,
-      "cwe_id": "",
-      "owasp_ref": "",
-      "agent": "quality_auditor",
-      "tier": null,
-      "dedup_key": ""
-    },
-    {
-      "id": "F-7f64cef0",
-      "title": "Inefficient filter in products component",
-      "description": "The filterProducts() method in products.component.ts creates a new array on every call using filter() which iterates all products. Combined with no debouncing on search, this causes repeated O(n) operations.",
-      "category": "performance",
-      "severity": "low",
-      "audit_pass": "performance",
-      "locations": [
-        {
-          "file_path": "src/app/pages/products/products.component.ts",
-          "line_start": 117,
-          "line_end": 124,
-          "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
-        }
-      ],
-      "suggested_fix": "Apply debounce to search input and consider using a computed signal with memoization to avoid redundant filtering.",
+      "suggested_fix": "Use Supabase's .select('*, products(*), users(*)') or equivalent to eagerly load related tables in a single query instead of separate requests.",
       "confidence": 0.75,
       "cwe_id": "",
       "owasp_ref": "",
@@ -203,21 +186,44 @@
       "dedup_key": ""
     },
     {
-      "id": "F-927288d2",
-      "title": "Multiple realtime subscriptions without cleanup guarantee",
-      "description": "In owner-dashboard.component.ts, the notification subscription is created but ngOnDestroy only checks for truthiness. If startListening() fails or throws, subscriptions may leak.",
+      "id": "F-47cc921e",
+      "title": "Multiple sequential async calls in component init",
+      "description": "Analysis component makes 5 sequential await calls in ngOnInit, blocking UI render until all complete. These could be parallelized with Promise.all.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "src/app/pages/analysis/analysis.component.ts",
+          "line_start": 63,
+          "line_end": 73,
+          "snippet": "async ngOnInit() {\n        this.isLoading = true;\n        this.currentUser = await this.supabase.getCurrentUser();\n        await Promise.all([\n            this.loadMetrics(),\n            this.loadAiReport(),\n            this.loadHistory(),\n            this.loadExpenses(),\n            this.loadStaff()\n        ]);"
+        }
+      ],
+      "suggested_fix": "The Promise.all is good but getCurrentUser() is outside it. Move getCurrentUser() inside Promise.all or use Promise.allSettled to prevent one failure from blocking others.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9f368be0",
+      "title": "Realtime subscriptions without cleanup guarantee",
+      "description": "StockAlertsComponent starts listening in ngOnInit but the stopListening() is called in ngOnDestroy. If component is destroyed before data loads, there could be a race condition.",
       "category": "performance",
       "severity": "low",
       "audit_pass": "performance",
       "locations": [
         {
-          "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
-          "line_start": 45,
-          "line_end": 56,
-          "snippet": "async ngOnInit() {\n        this.notificationSubscription = this.supabase.subscribeToNotifications((payload) => {\n            this.notifications.unshift(payload.new as Notification)\n            this.loadData();\n        })\n    }\n\n    ngOnDestroy() {\n        if (this.notificationSubscription) {\n            this.notificationSubscription.unsubscribe();\n        }\n    }"
+          "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+          "line_start": 37,
+          "line_end": 42,
+          "snippet": "async ngOnInit() {\n        this.productService.startListening();\n        await this.productService.loadProducts();\n    }\n    ngOnDestroy() {\n        this.productService.stopListening();\n    }"
         }
       ],
-      "suggested_fix": "Use DestroyRef from @angular/core to auto-unsubscribe on component destruction: private destroyRef = inject(DestroyRef); then this.destroyRef.onDestroy(() => this.notificationSubscription?.unsubscribe());",
+      "suggested_fix": "Consider using a subject with takeUntilDestroyed() or a similar pattern to ensure cleanup happens reliably. Also, verify that startListening() properly handles multiple calls.",
       "confidence": 0.7,
       "cwe_id": "",
       "owasp_ref": "",
@@ -235,27 +241,73 @@
     {
       "audit_pass": "code_patterns",
       "findings": [],
-      "pass_summary": "Found 8 code pattern issues including magic numbers, dead code, loose typing, debug logging, mixed patterns, and code duplication in retry logic."
+      "pass_summary": ""
     },
     {
       "audit_pass": "performance",
       "findings": [
         {
-          "id": "F-6999fda7",
-          "title": "Sequential API calls in dashboard metrics",
-          "description": "In dashboard-metrics.component.ts, getDashboardMetrics() and getSalesDashboardMetrics() are called sequentially with await, blocking parallel execution.",
+          "id": "F-f8d2892c",
+          "title": "Missing pagination on products list",
+          "description": "The products.component.ts loads all products without any pagination. For large product catalogs, this will cause significant performance degradation with thousands of records fetched simultaneously.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 79,
+              "line_end": 82,
+              "snippet": "effect(() => {\n      this.products = this.productService.products();\n      this.loading = this.productService.loading();\n      this.filterProducts();\n      this.calculateStats();\n    });"
+            }
+          ],
+          "suggested_fix": "Implement server-side pagination in ProductService with limit/offset or cursor-based pagination. Add pagination controls to the template with page size of 20-50 items.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-64c4e97e",
+          "title": "No caching for dashboard metrics API calls",
+          "description": "DashboardMetricsComponent makes two separate API calls (getDashboardMetrics, getSalesDashboardMetrics) every time the component initializes. These values change infrequently but are fetched repeatedly on navigation.",
           "category": "performance",
           "severity": "medium",
           "audit_pass": "performance",
           "locations": [
             {
               "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-              "line_start": 17,
-              "line_end": 21,
-              "snippet": "async ngOnInit() {\n    this.metrics = await this.supabase.getDashboardMetrics();\n    this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n}"
+              "line_start": 20,
+              "line_end": 24,
+              "snippet": "async ngOnInit() {\n        this.metrics = await this.supabase.getDashboardMetrics();\n        this.salesMetrics = await this.supabase.getSalesDashboardMetrics();\n    }"
             }
           ],
-          "suggested_fix": "Use Promise.all() to parallelize both API calls: const [metrics, salesMetrics] = await Promise.all([this.supabase.getDashboardMetrics(), this.supabase.getSalesDashboardMetrics()]);",
+          "suggested_fix": "Add caching to SupabaseService methods with a TTL (e.g., 5 minutes) using RxJS shareReplay or a simple Map-based cache. Reuse cached data if available and not expired.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d0caaf77",
+          "title": "Missing pagination on sales history",
+          "description": "The analysis component loads all sales history for a given month without pagination. For high-volume retail, this could result in hundreds or thousands of records being loaded at once.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/pages/analysis/analysis.component.ts",
+              "line_start": 101,
+              "line_end": 108,
+              "snippet": "async loadHistory() {\n        const { start, end } = this.getDateRange();\n        const rawSales = await this.supabase.getSalesHistory(start, end);\n        const filtered = rawSales.filter((s: Sale) => {\n            if (this.filters.staff !== 'all' && s.recorded_by !== this.filters.staff) return false;\n            if (this.filters.payment !== 'all' && s.payment_method !== this.filters.payment) return false;\n            return true;\n        });"
+            }
+          ],
+          "suggested_fix": "Implement pagination in getSalesHistory with page/limit parameters. Load initial 50 records and implement infinite scroll or pagination controls for additional pages.",
           "confidence": 0.9,
           "cwe_id": "",
           "owasp_ref": "",
@@ -264,50 +316,27 @@
           "dedup_key": ""
         },
         {
-          "id": "F-47b4b8cc",
-          "title": "Missing pagination on product list",
-          "description": "The product service loads all products without pagination or limit. In stock-alerts.component.ts and products.component.ts, loadProducts() fetches the entire product table which will cause performance degradation as inventory grows.",
-          "category": "performance",
-          "severity": "high",
-          "audit_pass": "performance",
-          "locations": [
-            {
-              "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
-              "line_start": 26,
-              "line_end": 28,
-              "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
-            },
-            {
-              "file_path": "src/app/pages/products/products.component.ts",
-              "line_start": 101,
-              "line_end": 103,
-              "snippet": "async ngOnInit() {\n    this.productService.startListening();\n    await this.productService.loadProducts();\n}"
-            }
-          ],
-          "suggested_fix": "Implement pagination with limit/offset or cursor-based pagination. Add pagination controls to the UI and modify Supabase queries to use .range() with page size of 20-50 items.",
-          "confidence": 0.85,
-          "cwe_id": "",
-          "owasp_ref": "",
-          "agent": "quality_auditor",
-          "tier": null,
-          "dedup_key": ""
-        },
-        {
-          "id": "F-20078201",
-          "title": "No request debouncing on search input",
-          "description": "In products.component.ts, onSearch() is called on every input event without debouncing. Each keystroke triggers a full filter operation over all products.",
+          "id": "F-52dbf45b",
+          "title": "Unbounded realtime subscription without throttling",
+          "description": "The owner-dashboard subscribes to notifications via realtime but loads all unread notifications on init without limiting the result set. Additionally, the activity feed loads last 10 sales with no pagination controls.",
           "category": "performance",
           "severity": "medium",
           "audit_pass": "performance",
           "locations": [
             {
-              "file_path": "src/app/pages/products/products.component.ts",
-              "line_start": 121,
-              "line_end": 125,
-              "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n}"
+              "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
+              "line_start": 56,
+              "line_end": 60,
+              "snippet": "async loadData() {\n        this.notifications = await this.supabase.getUnreadNotifications()\n    }"
+            },
+            {
+              "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
+              "line_start": 32,
+              "line_end": 35,
+              "snippet": "async loadData() {\n        const sales: Sale[] = await this.supabase.getRecentSales(); // Returns last 10\n        this.recentActivity = sales.map((s) => ({..."
             }
           ],
-          "suggested_fix": "Use RxJS debounceTime(300) operator or Angular's updateOn: 'blur' for the search form control to prevent excessive filtering.",
+          "suggested_fix": "Add .limit(50) or similar to notification queries. Consider adding a 'load more' mechanism for activity feeds.",
           "confidence": 0.8,
           "cwe_id": "",
           "owasp_ref": "",
@@ -316,22 +345,28 @@
           "dedup_key": ""
         },
         {
-          "id": "F-c6e85c65",
-          "title": "Chart.js loaded via CDN blocking render",
-          "description": "In index.html, Chart.js is loaded via a blocking <script> tag in the <head>. This delays First Contentful Paint and doesn't leverage Angular's build optimization.",
+          "id": "F-7fe9e07e",
+          "title": "Repeated computation in filter loop",
+          "description": "The products component filters all products on every search input change without debouncing. This causes unnecessary recalculation on each keystroke.",
           "category": "performance",
           "severity": "medium",
           "audit_pass": "performance",
           "locations": [
             {
-              "file_path": "src/index.html",
-              "line_start": 18,
-              "line_end": 19,
-              "snippet": "<!-- Chart.js CDN (used instead of installing via npm to avoid dependency conflicts) -->\n<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 117,
+              "line_end": 124,
+              "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
+            },
+            {
+              "file_path": "src/app/pages/products/products.component.ts",
+              "line_start": 126,
+              "line_end": 129,
+              "snippet": "onSearch(event: any) {\n    this.searchTerm = event.target.value;\n    this.filterProducts();\n  }"
             }
           ],
-          "suggested_fix": "Install chart.js via npm and import it only in components that need it, or use dynamic import with IntersectionObserver to load Chart.js lazily when charts enter the viewport.",
-          "confidence": 0.75,
+          "suggested_fix": "Add debounce (300ms) to the onSearch method using RxJS debounceTime operator. This prevents filtering on every keystroke.",
+          "confidence": 0.9,
           "cwe_id": "",
           "owasp_ref": "",
           "agent": "quality_auditor",
@@ -339,50 +374,33 @@
           "dedup_key": ""
         },
         {
-          "id": "F-45205c10",
-          "title": "Font Awesome full library import",
-          "description": "package.json imports @fortawesome/fontawesome-svg-core and multiple icon sets (free-brands, free-regular, free-solid). The free-solid set alone includes 2000+ icons, significantly increasing bundle size.",
-          "category": "performance",
-          "severity": "medium",
-          "audit_pass": "performance",
-          "locations": [
-            {
-              "file_path": "package.json",
-              "line_start": 17,
-              "line_end": 22,
-              "snippet": "\"@fortawesome/angular-fontawesome\": \"^1.0.0\",\n\"@fortawesome/fontawesome-svg-core\": \"^7.1.0\",\n\"@fortawesome/free-brands-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-regular-svg-icons\": \"^6.7.2\",\n\"@fortawesome/free-solid-svg-icons\": \"^6.7.2\","
-            }
-          ],
-          "suggested_fix": "Use tree-shaking by importing only specific icons needed: import { faDashboard } from '@fortawesome/free-solid-svg-icons/faDashboard'; Then add them to the providers array in app.config.ts.",
-          "confidence": 0.7,
-          "cwe_id": "",
-          "owasp_ref": "",
-          "agent": "quality_auditor",
-          "tier": null,
-          "dedup_key": ""
-        },
-        {
-          "id": "F-f89e2d88",
+          "id": "F-b2f7ef50",
           "title": "Missing OnPush change detection strategy",
-          "description": "Components use default change detection which runs on every change detection cycle. Components like dashboard-metrics, activity-feed, stock-alerts that only update based on service signals should use OnPush for better performance.",
+          "description": "Components use default change detection which causes unnecessary re-renders. The dashboard-metrics, activity-feed, and stock-alerts components would benefit from OnPush strategy.",
           "category": "performance",
           "severity": "medium",
           "audit_pass": "performance",
           "locations": [
             {
               "file_path": "src/app/components/dashboard-metrics/dashboard-metrics.component.ts",
-              "line_start": 1,
-              "line_end": 15,
+              "line_start": 9,
+              "line_end": 17,
               "snippet": "@Component({\n    selector: 'app-dashboard-metrics',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './dashboard-metrics.component.html',\n    styleUrls: ['./dashboard-metrics.component.css']\n})"
             },
             {
               "file_path": "src/app/components/activity-feed/activity-feed.component.ts",
-              "line_start": 19,
-              "line_end": 31,
+              "line_start": 22,
+              "line_end": 30,
               "snippet": "@Component({\n    selector: 'app-activity-feed',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './activity-feed.component.html',\n    styleUrls: ['./activity-feed.component.css']\n})"
+            },
+            {
+              "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+              "line_start": 11,
+              "line_end": 19,
+              "snippet": "@Component({\n    selector: 'app-stock-alerts',\n    standalone: true,\n    imports: [CommonModule],\n    templateUrl: './stock-alerts.component.html',\n    styleUrls: ['./stock-alerts.component.css']\n})"
             }
           ],
-          "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components and use Signals for reactive state.",
+          "suggested_fix": "Add changeDetection: ChangeDetectionStrategy.OnPush to all display-only components. This reduces change detection cycles significantly.",
           "confidence": 0.85,
           "cwe_id": "",
           "owasp_ref": "",
@@ -391,50 +409,21 @@
           "dedup_key": ""
         },
         {
-          "id": "F-452e9e24",
-          "title": "No lazy loading for Chart.js in analysis page",
-          "description": "The analysis.component.ts imports and uses Chart.js but it loads synchronously. With the CDN approach, the entire library is loaded even if users never visit the analytics tab.",
+          "id": "F-d1dd7fc6",
+          "title": "No eager loading of relations in queries",
+          "description": "The sales history query appears to fetch raw data then map it, but likely doesn't use Supabase's select with related tables (products, users). This causes potential N+1 pattern when accessing s.users?.name and s.products?.name in templates.",
           "category": "performance",
-          "severity": "medium",
+          "severity": "high",
           "audit_pass": "performance",
           "locations": [
             {
               "file_path": "src/app/pages/analysis/analysis.component.ts",
-              "line_start": 1,
-              "line_end": 10,
-              "snippet": "import { Component, OnInit } from '@angular/core';\nimport { CommonModule } from '@angular/common';\nimport { FormsModule } from '@angular/forms';\nimport { SupabaseService } from '../../services/supabase.service';"
-            },
-            {
-              "file_path": "src/index.html",
-              "line_start": 18,
-              "line_end": 19,
-              "snippet": "<script src=\"https://cdn.jsdelivr.net/npm/chart.js\"></script>"
+              "line_start": 101,
+              "line_end": 150,
+              "snippet": "const rawSales = await this.supabase.getSalesHistory(start, end);\n        // ...\n        grouped[id].items.push(row);\n        // later in template:\n        staff_name: row.users?.name || 'Unknown',\n        // and in activity-feed:\n        user: s.users?.name || 'Staff',\n        description: `${s.quantity} ${s.unit_type} of ${s.products?.name}`"
             }
           ],
-          "suggested_fix": "Use dynamic import or create a separate chart component loaded via loadComponent() in the route to code-split Chart.js away from the main bundle.",
-          "confidence": 0.7,
-          "cwe_id": "",
-          "owasp_ref": "",
-          "agent": "quality_auditor",
-          "tier": null,
-          "dedup_key": ""
-        },
-        {
-          "id": "F-7f64cef0",
-          "title": "Inefficient filter in products component",
-          "description": "The filterProducts() method in products.component.ts creates a new array on every call using filter() which iterates all products. Combined with no debouncing on search, this causes repeated O(n) operations.",
-          "category": "performance",
-          "severity": "low",
-          "audit_pass": "performance",
-          "locations": [
-            {
-              "file_path": "src/app/pages/products/products.component.ts",
-              "line_start": 117,
-              "line_end": 124,
-              "snippet": "filterProducts() {\n    if (!this.searchTerm) {\n      this.filteredProducts = this.products;\n    } else {\n      const term = this.searchTerm.toLowerCase();\n      this.filteredProducts = this.products.filter(p =>\n        p.name.toLowerCase().includes(term) ||\n        p.category?.toLowerCase().includes(term)\n      );\n    }\n  }"
-            }
-          ],
-          "suggested_fix": "Apply debounce to search input and consider using a computed signal with memoization to avoid redundant filtering.",
+          "suggested_fix": "Use Supabase's .select('*, products(*), users(*)') or equivalent to eagerly load related tables in a single query instead of separate requests.",
           "confidence": 0.75,
           "cwe_id": "",
           "owasp_ref": "",
@@ -443,21 +432,44 @@
           "dedup_key": ""
         },
         {
-          "id": "F-927288d2",
-          "title": "Multiple realtime subscriptions without cleanup guarantee",
-          "description": "In owner-dashboard.component.ts, the notification subscription is created but ngOnDestroy only checks for truthiness. If startListening() fails or throws, subscriptions may leak.",
+          "id": "F-47cc921e",
+          "title": "Multiple sequential async calls in component init",
+          "description": "Analysis component makes 5 sequential await calls in ngOnInit, blocking UI render until all complete. These could be parallelized with Promise.all.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "src/app/pages/analysis/analysis.component.ts",
+              "line_start": 63,
+              "line_end": 73,
+              "snippet": "async ngOnInit() {\n        this.isLoading = true;\n        this.currentUser = await this.supabase.getCurrentUser();\n        await Promise.all([\n            this.loadMetrics(),\n            this.loadAiReport(),\n            this.loadHistory(),\n            this.loadExpenses(),\n            this.loadStaff()\n        ]);"
+            }
+          ],
+          "suggested_fix": "The Promise.all is good but getCurrentUser() is outside it. Move getCurrentUser() inside Promise.all or use Promise.allSettled to prevent one failure from blocking others.",
+          "confidence": 0.8,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-9f368be0",
+          "title": "Realtime subscriptions without cleanup guarantee",
+          "description": "StockAlertsComponent starts listening in ngOnInit but the stopListening() is called in ngOnDestroy. If component is destroyed before data loads, there could be a race condition.",
           "category": "performance",
           "severity": "low",
           "audit_pass": "performance",
           "locations": [
             {
-              "file_path": "src/app/pages/owner-dashboard/owner-dashboard.component.ts",
-              "line_start": 45,
-              "line_end": 56,
-              "snippet": "async ngOnInit() {\n        this.notificationSubscription = this.supabase.subscribeToNotifications((payload) => {\n            this.notifications.unshift(payload.new as Notification)\n            this.loadData();\n        })\n    }\n\n    ngOnDestroy() {\n        if (this.notificationSubscription) {\n            this.notificationSubscription.unsubscribe();\n        }\n    }"
+              "file_path": "src/app/components/stock-alerts/stock-alerts.component.ts",
+              "line_start": 37,
+              "line_end": 42,
+              "snippet": "async ngOnInit() {\n        this.productService.startListening();\n        await this.productService.loadProducts();\n    }\n    ngOnDestroy() {\n        this.productService.stopListening();\n    }"
             }
           ],
-          "suggested_fix": "Use DestroyRef from @angular/core to auto-unsubscribe on component destruction: private destroyRef = inject(DestroyRef); then this.destroyRef.onDestroy(() => this.notificationSubscription?.unsubscribe());",
+          "suggested_fix": "Consider using a subject with takeUntilDestroyed() or a similar pattern to ensure cleanup happens reliably. Also, verify that startListening() properly handles multiple calls.",
           "confidence": 0.7,
           "cwe_id": "",
           "owasp_ref": "",
@@ -466,7 +478,7 @@
           "dedup_key": ""
         }
       ],
-      "pass_summary": "Found 10 performance issues including missing pagination, sequential API calls, blocking CDN scripts, and missing OnPush change detection."
+      "pass_summary": "Found 10 performance issues: 3 high severity (missing pagination on products/sales, eager loading), 5 medium (caching, debouncing, OnPush, sequential calls), 2 low (cleanup patterns)."
     }
   ],
   "total_findings": 9
