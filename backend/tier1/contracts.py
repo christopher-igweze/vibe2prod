@@ -25,6 +25,8 @@ class Tier1Finding(BaseModel):
     description: str
     evidence: list[Tier1Evidence] = Field(default_factory=list)
     suggested_fix_stub: str
+    pattern_id: str = ""  # links to VulnerabilityPattern (e.g. "VP-001")
+    pattern_slug: str = ""  # machine-readable pattern identifier
 
 
 class Tier1ScanResult(BaseModel):
