@@ -24,6 +24,7 @@ TABLES = [
     "findings",
     "report_artifacts",
     "scan_reports",
+    "projects",
 ]
 
 
