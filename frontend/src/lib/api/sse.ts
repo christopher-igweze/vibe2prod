@@ -8,7 +8,8 @@ export interface SSEEvent {
 export type SSECallback = (event: SSEEvent) => void
 export type SSEErrorCallback = (error: { status?: number; message: string }) => void
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// Relative path — Next.js rewrites proxy /api/* to the backend
+const API_URL = ''
 
 /**
  * Connect to an SSE stream using fetch + ReadableStream.
