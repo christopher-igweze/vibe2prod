@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestSmallComplex::test_discover_fastapi_fullstack",
+  "total_cost_usd": 0.648,
+  "total_tokens": 404680,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 333774,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.0383,
+    "codebase_analyst": 0.0039,
+    "fix_strategist": 0.0813,
+    "quality_auditor/code_patterns": 0.027,
+    "quality_auditor/error_handling": 0.0271,
+    "quality_auditor/performance": 0.0267,
+    "security_auditor/auth_flow": 0.1344,
+    "security_auditor/data_handling": 0.1332,
+    "security_auditor/infrastructure": 0.1426,
+    "triage_classifier": 0.0336
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.5633,
+    "minimax/minimax-m2.5": 0.0847
+  },
+  "training_pairs_logged": 0
+}

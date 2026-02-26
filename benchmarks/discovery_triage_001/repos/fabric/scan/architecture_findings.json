@@ -1,0 +1,370 @@
+{
+  "findings": [
+    {
+      "id": "F-c7786f89",
+      "title": "Missing abstraction layer between web routes and AI providers",
+      "description": "Web API routes (web/src/routes/chat/+server.ts, web/src/routes/api/youtube/transcript/+server.ts, web/src/routes/obsidian/+server.ts) directly instantiate and call AI provider implementations. This creates tight coupling between request handlers and provider logic, making it difficult to swap providers or add new ones without modifying route handlers.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web/src/routes/chat/+server.ts",
+          "line_start": 1,
+          "line_end": 163,
+          "snippet": "Web API route handling chat requests directly calling AI provider logic"
+        },
+        {
+          "file_path": "web/src/routes/api/youtube/transcript/+server.ts",
+          "line_start": 1,
+          "line_end": 46,
+          "snippet": "YouTube transcript route directly instantiating transcript service"
+        },
+        {
+          "file_path": "web/src/routes/obsidian/+server.ts",
+          "line_start": 1,
+          "line_end": 105,
+          "snippet": "Obsidian integration route with mixed concerns"
+        }
+      ],
+      "suggested_fix": "Create an abstraction layer (AIFacade or ProviderFactory) that web routes depend on. This layer should handle provider selection, instantiation, and fallback logic. Update routes to call this facade instead of provider implementations directly.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-33f45034",
+      "title": "God module: cmd/generate_changelog/ mixes concerns across 16 files with 800 LOC",
+      "description": "The changelog generator contains multiple responsibility domains spread across files: git operations (walker.go, 582 LOC), GitHub API client (client.go, 431 LOC), changelog generation (generator.go, 806 LOC), processing (processing.go, 544 LOC), caching (cache.go, 485 LOC). These should be organized into distinct packages with clear boundaries rather than bundled under a single command.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "cmd/generate_changelog/internal/git/walker.go",
+          "line_start": 1,
+          "line_end": 582,
+          "snippet": "Git walking and commit analysis logic"
+        },
+        {
+          "file_path": "cmd/generate_changelog/internal/github/client.go",
+          "line_start": 1,
+          "line_end": 431,
+          "snippet": "GitHub API client with authentication and PR/release fetching"
+        },
+        {
+          "file_path": "cmd/generate_changelog/internal/changelog/generator.go",
+          "line_start": 1,
+          "line_end": 806,
+          "snippet": "Main changelog generation orchestrator"
+        },
+        {
+          "file_path": "cmd/generate_changelog/internal/changelog/processing.go",
+          "line_start": 1,
+          "line_end": 544,
+          "snippet": "Changelog processing and merge detection"
+        },
+        {
+          "file_path": "cmd/generate_changelog/internal/cache/cache.go",
+          "line_start": 1,
+          "line_end": 485,
+          "snippet": "SQLite caching layer for performance"
+        }
+      ],
+      "suggested_fix": "Reorganize into separate internal packages: 'internal/vcs' for git operations, 'internal/github' for GitHub API, 'internal/generator' for changelog generation, 'internal/cache' for persistence. Each should have a clear interface and minimal cross-dependencies.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4db5d358",
+      "title": "Inconsistent authentication patterns between CLI and web interface",
+      "description": "CLI commands (fabric-cli, code2context, etc.) authenticate via environment variables (API_KEY, OPENAI_API_KEY, etc.), while the web interface has zero authentication at all\u2014all endpoints are completely public. This creates a security inconsistency where the same AI provider credentials can be accessed by any network user via the web interface without authorization.",
+      "category": "architecture",
+      "severity": "critical",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web/src/routes/chat/+server.ts",
+          "line_start": 1,
+          "line_end": 163,
+          "snippet": "No authentication check on POST /chat"
+        },
+        {
+          "file_path": "web/src/routes/api/youtube/transcript/+server.ts",
+          "line_start": 1,
+          "line_end": 46,
+          "snippet": "No authentication check on /api/youtube/transcript"
+        },
+        {
+          "file_path": "web/src/routes/obsidian/+server.ts",
+          "line_start": 1,
+          "line_end": 105,
+          "snippet": "No authentication check on /obsidian"
+        },
+        {
+          "file_path": "web/src/routes/notes/+server.ts",
+          "line_start": 1,
+          "line_end": 35,
+          "snippet": "No authentication check on /notes"
+        }
+      ],
+      "suggested_fix": "Implement consistent authentication across web routes. Add middleware for auth token validation, API key validation, or session management. Consider adding optional auth_required flag to route handlers. Document the security model clearly.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-cea458fb",
+      "title": "Tight coupling: web frontend services depend directly on API endpoints without abstraction",
+      "description": "Web services (ChatService.ts, transcriptService.ts, PdfConversionService.ts) make HTTP calls directly to specific route paths hardcoded in base.ts. There is no API client abstraction or versioning layer, making refactoring API routes difficult without updating multiple service files.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web/src/lib/services/ChatService.ts",
+          "line_start": 1,
+          "line_end": 286,
+          "snippet": "ChatService making direct HTTP calls to /chat endpoint"
+        },
+        {
+          "file_path": "web/src/lib/services/transcriptService.ts",
+          "line_start": 1,
+          "line_end": 80,
+          "snippet": "TranscriptService with hardcoded API path"
+        },
+        {
+          "file_path": "web/src/lib/api/base.ts",
+          "line_start": 1,
+          "line_end": 98,
+          "snippet": "Base API client with hardcoded endpoints"
+        }
+      ],
+      "suggested_fix": "Create an APIClient abstraction layer that centralizes all endpoint definitions. Use configuration-driven endpoint mapping. Consider using a client code generator if the API grows further.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5aa62f1e",
+      "title": "Missing service layer in web application: business logic scattered across components and stores",
+      "description": "Web components (Chat.svelte, ChatInput.svelte, ChatMessages.svelte) directly access stores and make API calls. There is no service layer to encapsulate business logic like session management, context handling, or message processing. This violates separation of concerns and makes testing difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web/src/lib/components/chat/Chat.svelte",
+          "line_start": 1,
+          "line_end": 333,
+          "snippet": "Chat component with mixed UI and business logic"
+        },
+        {
+          "file_path": "web/src/lib/components/chat/ChatInput.svelte",
+          "line_start": 1,
+          "line_end": 631,
+          "snippet": "ChatInput component directly manipulating stores and making API calls"
+        },
+        {
+          "file_path": "web/src/lib/store/chat-store.ts",
+          "line_start": 1,
+          "line_end": 170,
+          "snippet": "Chat store handling state without clear separation"
+        }
+      ],
+      "suggested_fix": "Extract business logic into dedicated service classes (ChatSessionService, MessageProcessingService). Have components call services instead of directly manipulating stores. Update stores to be reactive state containers only.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3d25f0ac",
+      "title": "Configuration scatter: hardcoded values and settings spread across multiple files",
+      "description": "Configuration values are scattered throughout the codebase: API endpoints in base.ts, feature flags in config/features.ts, environment settings in config/environment.ts, model configurations in multiple places, and pattern defaults in internal/tools/defaults.go. There is no centralized configuration system.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web/src/lib/config/environment.ts",
+          "line_start": 1,
+          "line_end": 62,
+          "snippet": "Environment configuration"
+        },
+        {
+          "file_path": "web/src/lib/config/features.ts",
+          "line_start": 1,
+          "line_end": 16,
+          "snippet": "Feature flags"
+        },
+        {
+          "file_path": "web/src/lib/api/base.ts",
+          "line_start": 1,
+          "line_end": 98,
+          "snippet": "API endpoint configuration"
+        },
+        {
+          "file_path": "internal/tools/defaults.go",
+          "line_start": 1,
+          "line_end": 78,
+          "snippet": "Pattern and tool defaults"
+        }
+      ],
+      "suggested_fix": "Create a unified configuration system (e.g., config.ts for web, config.go for CLI) that loads from environment, config files, or defaults. Use a configuration object accessible throughout the app. Document all configuration options.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bec044cf",
+      "title": "Inconsistent error handling and logging patterns across Go modules",
+      "description": "Different Go packages use different error handling approaches: some return errors directly, some wrap with context, some use panic. The logging module (internal/log/) exists but is not consistently used across all packages. This makes debugging and monitoring difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "internal/log/log.go",
+          "line_start": 1,
+          "line_end": 89,
+          "snippet": "Logger implementation not uniformly used"
+        },
+        {
+          "file_path": "cmd/generate_changelog/internal/git/walker.go",
+          "line_start": 1,
+          "line_end": 582,
+          "snippet": "Git walker with inconsistent error handling"
+        },
+        {
+          "file_path": "cmd/generate_changelog/internal/github/client.go",
+          "line_start": 1,
+          "line_end": 431,
+          "snippet": "GitHub client with different error patterns"
+        }
+      ],
+      "suggested_fix": "Establish error handling and logging conventions: use structured logging throughout, wrap errors with context using fmt.Errorf with %w, establish panic policies (avoid in libraries), add middleware for consistent logging in handlers.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-eb92a0d3",
+      "title": "High coupling: AI provider implementations tightly bound to CLI and web interfaces",
+      "description": "AI provider packages (internal/plugins/ai/openai/, internal/plugins/ai/anthropic/, etc.) are directly imported and instantiated by CLI commands (internal/cli/chat.go) and web routes without using a factory or registry pattern. Adding a new provider requires modifying multiple entry points.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "internal/cli/chat.go",
+          "line_start": 1,
+          "line_end": 201,
+          "snippet": "CLI chat command directly importing specific AI providers"
+        },
+        {
+          "file_path": "internal/core/plugin_registry.go",
+          "line_start": 1,
+          "line_end": 593,
+          "snippet": "Plugin registry with large hardcoded provider list"
+        }
+      ],
+      "suggested_fix": "The codebase already has a plugin registry (plugin_registry.go). Ensure all AI provider instantiation goes through this registry. Make the registry configuration-driven to allow adding providers without code changes.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-12a57dae",
+      "title": "Missing layering: web routes directly access file system and perform I/O without abstraction",
+      "description": "Routes like /obsidian/+server.ts and /notes/+server.ts directly access the file system and parse markdown. There is no persistence abstraction layer or repository pattern to isolate I/O operations from request handlers.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web/src/routes/obsidian/+server.ts",
+          "line_start": 1,
+          "line_end": 105,
+          "snippet": "Obsidian route with direct file system access"
+        },
+        {
+          "file_path": "web/src/routes/notes/+server.ts",
+          "line_start": 1,
+          "line_end": 35,
+          "snippet": "Notes route accessing files directly"
+        }
+      ],
+      "suggested_fix": "Create abstraction layers: NoteRepository for file operations, ObsidianVaultAdapter for Obsidian-specific logic. Have routes depend on these abstractions, not on direct file I/O.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-413aa6c5",
+      "title": "Circular dependencies risk: tool-specific code in internal/tools/ may depend on core plugins",
+      "description": "The internal/tools/ package contains multiple tool implementations (youtube.go, spotify.go, jina.go) that may create circular import chains if core plugin systems depend on them while they depend on plugin registries.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "internal/tools/youtube/youtube.go",
+          "line_start": 1,
+          "line_end": 841,
+          "snippet": "YouTube tool with 841 LOC"
+        },
+        {
+          "file_path": "internal/tools/spotify/spotify.go",
+          "line_start": 1,
+          "line_end": 525,
+          "snippet": "Spotify tool with 525 LOC"
+        },
+        {
+          "file_path": "internal/core/plugin_registry.go",
+          "line_start": 1,
+          "line_end": 593,
+          "snippet": "Plugin registry managing tool registration"
+        }
+      ],
+      "suggested_fix": "Verify import paths are acyclic. Use a dependency graph tool to validate. Consider whether tools belong in core or should be separate plugins. Document the intended dependency direction.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 42,
+  "coupling_assessment": "High coupling across critical boundaries: Web routes directly instantiate and call AI providers without abstraction layers. ChatService, transcriptService, and other frontend services make direct HTTP calls to hardcoded endpoints. CLI commands directly import specific AI provider implementations rather than using a pluggable registry. The Go changelog generator tightly couples git operations, GitHub API, and generation logic without clear separation.",
+  "layering_assessment": "Weak layering in web application: No clear service layer between components and API routes. Business logic is scattered across components, stores, and services. Routes directly perform I/O (file system access in /obsidian and /notes) without persistence abstraction. CLI has reasonable layering (CLI \u2192 Core \u2192 Plugins) but Go backend lacks middleware and error handling standardization. Configuration values leak throughout multiple files instead of being centralized.",
+  "summary": "The codebase has moderate structural coherence issues (score: 42/100) primarily around missing abstraction layers and inconsistent architectural patterns between the CLI and web interfaces. The most critical issue is the complete lack of authentication on web routes while CLI is secured via environment variables. Secondary issues include tight coupling between routes and AI providers, scattered configuration, inconsistent error handling across Go modules, and missing service layers in the web application. The changelog generator module would benefit from reorganization into focused packages. These issues are manageable and don't prevent the application from functioning, but they create significant technical debt and make future maintenance and feature additions more difficult."
+}

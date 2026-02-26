@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: 3a165c83e4e1 &bull; Generated: 2026-02-26 01:20 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>52 findings</span>
+        <span>257s runtime</span>
+        <span>$0.0000 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box critical"><div class="num">4</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">24</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">20</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">4</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>CORS enabled without origin restrictions</strong>
+                <div class="desc">The API enables CORS with `app.enableCors()` without specifying allowed origins, which defaults to allowing all origins (*). This exposes the API to cross-origin requests from any domain, potentially </div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:36</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Helmet CSP allows unsafe-inline scripts</strong>
+                <div class="desc">The Content Security Policy in helmet middleware includes 'unsafe-inline' for scriptSrc and scriptSrcAttr, which defeats the purpose of CSP protection and allows inline script injection attacks. This </div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:53</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: portfolio.service.ts exceeds 2200 LOC with mixed responsibilities</strong>
+                <div class="desc">The portfolio service in apps/api/src/app/portfolio/portfolio.service.ts contains 2220 lines of code handling multiple distinct responsibilities: portfolio calculations, data aggregation, holdings man</div>
+            </td>
+            <td class="loc">apps/api/src/app/portfolio/portfolio.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: admin.service.ts exceeds 900 LOC with disparate concerns</strong>
+                <div class="desc">The admin service (apps/api/src/app/admin/admin.service.ts) contains 938 lines handling user management, data cleanup, market data operations, import processing, and analytics. This mixes administrati</div>
+            </td>
+            <td class="loc">apps/api/src/app/admin/admin.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Weak OIDC state parameter generation using Math.random()</strong>
+                <div class="desc">The OidcStateStore.generateHandle() method uses Math.random() for generating state parameters, which is cryptographically insecure. State parameters must be unpredictable to prevent CSRF attacks in OA</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/oidc-state.store.ts:79</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>JWT token expiration set to 180 days - excessive token lifetime</strong>
+                <div class="desc">JWT tokens are configured with an excessively long expiration of 180 days in multiple locations. This increases the risk window for token compromise. If a token is stolen, it will remain valid for hal</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth-device/auth-device.module.ts:11</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing CSRF token validation on authentication endpoints</strong>
+                <div class="desc">The auth endpoints (POST /api/v1/auth/anonymous, GET/POST /api/v1/auth/google/callback, GET/POST /api/v1/auth/oidc/callback) lack CSRF protection. Although some OAuth flows provide inherent CSRF prote</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/auth.controller.ts:32</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Access tokens transmitted in URL parameter (deprecated endpoint)</strong>
+                <div class="desc">The deprecated GET endpoint 'GET /api/v1/auth/anonymous/:accessToken' passes security tokens as URL parameters. URL parameters are logged in browser history, server logs, and proxy logs, creating mult</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/auth.controller.ts:23</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Tokens stored in localStorage vulnerable to XSS attacks</strong>
+                <div class="desc">The TokenStorageService stores JWT tokens in both localStorage and sessionStorage, which are vulnerable to XSS (Cross-Site Scripting) attacks. If an attacker injects JavaScript, they can access all to</div>
+            </td>
+            <td class="loc">apps/client/src/app/services/token-storage.service.ts:12</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No token refresh mechanism - reliance on 180-day expiration</strong>
+                <div class="desc">The authentication system issues long-lived 180-day tokens without implementing a refresh token mechanism. This violates the principle of least privilege. Long-lived tokens increase the impact of toke</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/auth.service.ts:19</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No rate limiting on anonymous access token endpoint</strong>
+                <div class="desc">The POST /api/v1/auth/anonymous endpoint accepts access token login attempts without rate limiting. An attacker can perform brute-force attacks against access tokens without being throttled.</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/auth.controller.ts:32</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Content-Security-Policy header for XSS protection (non-subscription mode)</strong>
+                <div class="desc">In main.ts, CSP headers are only applied when ENABLE_FEATURE_SUBSCRIPTION is true. In non-subscription/self-hosted mode, the application runs without Content-Security-Policy protection, leaving it vul</div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:48</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>CORS enabled globally without origin validation</strong>
+                <div class="desc">In main.ts line 38, `app.enableCors()` is called without any configuration, which enables CORS for all origins. This allows any website to make authenticated requests to the API on behalf of logged-in</div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:38</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Debug mode enabled with verbose logging in production</strong>
+                <div class="desc">The TypeScript configuration has `sourceMap: true` and `declaration: false` globally enabled, which generates source maps in production builds. Combined with verbose error logging available in non-pro</div>
+            </td>
+            <td class="loc">tsconfig.base.json:2</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Weak TypeScript compiler settings allow implicit any types</strong>
+                <div class="desc">Critical type safety flags are disabled globally: `strict: false`, `noImplicitAny: false`, `noImplicitThis: false`. This allows type errors to slip through, potentially hiding security vulnerabilities</div>
+            </td>
+            <td class="loc">tsconfig.base.json:28</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No rate limiting configured on API endpoints</strong>
+                <div class="desc">There is no visible rate limiting middleware configured in the main.ts or app.module.ts. This exposes endpoints to brute force attacks (particularly auth endpoints), DDoS attacks, and abuse. Financial</div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing security headers in production</strong>
+                <div class="desc">Helmet is conditionally applied only when subscription feature is enabled. Missing security headers like HSTS, X-Frame-Options, X-Content-Type-Options are not consistently applied across all requests </div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:48</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Insecure environment configuration in docker-compose</strong>
+                <div class="desc">Docker compose files use environment variables from .env files without defaults for critical secrets like REDIS_PASSWORD and POSTGRES_PASSWORD. The entrypoint.sh runs migrations and seeding without er</div>
+            </td>
+            <td class="loc">docker/docker-compose.yml:36</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Default dummy credentials in production configuration</strong>
+                <div class="desc">The ConfigurationService has hardcoded default values for sensitive credentials like 'dummyClientId', 'dummySecret', 'dummyAccessToken' for Google and Twitter OAuth. If these defaults are not overridd</div>
+            </td>
+            <td class="loc">apps/api/src/services/configuration/configuration.service.ts:35</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: data-provider.service.ts exceeds 800 LOC with multiple provider implementations</strong>
+                <div class="desc">The data-provider service (apps/api/src/services/data-provider/data-provider.service.ts) contains 866 lines and manages the orchestration logic for multiple external data providers (AlphaVantage, Yaho</div>
+            </td>
+            <td class="loc">apps/api/src/services/data-provider/data-provider.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: user.service.ts exceeds 700 LOC with mixed user concerns</strong>
+                <div class="desc">The user service (apps/api/src/app/user/user.service.ts) contains 733 lines handling user profile management, settings, preferences, and related operations. Should be split by domain responsibility.</div>
+            </td>
+            <td class="loc">apps/api/src/app/user/user.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: personal-finance-tools.ts exceeds 1100 LOC with complex calculations</strong>
+                <div class="desc">The personal-finance-tools.ts (libs/common/src/lib/personal-finance-tools.ts) contains 1145 lines with multiple financial calculation algorithms (FIRE, retirement, tax-loss harvesting). These calculat</div>
+            </td>
+            <td class="loc">libs/common/src/lib/personal-finance-tools.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing service layer abstraction in portfolio calculations</strong>
+                <div class="desc">The portfolio calculator (apps/api/src/app/portfolio/calculator/portfolio-calculator.ts) contains 1173 LOC with tightly coupled calculation logic. The factory pattern exists but doesn't provide clear </div>
+            </td>
+            <td class="loc">apps/api/src/app/portfolio/calculator/portfolio-calculator.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Tight coupling between portfolio service and calculator components</strong>
+                <div class="desc">The portfolio.service.ts directly instantiates and uses portfolio-calculator without dependency injection for the calculator factory, creating tight coupling and making testing difficult.</div>
+            </td>
+            <td class="loc">apps/api/src/app/portfolio/portfolio.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction for data provider implementations</strong>
+                <div class="desc">Multiple data provider services (yahoo-finance.service.ts, coingecko.service.ts, alpha-vantage.service.ts, etc.) exist but lack a consistent interface contract. Each implements different error handlin</div>
+            </td>
+            <td class="loc">apps/api/src/services/data-provider:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Configuration scattered across multiple locations</strong>
+                <div class="desc">Configuration values are found in: environment files, config.ts in libs/common, configuration.service.ts in API, and environment.ts in client. This creates inconsistency and makes configuration manage</div>
+            </td>
+            <td class="loc">libs/common/src/lib/config.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing repository/data access layer abstraction</strong>
+                <div class="desc">Services directly use Prisma client without a repository pattern. Changes to data access patterns require modifying multiple service files. No data access abstraction layer exists.</div>
+            </td>
+            <td class="loc">apps/api/src/app/portfolio/portfolio.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing clear domain boundaries between modules</strong>
+                <div class="desc">Portfolio, Order, Account, and Holding domains have unclear boundaries. Multiple services handle overlapping concerns (portfolio.service handles holdings, order.service, holdings are in portfolio calc</div>
+            </td>
+            <td class="loc">apps/api/src/app/portfolio/portfolio.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No validation of OAuth redirect URIs in callback handlers</strong>
+                <div class="desc">The Google and OIDC OAuth callback handlers redirect users back to the client without validating the redirect URI. Although Passport strategies handle some validation, there's no explicit allowlist ch</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/auth.controller.ts:58</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing explicit permission check for WebAuthn registration endpoint</strong>
+                <div class="desc">The GET /api/v1/auth/webauthn/generate-registration-options endpoint uses HasPermissionGuard but doesn't specify a required permission. The guard will allow access if no permission is explicitly set, </div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/auth.controller.ts:103</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>WebAuthn counter not validated against replay attacks</strong>
+                <div class="desc">In web-auth.service.ts, the authenticator counter is updated after successful authentication but there's no check for counter rollback. An attacker with a cloned WebAuthn device could potentially bypa</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/web-auth.service.ts:135</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Inactive user check happens after analytics recording</strong>
+                <div class="desc">In JwtStrategy.validate() (line 31-38), inactive users are checked and rejected, but this happens AFTER analytics data is upserted (line 39-48). Inactive users are still being counted in the analytics</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/jwt.strategy.ts:29</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Frontend clears localStorage on logout but doesn't invalidate backend tokens</strong>
+                <div class="desc">In token-storage.service.ts signOut() method (line 26-35), tokens are cleared from client storage, but there's no mechanism to invalidate tokens on the backend. A user's old token can still be used to</div>
+            </td>
+            <td class="loc">apps/client/src/app/services/token-storage.service.ts:26</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>User 'Stay Signed In' feature stores tokens in localStorage indefinitely</strong>
+                <div class="desc">The 'Stay Signed In' checkbox (login-with-access-token-dialog.component.ts) stores JWT tokens in localStorage with no expiration. Combined with 180-day JWT expiration, tokens could remain valid for ex</div>
+            </td>
+            <td class="loc">apps/client/src/app/components/login-with-access-token-dialog/login-with-access-token-dialog.component.ts:41</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing SameSite cookie attribute for CSRF protection</strong>
+                <div class="desc">While the application uses JWT tokens in headers rather than cookies, if any Set-Cookie headers are used elsewhere, they should have SameSite=Strict attribute. No explicit cookie configuration is visi</div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>API key validation doesn't check for key expiration</strong>
+                <div class="desc">In api-key.strategy.ts, the validateApiKey method validates that an API key exists and belongs to a user, but there's no check for key expiration date. Expired API keys might remain functional.</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/api-key.strategy.ts:30</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Database connection pooling not configured</strong>
+                <div class="desc">The Prisma client configuration lacks connection pooling settings. In a high-load production environment, this could exhaust database connections or cause performance degradation under DDoS.</div>
+            </td>
+            <td class="loc">apps/api/src/services/configuration/configuration.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Redis configuration lacks encryption and authentication strength validation</strong>
+                <div class="desc">Redis authentication depends on REDIS_PASSWORD environment variable with no validation of password strength or length requirements. Redis communication to database is not enforced as encrypted (no TLS</div>
+            </td>
+            <td class="loc">docker/docker-compose.yml:51</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No HTTPS enforcement in development environment configuration</strong>
+                <div class="desc">The environment.ts file uses HTTP for the rootUrl in development, and there's no mechanism to enforce HTTPS in production or detect insecure connections. API runs on localhost:3333 without HTTPS enfor</div>
+            </td>
+            <td class="loc">apps/api/src/environments/environment.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Body size limit for file uploads not enforced</strong>
+                <div class="desc">While a 10mb limit is set for CSV/JSON imports, there is no rate limiting per user and no virus scanning or file type validation beyond content-type. This could allow storage exhaustion attacks or mal</div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:45</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: helper.ts in libs/common contains 476 LOC of unrelated utility functions</strong>
+                <div class="desc">The helper.ts file (libs/common/src/lib/helper.ts) contains 476 lines of general-purpose utility functions covering date manipulation, formatting, validation, and data transformation. This creates a d</div>
+            </td>
+            <td class="loc">libs/common/src/lib/helper.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent error handling patterns across modules</strong>
+                <div class="desc">Error handling varies significantly: some services throw custom errors, others return null/undefined, some use try-catch blocks inconsistently. Data provider errors use specific error classes but othe</div>
+            </td>
+            <td class="loc">apps/api/src/services/data-provider/errors:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>High coupling between API routes and services</strong>
+                <div class="desc">Controllers directly instantiate and call multiple services with business logic validation occurring in controllers. Routes should delegate validation to service layer.</div>
+            </td>
+            <td class="loc">apps/api/src/app/portfolio/portfolio.controller.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Complex event listener dependencies without clear propagation model</strong>
+                <div class="desc">Asset and Portfolio change events have listeners (asset-profile-changed.listener.ts, portfolio-changed.listener.ts) but the event propagation model is unclear. Changes in one aggregate may trigger cas</div>
+            </td>
+            <td class="loc">apps/api/src/events/portfolio-changed.listener.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>UI library mixes component library with business logic services</strong>
+                <div class="desc">The libs/ui library (libs/ui/src/lib) contains both reusable UI components and business logic services (data.service.ts, admin.service.ts). UI library should only contain presentational components.</div>
+            </td>
+            <td class="loc">libs/ui/src/lib/services/data.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent module organization between API and client</strong>
+                <div class="desc">API uses feature-based modules (portfolio, account, order, etc.) while client uses page-based organization with nested component directories. Makes feature tracking and shared patterns unclear.</div>
+            </td>
+            <td class="loc">apps/api/src/app:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction layer for external API integrations</strong>
+                <div class="desc">Multiple external data providers (AlphaVantage, Yahoo Finance, CoinGecko) are integrated directly into services without circuit breaker, retry, or rate limiting abstractions. Makes resilience patterns</div>
+            </td>
+            <td class="loc">apps/api/src/services/data-provider/alpha-vantage/alpha-vantage.service.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Common library mixes DTOs, utilities, types, and configurations</strong>
+                <div class="desc">libs/common contains DTOs (40+ files), types (20+ files), utilities, configurations, and interfaces all at the same level. This creates a dumping ground without clear organization.</div>
+            </td>
+            <td class="loc">libs/common/src/lib:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Generic error messages on JWT validation failures mask information</strong>
+                <div class="desc">In JwtStrategy.validate(), all JWT validation errors result in a generic 'UNAUTHORIZED' response (line 57). While this is good for not leaking information, the implementation catches all exceptions wi</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/jwt.strategy.ts:47</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>OIDC state expiration of 10 minutes may be too short for slow networks</strong>
+                <div class="desc">The OIDC state store uses a 10-minute expiration window (line 13 in oidc-state.store.ts). This is reasonable, but users on slow networks or with slow identity providers might experience authentication</div>
+            </td>
+            <td class="loc">apps/api/src/app/auth/oidc-state.store.ts:12</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>No request timeout configuration in main API initialization</strong>
+                <div class="desc">While REQUEST_TIMEOUT is defined in ConfigurationService (default 3 seconds), it's not applied globally to all HTTP requests in main.ts. Long-running requests could cause resource exhaustion.</div>
+            </td>
+            <td class="loc">apps/api/src/main.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>TypeScript strict null checks disabled could hide null reference vulnerabilities</strong>
+                <div class="desc">With `strictNullChecks: false` in tsconfig.base.json, null/undefined values can be used where specific types are expected, potentially causing runtime errors in security-critical code paths like authe</div>
+            </td>
+            <td class="loc">tsconfig.base.json:29</td>
+            <td></td>
+        </tr></tbody>
+    </table>
+
+    
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

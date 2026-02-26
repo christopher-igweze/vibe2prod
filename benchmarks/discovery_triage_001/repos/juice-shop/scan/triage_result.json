@@ -1,0 +1,228 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-a4d6084d",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1a8e2f4a",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8c19916d",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: routes/, data/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e258f622",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: frontend/src/app/, frontend/src/app/Services/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-b202478a",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-333946be",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0f6e0f8d",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: test/server/, test/api/, test/e2e/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-6217f1b7",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: frontend/src/app/web3-sandbox/, frontend/src/app/wallet-web3/, frontend/src/app/faucet/, data/static/web3-snippets/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-035c4d75",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: routes/, frontend/src/app/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-d206e995",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Adding pagination to Products endpoint is a scoped fix affecting the route handler and test file. Requires adding query parameters, applying limits, and returning pagination metadata. No architectural refactoring needed.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "routes/products.ts",
+        "test/api/searchApiSpec.ts"
+      ]
+    },
+    {
+      "finding_id": "F-4de63ec7",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Adding pagination to Feedbacks endpoint follows the same pattern as Products. Localized to feedback route handler and test. Deterministic fix with no cross-cutting concerns.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "routes/feedback.ts",
+        "test/api/feedbackApiSpec.ts"
+      ]
+    },
+    {
+      "finding_id": "F-e1ec7ea1",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Adding pagination to Users endpoint is similar to Products and Feedbacks. Scoped to users route and test. Security benefit from reducing exposed user data through pagination.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "routes/user.ts",
+        "test/api/userApiSpec.ts"
+      ]
+    },
+    {
+      "finding_id": "F-a35c2452",
+      "tier": 1,
+      "confidence": 0.7,
+      "rationale": "Caching config.get() result at test suite level is a simple, known pattern. Move config access outside the loop or into beforeEach. Single file fix with no dependencies.",
+      "fix_template_id": "test-config-caching",
+      "relevant_files": [
+        "test/api/productReviewApiSpec.ts"
+      ]
+    },
+    {
+      "finding_id": "F-d2428b60",
+      "tier": 2,
+      "confidence": 0.7,
+      "rationale": "Implementing eager loading with Sequelize include() or Mongoose populate() is a scoped fix to the basket route handler. Requires modifying the query logic and potentially updating the test assertion.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "routes/basket.ts",
+        "test/api/basketApiSpec.ts"
+      ]
+    },
+    {
+      "finding_id": "F-c95d5c7a",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Implementing repository pattern requires architectural refactoring across the entire data layer. Affects data/mongodb.ts, data/datacreator.ts, all models/ files, and numerous route files that import models directly. Cross-cutting concern touching 15+ files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "data/mongodb.ts",
+        "data/datacreator.ts",
+        "models/",
+        "routes/"
+      ]
+    },
+    {
+      "finding_id": "F-3f4968e0",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Implementing formal API contract with OpenAPI 3.0 and shared DTOs is an architectural initiative affecting frontend services (10+ files), backend routes (20+ files), and swagger.yml. Requires code generation infrastructure and impacts multiple layers.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "swagger.yml",
+        "frontend/src/app/Services/",
+        "frontend/src/app/Models/",
+        "routes/"
+      ]
+    },
+    {
+      "finding_id": "F-ef9c75c1",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Implementing centralized error handling requires creating error classes/middleware on backend and comprehensive HTTP interceptor on frontend. Affects errorHandler.ts, 20+ route files, frontend interceptor, and multiple service files. Cross-cutting architectural concern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "routes/errorHandler.ts",
+        "routes/",
+        "frontend/src/app/Services/request.interceptor.ts",
+        "frontend/src/app/Services/",
+        "app.ts"
+      ]
+    },
+    {
+      "finding_id": "F-a8dd5250",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Refactoring scattered auth/authorization logic into AuthService and middleware requires changes to login.ts, 2fa.ts, verify.ts, frontend app.guard.ts, and likely 8+ other route files that inline permission checks. High-impact architectural refactoring of core security concerns.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "routes/login.ts",
+        "routes/2fa.ts",
+        "routes/verify.ts",
+        "routes/register.ts",
+        "frontend/src/app/app.guard.ts",
+        "app.ts"
+      ]
+    },
+    {
+      "finding_id": "F-459c1fb8",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Consolidating Models/ and Service types into single source of truth is scoped to frontend. Requires creating/updating Models directory and refactoring 6-8 service files. No backend changes needed. Manageable architectural improvement.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/app/Models/",
+        "frontend/src/app/Services/user.service.ts",
+        "frontend/src/app/Services/product.service.ts",
+        "frontend/src/app/Services/"
+      ]
+    },
+    {
+      "finding_id": "F-8de2fc93",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Integrating hacking instructor as proper Angular module requires refactoring the tutorial subsystem (~600 LOC) and updating main app integration points. Scoped to frontend hacking-instructor module and app.module.ts. No backend changes.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/hacking-instructor/",
+        "frontend/src/hacking-instructor/index.ts",
+        "frontend/src/hacking-instructor/helpers/helpers.ts",
+        "frontend/src/app/app.module.ts"
+      ]
+    },
+    {
+      "finding_id": "F-a61cb57a",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Creating unified challenge domain service requires refactoring across verify.ts, challenges.yml, frontend score-board module (15+ files), hacking-instructor module (15+ files), and introducing challenge service on backend. Affects 30+ files with deep architectural implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "routes/verify.ts",
+        "data/static/challenges.yml",
+        "frontend/src/app/score-board/",
+        "frontend/src/hacking-instructor/challenges/"
+      ]
+    }
+  ],
+  "tier_0_count": 5,
+  "tier_1_count": 4,
+  "tier_2_count": 6,
+  "tier_3_count": 6
+}

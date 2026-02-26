@@ -1,0 +1,205 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-d1a8e2f6",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0ce2cbb0",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8cea43b7",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-847104f7",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0cc2049b",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-6f181616",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-d9127866",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-c7786f89",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-33f45034",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-4db5d358",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-cea458fb",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-5aa62f1e",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-3d25f0ac",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-5e7ef160",
+      "tier": 2,
+      "confidence": 0.98,
+      "rationale": "Arbitrary file write vulnerability in a single endpoint. Fix involves input validation, path sanitization (basename, regex checks), and size limits. Localized to one file with clear, deterministic pattern. No architectural changes needed.",
+      "fix_template_id": "path_traversal_prevention",
+      "relevant_files": [
+        "web/src/routes/notes/+server.ts"
+      ]
+    },
+    {
+      "finding_id": "F-deb91026",
+      "tier": 2,
+      "confidence": 0.97,
+      "rationale": "Command injection vulnerability in /obsidian endpoint. Fix requires replacing shell execution with Node.js filesystem APIs, input validation, and path sanitization. Localized to single route handler with clear remediation path.",
+      "fix_template_id": "shell_injection_remediation",
+      "relevant_files": [
+        "web/src/routes/obsidian/+server.ts"
+      ]
+    },
+    {
+      "finding_id": "F-73bb561e",
+      "tier": 2,
+      "confidence": 0.9,
+      "rationale": "Missing input validation on chat endpoint. Fix involves adding request size checks, field validation, payload sanitization before forwarding to backend. Localized to single route handler with well-defined validation rules.",
+      "fix_template_id": "input_validation_middleware",
+      "relevant_files": [
+        "web/src/routes/chat/+server.ts"
+      ]
+    },
+    {
+      "finding_id": "F-b5be61d2",
+      "tier": 2,
+      "confidence": 0.82,
+      "rationale": "Session file permissions issue in Go backend. Fix involves adding chmod calls to ensure 0600 permissions on session files and 0700 on session directory. Localized to sessions storage entity with straightforward remediation.",
+      "fix_template_id": "file_permission_hardening",
+      "relevant_files": [
+        "internal/plugins/db/fsdb/sessions.go"
+      ]
+    },
+    {
+      "finding_id": "F-bec044cf",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Inconsistent error handling across Go modules. This is an architectural concern affecting multiple packages (internal/log, internal/cli, cmd/generate_changelog packages). Requires establishing conventions and refactoring error handling patterns across 5+ files with coordination between modules.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "internal/log/log.go",
+        "cmd/generate_changelog/internal/git/walker.go",
+        "cmd/generate_changelog/internal/github/client.go",
+        "cmd/generate_changelog/internal/release.go",
+        "cmd/generate_changelog/main.go"
+      ]
+    },
+    {
+      "finding_id": "F-eb92a0d3",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "High coupling of AI provider implementations. Affects internal/cli/chat.go and internal/core/plugin_registry.go plus multiple provider packages. Requires architectural refactoring to implement factory/registry pattern properly, with changes spanning multiple modules and entry points.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "internal/cli/chat.go",
+        "internal/core/plugin_registry.go",
+        "internal/plugins/ai/openai/openai.go",
+        "internal/plugins/ai/anthropic/anthropic.go"
+      ]
+    },
+    {
+      "finding_id": "F-12a57dae",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Missing layering and abstraction for file system operations in web routes. Requires creating repository/adapter pattern affecting multiple route handlers and introducing new service layer. Changes span web routes, potential new service files, and affects architectural structure.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "web/src/routes/obsidian/+server.ts",
+        "web/src/routes/notes/+server.ts",
+        "web/src/lib/services/PdfConversionService.ts"
+      ]
+    },
+    {
+      "finding_id": "F-413aa6c5",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Potential circular dependencies between internal/tools/ and internal/core/plugin_registry. Requires analyzing and refactoring dependency structure across multiple tool implementations and core systems. Affects 5+ files with module-level architectural implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "internal/tools/youtube/youtube.go",
+        "internal/tools/spotify/spotify.go",
+        "internal/tools/jina/jina.go",
+        "internal/core/plugin_registry.go",
+        "internal/tools/patterns_loader.go"
+      ]
+    }
+  ],
+  "tier_0_count": 0,
+  "tier_1_count": 10,
+  "tier_2_count": 4,
+  "tier_3_count": 7
+}

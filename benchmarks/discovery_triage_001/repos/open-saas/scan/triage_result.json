@@ -1,0 +1,393 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-d6e31bee",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-24f64033",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-affae70b",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-ac0739f2",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-f105d914",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0a3e50a1",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-eb30c5fd",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-832b857c",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0e94e9ce",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-702fc339",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-3ec24e57",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: template/app/src/admin/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-9c81a20a",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: template/app/src/payment/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fa8ac3ca",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8ca79505",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: template/app/src/client/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0176dbc7",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-54e3a82f",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-39e8a166",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: template/app/src/landing-page/, template/blog/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-2fa91d2d",
+      "tier": 2,
+      "confidence": 0.98,
+      "rationale": "Add authentication and ownership check to single operation. Requires modifying getDownloadFileSignedURL to query File entity and verify userId. Scoped to file-upload module with clear fix pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/file-upload/operations.ts",
+        "template/app/src/file-upload/s3Utils.ts"
+      ]
+    },
+    {
+      "finding_id": "F-5332c1cb",
+      "tier": 3,
+      "confidence": 0.95,
+      "rationale": "RBAC check requires adding admin verification to multiple dashboard pages (UsersDashboardPage, AnalyticsDashboardPage, SettingsPage) plus server-side operations (getDailyStats). Affects 5+ files with need for coordinated authorization pattern across admin module.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+        "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+        "template/app/src/admin/elements/settings/SettingsPage.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalSignupsCard.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx",
+        "template/app/src/analytics/operations.ts"
+      ]
+    },
+    {
+      "finding_id": "F-5b30722c",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Add authentication and admin check to getDailyStats operation. Requires modifying analytics operations to verify auth context. Scoped to analytics module with clear fix pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/analytics/operations.ts",
+        "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-c4ee71a5",
+      "tier": 2,
+      "confidence": 0.98,
+      "rationale": "Refactor file download to use fileId instead of s3Key, add ownership verification. Changes needed to FileUploadPage and getDownloadFileSignedURL operation. Localized to file-upload module with deterministic fix pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/file-upload/FileUploadPage.tsx",
+        "template/app/src/file-upload/operations.ts"
+      ]
+    },
+    {
+      "finding_id": "F-5d94aa6f",
+      "tier": 2,
+      "confidence": 0.88,
+      "rationale": "Defer admin assignment until after email verification. Modify userSignupFields.ts to set isAdmin=false initially. Requires changes to signup flow and possibly email verification logic. Scoped to auth module.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/auth/userSignupFields.ts",
+        "template/app/src/auth/email-and-pass/EmailVerificationPage.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-f2638854",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Add email verification check for GitHub OAuth. Modify getGitHubUserFields to enforce verified email before signup. Localized change to auth module with clear fix pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/auth/userSignupFields.ts"
+      ]
+    },
+    {
+      "finding_id": "F-e33ae038",
+      "tier": 3,
+      "confidence": 0.92,
+      "rationale": "Verify webhook signature validation across all payment providers (Stripe, LemonSqueezy, Polar). Requires reviewing and potentially fixing 3 webhook implementations. Architectural concern affecting payment security across multiple files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/payment/stripe/webhook.ts",
+        "template/app/src/payment/lemonSqueezy/webhook.ts",
+        "template/app/src/payment/polar/webhook.ts",
+        "template/app/src/payment/webhook.ts"
+      ]
+    },
+    {
+      "finding_id": "F-441c0b88",
+      "tier": 2,
+      "confidence": 0.72,
+      "rationale": "Add extension validation and filename sanitization to getS3Key function. Localized to s3Utils.ts with clear fix pattern using allowlist and sanitization.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/file-upload/s3Utils.ts",
+        "template/app/src/file-upload/validation.ts"
+      ]
+    },
+    {
+      "finding_id": "F-ac4a34d3",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Replace any[] with proper interface type. Known pattern - add interface definition and type annotation. Single file fix with deterministic solution.",
+      "fix_template_id": "type_safety_any_array",
+      "relevant_files": [
+        "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+      ]
+    },
+    {
+      "finding_id": "F-1dda58f7",
+      "tier": 2,
+      "confidence": 0.95,
+      "rationale": "Remove @ts-ignore comments and properly type Google Analytics response objects. Requires understanding GA Data client API and adding proper types. Localized to single file but requires type investigation.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+      ]
+    },
+    {
+      "finding_id": "F-efb4ee75",
+      "tier": 1,
+      "confidence": 0.9,
+      "rationale": "Remove duplicate headers object definition. Known pattern - consolidate duplicate code to module-level constant. Single file, deterministic fix.",
+      "fix_template_id": "code_deduplication_constants",
+      "relevant_files": [
+        "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts"
+      ]
+    },
+    {
+      "finding_id": "F-e13c2a2b",
+      "tier": 1,
+      "confidence": 0.9,
+      "rationale": "Replace non-null assertions on env vars with requireNodeEnvVar utility. Known pattern - audit suggests utility already exists. Deterministic fix pattern across S3 config.",
+      "fix_template_id": "env_var_validation",
+      "relevant_files": [
+        "template/app/src/file-upload/s3Utils.ts"
+      ]
+    },
+    {
+      "finding_id": "F-75dec326",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Create shared webhook error logging utility and refactor three payment provider webhooks to use it. Requires touching 3 files but follows consistent pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/payment/stripe/webhook.ts",
+        "template/app/src/payment/lemonSqueezy/webhook.ts",
+        "template/app/src/payment/polar/webhook.ts",
+        "template/app/src/payment/errors.ts"
+      ]
+    },
+    {
+      "finding_id": "F-51528115",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Consolidate payment plan data. Requires refactoring PricingPage to reference paymentPlans from plans.ts. Affects 2 files with clear consolidation pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/payment/PricingPage.tsx",
+        "template/app/src/payment/plans.ts"
+      ]
+    },
+    {
+      "finding_id": "F-aff6bd81",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Remove commented-out dead code. Known pattern - simple code cleanup. Single file, deterministic fix.",
+      "fix_template_id": "dead_code_removal",
+      "relevant_files": [
+        "template/app/src/admin/elements/settings/SettingsPage.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-272336fb",
+      "tier": 2,
+      "confidence": 0.95,
+      "rationale": "Implement message notification logic. Requires adding state management and conditional rendering. Scoped to MessageButton component or integrate with messaging system.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+        "template/app/src/admin/dashboards/messages/MessagesPage.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-aacba715",
+      "tier": 2,
+      "confidence": 0.95,
+      "rationale": "Implement settings form submission. Requires form handling, validation, and API integration. Scoped to SettingsPage component.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/admin/elements/settings/SettingsPage.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-09ec96f6",
+      "tier": 2,
+      "confidence": 0.95,
+      "rationale": "Implement messages page or remove from admin routes. Requires feature development or route cleanup. Scoped to MessagesPage component.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/admin/dashboards/messages/MessagesPage.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-b3189a10",
+      "tier": 1,
+      "confidence": 0.75,
+      "rationale": "Move bestDealPaymentPlanId constant to plans.ts. Known pattern - consolidate constants to single location. Single file change, deterministic solution.",
+      "fix_template_id": "constant_consolidation",
+      "relevant_files": [
+        "template/app/src/payment/PricingPage.tsx",
+        "template/app/src/payment/plans.ts"
+      ]
+    },
+    {
+      "finding_id": "F-3adf1d0d",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Decompose 487-line god component into multiple focused components. Requires architectural refactoring: creating sub-components, extracting state hook, reorganizing logic. Affects 4+ files with dependency implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/demo-ai-app/DemoAppPage.tsx",
+        "template/app/src/demo-ai-app/schedule.ts",
+        "template/app/src/demo-ai-app/operations.ts"
+      ]
+    },
+    {
+      "finding_id": "F-14e67fb0",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Consolidate validation and error handling across modules. Requires creating shared validation framework and refactoring 4+ modules (payment, auth, file-upload, server). Cross-cutting architectural concern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/payment/errors.ts",
+        "template/app/src/file-upload/validation.ts",
+        "template/app/src/server/validation.ts",
+        "template/app/src/auth/userSignupFields.ts",
+        "template/app/src/user/operations.ts"
+      ]
+    },
+    {
+      "finding_id": "F-6e667422",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Create analytics provider abstraction layer. Requires defining interface, implementing for multiple providers, and refactoring operations and dashboard components. Affects 5+ files with architectural implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+        "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+        "template/app/src/analytics/operations.ts",
+        "template/app/src/analytics/stats.ts",
+        "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx"
+      ]
+    }
+  ],
+  "tier_0_count": 4,
+  "tier_1_count": 15,
+  "tier_2_count": 12,
+  "tier_3_count": 8
+}

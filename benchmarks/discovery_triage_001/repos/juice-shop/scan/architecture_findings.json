@@ -1,0 +1,498 @@
+{
+  "findings": [
+    {
+      "id": "F-8c19916d",
+      "title": "Missing service layer between API routes and data access",
+      "description": "API routes (2500 LOC) directly access the data layer and models without intermediate business logic layer. This violates separation of concerns and creates tight coupling between route handlers and persistence logic. Changes to database queries require modifications throughout multiple route files.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Route handlers directly import and use data-layer modules and Mongoose models"
+        },
+        {
+          "file_path": "data/",
+          "line_start": 1,
+          "line_end": 800,
+          "snippet": "Data layer exposes raw database operations without abstraction"
+        }
+      ],
+      "suggested_fix": "Introduce a service layer (e.g., services/) between api-routes and data-layer. Services should encapsulate business logic, data validation, and database operations. Routes should only handle HTTP concerns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e258f622",
+      "title": "Tight coupling between frontend components and services",
+      "description": "Frontend components (4500 LOC) directly inject and use HTTP services without abstraction. Each component independently manages API calls, error handling, and state. This creates multiple copies of similar logic across components and makes it difficult to refactor API changes.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/",
+          "line_start": 1,
+          "line_end": 4500,
+          "snippet": "Components directly call service methods and subscribe to observables"
+        },
+        {
+          "file_path": "frontend/src/app/Services/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "Services expose raw HTTP calls without consistent error handling patterns"
+        }
+      ],
+      "suggested_fix": "Create a facade service layer or HTTP interceptor to standardize API communication, error handling, and response transformation. Implement a centralized store (NgRx/Akita) for state management.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b202478a",
+      "title": "God modules in api-routes: inconsistent responsibility distribution",
+      "description": "The api-routes module contains 10 route files with 2500 LOC covering diverse concerns: authentication, products, basket, users, admin, chatbot, feedback, challenges, and more. Some route files like verify.ts (440 LOC) and metrics.ts (233 LOC) exceed recommended boundaries and contain mixed business logic.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/verify.ts",
+          "line_start": 1,
+          "line_end": 440,
+          "snippet": "Challenge verification endpoint with complex business logic"
+        },
+        {
+          "file_path": "routes/metrics.ts",
+          "line_start": 1,
+          "line_end": 233,
+          "snippet": "Metrics aggregation with multiple calculation concerns"
+        },
+        {
+          "file_path": "routes/order.ts",
+          "line_start": 1,
+          "line_end": 208,
+          "snippet": "Order processing with multiple domain concerns"
+        }
+      ],
+      "suggested_fix": "Split routes into domain-specific route modules with corresponding service layers. Group related routes: auth-routes, product-routes, order-routes, challenge-routes, admin-routes. Move business logic to dedicated service classes.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c95d5c7a",
+      "title": "Data layer lacks repository pattern abstraction",
+      "description": "Data access is scattered across data/mongodb.ts, data/datacreator.ts, and direct Mongoose model imports in routes. No consistent repository or DAO pattern. Changes to query logic scattered across multiple files make maintenance difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "data/mongodb.ts",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "Minimal abstraction layer"
+        },
+        {
+          "file_path": "data/datacreator.ts",
+          "line_start": 1,
+          "line_end": 746,
+          "snippet": "Data initialization mixed with creation logic"
+        },
+        {
+          "file_path": "models/",
+          "line_start": 1,
+          "line_end": 600,
+          "snippet": "Mongoose models imported directly throughout routes"
+        }
+      ],
+      "suggested_fix": "Implement repository pattern with repositories for each entity (UserRepository, ProductRepository, ChallengeRepository, etc.). Repositories should encapsulate all database queries and provide a consistent interface.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-333946be",
+      "title": "Configuration scatter: hardcoded values across codebase",
+      "description": "Configuration values spread throughout route handlers, services, and startup files. While config files exist (config/default.yml, config/test.yml), many settings are hardcoded in code or loaded inconsistently. Makes configuration management difficult in different environments.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "lib/startup/validateConfig.ts",
+          "line_start": 1,
+          "line_end": 186,
+          "snippet": "Configuration validation scattered across startup code"
+        },
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Hardcoded values in multiple route files"
+        },
+        {
+          "file_path": "lib/config.types.ts",
+          "line_start": 1,
+          "line_end": 138,
+          "snippet": "Config type definitions present but not consistently used"
+        }
+      ],
+      "suggested_fix": "Create a centralized ConfigService that loads from environment-specific YAML files and provides typed access to all configuration. Inject ConfigService into services and route handlers instead of direct imports.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3f4968e0",
+      "title": "Frontend-backend API contract not formally defined",
+      "description": "Frontend services and backend routes evolved independently. No OpenAPI/Swagger schema enforced, no shared DTOs between client and server, no centralized API contract. Multiple services independently handle the same endpoints with different approaches.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/Services/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "Services independently define API calls without shared contract"
+        },
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Route handlers return data with inconsistent structure"
+        },
+        {
+          "file_path": "swagger.yml",
+          "line_start": 1,
+          "line_end": 52,
+          "snippet": "Swagger definition exists but appears minimal and not enforced"
+        }
+      ],
+      "suggested_fix": "Adopt OpenAPI 3.0 specification. Generate TypeScript types from OpenAPI schema for both frontend and backend. Create shared DTO interfaces. Use tools like OpenAPI Generator to maintain consistency.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ef9c75c1",
+      "title": "Inconsistent error handling across modules",
+      "description": "Error handling patterns vary significantly. Some routes use try-catch, others use promise rejection, frontend services have different error interceptors. No unified error response format or error codes. Error recovery logic duplicated across components.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/errorHandler.ts",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "Minimal error handler implementation"
+        },
+        {
+          "file_path": "frontend/src/app/Services/request.interceptor.ts",
+          "line_start": 1,
+          "line_end": 29,
+          "snippet": "Request interceptor without comprehensive error handling"
+        },
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Inconsistent error handling in different route files"
+        }
+      ],
+      "suggested_fix": "Create centralized error handling: (1) Backend: Custom error classes and middleware for consistent error responses; (2) Frontend: Comprehensive HTTP interceptor with centralized error handling and user notifications.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a8dd5250",
+      "title": "Authentication/Authorization logic scattered across routes",
+      "description": "JWT verification, role checking, and permission logic implemented inline in multiple route files. middleware concepts not consistently applied. Makes audit and changes to auth logic difficult. Auth routes (login.ts, register.ts, 2fa.ts) handle different auth concerns without shared abstraction.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/login.ts",
+          "line_start": 1,
+          "line_end": 84,
+          "snippet": "Authentication logic mixed with route handler"
+        },
+        {
+          "file_path": "routes/2fa.ts",
+          "line_start": 1,
+          "line_end": 176,
+          "snippet": "2FA logic with inline verification"
+        },
+        {
+          "file_path": "routes/verify.ts",
+          "line_start": 1,
+          "line_end": 440,
+          "snippet": "Permission verification mixed with challenge logic"
+        },
+        {
+          "file_path": "frontend/src/app/app.guard.ts",
+          "line_start": 1,
+          "line_end": 88,
+          "snippet": "Route guard with inline permission checks"
+        }
+      ],
+      "suggested_fix": "Create auth module with: (1) AuthService handling login, token refresh, 2FA; (2) Authorization middleware for role/permission checking; (3) Frontend: Centralized AuthGuard and role-based AccessControl service; (4) Shared auth-related middleware/guards.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-459c1fb8",
+      "title": "Frontend models fragmented: Models/ and Service types inconsistent",
+      "description": "Frontend has Models directory (frontend/src/app/Models/) with DTO interfaces, but services define their own types. No single source of truth for data structures. Models rarely correspond to backend responses.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/Models/",
+          "line_start": 1,
+          "line_end": 150,
+          "snippet": "DTO interfaces in Models/ directory"
+        },
+        {
+          "file_path": "frontend/src/app/Services/user.service.ts",
+          "line_start": 1,
+          "line_end": 81,
+          "snippet": "Service with inline type definitions"
+        },
+        {
+          "file_path": "frontend/src/app/Services/product.service.ts",
+          "line_start": 1,
+          "line_end": 36,
+          "snippet": "Service with different type naming convention"
+        }
+      ],
+      "suggested_fix": "Create shared models directory with all DTOs representing backend responses. Generate models from OpenAPI schema. All services should exclusively use these types. Remove inline type definitions from services.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0f6e0f8d",
+      "title": "Test code lacks structural clarity: three test frameworks without clear separation",
+      "description": "Three separate test modules (test-server using Mocha, test-api using Jest/Frisby, test-e2e using Cypress) with 3300 LOC total. No clear guidance on which tests cover which layers. Test data and fixtures not centralized. Makes test maintenance and execution difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "test/server/",
+          "line_start": 1,
+          "line_end": 1500,
+          "snippet": "Server-side unit tests with Mocha"
+        },
+        {
+          "file_path": "test/api/",
+          "line_start": 1,
+          "line_end": 1000,
+          "snippet": "API integration tests with Jest/Frisby"
+        },
+        {
+          "file_path": "test/e2e/",
+          "line_start": 1,
+          "line_end": 800,
+          "snippet": "E2E tests with Cypress"
+        }
+      ],
+      "suggested_fix": "Consolidate test strategy: (1) Use Jest for all server unit/integration tests; (2) Cypress for E2E tests only; (3) Create shared test fixtures and factory functions; (4) Document test pyramid and coverage requirements.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8de2fc93",
+      "title": "Hacking instructor tutorial system loosely integrated",
+      "description": "frontend/src/hacking-instructor module (600 LOC) operates as separate subsystem with minimal integration with main application. Tutorial state management, challenge flow, and helper functions duplicated or inconsistently wired to main app components.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/hacking-instructor/",
+          "line_start": 1,
+          "line_end": 600,
+          "snippet": "Hacking instructor as separate module"
+        },
+        {
+          "file_path": "frontend/src/hacking-instructor/index.ts",
+          "line_start": 1,
+          "line_end": 218,
+          "snippet": "Main tutorial orchestrator with inline logic"
+        },
+        {
+          "file_path": "frontend/src/hacking-instructor/helpers/helpers.ts",
+          "line_start": 1,
+          "line_end": 261,
+          "snippet": "Helper utilities duplicating main app functions"
+        }
+      ],
+      "suggested_fix": "Integrate hacking instructor as proper Angular module. Create TutorialService with state management (NgRx). Share utilities with main app instead of duplication. Wire tutorial mode into main authentication/navigation flow.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6217f1b7",
+      "title": "Web3/Blockchain integration lacks abstraction layer",
+      "description": "Ethereum contract interactions (ethers.js) scattered across frontend components and routes. No abstraction for contract methods, transaction handling, or wallet integration. Web3 modules (web3-sandbox, wallet-web3, faucet) operate independently with duplicated logic.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/web3-sandbox/",
+          "line_start": 1,
+          "line_end": 315,
+          "snippet": "Direct ethers.js integration in component"
+        },
+        {
+          "file_path": "frontend/src/app/wallet-web3/",
+          "line_start": 1,
+          "line_end": 172,
+          "snippet": "Wallet management with inline contract calls"
+        },
+        {
+          "file_path": "frontend/src/app/faucet/",
+          "line_start": 1,
+          "line_end": 316,
+          "snippet": "Faucet component with duplicated Web3 logic"
+        },
+        {
+          "file_path": "data/static/web3-snippets/",
+          "line_start": 1,
+          "line_end": 400,
+          "snippet": "Smart contract code without abstraction"
+        }
+      ],
+      "suggested_fix": "Create Web3Service encapsulating ethers.js interactions. Create ContractService for each contract type (Wallet, NFT, Token). Implement wallet connection abstraction. Centralize transaction handling and error recovery.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a61cb57a",
+      "title": "Challenge domain logic mixed across modules",
+      "description": "Challenge-related logic distributed across: routes/verify.ts, routes/challenges.ts (missing but referenced), data/static/challenges.yml, frontend/src/app/score-board, frontend/src/hacking-instructor. No unified challenge domain service. Challenge state management inconsistent.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/verify.ts",
+          "line_start": 1,
+          "line_end": 440,
+          "snippet": "Challenge verification with mixed concerns"
+        },
+        {
+          "file_path": "data/static/challenges.yml",
+          "line_start": 1,
+          "line_end": 1535,
+          "snippet": "Challenge definitions without API schema"
+        },
+        {
+          "file_path": "frontend/src/app/score-board/",
+          "line_start": 1,
+          "line_end": 204,
+          "snippet": "Challenge display with local state management"
+        },
+        {
+          "file_path": "frontend/src/hacking-instructor/challenges/",
+          "line_start": 1,
+          "line_end": 600,
+          "snippet": "Challenge tutorials with duplicated logic"
+        }
+      ],
+      "suggested_fix": "Create ChallengeService (backend) to manage challenge state, verification, and scoring. Create ChallengeStore (frontend) for centralized challenge state. Unify challenge DTO across frontend/backend. Remove challenge logic from route handlers.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-035c4d75",
+      "title": "Inconsistent module naming and organization patterns",
+      "description": "Module organization lacks consistency: some use .ts files (routes/login.ts), others use directories (frontend/src/app/score-board/), some use subfolders (frontend/src/app/score-board/components/). Naming conventions vary: camelCase for services, PascalCase for components inconsistently applied.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Route handlers as individual .ts files"
+        },
+        {
+          "file_path": "frontend/src/app/",
+          "line_start": 1,
+          "line_end": 4500,
+          "snippet": "Mixed directory and single-file component organization"
+        }
+      ],
+      "suggested_fix": "Standardize organization: (1) Backend: route-based directory structure (routes/auth/, routes/products/, etc.); (2) Frontend: feature-based modules with consistent component/service/model subdirectories; (3) Enforce naming conventions with linting rules.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 38,
+  "coupling_assessment": "Very High coupling detected across the architecture. Backend routes tightly coupled to data layer with no service abstraction. Frontend components directly coupled to HTTP services without facade. Authentication/authorization logic replicated across modules. Data access scattered without repository pattern. Web3 and challenge logic distributed across multiple modules without unified domain services. Changes to database schema, API contracts, or business rules require modifications across many files.",
+  "layering_assessment": "Architecture violates clean layering principles. Expected layers: Routes \u2192 Services \u2192 Repositories \u2192 Data Access, but actual structure is Routes \u2192 Data Layer (direct access). Frontend expected to follow: Components \u2192 Services \u2192 State Management \u2192 HTTP, but Components directly subscribe to HTTP services. Missing intermediate abstraction layers makes the codebase difficult to test, maintain, and evolve. No clear separation between infrastructure, domain, and application concerns.",
+  "summary": "The OWASP Juice Shop codebase exhibits significant structural issues despite being a well-known security training application. Major findings: (1) Missing service layer between API routes and data access creates tight coupling; (2) Frontend components directly dependent on HTTP services without abstraction; (3) God modules in routes containing mixed responsibilities (verify.ts, metrics.ts, order.ts); (4) No repository pattern for data access; (5) Configuration scattered across files; (6) Authentication logic replicated across multiple routes; (7) Challenge domain logic fragmented across backend/frontend; (8) Web3 integration lacks abstraction; (9) Three separate test frameworks without clear separation; (10) No formal API contract definition. The codebase structure would benefit from introducing service and repository layers, centralizing auth/config, implementing proper abstraction for domain logic, and enforcing consistent architectural patterns across modules. While functional for a CTF/security training tool, the current architecture creates maintenance challenges and makes it difficult to evolve or refactor large portions of code."
+}

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: 5e0231ff3b23 &bull; Generated: 2026-02-26 01:25 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>35 findings</span>
+        <span>333s runtime</span>
+        <span>$0.6480 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box high"><div class="num">12</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">14</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">9</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing CSRF protection on state-changing operations</strong>
+                <div class="desc">The application uses FastAPI with CORS middleware allowing credentials but does not implement CSRF token validation. POST/PUT/DELETE endpoints for user/item management lack CSRF protection, making the application vulnerable to cross-site request forgery attacks from malicious websites.</div>
+            </td>
+            <td class="loc">backend/app/main.py:16</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Access token stored in localStorage is vulnerable to XSS</strong>
+                <div class="desc">JWT access tokens are stored in browser localStorage, which is vulnerable to XSS attacks. Any XSS vulnerability in the application or third-party scripts could steal the token. localStorage is accessible to any JavaScript running in the page context.</div>
+            </td>
+            <td class="loc">frontend/src/hooks/useAuth.ts:48</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Password reset token lacks expiration validation</strong>
+                <div class="desc">The password reset token validation in verify_password_reset_token() does not enforce token expiration. While tokens are likely issued with expiration, if validation is lenient or missing, attackers could use old/captured reset tokens indefinitely.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/login.py:60</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No rate limiting on authentication endpoints</strong>
+                <div class="desc">Login endpoint (/login/access-token) and password recovery endpoints (/password-recovery/{email}) lack rate limiting. Attackers can perform brute force attacks on user credentials or enumerate registered emails without throttling.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/login.py:18</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Session management lacks explicit logout/token revocation</strong>
+                <div class="desc">Logout removes token from localStorage but there is no server-side token revocation mechanism. An attacker with a stolen token can still use it until natural expiration. There is no token blacklist or revocation endpoint.</div>
+            </td>
+            <td class="loc">frontend/src/hooks/useAuth.ts:54</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Insufficient protection against horizontal privilege escalation</strong>
+                <div class="desc">Users can potentially access other users' data through predictable ID enumeration in /api/users/{id} endpoint. No ownership verification shown before returning user details.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/users.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No account lockout after failed login attempts</strong>
+                <div class="desc">Failed login attempts are not tracked. After multiple failed attempts, account should be temporarily locked to prevent brute force attacks.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/login.py:18</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Password stored without verification of adequate hashing algorithm</strong>
+                <div class="desc">While code references Argon2 and bcrypt upgrade logic, the actual password hashing in backend/app/core/security.py is not shown. Cannot verify that hashing is using strong parameters (adequate memory, iterations) and not using deprecated algorithms.</div>
+            </td>
+            <td class="loc">backend/tests/api/routes/test_login.py:76</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Missing response caching in API client</strong>
+                <div class="desc">The frontend API client (axios-based) has no caching mechanism. Each API call hits the server even if the same data was recently fetched.</div>
+            </td>
+            <td class="loc">frontend/src/client/core/request.ts:217</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>SDK generation prevents tree-shaking</strong>
+                <div class="desc">The OpenAPI SDK generation is configured with `asClass: true` which prevents tree-shaking, causing larger bundle sizes as all generated code is included regardless of usage.</div>
+            </td>
+            <td class="loc">frontend/openapi-ts.config.ts:12</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Backend API module lacks service layer abstraction</strong>
+                <div class="desc">The backend-api module (800 LOC) directly imports and uses CRUD operations from backend-models, creating tight coupling between routes and data access layer. Business logic is intermingled with HTTP request handling, violating separation of concerns. Routes in users.py, items.py, and login.py directly instantiate database sessions and call CRUD functions without a domain service layer to coordinate operations.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/users.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Frontend components module is a god module with mixed responsibilities</strong>
+                <div class="desc">The frontend-components module (2500 LOC across 51 files) mixes UI presentation, business logic, API calls, and form handling in individual component files. Admin components (AddUser.tsx, EditUser.tsx) contain form validation, API mutations, and toast notifications. Items components do similar pattern. This violates single responsibility and makes components hard to test and reuse. No clear separation between container (smart) and presentational (dumb) components.</div>
+            </td>
+            <td class="loc">frontend/src/components/Admin/AddUser.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Insufficient JWT token validation strictness</strong>
+                <div class="desc">JWT tokens are accepted from localStorage without strict validation of token claims. The frontend retrieves tokens from localStorage synchronously without validating token expiration client-side before use. If a token expires, it will only be caught after the API request fails, allowing brief window for token replay or use of expired tokens.</div>
+            </td>
+            <td class="loc">frontend/src/main.tsx:12</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Admin endpoint lacks proper superuser verification</strong>
+                <div class="desc">The admin routes are protected but the access control may rely solely on is_superuser check without additional verification. No multi-factor authentication or additional confirmation for sensitive admin operations.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/users.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No verification of email ownership for user registration</strong>
+                <div class="desc">User signup endpoint allows registration without email verification. The is_verified field is set during initial_data.py but not enforced during registration flow. Attackers could register with fake emails or others' emails.</div>
+            </td>
+            <td class="loc">frontend/src/routes/signup.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No protection against credential stuffing with known password lists</strong>
+                <div class="desc">Login endpoint accepts any password without checking against common password lists or breach databases. Users with weak/common passwords are vulnerable to credential stuffing attacks.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/login.py:18</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing security headers in responses</strong>
+                <div class="desc">FastAPI application does not appear to set security headers like HSTS, X-Content-Type-Options, X-Frame-Options, Content-Security-Policy. These headers provide browser-level security protections.</div>
+            </td>
+            <td class="loc">backend/app/main.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Hard-coded pagination limit of 100 in users endpoint</strong>
+                <div class="desc">The read_users endpoint has a hard-coded default limit of 100 without a maximum limit validation. While pagination is implemented, there's no upper bound check which could allow clients to request very large result sets.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/users.py:23</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Hard-coded pagination limit of 100 in items endpoint</strong>
+                <div class="desc">The read_items endpoint has a hard-coded default limit of 100 without a maximum limit validation, similar to users endpoint.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/items.py:15</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Missing lazy loading for route components</strong>
+                <div class="desc">The TanStack Router configuration doesn't use lazy loading for route components. All route components are bundled together, increasing initial load time.</div>
+            </td>
+            <td class="loc">frontend/src/routes/_layout.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>No database query result caching</strong>
+                <div class="desc">The backend doesn't implement any query result caching. Repeated identical queries (e.g., listing users/items) hit the database every time.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/users.py:24</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>No connection pooling configuration visible</strong>
+                <div class="desc">Database connection pooling configuration is not explicitly visible in the provided code. The default SQLAlchemy connection pool settings may not be optimal for production workloads.</div>
+            </td>
+            <td class="loc">backend/app/core/db.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction between frontend routes and components</strong>
+                <div class="desc">Frontend route files (_layout/admin.tsx, _layout/items.tsx) directly render components that contain business logic and API calls. No proper page/container component pattern exists. Routes are tightly coupled to specific component implementations, making it difficult to swap implementations or create variations.</div>
+            </td>
+            <td class="loc">frontend/src/routes/_layout/admin.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent client SDK usage across frontend</strong>
+                <div class="desc">The frontend-client module (450 LOC) provides generated OpenAPI client (sdk.gen.ts), but there's no consistent pattern for how components use it. Some components likely use openapi-fetch directly, others may use React Query with the client, creating inconsistent patterns. No centralized API client configuration or wrapper exists to standardize error handling, interceptors, or request/response transformation.</div>
+            </td>
+            <td class="loc">frontend/src/client/sdk.gen.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Backend models module mixes concerns: ORM models, CRUD, and utilities</strong>
+                <div class="desc">The backend-models module (600 LOC across 6 files) combines SQLAlchemy ORM definitions (models.py), CRUD operations (crud.py), general utilities (utils.py), data initialization (initial_data.py), and pre-start scripts in the root backend/app/ directory. This creates a dumping ground for loosely related code. Models should be separate from CRUD operations and utilities should be organized by domain.</div>
+            </td>
+            <td class="loc">backend/app/models.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Hardcoded configuration scattered across backend-core and routes</strong>
+                <div class="desc">Backend configuration exists in backend/app/core/config.py (119 LOC), but there's evidence of potential hardcoded values in route handlers, security module, and database initialization. No single source of truth for feature flags, validation rules, or constants. Makes configuration-driven behavior difficult.</div>
+            </td>
+            <td class="loc">backend/app/core/config.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing authorization checks on /api/utils/health-check endpoint</strong>
+                <div class="desc">The health-check endpoint used by Docker healthcheck is not shown in auth_boundaries but is referenced in compose.yml. If unprotected, it could allow unauthenticated users to probe API availability, potentially enabling reconnaissance attacks.</div>
+            </td>
+            <td class="loc">compose.yml:85</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Passwords transmitted over HTTPS but no additional encryption layer</strong>
+                <div class="desc">Password fields are sent as plain text in HTTPS POST requests. While HTTPS provides transport security, there is no field-level encryption or PBKDF2/additional hashing during transmission.</div>
+            </td>
+            <td class="loc">frontend/src/routes/login.tsx:80</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Duplicate database queries for count and data in users endpoint</strong>
+                <div class="desc">The read_users endpoint executes two separate database queries - one for count and one for data. While acceptable for small datasets, this could be optimized using a window function or cached count.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/users.py:26</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Duplicate database queries for count and data in items endpoint</strong>
+                <div class="desc">The read_items endpoint executes two separate database queries - one for count and one for data. Same pattern as users endpoint.</div>
+            </td>
+            <td class="loc">backend/app/api/routes/items.py:20</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Axios instance recreated on each request</strong>
+                <div class="desc">The request function creates axiosClient from the default axios import each time, rather than reusing a configured instance.</div>
+            </td>
+            <td class="loc">frontend/src/client/core/request.ts:217</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Tight coupling between backend routes and dependency injection</strong>
+                <div class="desc">Backend routes depend on deps.py for injecting database sessions and current user. While FastAPI's dependency injection is a valid pattern, there's no abstraction for testability. The deps.py module (57 LOC) directly creates database sessions and validates tokens, but routes depend on specific dependency signatures. Changes to dependency resolution require updating route signatures.</div>
+            </td>
+            <td class="loc">backend/app/api/deps.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Frontend hooks lack clear organizational boundaries</strong>
+                <div class="desc">Frontend-hooks module (150 LOC, 4 files) contains useAuth, useCustomToast, useMobile, useCopyToClipboard. These are mixed concerns - authentication state, UI notifications, responsive design detection, and clipboard utilities. As the frontend grows, this directory will become a dumping ground. No clear categorization by domain or concern.</div>
+            </td>
+            <td class="loc">frontend/src/hooks/useAuth.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Frontend test utilities mixed with E2E tests</strong>
+                <div class="desc">Frontend-tests module (400 LOC) mixes Playwright E2E tests (login.spec.ts, admin.spec.ts) with utility functions (tests/utils/user.ts, mailcatcher.ts, random.ts). No clear separation between test specs and shared test infrastructure. As test count grows, this structure won't scale.</div>
+            </td>
+            <td class="loc">frontend/tests/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing interface definitions for frontend-backend contract</strong>
+                <div class="desc">While frontend-client contains generated OpenAPI types (types.gen.ts, schemas.gen.ts), there's no documented API contract layer or validation schema repository. Changes to backend API schemas require regeneration; no clear versioning or deprecation strategy. Frontend components assume API contract without explicit validation.</div>
+            </td>
+            <td class="loc">frontend/src/client/types.gen.ts:1</td>
+            <td></td>
+        </tr></tbody>
+    </table>
+
+    
+        <h2>Remediation Plan (35 items across 4 levels)</h2>
+        <p class="plan-summary">31 actionable items across 4 execution levels prioritizing security hardening (auth, CSRF, rate limiting), then backend refactoring (services, reorganization), then frontend refactoring (components, hooks, pages), then remaining optimizations. 5 low-value items deferred. Level 0: Infrastructure basics (rate limiting, headers, hashing verification, pagination, config). Level 1: Token migration (localStorage to cookies). Level 2: Token validation, CSRF, revocation, ownership checks, admin audit logging, email verification. Level 3: Account lockout, service layer creation, component refactoring, page components, directory reorganization. Critical security path: complete all Level 0 items, then token migration (Level 1), then implement CSRF and logout (Level 2), then account lockout (Level 3).</p>
+        <table>
+            <thead><tr><th>Priority</th><th>Tier</th><th>Fix</th><th>Files</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>P1</td>
+                <td>T2</td>
+                <td><strong>Migrate JWT tokens from localStorage to HttpOnly cookies</strong></td>
+                <td>backend/app/api/routes/login.py, backend/app/core/security.py, frontend/src/main.tsx</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Add JWT token expiration validation on frontend</strong></td>
+                <td>frontend/src/hooks/useAuth.ts, frontend/src/main.tsx, package.json</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Implement CSRF protection with token validation</strong></td>
+                <td>backend/app/main.py, backend/app/api/deps.py, backend/app/core/config.py</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Add rate limiting to authentication endpoints</strong></td>
+                <td>backend/app/main.py, backend/app/api/routes/login.py, backend/pyproject.toml</td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T2</td>
+                <td><strong>Implement account lockout after failed login attempts</strong></td>
+                <td>backend/app/api/routes/login.py, backend/app/crud.py, backend/app/models.py</td>
+            </tr>
+            <tr>
+                <td>P6</td>
+                <td>T1</td>
+                <td><strong>Add strict password reset token expiration validation</strong></td>
+                <td>backend/app/utils.py, backend/app/api/routes/login.py</td>
+            </tr>
+            <tr>
+                <td>P7</td>
+                <td>T2</td>
+                <td><strong>Implement server-side token revocation and blacklist</strong></td>
+                <td>backend/app/api/routes/login.py, backend/app/api/deps.py, backend/app/core/config.py</td>
+            </tr>
+            <tr>
+                <td>P8</td>
+                <td>T2</td>
+                <td><strong>Add ownership verification to user and item endpoints</strong></td>
+                <td>backend/app/api/routes/users.py, backend/app/api/routes/items.py, backend/tests/api/routes/test_users.py</td>
+            </tr>
+            <tr>
+                <td>P9</td>
+                <td>T2</td>
+                <td><strong>Strengthen admin authorization with audit logging</strong></td>
+                <td>backend/app/api/deps.py, backend/app/api/routes/users.py, backend/app/models.py</td>
+            </tr>
+            <tr>
+                <td>P10</td>
+                <td>T1</td>
+                <td><strong>Add security headers to FastAPI responses</strong></td>
+                <td>backend/app/main.py</td>
+            </tr>
+            <tr>
+                <td>P11</td>
+                <td>T1</td>
+                <td><strong>Verify and document password hashing algorithm strength</strong></td>
+                <td>backend/app/core/security.py, backend/README.md</td>
+            </tr>
+            <tr>
+                <td>P12</td>
+                <td>T1</td>
+                <td><strong>Implement password strength validation against breach databases</strong></td>
+                <td>backend/app/utils.py, backend/app/api/routes/login.py, backend/pyproject.toml</td>
+            </tr>
+            <tr>
+                <td>P13</td>
+                <td>T3</td>
+                <td><strong>Implement email verification on user registration</strong></td>
+                <td>backend/app/models.py, backend/app/api/routes/login.py, backend/app/utils.py</td>
+            </tr>
+            <tr>
+                <td>P14</td>
+                <td>T1</td>
+                <td><strong>Enforce TLS 1.2+, strong ciphers, and HSTS in production</strong></td>
+                <td>compose.traefik.yml, backend/app/main.py</td>
+            </tr>
+            <tr>
+                <td>P15</td>
+                <td>T1</td>
+                <td><strong>Verify and document health-check endpoint authorization</strong></td>
+                <td>backend/app/api/routes/utils.py, backend/README.md</td>
+            </tr>
+            <tr>
+                <td>P16</td>
+                <td>T1</td>
+                <td><strong>Enable tree-shaking in OpenAPI SDK generation</strong></td>
+                <td>frontend/openapi-ts.config.ts</td>
+            </tr>
+            <tr>
+                <td>P17</td>
+                <td>T1</td>
+                <td><strong>Add maximum pagination limit validation to users endpoint</strong></td>
+                <td>backend/app/api/routes/users.py, backend/tests/api/routes/test_users.py</td>
+            </tr>
+            <tr>
+                <td>P18</td>
+                <td>T1</td>
+                <td><strong>Add maximum pagination limit validation to items endpoint</strong></td>
+                <td>backend/app/api/routes/items.py, backend/tests/api/routes/test_items.py</td>
+            </tr>
+            <tr>
+                <td>P19</td>
+                <td>T1</td>
+                <td><strong>Create singleton axios instance for API requests</strong></td>
+                <td>frontend/src/client/core/request.ts, frontend/src/client/core/OpenAPI.ts</td>
+            </tr>
+            <tr>
+                <td>P20</td>
+                <td>T2</td>
+                <td><strong>Implement response caching in API client</strong></td>
+                <td>frontend/src/main.tsx, frontend/src/hooks/useAuth.ts, frontend/src/client/core/request.ts</td>
+            </tr>
+            <tr>
+                <td>P21</td>
+                <td>T2</td>
+                <td><strong>Implement lazy loading for route components</strong></td>
+                <td>frontend/src/routes/_layout.tsx, frontend/src/routes/_layout/admin.tsx, frontend/src/routes/_layout/items.tsx</td>
+            </tr>
+            <tr>
+                <td>P22</td>
+                <td>T3</td>
+                <td><strong>Create service layer abstraction for backend business logic</strong></td>
+                <td>backend/app/services/__init__.py, backend/app/services/user_service.py, backend/app/services/item_service.py</td>
+            </tr>
+            <tr>
+                <td>P23</td>
+                <td>T3</td>
+                <td><strong>Refactor frontend components into presentational and container patterns</strong></td>
+                <td>frontend/src/components/Admin/AddUser.tsx, frontend/src/components/Admin/AddUserForm.tsx, frontend/src/components/Admin/AddUserContainer.tsx</td>
+            </tr>
+            <tr>
+                <td>P24</td>
+                <td>T3</td>
+                <td><strong>Create page/container components layer for routes</strong></td>
+                <td>frontend/src/pages/AdminPage.tsx, frontend/src/pages/ItemsPage.tsx, frontend/src/routes/_layout/admin.tsx</td>
+            </tr>
+            <tr>
+                <td>P25</td>
+                <td>T2</td>
+                <td><strong>Standardize frontend API client usage with wrapper service</strong></td>
+                <td>frontend/src/services/api.ts, frontend/src/main.tsx</td>
+            </tr>
+            <tr>
+                <td>P26</td>
+                <td>T3</td>
+                <td><strong>Reorganize backend directory structure by concern</strong></td>
+                <td>backend/app/schemas/__init__.py, backend/app/schemas/user.py, backend/app/schemas/item.py</td>
+            </tr>
+            <tr>
+                <td>P27</td>
+                <td>T2</td>
+                <td><strong>Create abstraction layer for dependency injection</strong></td>
+                <td>backend/app/api/dependencies.py, backend/app/api/routes/users.py</td>
+            </tr>
+            <tr>
+                <td>P28</td>
+                <td>T1</td>
+                <td><strong>Consolidate hardcoded configuration into config module</strong></td>
+                <td>backend/app/core/config.py, backend/app/core/security.py, backend/app/api/routes/login.py</td>
+            </tr>
+            <tr>
+                <td>P29</td>
+                <td>T2</td>
+                <td><strong>Organize frontend hooks by concern with subdirectories</strong></td>
+                <td>frontend/src/hooks/auth/useAuth.ts, frontend/src/hooks/ui/useCustomToast.ts, frontend/src/hooks/ui/useMobile.ts</td>
+            </tr>
+            <tr>
+                <td>P30</td>
+                <td>T0</td>
+                <td><strong>Reorganize frontend tests into specs and utilities</strong></td>
+                <td>frontend/tests/specs/login.spec.ts, frontend/tests/specs/admin.spec.ts, frontend/tests/fixtures/users.ts</td>
+            </tr>
+            <tr>
+                <td>P31</td>
+                <td>T2</td>
+                <td><strong>Create API contract layer with documented interfaces</strong></td>
+                <td>frontend/src/types/api.ts, frontend/docs/api-contract.md, frontend/src/client/index.ts</td>
+            </tr>
+            <tr>
+                <td>P32</td>
+                <td>T0</td>
+                <td><strong>Optimize database queries in users endpoint (deferred)</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P33</td>
+                <td>T0</td>
+                <td><strong>Optimize database queries in items endpoint (deferred)</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P34</td>
+                <td>T0</td>
+                <td><strong>Implement database query result caching (deferred)</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P35</td>
+                <td>T0</td>
+                <td><strong>Configure database connection pooling (deferred)</strong></td>
+                <td></td>
+            </tr></tbody>
+        </table>
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

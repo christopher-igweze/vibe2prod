@@ -1,0 +1,1466 @@
+{
+  "modules": [
+    {
+      "name": "httpie.core",
+      "path": "httpie/core.py",
+      "purpose": "Main entry point for HTTPie CLI - orchestrates request execution",
+      "files": [
+        "httpie/core.py"
+      ],
+      "loc": 400,
+      "language": "python"
+    },
+    {
+      "name": "httpie.client",
+      "path": "httpie/client.py",
+      "purpose": "HTTP client implementation using requests library",
+      "files": [
+        "httpie/client.py",
+        "httpie/adapters.py"
+      ],
+      "loc": 350,
+      "language": "python"
+    },
+    {
+      "name": "httpie.cli",
+      "path": "httpie/cli",
+      "purpose": "Command-line interface argument parsing and command definition",
+      "files": [
+        "httpie/cli/__init__.py",
+        "httpie/cli/argparser.py",
+        "httpie/cli/argtypes.py",
+        "httpie/cli/constants.py",
+        "httpie/cli/definition.py",
+        "httpie/cli/dicts.py",
+        "httpie/cli/exceptions.py",
+        "httpie/cli/options.py",
+        "httpie/cli/requestitems.py",
+        "httpie/cli/utils.py",
+        "httpie/cli/nested_json/__init__.py",
+        "httpie/cli/nested_json/errors.py",
+        "httpie/cli/nested_json/interpret.py",
+        "httpie/cli/nested_json/parse.py",
+        "httpie/cli/nested_json/tokens.py"
+      ],
+      "loc": 1200,
+      "language": "python"
+    },
+    {
+      "name": "httpie.output",
+      "path": "httpie/output",
+      "purpose": "Output formatting, display rendering, and response processing",
+      "files": [
+        "httpie/output/__init__.py",
+        "httpie/output/models.py",
+        "httpie/output/processing.py",
+        "httpie/output/streams.py",
+        "httpie/output/utils.py",
+        "httpie/output/writer.py",
+        "httpie/output/formatters/__init__.py",
+        "httpie/output/formatters/colors.py",
+        "httpie/output/formatters/headers.py",
+        "httpie/output/formatters/json.py",
+        "httpie/output/formatters/xml.py",
+        "httpie/output/lexers/__init__.py",
+        "httpie/output/lexers/common.py",
+        "httpie/output/lexers/http.py",
+        "httpie/output/lexers/json.py",
+        "httpie/output/lexers/metadata.py",
+        "httpie/output/ui/__init__.py",
+        "httpie/output/ui/man_pages.py",
+        "httpie/output/ui/palette.py",
+        "httpie/output/ui/rich_help.py",
+        "httpie/output/ui/rich_palette.py",
+        "httpie/output/ui/rich_progress.py",
+        "httpie/output/ui/rich_utils.py"
+      ],
+      "loc": 1100,
+      "language": "python"
+    },
+    {
+      "name": "httpie.plugins",
+      "path": "httpie/plugins",
+      "purpose": "Plugin system for extending HTTPie functionality",
+      "files": [
+        "httpie/plugins/__init__.py",
+        "httpie/plugins/base.py",
+        "httpie/plugins/builtin.py",
+        "httpie/plugins/manager.py",
+        "httpie/plugins/registry.py"
+      ],
+      "loc": 350,
+      "language": "python"
+    },
+    {
+      "name": "httpie.manager",
+      "path": "httpie/manager",
+      "purpose": "Subcommands for plugin and session management",
+      "files": [
+        "httpie/manager/__init__.py",
+        "httpie/manager/__main__.py",
+        "httpie/manager/cli.py",
+        "httpie/manager/compat.py",
+        "httpie/manager/core.py",
+        "httpie/manager/tasks/__init__.py",
+        "httpie/manager/tasks/check_updates.py",
+        "httpie/manager/tasks/export_args.py",
+        "httpie/manager/tasks/plugins.py",
+        "httpie/manager/tasks/sessions.py"
+      ],
+      "loc": 500,
+      "language": "python"
+    },
+    {
+      "name": "httpie.sessions",
+      "path": "httpie/sessions.py",
+      "purpose": "Session persistence and cookie management",
+      "files": [
+        "httpie/sessions.py",
+        "httpie/cookies.py"
+      ],
+      "loc": 250,
+      "language": "python"
+    },
+    {
+      "name": "httpie.downloads",
+      "path": "httpie/downloads.py",
+      "purpose": "File download handling with resume support",
+      "files": [
+        "httpie/downloads.py"
+      ],
+      "loc": 200,
+      "language": "python"
+    },
+    {
+      "name": "httpie.uploads",
+      "path": "httpie/uploads.py",
+      "purpose": "Request body and file upload handling",
+      "files": [
+        "httpie/uploads.py"
+      ],
+      "loc": 150,
+      "language": "python"
+    },
+    {
+      "name": "httpie.config",
+      "path": "httpie/config.py",
+      "purpose": "User configuration and preferences management",
+      "files": [
+        "httpie/config.py",
+        "httpie/context.py"
+      ],
+      "loc": 150,
+      "language": "python"
+    },
+    {
+      "name": "httpie.internal",
+      "path": "httpie/internal",
+      "purpose": "Internal utilities including daemon processes for background HTTP",
+      "files": [
+        "httpie/internal/__init__.py",
+        "httpie/internal/__build_channel__.py",
+        "httpie/internal/daemon_runner.py",
+        "httpie/internal/daemons.py",
+        "httpie/internal/update_warnings.py"
+      ],
+      "loc": 200,
+      "language": "python"
+    },
+    {
+      "name": "httpie.legacy",
+      "path": "httpie/legacy",
+      "purpose": "Backwards compatibility for old session formats",
+      "files": [
+        "httpie/legacy/__init__.py",
+        "httpie/legacy/v3_1_0_session_cookie_format.py",
+        "httpie/legacy/v3_2_0_session_header_format.py"
+      ],
+      "loc": 100,
+      "language": "python"
+    },
+    {
+      "name": "httpie.misc",
+      "path": "httpie",
+      "purpose": "Supporting utilities and models",
+      "files": [
+        "httpie/__init__.py",
+        "httpie/__main__.py",
+        "httpie/compat.py",
+        "httpie/encoding.py",
+        "httpie/models.py",
+        "httpie/ssl_.py",
+        "httpie/status.py",
+        "httpie/utils.py"
+      ],
+      "loc": 250,
+      "language": "python"
+    },
+    {
+      "name": "tests",
+      "path": "tests",
+      "purpose": "Test suite covering all HTTPie functionality",
+      "files": [
+        "tests/__init__.py",
+        "tests/conftest.py",
+        "tests/test_auth.py",
+        "tests/test_auth_plugins.py",
+        "tests/test_binary.py",
+        "tests/test_cli.py",
+        "tests/test_cli_ui.py",
+        "tests/test_cli_utils.py",
+        "tests/test_compress.py",
+        "tests/test_config.py",
+        "tests/test_cookie.py",
+        "tests/test_cookie_on_redirects.py",
+        "tests/test_defaults.py",
+        "tests/test_downloads.py",
+        "tests/test_encoding.py",
+        "tests/test_errors.py",
+        "tests/test_exit_status.py",
+        "tests/test_httpie.py",
+        "tests/test_httpie_cli.py",
+        "tests/test_json.py",
+        "tests/test_meta.py",
+        "tests/test_offline.py",
+        "tests/test_output.py",
+        "tests/test_parser_schema.py",
+        "tests/test_plugins_cli.py",
+        "tests/test_redirects.py",
+        "tests/test_regressions.py",
+        "tests/test_sessions.py",
+        "tests/test_ssl.py",
+        "tests/test_stream.py",
+        "tests/test_tokens.py",
+        "tests/test_transport_plugin.py",
+        "tests/test_update_warnings.py",
+        "tests/test_uploads.py",
+        "tests/test_windows.py",
+        "tests/test_xml.py",
+        "tests/utils/__init__.py",
+        "tests/utils/http_server.py",
+        "tests/utils/plugins_cli.py",
+        "tests/utils/matching/__init__.py",
+        "tests/utils/matching/parsing.py",
+        "tests/utils/matching/test_matching.py",
+        "tests/utils/matching/tokens.py"
+      ],
+      "loc": 3500,
+      "language": "python"
+    }
+  ],
+  "dependencies": [],
+  "data_flows": [
+    {
+      "source": "CLI argument parser",
+      "destination": "HTTP client",
+      "data_type": "request configuration (URL, method, headers, body)",
+      "is_authenticated": false
+    },
+    {
+      "source": "HTTP client",
+      "destination": "Remote HTTP server",
+      "data_type": "HTTP request with user-provided credentials",
+      "is_authenticated": true
+    },
+    {
+      "source": "Remote HTTP server",
+      "destination": "Output formatters",
+      "data_type": "HTTP response (status, headers, body)",
+      "is_authenticated": false
+    },
+    {
+      "source": "Session manager",
+      "destination": "Session storage file",
+      "data_type": "session state (cookies, headers)",
+      "is_authenticated": false
+    },
+    {
+      "source": "Config loader",
+      "destination": "User config file",
+      "data_type": "user preferences",
+      "is_authenticated": false
+    }
+  ],
+  "auth_boundaries": [],
+  "entry_points": [
+    {
+      "path": "httpie/__main__.py",
+      "type": "cli",
+      "is_public": true
+    },
+    {
+      "path": "httpie/core.py",
+      "type": "cli",
+      "is_public": true
+    },
+    {
+      "path": "httpie/manager/__main__.py",
+      "type": "cli",
+      "is_public": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": null,
+    "backend": null,
+    "database": null,
+    "hosting": null,
+    "packages": [
+      "requests",
+      "pygments",
+      "rich",
+      "chardet"
+    ]
+  },
+  "files": [
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "language": "markdown",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "AUTHORS.md",
+      "language": "markdown",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "CHANGELOG.md",
+      "language": "markdown",
+      "loc": 462,
+      "purpose": ""
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "setup.py",
+      "language": "python",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 212,
+      "purpose": ""
+    },
+    {
+      "path": ".packit.yaml",
+      "language": "yaml",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "snapcraft.yaml",
+      "language": "yaml",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_httpie.py",
+      "language": "python",
+      "loc": 372,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_cookie.py",
+      "language": "python",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_cli_ui.py",
+      "language": "python",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "tests/conftest.py",
+      "language": "python",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_xml.py",
+      "language": "python",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_redirects.py",
+      "language": "python",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_auth.py",
+      "language": "python",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_errors.py",
+      "language": "python",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_offline.py",
+      "language": "python",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_sessions.py",
+      "language": "python",
+      "loc": 852,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_encoding.py",
+      "language": "python",
+      "loc": 222,
+      "purpose": ""
+    },
+    {
+      "path": "tests/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_output.py",
+      "language": "python",
+      "loc": 631,
+      "purpose": ""
+    },
+    {
+      "path": "tests/README.md",
+      "language": "markdown",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_cookie_on_redirects.py",
+      "language": "python",
+      "loc": 250,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_binary.py",
+      "language": "python",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_httpie_cli.py",
+      "language": "python",
+      "loc": 138,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_ssl.py",
+      "language": "python",
+      "loc": 211,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_cli_utils.py",
+      "language": "python",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_plugins_cli.py",
+      "language": "python",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_config.py",
+      "language": "python",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_exit_status.py",
+      "language": "python",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_meta.py",
+      "language": "python",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_update_warnings.py",
+      "language": "python",
+      "loc": 240,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_downloads.py",
+      "language": "python",
+      "loc": 261,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_json.py",
+      "language": "python",
+      "loc": 583,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_auth_plugins.py",
+      "language": "python",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_regressions.py",
+      "language": "python",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_transport_plugin.py",
+      "language": "python",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_cli.py",
+      "language": "python",
+      "loc": 377,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_uploads.py",
+      "language": "python",
+      "loc": 403,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_windows.py",
+      "language": "python",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_compress.py",
+      "language": "python",
+      "loc": 140,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_parser_schema.py",
+      "language": "python",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_defaults.py",
+      "language": "python",
+      "loc": 132,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_tokens.py",
+      "language": "python",
+      "loc": 118,
+      "purpose": ""
+    },
+    {
+      "path": "tests/test_stream.py",
+      "language": "python",
+      "loc": 150,
+      "purpose": ""
+    },
+    {
+      "path": "tests/utils/__init__.py",
+      "language": "python",
+      "loc": 455,
+      "purpose": ""
+    },
+    {
+      "path": "tests/utils/http_server.py",
+      "language": "python",
+      "loc": 158,
+      "purpose": ""
+    },
+    {
+      "path": "tests/utils/plugins_cli.py",
+      "language": "python",
+      "loc": 235,
+      "purpose": ""
+    },
+    {
+      "path": "tests/utils/matching/parsing.py",
+      "language": "python",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "tests/utils/matching/__init__.py",
+      "language": "python",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "tests/utils/matching/tokens.py",
+      "language": "python",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "tests/utils/matching/test_matching.py",
+      "language": "python",
+      "loc": 214,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/test_with_dupe_keys.json",
+      "language": "json",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/__init__.py",
+      "language": "python",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/test.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/headers_list.json",
+      "language": "json",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/empty_headers_dict.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/cookies_dict.json",
+      "language": "json",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/empty_cookies_list.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/headers_dict.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/empty_headers_list.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/cookies_dict_with_extras.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/empty_cookies_dict.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/cookies_dict_dev_version.json",
+      "language": "json",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/headers_cookies_dict_mixed.json",
+      "language": "json",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/old/headers_dict_extras.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/headers_list.json",
+      "language": "json",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/empty_headers_dict.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/cookies_dict.json",
+      "language": "json",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/empty_cookies_list.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/headers_dict.json",
+      "language": "json",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/empty_headers_list.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/cookies_dict_with_extras.json",
+      "language": "json",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/empty_cookies_dict.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/cookies_dict_dev_version.json",
+      "language": "json",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/headers_cookies_dict_mixed.json",
+      "language": "json",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "tests/fixtures/session_data/new/headers_dict_extras.json",
+      "language": "json",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "docs/config.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "docs/README.md",
+      "language": "markdown",
+      "loc": 2601,
+      "purpose": ""
+    },
+    {
+      "path": "docs/markdownlint.rb",
+      "language": "ruby",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/README.md",
+      "language": "markdown",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/brew/httpie.rb",
+      "language": "ruby",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/brew/README.md",
+      "language": "markdown",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/brew/update.sh",
+      "language": "bash",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/linux-arch/README.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/linux-centos/README.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/mac-ports/README.md",
+      "language": "markdown",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/linux-fedora/README.md",
+      "language": "markdown",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/linux-fedora/update.sh",
+      "language": "bash",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/windows-chocolatey/README.md",
+      "language": "markdown",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/snapcraft/README.md",
+      "language": "markdown",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "docs/packaging/linux-debian/README.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "docs/installation/methods.yml",
+      "language": "yaml",
+      "loc": 197,
+      "purpose": ""
+    },
+    {
+      "path": "docs/installation/generate.py",
+      "language": "python",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "docs/installation/README.md",
+      "language": "markdown",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "docs/contributors/fetch.py",
+      "language": "python",
+      "loc": 281,
+      "purpose": ""
+    },
+    {
+      "path": "docs/contributors/generate.py",
+      "language": "python",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "docs/contributors/README.md",
+      "language": "markdown",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "docs/contributors/people.json",
+      "language": "json",
+      "loc": 691,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cookies.py",
+      "language": "python",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/sessions.py",
+      "language": "python",
+      "loc": 322,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/config.py",
+      "language": "python",
+      "loc": 172,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/compat.py",
+      "language": "python",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/encoding.py",
+      "language": "python",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/models.py",
+      "language": "python",
+      "loc": 233,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/client.py",
+      "language": "python",
+      "loc": 400,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/__init__.py",
+      "language": "python",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/core.py",
+      "language": "python",
+      "loc": 298,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/ssl_.py",
+      "language": "python",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/downloads.py",
+      "language": "python",
+      "loc": 377,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/context.py",
+      "language": "python",
+      "loc": 217,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/utils.py",
+      "language": "python",
+      "loc": 309,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/uploads.py",
+      "language": "python",
+      "loc": 269,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/__main__.py",
+      "language": "python",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/status.py",
+      "language": "python",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/adapters.py",
+      "language": "python",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/plugins/registry.py",
+      "language": "python",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/plugins/__init__.py",
+      "language": "python",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/plugins/builtin.py",
+      "language": "python",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/plugins/manager.py",
+      "language": "python",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/plugins/base.py",
+      "language": "python",
+      "loc": 165,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/internal/daemons.py",
+      "language": "python",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/internal/daemon_runner.py",
+      "language": "python",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/internal/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/internal/update_warnings.py",
+      "language": "python",
+      "loc": 171,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/internal/__build_channel__.py",
+      "language": "python",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/streams.py",
+      "language": "python",
+      "loc": 254,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/models.py",
+      "language": "python",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/utils.py",
+      "language": "python",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/writer.py",
+      "language": "python",
+      "loc": 204,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/processing.py",
+      "language": "python",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/ui/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/ui/palette.py",
+      "language": "python",
+      "loc": 269,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/ui/rich_utils.py",
+      "language": "python",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/ui/rich_help.py",
+      "language": "python",
+      "loc": 230,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/ui/man_pages.py",
+      "language": "python",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/ui/rich_palette.py",
+      "language": "python",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/ui/rich_progress.py",
+      "language": "python",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/lexers/metadata.py",
+      "language": "python",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/lexers/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/lexers/common.py",
+      "language": "python",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/lexers/http.py",
+      "language": "python",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/lexers/json.py",
+      "language": "python",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/formatters/xml.py",
+      "language": "python",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/formatters/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/formatters/headers.py",
+      "language": "python",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/formatters/json.py",
+      "language": "python",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/output/formatters/colors.py",
+      "language": "python",
+      "loc": 388,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/legacy/v3_2_0_session_header_format.py",
+      "language": "python",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/legacy/v3_1_0_session_cookie_format.py",
+      "language": "python",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/legacy/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/argtypes.py",
+      "language": "python",
+      "loc": 275,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/options.py",
+      "language": "python",
+      "loc": 249,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/requestitems.py",
+      "language": "python",
+      "loc": 230,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/constants.py",
+      "language": "python",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/utils.py",
+      "language": "python",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/definition.py",
+      "language": "python",
+      "loc": 956,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/exceptions.py",
+      "language": "python",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/argparser.py",
+      "language": "python",
+      "loc": 613,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/dicts.py",
+      "language": "python",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/nested_json/interpret.py",
+      "language": "python",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/nested_json/__init__.py",
+      "language": "python",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/nested_json/tokens.py",
+      "language": "python",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/nested_json/errors.py",
+      "language": "python",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/cli/nested_json/parse.py",
+      "language": "python",
+      "loc": 193,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/compat.py",
+      "language": "python",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/core.py",
+      "language": "python",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/cli.py",
+      "language": "python",
+      "loc": 181,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/__main__.py",
+      "language": "python",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/tasks/plugins.py",
+      "language": "python",
+      "loc": 248,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/tasks/sessions.py",
+      "language": "python",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/tasks/export_args.py",
+      "language": "python",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/tasks/__init__.py",
+      "language": "python",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "httpie/manager/tasks/check_updates.py",
+      "language": "python",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "extras/packaging/linux/build.py",
+      "language": "python",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "extras/packaging/linux/README.md",
+      "language": "markdown",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "extras/packaging/linux/get_release_artifacts.sh",
+      "language": "bash",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "extras/packaging/linux/scripts/httpie_cli.py",
+      "language": "python",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "extras/packaging/linux/scripts/http_cli.py",
+      "language": "python",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "extras/packaging/linux/scripts/hooks/hook-pip.py",
+      "language": "python",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "extras/profiling/run.py",
+      "language": "python",
+      "loc": 287,
+      "purpose": ""
+    },
+    {
+      "path": "extras/profiling/README.md",
+      "language": "markdown",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "extras/profiling/benchmarks.py",
+      "language": "python",
+      "loc": 202,
+      "purpose": ""
+    },
+    {
+      "path": "extras/scripts/generate_man_pages.py",
+      "language": "python",
+      "loc": 188,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 24696,
+  "file_count": 188,
+  "primary_language": "python",
+  "languages": [
+    "bash",
+    "json",
+    "markdown",
+    "python",
+    "ruby",
+    "yaml"
+  ],
+  "architecture_summary": "HTTPie is a command-line HTTP client written in Python. It provides an intuitive interface for making HTTP requests, similar to curl but with human-friendly defaults. The architecture consists of: (1) CLI layer for argument parsing, (2) HTTP client layer using requests library, (3) Output formatting layer with color/text UI support, (4) Plugin system for extensibility, (5) Session/cookie management, (6) Download/upload handling. As an HTTP client tool, there are no internal auth boundaries - it sends credentials to external servers as directed by user input.",
+  "key_patterns": [
+    "CLI argument parsing with subcommands",
+    "Plugin architecture with registry",
+    "Session persistence with JSON storage",
+    "Rich terminal UI with colors and progress bars",
+    "Request/response streaming",
+    "Cookie jar management",
+    "File download with resume capability",
+    "Multiple auth scheme support (basic, bearer, digest)"
+  ]
+}

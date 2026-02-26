@@ -1,0 +1,198 @@
+{
+  "findings": [
+    {
+      "id": "F-c491918d",
+      "title": "Large CLI module with mixed responsibilities",
+      "description": "The httpie.cli module (1200 LOC across 15 files) combines argument parsing, type validation, nested JSON interpretation, request item handling, and constants. While organized into submodules, the module lacks clear separation between parsing logic, validation, and domain-specific concerns.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/cli",
+          "line_start": 1,
+          "line_end": 1200,
+          "snippet": "httpie/cli/definition.py (956 LOC) - command definition; argparser.py (613 LOC) - parsing logic; argtypes.py (275 LOC) - type converters; requestitems.py (230 LOC) - request item parsing; nested_json/ (449 LOC) - JSON interpretation"
+        }
+      ],
+      "suggested_fix": "Consider extracting validation logic into a dedicated validation layer separate from parsing. Move nested JSON interpretation to a standalone utility module. Group related type converters (auth, URL, headers) into semantic sub-packages within cli.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bea35acf",
+      "title": "Large output module with formatting and UI concerns intermingled",
+      "description": "The httpie.output module (1100 LOC across 23 files) combines response processing, formatting, UI rendering, color management, and lexing. The ui/ subdirectory (795 LOC) handles both palette management and rich terminal integration. The formatters/ and lexers/ subdirectories have clear purposes but lack a unified output pipeline abstraction.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/output",
+          "line_start": 1,
+          "line_end": 1100,
+          "snippet": "output/writer.py (204 LOC) - main output; streams.py (254 LOC) - stream handling; ui/palette.py (269 LOC) + ui/rich_help.py (230 LOC) - UI concerns; formatters/ (519 LOC) - format-specific logic; lexers/ (279 LOC) - syntax highlighting"
+        }
+      ],
+      "suggested_fix": "Create a unified OutputPipeline abstraction that coordinates between stream handling, formatting, and UI rendering. Separate color/palette concerns (ui/palette.py, formatters/colors.py) into a dedicated theming subsystem. Move help/progress UI logic to a separate ui_commands module.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e9757918",
+      "title": "Manager module contains subcommand business logic with insufficient abstraction",
+      "description": "The httpie.manager module (500 LOC across 10 files) implements plugin management and session management tasks directly in task modules (plugins.py: 248 LOC, sessions.py: 86 LOC) without intermediate service or domain layers. Task logic is tightly coupled to CLI interaction.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/manager/tasks",
+          "line_start": 1,
+          "line_end": 500,
+          "snippet": "manager/tasks/plugins.py (248 LOC) - plugin install/list/remove logic mixed with output formatting; manager/tasks/sessions.py (86 LOC) - session manipulation; manager/cli.py (181 LOC) - command definition and dispatch"
+        }
+      ],
+      "suggested_fix": "Extract plugin and session operations into service classes (PluginService, SessionService). Have task modules delegate to services and focus on CLI/output concerns. This enables reuse and testing of business logic independently of CLI framework.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f80a34c0",
+      "title": "Config and context modules have overlapping responsibilities",
+      "description": "httpie.config (172 LOC) and httpie.context (217 LOC) both manage user configuration and environment state. The boundary between configuration (preferences, settings) and context (runtime state, environment) is unclear. Both are imported throughout the codebase, creating implicit coupling.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/config.py",
+          "line_start": 1,
+          "line_end": 172,
+          "snippet": "Handles config file loading, directory management, and preferences"
+        },
+        {
+          "file_path": "httpie/context.py",
+          "line_start": 1,
+          "line_end": 217,
+          "snippet": "Handles runtime context, environment state, and configuration access"
+        }
+      ],
+      "suggested_fix": "Consolidate configuration concerns into a single Config module. Move runtime state management (stdout/stderr handling, environment variables) into a separate Context or Environment module. Establish clear contracts between the two.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b23efcd9",
+      "title": "Misc module contains diverse utilities without cohesion",
+      "description": "The httpie.misc module (250 LOC across 8 files at root level) includes models.py (233 LOC), utils.py (309 LOC), ssl_.py (109 LOC), status.py (40 LOC), encoding.py (50 LOC), and compat.py (113 LOC). These are domain-specific utilities mixed with cross-cutting concerns, violating single responsibility principle.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie",
+          "line_start": 1,
+          "line_end": 250,
+          "snippet": "Root level: models.py (HTTP models), utils.py (general utilities), ssl_.py (SSL config), status.py (exit codes), encoding.py (charset handling), compat.py (compatibility shims)"
+        }
+      ],
+      "suggested_fix": "Organize into thematic packages: httpie/models/ for domain models, httpie/security/ for SSL management, httpie/http/ for HTTP-specific utilities. Keep only true cross-cutting utilities in root-level utils.py. Move compatibility shims to a httpie/compat/ package.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e90bdc19",
+      "title": "Core module orchestrates multiple concerns without clear layering",
+      "description": "httpie.core (298 LOC) acts as the main orchestrator but directly handles HTTP request execution, error handling, output formatting, and session management. It imports from cli, client, output, sessions, and downloads modules, creating a hub of dependencies. No clear separation between orchestration logic and business logic.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/core.py",
+          "line_start": 1,
+          "line_end": 298,
+          "snippet": "Main execution function handles: CLI parsing delegation, HTTP client creation, request execution, response formatting, session persistence, error handling, and download coordination"
+        }
+      ],
+      "suggested_fix": "Introduce a RequestExecutor or RequestService layer that coordinates HTTP client, session management, and downloads. Have core.py focus on orchestration and error handling at the entry point level. This separates CLI integration from business logic.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8461d1ce",
+      "title": "Downloads module size and complexity warrant further decomposition",
+      "description": "httpie.downloads (377 LOC in single file) combines download management, progress reporting, resume logic, file handling, and state management. While focused on downloads, the module handles multiple orthogonal concerns without clear abstraction layers.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/downloads.py",
+          "line_start": 1,
+          "line_end": 377,
+          "snippet": "Single file handling: progress tracking, file I/O, resume state management, download coordination, response streaming"
+        }
+      ],
+      "suggested_fix": "Extract progress reporting into a separate Progress or ProgressReporter class. Create a DownloadState class for resume logic. Have the main module coordinate these concerns. Consider separating file operations into a FileHandler utility.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9458d64f",
+      "title": "Implicit dependencies on global plugin registry",
+      "description": "The httpie.plugins module provides a registry pattern, but usage throughout the codebase (core.py, cli modules, output formatters) creates implicit coupling to plugin discovery. Modules import and call plugin registry functions directly without explicit dependency injection.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/plugins",
+          "line_start": 1,
+          "line_end": 350,
+          "snippet": "manager.py (121 LOC) - PluginManager; registry.py (21 LOC) - PLUGINS registry; base.py (165 LOC) - Plugin ABC; builtin.py (79 LOC) - builtin plugins"
+        }
+      ],
+      "suggested_fix": "Pass plugin manager/registry as explicit dependencies to modules that need plugins. Consider creating plugin hook points as interfaces. This makes plugin usage explicit and testable.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 68,
+  "coupling_assessment": "The codebase exhibits moderate coupling issues. Core.py serves as a hub importing from 6+ major modules (cli, client, output, sessions, downloads, plugins), creating a potential bottleneck. The cli and output modules are large and internally diverse, increasing their own internal coupling. Manager subcommands import utilities directly without service abstraction. Config and context modules have overlapping concerns. Plugin integration relies on implicit global registry access rather than explicit dependency injection. However, the codebase is well-organized at the package level with clear domain separation (CLI, output, sessions, downloads, etc.), which limits the severity of coupling issues.",
+  "layering_assessment": "The architecture follows a reasonable layering pattern: CLI layer (httpie/cli) \u2192 Core orchestration (httpie/core) \u2192 HTTP client layer (httpie/client) \u2192 External requests library. Output rendering is separate (httpie/output). Supporting services (sessions, downloads, uploads, config) surround the core layers. However, layering is not strictly enforced: (1) core.py imports directly from multiple domain modules rather than through well-defined service interfaces, (2) output module internally mixes rendering concerns (formatters, lexers, UI) without clear flow, (3) manager module tasks mix business logic with CLI concerns. The absence of a clear service/domain layer between orchestration and low-level modules reduces layer independence.",
+  "summary": "HTTPie's architecture is generally sound with clear domain separation at the package level (cli, output, client, sessions, downloads, plugins). The codebase achieves ~68/100 structural coherence. Primary issues are: (1) Large cli (1200 LOC) and output (1100 LOC) modules with mixed responsibilities despite internal organization, (2) Core module serving as a coupling hub without service abstraction, (3) Manager tasks mixing business logic with CLI framework concerns, (4) Config/context module role ambiguity, (5) Misc utilities scattered across root level, (6) Implicit plugin registry dependencies. Recommended improvements: introduce RequestService and PluginService layers to reduce core.py coupling, consolidate config/context concerns, reorganize root-level utilities into thematic packages, extract output pipeline abstraction, and formalize manager task service classes. These changes would push coherence to 75-80 without major restructuring."
+}

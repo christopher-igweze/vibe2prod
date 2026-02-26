@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: e596b9a73b77 &bull; Generated: 2026-02-26 01:15 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>45 findings</span>
+        <span>198s runtime</span>
+        <span>$0.0000 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box critical"><div class="num">4</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">14</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">18</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">9</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Complete absence of authentication on all API endpoints</strong>
+                <div class="desc">All FastAPI routes in the application lack any form of authentication or authorization middleware. The /generate-code WebSocket endpoint, /screenshot endpoint, /evals endpoints, and /model_choice_sets</div>
+            </td>
+            <td class="loc">backend/main.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>WebSocket endpoint lacks authentication before accepting connections</strong>
+                <div class="desc">The /generate-code WebSocket endpoint accepts connections without any authentication verification. The WebSocketCommunicator.accept() method is called immediately upon connection without checking if t</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:96</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Wildcard CORS configuration allows any origin</strong>
+                <div class="desc">The FastAPI backend allows requests from any origin with allow_origins=['*']. This enables CSRF attacks and exposes the API to abuse from any website.</div>
+            </td>
+            <td class="loc">backend/main.py:15</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing HTTPS enforcement in production</strong>
+                <div class="desc">Frontend configuration uses HTTP_BACKEND_URL and WS_BACKEND_URL with default values pointing to http://127.0.0.1:7001. There is no enforcement of HTTPS in production, allowing for man-in-the-middle at</div>
+            </td>
+            <td class="loc">frontend/src/config.ts:4</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>API key credentials stored in environment variables without rotation mechanism</strong>
+                <div class="desc">API keys for OpenAI (OPENAI_API_KEY), Anthropic (ANTHROPIC_API_KEY), Gemini (GEMINI_API_KEY), and Replicate (REPLICATE_API_TOKEN) are read directly from environment variables. While storing secrets in</div>
+            </td>
+            <td class="loc">backend/config.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Client-provided API keys accepted without validation or rate limiting</strong>
+                <div class="desc">Users can provide their own API keys via the settings dialog (openAiApiKey, anthropicApiKey parameters) or environment variables. The application accepts these keys without validation and uses them im</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:180</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No CORS authentication - allows any origin to make requests</strong>
+                <div class="desc">The CORS middleware is configured with allow_origins=['*'], which permits requests from any origin. Combined with the lack of endpoint authentication, this allows any website to make requests to the b</div>
+            </td>
+            <td class="loc">backend/main.py:16</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No session management or user identification</strong>
+                <div class="desc">The application is completely stateless with no user identification, sessions, or context tracking. While this simplifies the architecture, it also means there is no way to enforce per-user rate limit</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:1440</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No rate limiting on API endpoints</strong>
+                <div class="desc">The application lacks any rate limiting mechanism on endpoints. An attacker can make unlimited requests to /generate-code (which is computationally expensive), /screenshot, or /evals endpoints, potent</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:1440</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>User-controlled OpenAI base URL without validation</strong>
+                <div class="desc">Users can specify a custom OPENAI_BASE_URL in the settings dialog, which is then used to make API requests. This parameter is only disabled in production (IS_PROD check), but in development/self-hoste</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:185</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Screenshot endpoint accepts arbitrary URLs without SSRF validation</strong>
+                <div class="desc">The /api/screenshot endpoint accepts any URL from the user without validating that it's a legitimate target. An attacker could use this endpoint to: 1) scan internal networks for open ports, 2) probe </div>
+            </td>
+            <td class="loc">backend/routes/screenshot.py:57</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Frontend stores sensitive credentials in localStorage without encryption</strong>
+                <div class="desc">The frontend stores API keys (openAiApiKey, anthropicApiKey) and other settings in localStorage via the usePersistedState hook. localStorage is accessible to any JavaScript running on the page, includ</div>
+            </td>
+            <td class="loc">frontend/src/App.tsx:60</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Debug mode configuration exposed in production</strong>
+                <div class="desc">IS_DEBUG_ENABLED is read from environment variables and used to control debug output. If debug mode is accidentally enabled in production, it can expose sensitive information including stack traces an</div>
+            </td>
+            <td class="loc">backend/config.py:10</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>API keys stored in environment variables without rotation mechanism</strong>
+                <div class="desc">Multiple sensitive API keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, REPLICATE_API_KEY) are read directly from environment variables. There is no mechanism for key rotation, expiration chec</div>
+            </td>
+            <td class="loc">backend/config.py:4</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Frontend API endpoints exposed without authentication or rate limiting</strong>
+                <div class="desc">Multiple public endpoints (/generate_code, /screenshot, /evals/*, /model_choice_sets, /ws/*) are marked as unprotected with auth_type='none'. There is no rate limiting configured to prevent abuse, DoS</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Frontend stores sensitive settings in localStorage without encryption</strong>
+                <div class="desc">Frontend stores API keys (openAiApiKey, anthropicApiKey) in localStorage via usePersistedState hook. localStorage is not secure for sensitive data and is vulnerable to XSS attacks and local file acces</div>
+            </td>
+            <td class="loc">frontend/src/App.tsx:45</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: backend/routes/generate_code.py exceeds 800 LOC with mixed responsibilities</strong>
+                <div class="desc">The main route handler contains 824 lines of code mixing HTTP request handling, orchestration, prompt construction, agent execution, WebSocket streaming, and response formatting. This violates separat</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing service layer between routes and agent/prompts modules</strong>
+                <div class="desc">Routes directly instantiate and call agent.engine, prompts modules, and tools. There is no service abstraction layer, creating tight coupling and making it hard to swap implementations or add cross-cu</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No input validation on prompt and file state parameters</strong>
+                <div class="desc">User-supplied prompt text, file paths, and file content are accepted without validation or sanitization. While these are passed to LLM APIs (not directly executed), malicious prompts could potentially</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:210</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Screenshot API key passed in request body without HTTPS enforcement</strong>
+                <div class="desc">The screenshotone API key is passed in request parameters (ScreenshotRequest model) which are sent in the HTTP request body. While the code attempts to use HTTPS for the screenshotone API, there's no </div>
+            </td>
+            <td class="loc">backend/routes/screenshot.py:48</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>WebSocket connections not properly validated or closed</strong>
+                <div class="desc">WebSocket connections in generate_code.py accept connections without proper validation. ConnectionClosedError exceptions are caught but may not properly clean up resources. No timeout mechanism preven</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:130</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing security headers in FastAPI responses</strong>
+                <div class="desc">The backend does not set essential security headers like X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, and Content-Security-Policy. This leaves the application vulnerable to clickjacking,</div>
+            </td>
+            <td class="loc">backend/main.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No input validation on WebSocket message parameters</strong>
+                <div class="desc">WebSocket parameters are received and used without proper validation. The ParameterExtractionStage performs some validation but doesn't sanitize all inputs. Malformed or malicious inputs could crash t</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:200</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Error messages expose internal system details</strong>
+                <div class="desc">Error messages and exception handling may expose internal implementation details, file paths, or stack traces that aid attackers. The IS_DEBUG_ENABLED check is applied inconsistently.</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:140</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Content Security Policy (CSP) headers in HTML</strong>
+                <div class="desc">The frontend HTML (frontend/index.html) does not include a Content-Security-Policy meta tag, allowing inline scripts and scripts from any source. This enables XSS attacks and unauthorized script execu</div>
+            </td>
+            <td class="loc">frontend/index.html:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No request size limits configured</strong>
+                <div class="desc">FastAPI and uvicorn have default request size limits, but these should be explicitly configured to prevent large payload attacks that could exhaust server memory. Image uploads and file state paramete</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:200</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Frontend environment variables not properly validated</strong>
+                <div class="desc">Frontend environment variables (VITE_IS_DEPLOYED, VITE_WS_BACKEND_URL, VITE_HTTP_BACKEND_URL) are used without validation. Malicious environment values could direct the app to attacker-controlled serv</div>
+            </td>
+            <td class="loc">frontend/src/config.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Repeated function call in ImageLightbox useEffect</strong>
+                <div class="desc">The `recomputeFitScale` function is called twice in quick succession in ImageLightbox.tsx - once in the useEffect that watches [image, recomputeFitScale] and again immediately after. This causes redun</div>
+            </td>
+            <td class="loc">frontend/src/components/ImageLightbox.tsx:60</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Unmemoized O(n log n) sort operation in Sidebar render</strong>
+                <div class="desc">The `currentVersionNumber` computation performs `Object.values(commits).sort(...)` on every render, which is O(n log n). For projects with many commits, this creates significant overhead.</div>
+            </td>
+            <td class="loc">frontend/src/components/sidebar/Sidebar.tsx:149</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Missing useCallback for event handler in ImageUpload</strong>
+                <div class="desc">The handleGenerate function is defined with useCallback but depends on multiple values that change frequently. The global keydown handler in useEffect may capture stale closures.</div>
+            </td>
+            <td class="loc">frontend/src/components/ImageUpload.tsx:83</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Tight coupling between routes and WebSocket/streaming infrastructure</strong>
+                <div class="desc">Routes directly manage WebSocket connections, message formatting, and streaming logic. Changes to streaming requirements (SSE to WebSocket, message format) require modifying route handlers. No abstrac</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:200</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Circular-like dependency risk: prompts module imports from agent.tools</strong>
+                <div class="desc">backend/prompts/ modules may import from backend/agent/tools/ for tool definitions and parsing, while agent engine imports from prompts. This creates implicit coupling and risk of circular imports if </div>
+            </td>
+            <td class="loc">backend/prompts/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent patterns: backend/routes/evals.py (445 LOC) mixes endpoint handlers with business logic</strong>
+                <div class="desc">The evals route handler contains 445 lines with request handling, eval execution, file I/O, and result processing. Similar god module problem as generate_code.py but smaller scale. Evals core logic sh</div>
+            </td>
+            <td class="loc">backend/routes/evals.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Frontend components layer lacks clear separation between page components, feature components, and UI primitives</strong>
+                <div class="desc">frontend/src/components/ contains 5200 LOC across 68 files with mixed concerns: page-level containers (EvalsPage, RunEvalsPage), feature components (UnifiedInputPane, Sidebar), UI primitives (all ui/ </div>
+            </td>
+            <td class="loc">frontend/src/components/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Configuration scatter: hardcoded values and API endpoints spread across frontend and backend files</strong>
+                <div class="desc">API endpoints, model choices, prompt policies, and generation settings are defined in multiple places: backend/config.py (minimal), backend/prompts/policies.py, frontend/src/lib/models.ts, frontend/sr</div>
+            </td>
+            <td class="loc">backend/config.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>High coupling between agent tool execution and file system operations</strong>
+                <div class="desc">backend/agent/tools/runtime.py (362 LOC) directly executes bash commands, writes files, and manages project state. No abstraction for file operations or command execution. Changes to tool behavior req</div>
+            </td>
+            <td class="loc">backend/agent/tools/runtime.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>OpenAPI documentation disabled but swagger endpoints may still be accessible</strong>
+                <div class="desc">While openapi_url, docs_url, and redoc_url are set to None in FastAPI configuration, there may be other metadata endpoints that leak information about the API structure. Additionally, disabling docume</div>
+            </td>
+            <td class="loc">backend/main.py:9</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Multiple WebSocket event listeners without cleanup verification</strong>
+                <div class="desc">The generateCode.ts creates new WebSocket listeners but there's no explicit guarantee that previous listeners are fully cleaned up before new ones are created, potentially causing memory leaks during </div>
+            </td>
+            <td class="loc">frontend/src/generateCode.ts:48</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Potentially large agentEvents array causing re-renders</strong>
+                <div class="desc">The Variant type includes agentEvents array that grows during generation. If this array reference changes on every event, it could trigger unnecessary re-renders in child components that depend on the</div>
+            </td>
+            <td class="loc">frontend/src/store/project-store.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>No React.memo on list-rendering components</strong>
+                <div class="desc">Components like HistoryDisplay, Variants, and AgentActivity that render lists of items are not wrapped in React.memo, causing unnecessary re-renders when parent state changes.</div>
+            </td>
+            <td class="loc">frontend/src/components/history/HistoryDisplay.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Missing pagination in prompt history parsing</strong>
+                <div class="desc">The parse_prompt_history function in request_parsing.py iterates through all history items without any pagination or streaming. For very long conversations, this processes the entire array in one call</div>
+            </td>
+            <td class="loc">backend/prompts/request_parsing.py:24</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction for LLM provider interactions creates tight coupling to specific provider APIs</strong>
+                <div class="desc">While there is a factory pattern for providers, routes and services directly instantiate providers and call their methods. No unified service interface for LLM operations. Provider-specific error hand</div>
+            </td>
+            <td class="loc">backend/agent/providers/factory.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Frontend state management coupling: app-store and project-store have unclear separation of concerns</strong>
+                <div class="desc">frontend/src/store/ has app-store.ts (48 LOC) and project-store.ts (458 LOC) with unclear boundary between what should be app-level vs project-level state. Project store is significantly larger, sugge</div>
+            </td>
+            <td class="loc">frontend/src/store/app-store.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent error handling patterns across backend modules</strong>
+                <div class="desc">Routes, agent engine, prompts, and tools use different error handling approaches. No centralized error handling middleware or custom exception hierarchy. Makes debugging and client error messages inco</div>
+            </td>
+            <td class="loc">backend/routes/generate_code.py:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Testing infrastructure fragmented: test utilities in codegen module but used across backend</strong>
+                <div class="desc">backend/codegen/test_utils.py contains shared test utilities (57 LOC) but is colocated with codegen logic. Test utilities should be in dedicated test fixtures module. Makes test dependency unclear.</div>
+            </td>
+            <td class="loc">backend/codegen/test_utils.py:1</td>
+            <td></td>
+        </tr></tbody>
+    </table>
+
+    
+        <h2>Remediation Plan (44 items across 5 levels)</h2>
+        <p class="plan-summary">36 actionable remediation items across 5 execution levels. Priority: Implement authentication (F-a005f40e) as foundation (Level 1). Build security hardening (HTTPS, headers, CORS, rate limiting) in parallel (Levels 1-2). Implement input validation and refactor routes/services in parallel (Levels 2-4). Optimize frontend performance (Level 2-3). 1 finding deferred (F-404e2046: frontend component restructuring - low security impact, can be future refactoring). Estimated 120 LLM invocations for implementation and testing.</p>
+        <table>
+            <thead><tr><th>Priority</th><th>Tier</th><th>Fix</th><th>Files</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>P1</td>
+                <td>T3</td>
+                <td><strong>Implement authentication middleware for all API endpoints</strong></td>
+                <td>backend/main.py, backend/config.py, backend/routes/generate_code.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Secure WebSocket endpoint with authentication before accept</strong></td>
+                <td>backend/routes/generate_code.py, backend/main.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Implement rate limiting on all endpoints</strong></td>
+                <td>backend/main.py, backend/config.py</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Restrict CORS to specific trusted origins</strong></td>
+                <td>backend/main.py, backend/config.py</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Replace wildcard CORS with explicit allowed origins</strong></td>
+                <td>backend/main.py</td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T2</td>
+                <td><strong>Add SSRF protection to screenshot endpoint</strong></td>
+                <td>backend/routes/screenshot.py</td>
+            </tr>
+            <tr>
+                <td>P6</td>
+                <td>T2</td>
+                <td><strong>Validate user-controlled OpenAI base URL</strong></td>
+                <td>backend/routes/generate_code.py</td>
+            </tr>
+            <tr>
+                <td>P7</td>
+                <td>T2</td>
+                <td><strong>Add input validation and size limits for prompts and file state</strong></td>
+                <td>backend/routes/generate_code.py, backend/prompts/request_parsing.py</td>
+            </tr>
+            <tr>
+                <td>P8</td>
+                <td>T1</td>
+                <td><strong>Implement request size limits</strong></td>
+                <td>backend/main.py, docker-compose.yml</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Enforce HTTPS/WSS in production</strong></td>
+                <td>frontend/src/config.ts, backend/main.py, docker-compose.yml</td>
+            </tr>
+            <tr>
+                <td>P9</td>
+                <td>T2</td>
+                <td><strong>Add security headers (X-Content-Type-Options, X-Frame-Options, CSP)</strong></td>
+                <td>backend/main.py, frontend/index.html</td>
+            </tr>
+            <tr>
+                <td>P10</td>
+                <td>T1</td>
+                <td><strong>Add Content-Security-Policy headers and meta tags</strong></td>
+                <td>frontend/index.html, backend/main.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Stop storing API keys in frontend localStorage</strong></td>
+                <td>frontend/src/App.tsx, frontend/src/hooks/usePersistedState.ts, backend/routes/generate_code.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Prevent sensitive credential storage in localStorage</strong></td>
+                <td>frontend/src/hooks/usePersistedState.ts, frontend/src/App.tsx</td>
+            </tr>
+            <tr>
+                <td>P11</td>
+                <td>T2</td>
+                <td><strong>Enforce HTTPS for API key transmission and never log keys</strong></td>
+                <td>backend/routes/screenshot.py, backend/main.py</td>
+            </tr>
+            <tr>
+                <td>P12</td>
+                <td>T3</td>
+                <td><strong>Implement per-user rate limiting and session management</strong></td>
+                <td>backend/main.py, backend/routes/generate_code.py, backend/routes/screenshot.py</td>
+            </tr>
+            <tr>
+                <td>P13</td>
+                <td>T1</td>
+                <td><strong>Validate and rate-limit client-provided API keys</strong></td>
+                <td>backend/routes/generate_code.py</td>
+            </tr>
+            <tr>
+                <td>P14</td>
+                <td>T1</td>
+                <td><strong>Implement API key rotation and secure management</strong></td>
+                <td>backend/config.py, backend/llm.py</td>
+            </tr>
+            <tr>
+                <td>P14</td>
+                <td>T1</td>
+                <td><strong>Validate API keys exist and log access patterns</strong></td>
+                <td>backend/config.py</td>
+            </tr>
+            <tr>
+                <td>P15</td>
+                <td>T2</td>
+                <td><strong>Enforce debug mode cannot be enabled in production</strong></td>
+                <td>backend/config.py</td>
+            </tr>
+            <tr>
+                <td>P16</td>
+                <td>T2</td>
+                <td><strong>Sanitize error messages to not expose internal details</strong></td>
+                <td>backend/routes/generate_code.py, backend/main.py</td>
+            </tr>
+            <tr>
+                <td>P17</td>
+                <td>T2</td>
+                <td><strong>Validate WebSocket message parameters with schema</strong></td>
+                <td>backend/routes/generate_code.py</td>
+            </tr>
+            <tr>
+                <td>P18</td>
+                <td>T2</td>
+                <td><strong>Validate frontend environment variables</strong></td>
+                <td>frontend/src/config.ts</td>
+            </tr>
+            <tr>
+                <td>P19</td>
+                <td>T1</td>
+                <td><strong>Verify OpenAPI endpoints are fully disabled</strong></td>
+                <td>backend/main.py</td>
+            </tr>
+            <tr>
+                <td>P20</td>
+                <td>T2</td>
+                <td><strong>Implement WebSocket timeout and connection cleanup</strong></td>
+                <td>backend/routes/generate_code.py</td>
+            </tr>
+            <tr>
+                <td>P21</td>
+                <td>T3</td>
+                <td><strong>Refactor generate_code.py route handler to extract orchestration logic</strong></td>
+                <td>backend/routes/generate_code.py, backend/services/__init__.py, backend/services/code_generation.py</td>
+            </tr>
+            <tr>
+                <td>P22</td>
+                <td>T3</td>
+                <td><strong>Create service layer between routes and agent/prompts</strong></td>
+                <td>backend/services/__init__.py, backend/services/code_generation.py, backend/services/evaluation.py</td>
+            </tr>
+            <tr>
+                <td>P23</td>
+                <td>T3</td>
+                <td><strong>Abstract WebSocket/streaming concerns from route logic</strong></td>
+                <td>backend/streaming/__init__.py, backend/streaming/base.py, backend/routes/generate_code.py</td>
+            </tr>
+            <tr>
+                <td>P24</td>
+                <td>T3</td>
+                <td><strong>Create shared types module to break circular dependencies</strong></td>
+                <td>backend/core/__init__.py, backend/core/types.py</td>
+            </tr>
+            <tr>
+                <td>P25</td>
+                <td>T3</td>
+                <td><strong>Extract eval orchestration from routes into service</strong></td>
+                <td>backend/routes/evals.py, backend/services/evaluation.py</td>
+            </tr>
+            <tr>
+                <td>P26</td>
+                <td>T3</td>
+                <td><strong>Create abstraction for file system and command execution</strong></td>
+                <td>backend/core/file_system.py, backend/core/command_executor.py, backend/agent/tools/runtime.py</td>
+            </tr>
+            <tr>
+                <td>P27</td>
+                <td>T3</td>
+                <td><strong>Create LLM service wrapper for provider abstraction</strong></td>
+                <td>backend/services/llm_service.py</td>
+            </tr>
+            <tr>
+                <td>P28</td>
+                <td>T2</td>
+                <td><strong>Centralize configuration management</strong></td>
+                <td>backend/config/__init__.py, backend/config/models.py, frontend/src/config/index.ts</td>
+            </tr>
+            <tr>
+                <td>P29</td>
+                <td>T3</td>
+                <td><strong>Create centralized exception hierarchy and error handling</strong></td>
+                <td>backend/exceptions.py, backend/main.py</td>
+            </tr>
+            <tr>
+                <td>P30</td>
+                <td>T2</td>
+                <td><strong>Move test utilities to dedicated fixtures module</strong></td>
+                <td>backend/tests/fixtures.py, backend/codegen/test_utils.py</td>
+            </tr>
+            <tr>
+                <td>P100</td>
+                <td>T0</td>
+                <td><strong>Restructure frontend components with clear layering</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P31</td>
+                <td>T1</td>
+                <td><strong>Remove duplicate recomputeFitScale call in ImageLightbox</strong></td>
+                <td>frontend/src/components/ImageLightbox.tsx</td>
+            </tr>
+            <tr>
+                <td>P32</td>
+                <td>T1</td>
+                <td><strong>Memoize currentVersionNumber computation in Sidebar</strong></td>
+                <td>frontend/src/components/sidebar/Sidebar.tsx</td>
+            </tr>
+            <tr>
+                <td>P33</td>
+                <td>T1</td>
+                <td><strong>Fix closure capture in ImageUpload keydown handler</strong></td>
+                <td>frontend/src/components/ImageUpload.tsx</td>
+            </tr>
+            <tr>
+                <td>P34</td>
+                <td>T1</td>
+                <td><strong>Verify WebSocket cleanup on new connections</strong></td>
+                <td>frontend/src/generateCode.ts</td>
+            </tr>
+            <tr>
+                <td>P35</td>
+                <td>T2</td>
+                <td><strong>Optimize agentEvents array re-renders using Immer</strong></td>
+                <td>frontend/src/store/project-store.ts</td>
+            </tr>
+            <tr>
+                <td>P36</td>
+                <td>T1</td>
+                <td><strong>Wrap list-rendering components with React.memo</strong></td>
+                <td>frontend/src/components/history/HistoryDisplay.tsx, frontend/src/components/variants/Variants.tsx, frontend/src/components/agent/AgentActivity.tsx</td>
+            </tr>
+            <tr>
+                <td>P37</td>
+                <td>T2</td>
+                <td><strong>Add pagination to prompt history parsing</strong></td>
+                <td>backend/prompts/request_parsing.py</td>
+            </tr>
+            <tr>
+                <td>P38</td>
+                <td>T2</td>
+                <td><strong>Document and restructure frontend store boundaries</strong></td>
+                <td>frontend/src/store/project-store.ts, frontend/src/store/app-store.ts</td>
+            </tr></tbody>
+        </table>
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

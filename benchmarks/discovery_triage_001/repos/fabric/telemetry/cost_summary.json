@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestSmallSimple::test_discover_fabric",
+  "total_cost_usd": 0.8488,
+  "total_tokens": 525597,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 199840,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.0974,
+    "codebase_analyst": 0.0054,
+    "fix_strategist": 0.1343,
+    "quality_auditor/code_patterns": 0.0453,
+    "quality_auditor/error_handling": 0.028,
+    "quality_auditor/performance": 0.0288,
+    "security_auditor/auth_flow": 0.1437,
+    "security_auditor/data_handling": 0.1405,
+    "security_auditor/infrastructure": 0.198,
+    "triage_classifier": 0.0274
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.7412,
+    "minimax/minimax-m2.5": 0.1075
+  },
+  "training_pairs_logged": 0
+}

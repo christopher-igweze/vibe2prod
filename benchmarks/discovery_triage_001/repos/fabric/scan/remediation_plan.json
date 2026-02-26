@@ -1,0 +1,584 @@
+{
+  "items": [
+    {
+      "finding_id": "F-d1a8e2f6",
+      "title": "Implement authentication for all web API endpoints",
+      "tier": 1,
+      "priority": 1,
+      "estimated_files": 6,
+      "files_to_modify": [
+        "web/src/hooks.server.ts",
+        "web/src/routes/chat/+server.ts",
+        "web/src/routes/api/youtube/transcript/+server.ts",
+        "web/src/routes/obsidian/+server.ts",
+        "web/src/routes/notes/+server.ts",
+        "web/src/lib/config/environment.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "All /chat, /api/youtube/*, /obsidian, /notes endpoints require X-API-Key header or equivalent auth",
+        "Unauthorized requests return 401 with generic error message",
+        "API key validation uses environment variable API_KEY or similar",
+        "Integration tests pass for both authenticated and unauthenticated requests"
+      ],
+      "approach": "Create src/hooks.server.ts with auth middleware that intercepts all protected routes. Extract API key from environment. Validate on every request before handler execution.",
+      "group": "auth-foundational"
+    },
+    {
+      "finding_id": "F-5e7ef160",
+      "title": "Fix arbitrary file write vulnerability in /notes endpoint",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "web/src/routes/notes/+server.ts"
+      ],
+      "depends_on": [
+        "F-d1a8e2f6"
+      ],
+      "acceptance_criteria": [
+        "Filename is sanitized using basename() to prevent path traversal",
+        "Filename format validated against /^[a-zA-Z0-9._-]+$/ pattern",
+        "Content size limited to 1MB",
+        "Resolved path verified to be within intended inbox directory",
+        "Unit tests pass for path traversal attempts (../, ../../, etc.)"
+      ],
+      "approach": "Add input validation before writeFile: sanitize with basename(), validate regex, check size, verify resolved path. Use path.resolve() to detect escapes.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-deb91026",
+      "title": "Replace shell execution with Node.js APIs in /obsidian endpoint",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "web/src/routes/obsidian/+server.ts"
+      ],
+      "depends_on": [
+        "F-d1a8e2f6"
+      ],
+      "acceptance_criteria": [
+        "No execAsync or shell command execution remains",
+        "File operations use fs/promises (writeFile, mkdir, etc.)",
+        "noteName sanitized with basename() and regex validation",
+        "Content size validated (max 10MB)",
+        "Path traversal tests pass",
+        "Integration tests pass with Obsidian vault simulation"
+      ],
+      "approach": "Replace all exec() calls with Node.js fs APIs. Sanitize noteName using basename and regex. Use path.resolve() to validate final path.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-0ce2cbb0",
+      "title": "Verify and enforce API key middleware on Go backend routes",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "internal/server/serve.go",
+        "internal/server/sessions.go",
+        "internal/server/patterns.go",
+        "internal/server/auth.go"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "APIKeyMiddleware applied to all /api/* routes",
+        "Middleware validation enforced before handler execution",
+        "/swagger/* routes exempted from auth",
+        "Tests verify 401 response for missing/invalid API key",
+        "Documentation lists which routes require authentication"
+      ],
+      "approach": "In serve.go (or server initialization), create protected route group with middleware applied. Verify middleware is called on all sensitive handlers.",
+      "group": "auth-backend"
+    },
+    {
+      "finding_id": "F-8cea43b7",
+      "title": "Secure GitHub token handling and prevent exposure",
+      "tier": 1,
+      "priority": 5,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "cmd/generate_changelog/main.go",
+        "cmd/generate_changelog/util/token.go",
+        "cmd/generate_changelog/internal/github/client.go"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        ".env files never created or stored with credentials",
+        "Token loaded exclusively from GITHUB_TOKEN environment variable",
+        "Token value never logged, printed, or returned in responses",
+        "Helper function MaskToken() masks tokens for logging (show first 4 + last 4 chars)",
+        "Documentation recommends token rotation and minimal scopes"
+      ],
+      "approach": "Remove .env file loading for credentials. Use environment variables only. Add MaskToken() helper. Audit all log statements for token leaks. Add logging validation tests.",
+      "group": "secrets-management"
+    },
+    {
+      "finding_id": "F-847104f7",
+      "title": "Enforce HTTPS for backend API calls in production",
+      "tier": 1,
+      "priority": 6,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "web/src/routes/chat/+server.ts",
+        "web/src/lib/config/environment.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "FABRIC_API_URL loaded from environment variable (default: http://localhost:8080 for dev)",
+        "Production builds enforce HTTPS URL validation",
+        "Error thrown if production mode and URL is not https://",
+        "Configuration documented in README or .env.example"
+      ],
+      "approach": "Add FABRIC_API_URL to environment.ts. Fetch uses environment variable. Add validation check in +server.ts for production.",
+      "group": "configuration"
+    },
+    {
+      "finding_id": "F-0cc2049b",
+      "title": "Add CSRF protection and server-side session validation",
+      "tier": 2,
+      "priority": 7,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "web/src/lib/store/session-store.ts",
+        "web/src/lib/components/chat/SessionSelector.svelte",
+        "web/src/routes/chat/+layout.svelte",
+        "web/src/hooks.server.ts",
+        "internal/server/sessions.go"
+      ],
+      "depends_on": [
+        "F-d1a8e2f6"
+      ],
+      "acceptance_criteria": [
+        "CSRF token generated and included in meta tag on every page",
+        "Session API calls include X-CSRF-Token header",
+        "Backend validates CSRF token on all session endpoints",
+        "Sessions tied to authenticated user, not just session name",
+        "Users can only access their own sessions (server-side validation)"
+      ],
+      "approach": "Enable SvelteKit CSRF protection. Generate token in hooks. Include in session API calls. Backend validates before returning session data.",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-73bb561e",
+      "title": "Add input validation on chat and pattern endpoints",
+      "tier": 2,
+      "priority": 8,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "web/src/routes/chat/+server.ts",
+        "web/src/routes/api/youtube/transcript/+server.ts"
+      ],
+      "depends_on": [
+        "F-d1a8e2f6"
+      ],
+      "acceptance_criteria": [
+        "Request size validated (max 2MB)",
+        "userInput length capped (max 10000 chars)",
+        "patternName validated against /^[a-zA-Z0-9_-]+$/ pattern",
+        "Message array length limited (max 100 messages)",
+        "Null bytes rejected in inputs",
+        "Unit tests verify validation rejections"
+      ],
+      "approach": "Add validation checks before JSON parsing and before forwarding to backend. Return 400 Bad Request with generic message for invalid input.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-b5be61d2",
+      "title": "Restrict file permissions on session files",
+      "tier": 2,
+      "priority": 9,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "internal/plugins/db/fsdb/sessions.go",
+        "internal/plugins/db/fsdb/db.go"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Session files saved with 0600 permissions (owner read/write only)",
+        "Session directory created with 0700 permissions",
+        "os.Chmod() called after file creation to enforce permissions",
+        "Integration test verifies file permissions are correctly set"
+      ],
+      "approach": "After SaveAsJson, call os.Chmod(sessionFilePath, 0600). Create helper EnsureSessionDirPermissions(0700). Call during initialization.",
+      "group": "file-security"
+    },
+    {
+      "finding_id": "F-6f181616",
+      "title": "Implement rate limiting on API endpoints",
+      "tier": 1,
+      "priority": 10,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "web/src/hooks.server.ts",
+        "web/src/lib/middleware/rateLimiter.ts"
+      ],
+      "depends_on": [
+        "F-d1a8e2f6"
+      ],
+      "acceptance_criteria": [
+        "Rate limit: 10 requests per minute per IP (configurable)",
+        "429 Too Many Requests returned when limit exceeded",
+        "Retry-After header included in 429 responses",
+        "Different limits for different endpoints (e.g., chat: 10/min, youtube: 5/min)",
+        "Integration tests verify rate limit enforcement"
+      ],
+      "approach": "Create rateLimiter.ts with Upstash or in-memory limit store. Apply in hooks.server.ts middleware. Key by client IP. Return 429 when exceeded.",
+      "group": "resilience"
+    },
+    {
+      "finding_id": "F-d9127866",
+      "title": "Sanitize error messages in production",
+      "tier": 1,
+      "priority": 11,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "web/src/routes/chat/+server.ts",
+        "web/src/routes/obsidian/+server.ts",
+        "web/src/routes/notes/+server.ts",
+        "web/src/routes/api/youtube/transcript/+server.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Detailed error messages only returned when NODE_ENV === 'development'",
+        "Production returns generic 'An error occurred processing your request'",
+        "Detailed errors logged server-side for debugging",
+        "No stack traces, file paths, or API details in client responses",
+        "All error paths tested in both dev and prod modes"
+      ],
+      "approach": "Wrap all catch blocks with isDevelopment check. Log detailed error. Return generic message to client.",
+      "group": "security-hardening"
+    },
+    {
+      "finding_id": "F-c7786f89",
+      "title": "Create abstraction layer for web routes to AI providers",
+      "tier": 3,
+      "priority": 12,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "web/src/lib/services/AIFacade.ts",
+        "web/src/routes/chat/+server.ts",
+        "web/src/routes/obsidian/+server.ts",
+        "web/src/lib/services/ChatService.ts",
+        "web/src/lib/services/transcriptService.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "AIFacade class created with methods: executePattern(), getTranscript(), etc.",
+        "All route handlers call AIFacade instead of provider implementations",
+        "Provider selection configurable (environment variable)",
+        "Fallback provider logic centralized in facade",
+        "Tests verify facade can swap providers without code changes"
+      ],
+      "approach": "Create AIFacade service class that routes depend on. Facade instantiates providers based on config. Routes call facade methods.",
+      "group": "architecture-refactor"
+    },
+    {
+      "finding_id": "F-33f45034",
+      "title": "Reorganize changelog generator into distinct packages",
+      "tier": 3,
+      "priority": 13,
+      "estimated_files": 16,
+      "files_to_modify": [
+        "cmd/generate_changelog/internal/git/walker.go",
+        "cmd/generate_changelog/internal/github/client.go",
+        "cmd/generate_changelog/internal/changelog/generator.go",
+        "cmd/generate_changelog/internal/changelog/processing.go",
+        "cmd/generate_changelog/internal/cache/cache.go"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Clear package boundaries: vcs, github, generator, cache, config",
+        "Each package has a single responsibility",
+        "Minimal cross-package dependencies",
+        "Public interfaces defined, internal implementation hidden",
+        "Tests organized per package"
+      ],
+      "approach": "Refactor into: internal/vcs (git operations), internal/github (GitHub API), internal/generator (generation logic), internal/cache (persistence), internal/config (settings). Update imports.",
+      "group": "architecture-refactor"
+    },
+    {
+      "finding_id": "F-4db5d358",
+      "title": "Document authentication model and unify auth patterns",
+      "tier": 1,
+      "priority": 14,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "docs/SECURITY.md",
+        "README.md",
+        "web/src/routes/+layout.svelte"
+      ],
+      "depends_on": [
+        "F-d1a8e2f6",
+        "F-0ce2cbb0"
+      ],
+      "acceptance_criteria": [
+        "SECURITY.md documents CLI auth (env vars), web auth (API key header)",
+        "README includes setup instructions for API key configuration",
+        "All protected endpoints listed with auth requirements",
+        "Examples show how to set API key in curl, TypeScript, etc."
+      ],
+      "approach": "Write security documentation explaining authentication design. Create .env.example with required variables. Update README with setup.",
+      "group": "documentation"
+    },
+    {
+      "finding_id": "F-cea458fb",
+      "title": "Create API client abstraction layer for web services",
+      "tier": 2,
+      "priority": 15,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "web/src/lib/api/ApiClient.ts",
+        "web/src/lib/services/ChatService.ts",
+        "web/src/lib/services/transcriptService.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "APIClient class centralizes all endpoint URLs",
+        "Service classes depend on APIClient, not hardcoded paths",
+        "Endpoint configuration loaded from environment",
+        "API versioning supported (e.g., /api/v1/, /api/v2/)",
+        "Tests verify services use APIClient correctly"
+      ],
+      "approach": "Create APIClient with methods for each endpoint type. Update ChatService and others to use APIClient. Move hardcoded URLs to configuration.",
+      "group": "architecture-refactor"
+    },
+    {
+      "finding_id": "F-5aa62f1e",
+      "title": "Extract business logic into service layer",
+      "tier": 3,
+      "priority": 16,
+      "estimated_files": 6,
+      "files_to_modify": [
+        "web/src/lib/services/ChatSessionService.ts",
+        "web/src/lib/services/MessageProcessingService.ts",
+        "web/src/lib/components/chat/Chat.svelte",
+        "web/src/lib/components/chat/ChatInput.svelte",
+        "web/src/lib/store/chat-store.ts",
+        "web/src/lib/components/chat/ChatMessages.svelte"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "ChatSessionService manages session lifecycle",
+        "MessageProcessingService handles message validation/enrichment",
+        "Components only handle UI rendering and event delegation",
+        "Business logic fully testable without DOM",
+        "Services have clear, documented interfaces"
+      ],
+      "approach": "Create ChatSessionService and MessageProcessingService. Move session/message logic from components. Update components to call services.",
+      "group": "architecture-refactor"
+    },
+    {
+      "finding_id": "F-3d25f0ac",
+      "title": "Centralize configuration management",
+      "tier": 1,
+      "priority": 17,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "web/src/lib/config/index.ts",
+        "web/src/lib/api/base.ts",
+        "internal/tools/defaults.go",
+        "docs/CONFIGURATION.md"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Single configuration entry point for web app",
+        "Environment variables documented with defaults",
+        ".env.example created with all required variables",
+        "Configuration validated on startup",
+        "All hardcoded URLs/values moved to config"
+      ],
+      "approach": "Create web/src/lib/config/index.ts exporting Config object. Load from env. Update all services to import from config. Create docs/CONFIGURATION.md.",
+      "group": "configuration"
+    },
+    {
+      "finding_id": "F-bec044cf",
+      "title": "Standardize error handling and logging in Go modules",
+      "tier": 3,
+      "priority": 18,
+      "estimated_files": 10,
+      "files_to_modify": [
+        "internal/log/log.go",
+        "cmd/generate_changelog/internal/git/walker.go",
+        "cmd/generate_changelog/internal/github/client.go",
+        "cmd/generate_changelog/internal/changelog/generator.go",
+        "internal/core/chatter.go",
+        "internal/cli/chat.go"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "All packages use internal/log for logging",
+        "Errors wrapped with context using fmt.Errorf(...%w...)",
+        "No panics in library code (only in main)",
+        "Structured logging used for errors",
+        "Handler middleware adds request/response logging"
+      ],
+      "approach": "Audit all error handling. Replace fmt.Println with logging calls. Wrap errors with context. Add middleware for handler logging.",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-eb92a0d3",
+      "title": "Ensure AI provider instantiation uses plugin registry",
+      "tier": 2,
+      "priority": 19,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "internal/core/plugin_registry.go",
+        "internal/cli/chat.go",
+        "web/src/routes/chat/+server.ts"
+      ],
+      "depends_on": [
+        "F-c7786f89"
+      ],
+      "acceptance_criteria": [
+        "All provider instantiation goes through plugin_registry",
+        "Registry configuration-driven (file or env vars)",
+        "New providers can be added without modifying entry points",
+        "Tests verify all providers load correctly from registry"
+      ],
+      "approach": "Ensure plugin_registry is the sole factory for providers. Document how to register new providers.",
+      "group": "architecture-refactor"
+    },
+    {
+      "finding_id": "F-12a57dae",
+      "title": "Add persistence abstraction layer for file operations",
+      "tier": 2,
+      "priority": 20,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "web/src/lib/repository/NoteRepository.ts",
+        "web/src/lib/repository/ObsidianVaultAdapter.ts",
+        "web/src/routes/obsidian/+server.ts",
+        "web/src/routes/notes/+server.ts"
+      ],
+      "depends_on": [
+        "F-5e7ef160",
+        "F-deb91026"
+      ],
+      "acceptance_criteria": [
+        "NoteRepository interface for file operations",
+        "ObsidianVaultAdapter implements vault-specific logic",
+        "Routes depend on repository abstraction, not direct file I/O",
+        "Easy to swap with database backend in future",
+        "Tests mock repository for unit testing routes"
+      ],
+      "approach": "Create NoteRepository with save/load/delete methods. Create ObsidianVaultAdapter wrapping file operations. Routes call repository.",
+      "group": "architecture-refactor"
+    },
+    {
+      "finding_id": "F-413aa6c5",
+      "title": "Verify and document dependency graph to prevent circular imports",
+      "tier": 1,
+      "priority": 21,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "docs/ARCHITECTURE.md",
+        "go.mod"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Dependency graph generated and verified acyclic",
+        "ARCHITECTURE.md documents intended import directions",
+        "Circular import tests added to CI",
+        "No import cycles detected on build"
+      ],
+      "approach": "Use go vet or graphviz to verify no cycles. Document in ARCHITECTURE.md. Add go vet to CI.",
+      "group": "code-quality"
+    }
+  ],
+  "dependencies": [
+    {
+      "finding_id": "F-5e7ef160",
+      "depends_on_finding_id": "F-d1a8e2f6",
+      "reason": "Cannot properly test file write validation until auth prevents unauthorized access"
+    },
+    {
+      "finding_id": "F-deb91026",
+      "depends_on_finding_id": "F-d1a8e2f6",
+      "reason": "Cannot test shell injection fixes until endpoint is protected from unauthenticated access"
+    },
+    {
+      "finding_id": "F-0cc2049b",
+      "depends_on_finding_id": "F-d1a8e2f6",
+      "reason": "CSRF protection requires authenticated users; auth must be in place first"
+    },
+    {
+      "finding_id": "F-73bb561e",
+      "depends_on_finding_id": "F-d1a8e2f6",
+      "reason": "Input validation testing easier after auth layer established"
+    },
+    {
+      "finding_id": "F-6f181616",
+      "depends_on_finding_id": "F-d1a8e2f6",
+      "reason": "Rate limiting enforces quotas per authenticated user/API key"
+    },
+    {
+      "finding_id": "F-4db5d358",
+      "depends_on_finding_id": "F-d1a8e2f6",
+      "reason": "Documentation of auth model requires auth implementation to be complete"
+    },
+    {
+      "finding_id": "F-4db5d358",
+      "depends_on_finding_id": "F-0ce2cbb0",
+      "reason": "Security documentation must cover both CLI and Go backend auth"
+    },
+    {
+      "finding_id": "F-12a57dae",
+      "depends_on_finding_id": "F-5e7ef160",
+      "reason": "Repository abstraction built after fixing immediate file vulnerabilities"
+    },
+    {
+      "finding_id": "F-12a57dae",
+      "depends_on_finding_id": "F-deb91026",
+      "reason": "Repository abstraction supersedes shell execution fixes"
+    },
+    {
+      "finding_id": "F-c7786f89",
+      "depends_on_finding_id": "F-cea458fb",
+      "reason": "API client abstraction needed before AI provider facade can be effective"
+    },
+    {
+      "finding_id": "F-eb92a0d3",
+      "depends_on_finding_id": "F-c7786f89",
+      "reason": "Plugin registry verification requires AI facade abstraction in place"
+    }
+  ],
+  "execution_levels": [
+    [
+      "F-d1a8e2f6",
+      "F-0ce2cbb0",
+      "F-8cea43b7",
+      "F-847104f7",
+      "F-73bb561e",
+      "F-b5be61d2",
+      "F-d9127866",
+      "F-3d25f0ac",
+      "F-4db5d358",
+      "F-413aa6c5"
+    ],
+    [
+      "F-5e7ef160",
+      "F-deb91026",
+      "F-0cc2049b",
+      "F-6f181616",
+      "F-cea458fb",
+      "F-bec044cf"
+    ],
+    [
+      "F-73bb561e",
+      "F-12a57dae",
+      "F-c7786f89"
+    ],
+    [
+      "F-33f45034",
+      "F-5aa62f1e",
+      "F-eb92a0d3"
+    ]
+  ],
+  "deferred_finding_ids": [],
+  "dedup_summary": "Merged F-d1a8e2f6 (unauthenticated endpoints) with F-4db5d358 (inconsistent auth patterns) into single auth implementation task. Deduplication addressed overlapping findings on input validation (F-73bb561e reuses patterns from F-5e7ef160 and F-deb91026). Error message sanitization (F-d9127866) and logging standardization (F-bec044cf) handled as separate concerns but coordinated. Architecture findings (F-c7786f89, F-cea458fb, F-5aa62f1e, F-12a57dae) ordered by dependencies rather than merged.",
+  "total_items": 21,
+  "estimated_invocations": 67,
+  "summary": "21 remediation items across 4 execution levels. Level 0 (10 items): Critical auth and secrets fixes, 3 days. Level 1 (6 items): Input validation, CSRF, rate limiting, 2 days. Level 2 (3 items): File security and abstraction layers, 2 days. Level 3 (2 items): Major refactoring (changelog reorganization, service extraction), 3 days. Total estimated effort: 10 days for team of 2 engineers. No items deferred; all critical security and architectural issues addressed."
+}

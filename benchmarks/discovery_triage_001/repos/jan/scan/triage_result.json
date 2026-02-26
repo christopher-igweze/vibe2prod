@@ -1,0 +1,279 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-7d74336a",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-de3ebc7f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1f437170",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-afe2cbac",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-cb1b4772",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8dff9e10",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1f74fe1f",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-b88b5afc",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-72895412",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8e6344a8",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1cd0409d",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0b447224",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-a3e42970",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-25fcfdb6",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-b0e3e3ab",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_error_boundary",
+      "fix_template_id": "add-error-boundary",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-17cba448",
+      "tier": 3,
+      "confidence": 0.85,
+      "rationale": "Authentication/authorization for vector DB requires changes across extension interface, vector DB implementation, RAG extension, and all callers. Affects thread-level isolation, file ownership validation, and operation auditing - architectural cross-cutting concern affecting 5+ files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "extensions/vector-db-extension/src/index.ts",
+        "extensions/rag-extension/src/index.ts",
+        "extensions/conversational-extension/src/index.ts",
+        "core/src/browser/extension.ts",
+        "web-app/src/services/models/default.ts"
+      ]
+    },
+    {
+      "finding_id": "F-c9eef841",
+      "tier": 3,
+      "confidence": 0.95,
+      "rationale": "Authorization for thread/assistant/message operations requires comprehensive refactoring across conversational extension, thread service layer, API contracts, and all operations (list, create, modify, delete). Needs context/session management throughout the system - affects 5+ files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "extensions/conversational-extension/src/index.ts",
+        "web-app/src/services/index.ts",
+        "core/src/browser/extension.ts",
+        "src-tauri/src/core/threads/commands.rs",
+        "src-tauri/src/core/app/commands.rs"
+      ]
+    },
+    {
+      "finding_id": "F-0b671fa6",
+      "tier": 2,
+      "confidence": 0.9,
+      "rationale": "Path validation fix is scoped to file ingestion handler in RAG extension and vector DB file intake. Requires implementing path resolution validation and whitelist checks - localized to 2-3 files with clear validation logic.",
+      "fix_template_id": "path_traversal_validation",
+      "relevant_files": [
+        "extensions/rag-extension/src/index.ts",
+        "extensions/vector-db-extension/src/index.ts"
+      ]
+    },
+    {
+      "finding_id": "F-3eed6a38",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Session limit and rate limiting implementation for model loading in llamacpp extension. Requires adding concurrent load limits, throttling, resource monitoring - localized to extension load manager with clear patterns for Tier 1 DoS mitigations.",
+      "fix_template_id": "rate_limiting_session_limits",
+      "relevant_files": [
+        "extensions/llamacpp-extension/src/index.ts"
+      ]
+    },
+    {
+      "finding_id": "F-484ac90b",
+      "tier": 1,
+      "confidence": 0.75,
+      "rationale": "Backend string validation is a known pattern - whitelist validation against supported backends. Can use deterministic enum/regex validation following standard practices. Single location in llamacpp extension.",
+      "fix_template_id": "whitelist_validation",
+      "relevant_files": [
+        "extensions/llamacpp-extension/src/index.ts"
+      ]
+    },
+    {
+      "finding_id": "F-ce2e3342",
+      "tier": 1,
+      "confidence": 0.7,
+      "rationale": "localStorage security is deterministic pattern - replace with sessionStorage or add encryption. Known mitigation pattern for browser storage. Single file change.",
+      "fix_template_id": "secure_browser_storage",
+      "relevant_files": [
+        "extensions/llamacpp-extension/src/index.ts"
+      ]
+    },
+    {
+      "finding_id": "F-6f66256f",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Creating IPC abstraction layer requires refactoring service layer architecture across 5+ service files, test files, and Tauri command handlers. Affects services/index.ts, services/models/default.ts, and all services calling tauri.invoke. Cross-cutting architectural change.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "web-app/src/services/index.ts",
+        "web-app/src/services/models/default.ts",
+        "web-app/src/services/assistants.ts",
+        "web-app/src/services/threads.ts",
+        "web-app/src/services/messages.ts"
+      ]
+    },
+    {
+      "finding_id": "F-32e5d7ba",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Standardizing extension dependency injection affects all extension modules (RAG, llamacpp, MLX, conversational, vector-db). Requires defining ExtensionInterface contract, refactoring dependency patterns across 5+ extension files with lifecycle implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "extensions/rag-extension/src/index.ts",
+        "extensions/llamacpp-extension/src/index.ts",
+        "extensions/mlx-extension/src/index.ts",
+        "extensions/conversational-extension/src/index.ts",
+        "extensions/vector-db-extension/src/index.ts",
+        "core/src/browser/extension.ts"
+      ]
+    },
+    {
+      "finding_id": "F-7f308db8",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Separating business logic from containers requires creating new service layer files (MessageProcessingService, ProviderValidationService, DownloadOrchestrationService) and refactoring 3+ large container files plus their service consumers. Cross-cutting architectural refactor affecting 6+ files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "web-app/src/containers/MessageItem.tsx",
+        "web-app/src/containers/DropdownModelProvider.tsx",
+        "web-app/src/containers/DownloadManegement.tsx",
+        "web-app/src/services/messages.ts",
+        "web-app/src/services/providers.ts",
+        "web-app/src/services/downloads.ts"
+      ]
+    },
+    {
+      "finding_id": "F-271b7afa",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Establishing command adapter pattern requires creating CommandHandler trait, unified response wrapper, and refactoring 5+ command files (app, filesystem, threads, models, assistants, etc.). Architectural change affecting Rust command layer and potentially TS side.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "src-tauri/src/core/app/commands.rs",
+        "src-tauri/src/core/filesystem/commands.rs",
+        "src-tauri/src/core/threads/commands.rs",
+        "src-tauri/src/core/models/commands.rs",
+        "src-tauri/src/core/assistants/commands.rs"
+      ]
+    },
+    {
+      "finding_id": "F-7d0e2f88",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Establishing testing architecture with clear boundaries requires creating test utilities, mocking factories, and test fixtures. Localized to test infrastructure and documentation - affects multiple test files but follows standardizable patterns.",
+      "fix_template_id": "testing_architecture",
+      "relevant_files": [
+        "web-app/src/hooks/__tests__/",
+        "core/src/browser/extension.test.ts",
+        "web-app/src/__tests__/setup.ts"
+      ]
+    },
+    {
+      "finding_id": "F-fdab90ae",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Unifying i18n system requires standardizing configuration between web-app and docs (2 locations), potentially creating shared translation CLI tool. Scoped to configuration and tooling layers without affecting core application logic.",
+      "fix_template_id": "i18n_unification",
+      "relevant_files": [
+        "web-app/src/i18n.ts",
+        "docs/theme.config.tsx",
+        "web-app/src/locales/en/chat.json"
+      ]
+    }
+  ],
+  "tier_0_count": 0,
+  "tier_1_count": 11,
+  "tier_2_count": 4,
+  "tier_3_count": 12
+}

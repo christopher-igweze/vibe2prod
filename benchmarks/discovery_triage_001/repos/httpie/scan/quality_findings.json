@@ -1,0 +1,622 @@
+{
+  "findings": [
+    {
+      "id": "F-ccceaf3a",
+      "title": "Plugin registration lacks error handling for import failures",
+      "description": "In httpie/plugins/registry.py, plugins are imported and registered directly without any try/except wrapper. If importing a plugin raises an exception (e.g., ImportError, ModuleNotFoundError), the entire application will crash instead of gracefully handling the error.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/plugins/registry.py",
+          "line_start": 1,
+          "line_end": 25,
+          "snippet": "plugin_manager.register(\n    BasicAuthPlugin,\n    DigestAuthPlugin,\n    BearerAuthPlugin,\n    HeadersFormatter,\n    JSONFormatter,\n    XMLFormatter,\n    ColorFormatter,\n)"
+        }
+      ],
+      "suggested_fix": "Wrap the plugin registration in a try/except block to catch ImportError and other exceptions, logging warnings instead of crashing:\n\ntry:\n    plugin_manager.register(...)\nexcept ImportError as e:\n    import warnings\n    warnings.warn(f'Failed to import plugin: {e}')",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2c280d33",
+      "title": "Missing error handling in nested JSON parsing",
+      "description": "The nested JSON parser (httpie/cli/nested_json/) handles syntax errors via NestedJSONSyntaxError but there's no catch-all error handler at the entry points (parsing.py, interpret.py) to handle unexpected runtime errors that could occur during JSON construction.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/cli/nested_json/parse.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Files not fully visible in provided source but referenced in nested_json module"
+        }
+      ],
+      "suggested_fix": "Add try/except blocks around JSON construction operations to catch KeyError, IndexError, TypeError and convert them to user-friendly error messages rather than tracebacks.",
+      "confidence": 0.65,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-63e70501",
+      "title": "No global exception handler in CLI entry points",
+      "description": "The CLI entry points (httpie/__main__.py, httpie/core.py) should have top-level exception handling to catch unexpected errors and provide graceful degradation. Based on test patterns in test_exit_status.py and test_errors.py, exceptions like KeyboardInterrupt are handled, but general Exception handling is missing.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/cli/definition.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Parser definition file without visible main() entry point handling"
+        }
+      ],
+      "suggested_fix": "Add a main() function wrapper with sys.excepthook or try/except that catches Exception, logs it appropriately, and returns ExitStatus.ERROR instead of letting raw tracebacks propagate to users.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-51aeaec4",
+      "title": "Socket error handling incomplete for DNS failures",
+      "description": "In tests/test_errors.py, there's explicit testing for socket.gaierror with EAI_AGAIN and EAI_NONAME codes. The actual handling code should be in httpie/core.py or httpie/client.py but wasn't provided. If the handling exists, it's only for specific error codes - other gaierror subtypes could cause unhandled crashes.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/core.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Main entry point file - error handling code not visible in provided source"
+        }
+      ],
+      "suggested_fix": "Add comprehensive socket.gaierror handling that catches all error codes (not just EAI_AGAIN, EAI_NONAME) and provides appropriate user-facing messages for each category of DNS/network failure.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-012bb652",
+      "title": "Missing error boundary for SSL certificate failures",
+      "description": "tests/test_ssl.py shows extensive SSL testing but the actual SSL error handling should wrap certificate validation. If SSLError or related exceptions propagate without handling, users see Python tracebacks instead of helpful messages.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/client.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "HTTP client implementation - SSL handling not visible in provided source"
+        }
+      ],
+      "suggested_fix": "Add try/except around requests.Session.send() calls to catch ssl.SSLError, requests.exceptions.SSLError, and provide user-friendly error messages with suggestions (e.g., --verify=no for self-signed certs).",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2b317903",
+      "title": "Download resume error handling may fail silently",
+      "description": "tests/test_downloads.py shows resume logic with Range headers. In httpie/downloads.py, if the server doesn't support resume (returns different status than 206), the error may not be communicated clearly to the user.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/downloads.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Download handling file - resume error handling not visible"
+        }
+      ],
+      "suggested_fix": "Check response status code after Range request and warn user if resume isn't supported instead of silently downloading from scratch.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7fb749d6",
+      "title": "Config file error handling issues",
+      "description": "tests/test_config.py shows handling for invalid JSON and inaccessible config files, but there's no indication of error handling for config file write failures. If disk is full or permissions change, the error could crash the application.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/config.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Config handling file - write error handling not visible"
+        }
+      ],
+      "suggested_fix": "Wrap config.save() calls in try/except to catch OSError, PermissionError and provide graceful degradation (use in-memory config instead).",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0391dbba",
+      "title": "Missing caching for repeated GitHub API calls in user lookup",
+      "description": "The user() function in docs/contributors/fetch.py makes API calls to GitHub for each user lookup without any caching mechanism. When processing large contributor lists, the same user may be looked up multiple times, causing redundant API calls and rate limit issues.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 174,
+          "line_end": 195,
+          "snippet": "def user(fullname: Optional[str] = '', github_username: Optional[str] = '') -> UserInfo:\n    if github_username:\n        url = f'{API_URL}/users/{github_username}'\n        return fetch(url)\n\n    url = f'{API_URL}/search/users'\n    for query in (f'fullname:{fullname}', f'user:{fullname}'):\n        params = {\n            'q': f'repo:{REPO}/{OWNER} {query}',\n            'per_page': 1,\n        }\n        user_info = fetch(url, params=params)\n        if user_info['items']:\n            user_url = user_info['items'][0]['url']\n            return fetch(user_url)"
+        }
+      ],
+      "suggested_fix": "Implement a memoization cache using functools.lru_cache or a dictionary to cache user lookups. Example: @functools.lru_cache(maxsize=500) decorator on the user() function, or use a dict to cache results keyed by (fullname, github_username).",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2ccac889",
+      "title": "Sequential API calls without batching in fetch_missing_users_details",
+      "description": "The fetch_missing_users_details function iterates through all people and makes individual API calls sequentially. For large contributor databases, this is extremely slow and could hit rate limits.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 198,
+          "line_end": 208,
+          "snippet": "def fetch_missing_users_details(people: People) -> None:\n    for name, details in people.items():\n        if details['github'] and details['twitter']:\n            continue\n        user_info = user(github_username=details['github'], fullname=name)\n        if not details['github']:\n            details['github'] = user_info['login']\n        if not details['twitter']:\n            details['twitter'] = user_info['twitter_username']"
+        }
+      ],
+      "suggested_fix": "Batch the API calls by collecting all github_username values that need lookup, then use GitHub's user lookup endpoint which supports multiple users in a single call (GET /users/{user1},{user2},{user3}). This reduces N API calls to 1 call.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1732678a",
+      "title": "Open file handle not properly managed in process_file_upload_arg",
+      "description": "The process_file_upload_arg function opens a file (line 115-116 in requestitems.py) and returns a tuple containing the file object. There's no guarantee the file will be closed after use, as the caller doesn't explicitly close it. This can lead to resource leaks when processing many file uploads.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "httpie/cli/requestitems.py",
+          "line_start": 109,
+          "line_end": 121,
+          "snippet": "def process_file_upload_arg(arg: KeyValueArg) -> Tuple[str, IO, str]:\n    parts = arg.value.split(SEPARATOR_FILE_UPLOAD_TYPE)\n    filename = parts[0]\n    mime_type = parts[1] if len(parts) > 1 else None\n    try:\n        f = open(os.path.expanduser(filename), 'rb')\n    except OSError as e:\n        raise ParseError(f'{arg.orig!r}: {e}')\n    return (\n        os.path.basename(filename),\n        f,\n        mime_type or get_content_type(filename),\n    )"
+        }
+      ],
+      "suggested_fix": "Use a context manager pattern or ensure the caller closes the file handle. Consider returning a path instead of an open file handle, or use a with statement in the caller. Alternatively, use a file wrapper class that properly manages the lifecycle.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b38226ce",
+      "title": "Repeated iteration over contributors in merge_all_the_people",
+      "description": "The merge_all_the_people function performs set membership checks and removals in a loop over all contributors. While set operations are O(1), the algorithm could be more efficient by pre-indexing or using set intersections.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 130,
+          "line_end": 169,
+          "snippet": "def merge_all_the_people(release: str, contributors: People, committers: FullNames, reporters: GitHubLogins) -> None:\n    # Update known contributors.\n    for name, details in contributors.items():\n        if name in committers:\n            if release not in details['committed']:\n                details['committed'].append(release)\n            committers.remove(name)\n        if details['github'] in reporters:\n            if release not in details['reported']:\n                details['reported'].append(release)\n            reporters.remove(details['github'])"
+        }
+      ],
+      "suggested_fix": "Use set intersection to find common contributors first, then process in a single pass: common_names = set(contributors.keys()) & committers. This reduces the number of set membership checks from O(n*m) to O(n+m).",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9ef1268c",
+      "title": "No connection pooling configuration for requests library",
+      "description": "The fetch() function uses requests.get() without explicitly configuring session pooling. While requests handles this internally, creating a persistent Session object would enable connection reuse across multiple API calls, reducing overhead.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 220,
+          "line_end": 247,
+          "snippet": "def fetch(url: str, params: Optional[Dict[str, str]] = None) -> UserInfo:\n    headers = {\n        'Accept': 'application/vnd.github.v3+json',\n        'Authentication': f'token {GITHUB_TOKEN}'\n    }\n    for retry in range(1, 6):\n        debug(f'[{retry}/5]', f'{url = }', f'{params = }')\n        with requests.get(url, params=params, headers=headers) as req:"
+        }
+      ],
+      "suggested_fix": "Create a requests.Session() object at module level and reuse it for all API calls. This enables HTTP keep-alive and connection pooling: session = requests.Session(); session.headers.update(headers); then use session.get() instead of requests.get().",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6236f6bb",
+      "title": "Inefficient string formatting in debug output",
+      "description": "The debug() function uses f-strings but is called multiple times in loops (e.g., find_committers, find_reporters). When DEBUG is disabled, these string constructions still occur.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 259,
+          "line_end": 263,
+          "snippet": "def debug(*args: Any) -> None:\n    if os.getenv('DEBUG') == '1':\n        print(*args)"
+        }
+      ],
+      "suggested_fix": "Use a module-level flag to check DEBUG once at startup: DEBUG = os.getenv('DEBUG') == '1', then check this boolean in the debug() function to avoid calling os.getenv() on every debug call.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [
+        {
+          "id": "F-ccceaf3a",
+          "title": "Plugin registration lacks error handling for import failures",
+          "description": "In httpie/plugins/registry.py, plugins are imported and registered directly without any try/except wrapper. If importing a plugin raises an exception (e.g., ImportError, ModuleNotFoundError), the entire application will crash instead of gracefully handling the error.",
+          "category": "quality",
+          "severity": "high",
+          "audit_pass": "error_handling",
+          "locations": [
+            {
+              "file_path": "httpie/plugins/registry.py",
+              "line_start": 1,
+              "line_end": 25,
+              "snippet": "plugin_manager.register(\n    BasicAuthPlugin,\n    DigestAuthPlugin,\n    BearerAuthPlugin,\n    HeadersFormatter,\n    JSONFormatter,\n    XMLFormatter,\n    ColorFormatter,\n)"
+            }
+          ],
+          "suggested_fix": "Wrap the plugin registration in a try/except block to catch ImportError and other exceptions, logging warnings instead of crashing:\n\ntry:\n    plugin_manager.register(...)\nexcept ImportError as e:\n    import warnings\n    warnings.warn(f'Failed to import plugin: {e}')",
+          "confidence": 0.8,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2c280d33",
+          "title": "Missing error handling in nested JSON parsing",
+          "description": "The nested JSON parser (httpie/cli/nested_json/) handles syntax errors via NestedJSONSyntaxError but there's no catch-all error handler at the entry points (parsing.py, interpret.py) to handle unexpected runtime errors that could occur during JSON construction.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "error_handling",
+          "locations": [
+            {
+              "file_path": "httpie/cli/nested_json/parse.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "Files not fully visible in provided source but referenced in nested_json module"
+            }
+          ],
+          "suggested_fix": "Add try/except blocks around JSON construction operations to catch KeyError, IndexError, TypeError and convert them to user-friendly error messages rather than tracebacks.",
+          "confidence": 0.65,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-63e70501",
+          "title": "No global exception handler in CLI entry points",
+          "description": "The CLI entry points (httpie/__main__.py, httpie/core.py) should have top-level exception handling to catch unexpected errors and provide graceful degradation. Based on test patterns in test_exit_status.py and test_errors.py, exceptions like KeyboardInterrupt are handled, but general Exception handling is missing.",
+          "category": "quality",
+          "severity": "high",
+          "audit_pass": "error_handling",
+          "locations": [
+            {
+              "file_path": "httpie/cli/definition.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "Parser definition file without visible main() entry point handling"
+            }
+          ],
+          "suggested_fix": "Add a main() function wrapper with sys.excepthook or try/except that catches Exception, logs it appropriately, and returns ExitStatus.ERROR instead of letting raw tracebacks propagate to users.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-51aeaec4",
+          "title": "Socket error handling incomplete for DNS failures",
+          "description": "In tests/test_errors.py, there's explicit testing for socket.gaierror with EAI_AGAIN and EAI_NONAME codes. The actual handling code should be in httpie/core.py or httpie/client.py but wasn't provided. If the handling exists, it's only for specific error codes - other gaierror subtypes could cause unhandled crashes.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "error_handling",
+          "locations": [
+            {
+              "file_path": "httpie/core.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "Main entry point file - error handling code not visible in provided source"
+            }
+          ],
+          "suggested_fix": "Add comprehensive socket.gaierror handling that catches all error codes (not just EAI_AGAIN, EAI_NONAME) and provides appropriate user-facing messages for each category of DNS/network failure.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-012bb652",
+          "title": "Missing error boundary for SSL certificate failures",
+          "description": "tests/test_ssl.py shows extensive SSL testing but the actual SSL error handling should wrap certificate validation. If SSLError or related exceptions propagate without handling, users see Python tracebacks instead of helpful messages.",
+          "category": "quality",
+          "severity": "high",
+          "audit_pass": "error_handling",
+          "locations": [
+            {
+              "file_path": "httpie/client.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "HTTP client implementation - SSL handling not visible in provided source"
+            }
+          ],
+          "suggested_fix": "Add try/except around requests.Session.send() calls to catch ssl.SSLError, requests.exceptions.SSLError, and provide user-friendly error messages with suggestions (e.g., --verify=no for self-signed certs).",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2b317903",
+          "title": "Download resume error handling may fail silently",
+          "description": "tests/test_downloads.py shows resume logic with Range headers. In httpie/downloads.py, if the server doesn't support resume (returns different status than 206), the error may not be communicated clearly to the user.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "error_handling",
+          "locations": [
+            {
+              "file_path": "httpie/downloads.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "Download handling file - resume error handling not visible"
+            }
+          ],
+          "suggested_fix": "Check response status code after Range request and warn user if resume isn't supported instead of silently downloading from scratch.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-7fb749d6",
+          "title": "Config file error handling issues",
+          "description": "tests/test_config.py shows handling for invalid JSON and inaccessible config files, but there's no indication of error handling for config file write failures. If disk is full or permissions change, the error could crash the application.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "error_handling",
+          "locations": [
+            {
+              "file_path": "httpie/config.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "Config handling file - write error handling not visible"
+            }
+          ],
+          "suggested_fix": "Wrap config.save() calls in try/except to catch OSError, PermissionError and provide graceful degradation (use in-memory config instead).",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Error handling coverage analysis found 7 areas needing improvement. The codebase has good test coverage for error scenarios (tests/test_errors.py, test_exit_status.py) but implementation-level error handling is incomplete in plugin registration, SSL connections, and config file operations."
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": ""
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [
+        {
+          "id": "F-0391dbba",
+          "title": "Missing caching for repeated GitHub API calls in user lookup",
+          "description": "The user() function in docs/contributors/fetch.py makes API calls to GitHub for each user lookup without any caching mechanism. When processing large contributor lists, the same user may be looked up multiple times, causing redundant API calls and rate limit issues.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "docs/contributors/fetch.py",
+              "line_start": 174,
+              "line_end": 195,
+              "snippet": "def user(fullname: Optional[str] = '', github_username: Optional[str] = '') -> UserInfo:\n    if github_username:\n        url = f'{API_URL}/users/{github_username}'\n        return fetch(url)\n\n    url = f'{API_URL}/search/users'\n    for query in (f'fullname:{fullname}', f'user:{fullname}'):\n        params = {\n            'q': f'repo:{REPO}/{OWNER} {query}',\n            'per_page': 1,\n        }\n        user_info = fetch(url, params=params)\n        if user_info['items']:\n            user_url = user_info['items'][0]['url']\n            return fetch(user_url)"
+            }
+          ],
+          "suggested_fix": "Implement a memoization cache using functools.lru_cache or a dictionary to cache user lookups. Example: @functools.lru_cache(maxsize=500) decorator on the user() function, or use a dict to cache results keyed by (fullname, github_username).",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2ccac889",
+          "title": "Sequential API calls without batching in fetch_missing_users_details",
+          "description": "The fetch_missing_users_details function iterates through all people and makes individual API calls sequentially. For large contributor databases, this is extremely slow and could hit rate limits.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "docs/contributors/fetch.py",
+              "line_start": 198,
+              "line_end": 208,
+              "snippet": "def fetch_missing_users_details(people: People) -> None:\n    for name, details in people.items():\n        if details['github'] and details['twitter']:\n            continue\n        user_info = user(github_username=details['github'], fullname=name)\n        if not details['github']:\n            details['github'] = user_info['login']\n        if not details['twitter']:\n            details['twitter'] = user_info['twitter_username']"
+            }
+          ],
+          "suggested_fix": "Batch the API calls by collecting all github_username values that need lookup, then use GitHub's user lookup endpoint which supports multiple users in a single call (GET /users/{user1},{user2},{user3}). This reduces N API calls to 1 call.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-1732678a",
+          "title": "Open file handle not properly managed in process_file_upload_arg",
+          "description": "The process_file_upload_arg function opens a file (line 115-116 in requestitems.py) and returns a tuple containing the file object. There's no guarantee the file will be closed after use, as the caller doesn't explicitly close it. This can lead to resource leaks when processing many file uploads.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "httpie/cli/requestitems.py",
+              "line_start": 109,
+              "line_end": 121,
+              "snippet": "def process_file_upload_arg(arg: KeyValueArg) -> Tuple[str, IO, str]:\n    parts = arg.value.split(SEPARATOR_FILE_UPLOAD_TYPE)\n    filename = parts[0]\n    mime_type = parts[1] if len(parts) > 1 else None\n    try:\n        f = open(os.path.expanduser(filename), 'rb')\n    except OSError as e:\n        raise ParseError(f'{arg.orig!r}: {e}')\n    return (\n        os.path.basename(filename),\n        f,\n        mime_type or get_content_type(filename),\n    )"
+            }
+          ],
+          "suggested_fix": "Use a context manager pattern or ensure the caller closes the file handle. Consider returning a path instead of an open file handle, or use a with statement in the caller. Alternatively, use a file wrapper class that properly manages the lifecycle.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-b38226ce",
+          "title": "Repeated iteration over contributors in merge_all_the_people",
+          "description": "The merge_all_the_people function performs set membership checks and removals in a loop over all contributors. While set operations are O(1), the algorithm could be more efficient by pre-indexing or using set intersections.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "docs/contributors/fetch.py",
+              "line_start": 130,
+              "line_end": 169,
+              "snippet": "def merge_all_the_people(release: str, contributors: People, committers: FullNames, reporters: GitHubLogins) -> None:\n    # Update known contributors.\n    for name, details in contributors.items():\n        if name in committers:\n            if release not in details['committed']:\n                details['committed'].append(release)\n            committers.remove(name)\n        if details['github'] in reporters:\n            if release not in details['reported']:\n                details['reported'].append(release)\n            reporters.remove(details['github'])"
+            }
+          ],
+          "suggested_fix": "Use set intersection to find common contributors first, then process in a single pass: common_names = set(contributors.keys()) & committers. This reduces the number of set membership checks from O(n*m) to O(n+m).",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-9ef1268c",
+          "title": "No connection pooling configuration for requests library",
+          "description": "The fetch() function uses requests.get() without explicitly configuring session pooling. While requests handles this internally, creating a persistent Session object would enable connection reuse across multiple API calls, reducing overhead.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "docs/contributors/fetch.py",
+              "line_start": 220,
+              "line_end": 247,
+              "snippet": "def fetch(url: str, params: Optional[Dict[str, str]] = None) -> UserInfo:\n    headers = {\n        'Accept': 'application/vnd.github.v3+json',\n        'Authentication': f'token {GITHUB_TOKEN}'\n    }\n    for retry in range(1, 6):\n        debug(f'[{retry}/5]', f'{url = }', f'{params = }')\n        with requests.get(url, params=params, headers=headers) as req:"
+            }
+          ],
+          "suggested_fix": "Create a requests.Session() object at module level and reuse it for all API calls. This enables HTTP keep-alive and connection pooling: session = requests.Session(); session.headers.update(headers); then use session.get() instead of requests.get().",
+          "confidence": 0.8,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-6236f6bb",
+          "title": "Inefficient string formatting in debug output",
+          "description": "The debug() function uses f-strings but is called multiple times in loops (e.g., find_committers, find_reporters). When DEBUG is disabled, these string constructions still occur.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "docs/contributors/fetch.py",
+              "line_start": 259,
+              "line_end": 263,
+              "snippet": "def debug(*args: Any) -> None:\n    if os.getenv('DEBUG') == '1':\n        print(*args)"
+            }
+          ],
+          "suggested_fix": "Use a module-level flag to check DEBUG once at startup: DEBUG = os.getenv('DEBUG') == '1', then check this boolean in the debug() function to avoid calling os.getenv() on every debug call.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 6 performance issues including 2 high-severity issues (missing caching for API calls, sequential API calls). The contributor fetching script would benefit significantly from caching and batching optimizations."
+    }
+  ],
+  "total_findings": 13
+}

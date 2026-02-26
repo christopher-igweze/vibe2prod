@@ -1,0 +1,642 @@
+{
+  "findings": [
+    {
+      "id": "F-d1a8e2f6",
+      "title": "Unauthenticated API endpoints in web frontend",
+      "description": "Multiple SvelteKit API routes lack any authentication mechanism. The endpoints /chat, /api/youtube/transcript, /obsidian, and /notes are publicly accessible with no API key, session, or token validation. This allows unauthorized users to consume backend resources, call external APIs (YouTube transcripts), execute Fabric patterns, and write arbitrary files to the server filesystem.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/routes/chat/+server.ts",
+          "line_start": 1,
+          "line_end": 90,
+          "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+        },
+        {
+          "file_path": "web/src/routes/api/youtube/transcript/+server.ts",
+          "line_start": 1,
+          "line_end": 45,
+          "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+        },
+        {
+          "file_path": "web/src/routes/obsidian/+server.ts",
+          "line_start": 1,
+          "line_end": 95,
+          "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+        },
+        {
+          "file_path": "web/src/routes/notes/+server.ts",
+          "line_start": 1,
+          "line_end": 25,
+          "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+        }
+      ],
+      "suggested_fix": "Implement authentication middleware for all API endpoints. Add SvelteKit hooks to validate requests before reaching handlers. Example: Create `src/hooks.server.ts` to check for API key header or session token on all `+server.ts` routes. Validate against environment variable or database. Reject requests with 401 Unauthorized if credentials missing/invalid. Pattern:\n\n```typescript\n// src/hooks.server.ts\nimport { redirect, type Handle } from '@sveltejs/kit';\n\nconst API_KEY = process.env.API_KEY || '';\n\nexport const handle: Handle = async ({ event, resolve }) => {\n  if (event.url.pathname.startsWith('/chat') || \n      event.url.pathname.startsWith('/api/') ||\n      event.url.pathname.startsWith('/obsidian') ||\n      event.url.pathname.startsWith('/notes')) {\n    const apiKey = event.request.headers.get('X-API-Key');\n    if (!apiKey || apiKey !== API_KEY) {\n      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });\n    }\n  }\n  return resolve(event);\n};\n```",
+      "confidence": 0.99,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5e7ef160",
+      "title": "Arbitrary file write vulnerability in /notes endpoint",
+      "description": "The /notes endpoint (web/src/routes/notes/+server.ts) writes user-supplied filename and content directly to the filesystem without validation. An attacker can use path traversal (e.g., '../../../etc/passwd') to write files outside the intended directory. No checks on filename format, content type, or file size. File permissions set to world-readable (0644).",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/routes/notes/+server.ts",
+          "line_start": 12,
+          "line_end": 22,
+          "snippet": "const inboxPath = join(__dirname, '...', 'myfiles', 'inbox', filename);\nawait writeFile(inboxPath, content, 'utf-8');"
+        }
+      ],
+      "suggested_fix": "Validate and sanitize the filename before writing. Use path.basename() to strip directory components, validate filename format (alphanumeric + safe chars only), and reject suspicious paths. Example:\n\n```typescript\nimport { basename, join, resolve } from 'path';\nimport { writeFile } from 'fs/promises';\n\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    const { filename, content } = await request.json();\n    \n    // Validate inputs\n    if (!filename || !content) {\n      return json({ error: 'Missing required fields' }, { status: 400 });\n    }\n    \n    // Sanitize filename - use only the basename, reject path traversal\n    const sanitized = basename(filename);\n    if (!sanitized || sanitized !== filename) {\n      return json({ error: 'Invalid filename' }, { status: 400 });\n    }\n    \n    // Validate filename format (alphanumeric, dash, underscore, dot only)\n    if (!/^[a-zA-Z0-9._-]+$/.test(sanitized)) {\n      return json({ error: 'Filename contains invalid characters' }, { status: 400 });\n    }\n    \n    // Validate content size (e.g., max 1MB)\n    if (content.length > 1024 * 1024) {\n      return json({ error: 'Content too large' }, { status: 413 });\n    }\n    \n    const inboxPath = resolve(join(__dirname, '...', 'myfiles', 'inbox'), sanitized);\n    \n    // Double-check the resolved path is within inbox directory\n    const expectedBase = resolve(join(__dirname, '...', 'myfiles', 'inbox'));\n    if (!inboxPath.startsWith(expectedBase)) {\n      return json({ error: 'Invalid path' }, { status: 400 });\n    }\n    \n    await writeFile(inboxPath, content, 'utf-8');\n    return json({ success: true, filename: sanitized });\n  } catch (error) {\n    return json({ error: '...' }, { status: 500 });\n  }\n};\n```",
+      "confidence": 0.98,
+      "cwe_id": "CWE-22",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-deb91026",
+      "title": "Command injection vulnerability in /obsidian endpoint",
+      "description": "The /obsidian endpoint uses shell command execution (execAsync) with user-supplied input. Although the code attempts to escape shell arguments via escapeShellArg(), the function only escapes single quotes and may miss edge cases. The mkdir, echo, cp, ls, and wc commands execute user content. Attacker can craft malicious 'noteName' or 'content' values to break out of quotes and execute arbitrary commands.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/routes/obsidian/+server.ts",
+          "line_start": 30,
+          "line_end": 65,
+          "snippet": "const formattedContent = `...${body.content}...`;\nconst escapedFormattedContent = escapeShellArg(formattedContent);\nawait execAsync(`echo ${escapedFormattedContent} > \"${tempFile}\"`);"
+        }
+      ],
+      "suggested_fix": "Avoid shell execution entirely. Use Node.js filesystem APIs directly instead of shelling out. Example:\n\n```typescript\nimport { json } from '@sveltejs/kit';\nimport type { RequestHandler } from './$types';\nimport { writeFile, mkdir } from 'fs/promises';\nimport { join, resolve, basename } from 'path';\n\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    const body = await request.json() as ObsidianRequest;\n    \n    // Validate inputs\n    if (!body.pattern || !body.noteName || !body.content) {\n      return json({ error: 'Missing required fields' }, { status: 400 });\n    }\n    \n    // Sanitize noteName - prevent path traversal\n    const sanitizedName = basename(body.noteName);\n    if (!sanitizedName || !/^[a-zA-Z0-9._-]+$/.test(sanitizedName)) {\n      return json({ error: 'Invalid note name' }, { status: 400 });\n    }\n    \n    // Validate content size\n    if (body.content.length > 10 * 1024 * 1024) {\n      return json({ error: 'Content too large' }, { status: 413 });\n    }\n    \n    // Use proper path resolution\n    const obsidianDir = resolve('myfiles/Fabric_obsidian');\n    const fileName = `${new Date().toISOString().split('T')[0]}-${sanitizedName}.md`;\n    const filePath = join(obsidianDir, fileName);\n    \n    // Ensure resolved path is within obsidianDir\n    if (!resolve(filePath).startsWith(obsidianDir)) {\n      return json({ error: 'Invalid path' }, { status: 400 });\n    }\n    \n    // Create directory and write file using Node.js APIs\n    await mkdir(obsidianDir, { recursive: true });\n    const formattedContent = `\\`\\`\\`markdown\\n${body.content}\\n\\`\\`\\``;\n    await writeFile(filePath, formattedContent, 'utf-8');\n    \n    return json({\n      success: true,\n      fileName,\n      filePath,\n      message: `Successfully saved to ${fileName}`\n    });\n  } catch (error) {\n    return json({ error: '...' }, { status: 500 });\n  }\n};\n```",
+      "confidence": 0.97,
+      "cwe_id": "CWE-78",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0ce2cbb0",
+      "title": "Missing API key authentication on Go REST API backend",
+      "description": "The Go backend implements APIKeyMiddleware in internal/server/auth.go (line 11-35) but exempt Swagger documentation endpoints from auth (/swagger/*). However, no evidence that this middleware is actually applied to protected routes in the server setup. The middleware exists but may not be enforced on all handlers, particularly the sessions and patterns endpoints that manage user data. No mention of auth enforcement in handler registration code.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "internal/server/auth.go",
+          "line_start": 11,
+          "line_end": 35,
+          "snippet": "func APIKeyMiddleware(apiKey string) gin.HandlerFunc { ... if strings.HasPrefix(c.Request.URL.Path, \"/swagger/\") { c.Next() return } ... }"
+        },
+        {
+          "file_path": "internal/server/sessions.go",
+          "line_start": 1,
+          "line_end": 20,
+          "snippet": "type SessionsHandler struct { ... } func NewSessionsHandler(r *gin.Engine, sessions *fsdb.SessionsEntity) { ... } // No evidence of middleware applied"
+        }
+      ],
+      "suggested_fix": "Verify and enforce APIKeyMiddleware on all sensitive routes in the server setup. In the main server initialization code (not shown but presumably in internal/server or cmd), apply middleware like:\n\n```go\n// In server initialization\nprotectedRoutes := r.Group(\"/api\")\nprotectedRoutes.Use(auth.APIKeyMiddleware(apiKey)) // Apply to all /api/* routes\n{\n  NewSessionsHandler(protectedRoutes, sessionEntity)\n  NewPatternsHandler(protectedRoutes, patternEntity)\n  // ... other protected handlers\n}\n\n// Public routes (no middleware)\npublicRoutes := r.Group(\"/public\")\n{\n  // endpoints that should be public\n}\n\n// Documentation (no middleware)\nr.StaticFS(\"/swagger\", http.Dir(\"swagger\"))\n```\n\nAlternatively, ensure middleware is applied globally or per-route explicitly. Document which endpoints require authentication and which don't.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8cea43b7",
+      "title": "GitHub token exposure in environment variable and CLI flag",
+      "description": "GitHub API tokens are passed via environment variable GITHUB_TOKEN and CLI flag --token in cmd/generate_changelog/main.go and cmd/generate_changelog/util/token.go. While the token is loaded from environment (checking GITHUB_TOKEN and GH_TOKEN), the token value may be logged, printed to stdout, or stored in plaintext .env files. The .env file loaded in main.go (line 75-80) stores the token on disk with default 0644 permissions (world-readable).",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "cmd/generate_changelog/main.go",
+          "line_start": 75,
+          "line_end": 80,
+          "snippet": "if err := godotenv.Load(envPath); err != nil { fmt.Fprintf(os.Stderr, \"Warning: Failed to load .env file: %v\\n\", err) }"
+        },
+        {
+          "file_path": "cmd/generate_changelog/util/token.go",
+          "line_start": 1,
+          "line_end": 33,
+          "snippet": "func GetTokenFromEnv(tokenValue string) string { if tokenValue == \"\" { tokenValue = os.Getenv(\"GITHUB_TOKEN\") ... } return tokenValue }"
+        },
+        {
+          "file_path": "cmd/generate_changelog/main.go",
+          "line_start": 38,
+          "line_end": 40,
+          "snippet": "rootCmd.Flags().StringVar(&cfg.GitHubToken, \"token\", \"\", \"GitHub API token (or set GITHUB_TOKEN env var\")"
+        }
+      ],
+      "suggested_fix": "1. Never store tokens in .env files on disk. Use environment variables exclusively or secure credential storage (e.g., OS keychain, HashiCorp Vault).\n2. Never log or print token values. Mask sensitive fields in logs.\n3. If .env loading is necessary, restrict file permissions to 0600 (owner read-write only):\n\n```go\n// In main.go\nif exePath, err := os.Executable(); err == nil {\n  envPath := filepath.Join(filepath.Dir(exePath), \".env\")\n  if _, err := os.Stat(envPath); err == nil {\n    // Check file permissions before loading\n    fi, err := os.Stat(envPath)\n    if err != nil {\n      fmt.Fprintf(os.Stderr, \"Warning: Cannot stat .env file: %v\\n\", err)\n    } else if mode := fi.Mode(); mode.Perm() != 0600 {\n      fmt.Fprintf(os.Stderr, \"Warning: .env file has overly permissive permissions %o (expected 0600). Token may be exposed.\\n\", mode.Perm())\n    }\n    \n    if err := godotenv.Load(envPath); err != nil {\n      fmt.Fprintf(os.Stderr, \"Warning: Failed to load .env file: %v\\n\", err)\n    }\n  }\n}\n\n// In token.go - do not print token values\nfunc GetTokenFromEnv(tokenValue string) string {\n  if tokenValue == \"\" {\n    tokenValue = os.Getenv(\"GITHUB_TOKEN\")\n    if tokenValue == \"\" {\n      tokenValue = os.Getenv(\"GH_TOKEN\")\n    }\n  }\n  // Never return or print the token - return a masked version for logging\n  return tokenValue\n}\n\n// Helper to mask tokens in logs\nfunc MaskToken(token string) string {\n  if len(token) < 8 {\n    return \"***\"\n  }\n  return token[:4] + \"****\" + token[len(token)-4:]\n}\n```\n\n4. Use environment variables only: `export GITHUB_TOKEN=...` rather than storing in files.\n5. Rotate tokens regularly and use fine-grained personal access tokens with minimal scopes.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-847104f7",
+      "title": "Hardcoded API endpoint without TLS verification",
+      "description": "The chat endpoint in web/src/routes/chat/+server.ts hardcodes localhost:8080 backend address (line 78) without verifying HTTPS or TLS. This is acceptable for development but dangerous in production. No certificate pinning or validation. If the frontend is served over HTTPS but backend communication is HTTP, this creates a mixed-content vulnerability and allows MITM attacks on sensitive chat data.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/routes/chat/+server.ts",
+          "line_start": 77,
+          "line_end": 85,
+          "snippet": "const fabricResponse = await fetch('http://localhost:8080/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });"
+        }
+      ],
+      "suggested_fix": "Use environment variables to configure backend URL and enforce HTTPS in production:\n\n```typescript\n// In web/src/routes/chat/+server.ts\nconst FABRIC_API_URL = process.env.FABRIC_API_URL || 'http://localhost:8080';\n\n// Add validation\nif (import.meta.env.PROD && !FABRIC_API_URL.startsWith('https://')) {\n  console.error('Production backend must use HTTPS');\n  return json({ error: 'Backend misconfigured' }, { status: 500 });\n}\n\nconst fabricResponse = await fetch(`${FABRIC_API_URL}/api/chat`, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n});\n```\n\nSet environment variable in deployment:\n```bash\nexport FABRIC_API_URL=https://api.example.com\n```",
+      "confidence": 0.88,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0cc2049b",
+      "title": "Session state stored entirely on client side without integrity protection",
+      "description": "Sessions in the web frontend (web/src/lib/store/session-store.ts and related components) appear to load session history from API endpoints (lines 23-62 in session-store.ts) but the session selector allows arbitrary user input for session names with no server-side validation. A user can request any session name and retrieve its data. There is no CSRF token protection, no signature verification, and sessions are tied only to a session name string.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/lib/store/session-store.ts",
+          "line_start": 23,
+          "line_end": 62,
+          "snippet": "async loadSessions() { const response = await fetch(`/api/sessions/names`); ... const response = await fetch(`/api/sessions/${name}`); }"
+        },
+        {
+          "file_path": "web/src/lib/components/chat/SessionSelector.svelte",
+          "line_start": 32,
+          "line_end": 51,
+          "snippet": "const messages = await sessionAPI.loadSessionMessages(sessionInput); messageStore.set(messages);"
+        }
+      ],
+      "suggested_fix": "Implement server-side session management with CSRF protection and access control:\n\n1. Replace arbitrary session names with server-generated session IDs.\n2. Add CSRF token validation to all session endpoints.\n3. Implement authentication to ensure users can only access their own sessions.\n4. Example changes:\n\n```typescript\n// In session-store.ts\nexport const sessionAPI = {\n  async loadSessions() {\n    try {\n      // Retrieve CSRF token from meta tag or cookie\n      const csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content') || '';\n      \n      const response = await fetch(`/api/sessions/names`, {\n        headers: {\n          'X-CSRF-Token': csrfToken,\n          'X-API-Key': sessionStorage.getItem('apiKey') || '' // If using API key auth\n        }\n      });\n      if (!response.ok) throw new Error(`Failed: ${response.status}`);\n      const sessionNames: string[] = await response.json();\n      sessions.set(sessionNames.map(name => ({ Name: name, Message: [], Session: '' })));\n    } catch (error) {\n      console.error('Failed to load sessions:', error);\n      sessions.set([]);\n    }\n  },\n\n  async loadSessionMessages(sessionName: string) {\n    try {\n      const csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content') || '';\n      \n      const response = await fetch(`/api/sessions/${encodeURIComponent(sessionName)}`, {\n        headers: {\n          'X-CSRF-Token': csrfToken,\n          'X-API-Key': sessionStorage.getItem('apiKey') || ''\n        }\n      });\n      if (!response.ok) {\n        if (response.status === 403) throw new Error('Access denied to this session');\n        throw new Error(`Failed: ${response.status}`);\n      }\n      return await response.json();\n    } catch (error) {\n      console.error(`Error loading session ${sessionName}:`, error);\n      throw error;\n    }\n  }\n};\n```\n\n4. On backend (Go), validate CSRF token and enforce authentication before returning session data.\n5. Use SvelteKit's built-in CSRF protection: enable in svelte.config.js and use form actions instead of raw fetch.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-73bb561e",
+      "title": "Missing input validation on pattern execution",
+      "description": "The chat endpoint accepts user input (body.prompts[0].userInput, body.messages) and forwards it directly to the Go backend without validation. No checks for command injection, malicious patterns, size limits, or content type. User can send extremely large payloads, special characters, or control sequences that may break pattern parsing on the backend.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/routes/chat/+server.ts",
+          "line_start": 35,
+          "line_end": 75,
+          "snippet": "const body = await request.json(); ... console.log('3. Full request:', JSON.stringify(body, null, 2)); const fabricResponse = await fetch('http://localhost:8080/api/chat', { ... body: JSON.stringify(body) });"
+        }
+      ],
+      "suggested_fix": "Validate and sanitize all user inputs before forwarding to backend:\n\n```typescript\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    const body = await request.json();\n    \n    // Validate request size (max 2MB)\n    if (request.headers.get('content-length')) {\n      const contentLength = parseInt(request.headers.get('content-length') || '0');\n      if (contentLength > 2 * 1024 * 1024) {\n        return json({ error: 'Request too large' }, { status: 413 });\n      }\n    }\n    \n    // Validate structure\n    if (!body || typeof body !== 'object') {\n      return json({ error: 'Invalid request body' }, { status: 400 });\n    }\n    \n    // Validate prompts if present\n    if (body.prompts && Array.isArray(body.prompts)) {\n      for (const prompt of body.prompts) {\n        if (prompt.userInput && typeof prompt.userInput === 'string') {\n          if (prompt.userInput.length > 10000) {\n            return json({ error: 'User input too long (max 10000 chars)' }, { status: 400 });\n          }\n          // Check for null bytes\n          if (prompt.userInput.includes('\\0')) {\n            return json({ error: 'Invalid input' }, { status: 400 });\n          }\n        }\n        if (prompt.patternName && typeof prompt.patternName === 'string') {\n          // Validate pattern name format (alphanumeric, underscore, dash only)\n          if (!/^[a-zA-Z0-9_-]+$/.test(prompt.patternName)) {\n            return json({ error: 'Invalid pattern name' }, { status: 400 });\n          }\n        }\n      }\n    }\n    \n    // Validate messages if present\n    if (body.messages && Array.isArray(body.messages)) {\n      if (body.messages.length > 100) {\n        return json({ error: 'Too many messages' }, { status: 400 });\n      }\n      for (const msg of body.messages) {\n        if (msg.content && typeof msg.content === 'string') {\n          if (msg.content.length > 50000) {\n            return json({ error: 'Message too long' }, { status: 400 });\n          }\n        }\n      }\n    }\n    \n    // Forward validated request\n    const fabricResponse = await fetch('http://localhost:8080/api/chat', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(body)\n    });\n    // ... rest of handler\n  } catch (error) {\n    return json({ error: '...' }, { status: 500 });\n  }\n};\n```",
+      "confidence": 0.9,
+      "cwe_id": "CWE-400",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b5be61d2",
+      "title": "Session files stored on disk with default permissions",
+      "description": "Session data is stored as JSON files in ~/.config/fabric/sessions (via internal/plugins/db/fsdb/sessions.go). The SaveSession function (line 22) saves to disk but there is no mention of file permission restrictions. Sessions may contain sensitive chat history and AI-generated content. If file permissions default to world-readable (0644), other users on the system can read session data.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "internal/plugins/db/fsdb/sessions.go",
+          "line_start": 22,
+          "line_end": 25,
+          "snippet": "func (o *SessionsEntity) SaveSession(session *Session) (err error) { return o.SaveAsJson(session.Name, session.Messages) }"
+        }
+      ],
+      "suggested_fix": "Ensure session files are saved with restrictive permissions (0600 - owner read/write only). Modify the SaveAsJson method or create a wrapper:\n\n```go\n// In sessions.go or base storage entity\nfunc (o *SessionsEntity) SaveSession(session *Session) (err error) {\n  err = o.SaveAsJson(session.Name, session.Messages)\n  if err != nil {\n    return err\n  }\n  \n  // Ensure restrictive permissions on the saved file\n  sessionFilePath := filepath.Join(o.Dir, session.Name+o.FileExtension)\n  if err := os.Chmod(sessionFilePath, 0600); err != nil {\n    return fmt.Errorf(\"failed to set session file permissions: %w\", err)\n  }\n  return nil\n}\n\n// Also ensure directory itself has restricted permissions (0700)\nfunc EnsureSessionDirPermissions(sessionDir string) error {\n  return os.Chmod(sessionDir, 0700)\n}\n```\n\nCall EnsureSessionDirPermissions when initializing the sessions storage entity.",
+      "confidence": 0.82,
+      "cwe_id": "CWE-276",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6f181616",
+      "title": "No rate limiting on API endpoints",
+      "description": "The web API endpoints (/chat, /api/youtube/transcript, /obsidian, /notes) have no rate limiting. An attacker can make unlimited requests to consume backend resources, call expensive YouTube API repeatedly, or fill disk space with arbitrarily named files via the /obsidian endpoint.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/routes/chat/+server.ts",
+          "line_start": 1,
+          "line_end": 20,
+          "snippet": "export const POST: RequestHandler = async ({ request }) => { // No rate limit check"
+        },
+        {
+          "file_path": "web/src/routes/api/youtube/transcript/+server.ts",
+          "line_start": 1,
+          "line_end": 20,
+          "snippet": "export const POST: RequestHandler = async ({ request }) => { // No rate limit check"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting using a library like `bottleneck` or `express-rate-limit`. For SvelteKit, create a rate limit utility:\n\n```typescript\n// lib/middleware/rateLimiter.ts\nimport { Ratelimit } from '@upstash/ratelimit';\n\nconst ratelimit = new Ratelimit({\n  redis: Redis.fromEnv(),\n  limiter: Ratelimit.slidingWindow(10, '1 m'), // 10 requests per minute\n  analytics: true,\n});\n\nexport async function checkRateLimit(identifier: string) {\n  const { success } = await ratelimit.limit(identifier);\n  return success;\n}\n\n// In chat/+server.ts\nimport { checkRateLimit } from '$lib/middleware/rateLimiter';\n\nexport const POST: RequestHandler = async ({ request }) => {\n  // Rate limit by IP address\n  const clientIP = request.headers.get('x-forwarded-for') || \n                   request.headers.get('x-client-ip') || \n                   'unknown';\n  \n  const allowed = await checkRateLimit(`chat:${clientIP}`);\n  if (!allowed) {\n    return json(\n      { error: 'Too many requests' },\n      { status: 429, headers: { 'Retry-After': '60' } }\n    );\n  }\n  \n  // ... rest of handler\n};\n```\n\nAlternatively, use Svelte hooks to apply rate limiting globally. Set appropriate limits per endpoint based on expected usage.",
+      "confidence": 0.88,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d9127866",
+      "title": "Verbose error messages exposing system details",
+      "description": "Error responses return detailed error messages and stack traces (web/src/routes/chat/+server.ts line 120-130, obsidian/+server.ts line 84-93). In production, detailed error messages can leak information about system architecture, file paths, backend dependencies, and API keys.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "web/src/routes/chat/+server.ts",
+          "line_start": 120,
+          "line_end": 130,
+          "snippet": "return json( { error: error instanceof Error ? error.message : 'Failed to process request' }, { status: 500 } );"
+        },
+        {
+          "file_path": "web/src/routes/obsidian/+server.ts",
+          "line_start": 84,
+          "line_end": 93,
+          "snippet": "return json( { error: error instanceof Error ? error.message : 'Failed to process request', details: error instanceof Error ? error.stack : undefined }, { status: 500 } );"
+        }
+      ],
+      "suggested_fix": "Return generic error messages in production and log detailed errors server-side only:\n\n```typescript\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    // ... handler code\n  } catch (error) {\n    // Log detailed error server-side for debugging\n    console.error('Chat endpoint error:', error);\n    \n    // Return generic message to client\n    const isDevelopment = process.env.NODE_ENV === 'development';\n    const errorMessage = isDevelopment \n      ? (error instanceof Error ? error.message : String(error))\n      : 'An error occurred processing your request';\n    \n    return json(\n      { error: errorMessage },\n      { status: 500 }\n    );\n  }\n};\n```\n\nFor production, ensure NODE_ENV is set to 'production' in deployment configuration.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-209",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [
+        {
+          "id": "F-d1a8e2f6",
+          "title": "Unauthenticated API endpoints in web frontend",
+          "description": "Multiple SvelteKit API routes lack any authentication mechanism. The endpoints /chat, /api/youtube/transcript, /obsidian, and /notes are publicly accessible with no API key, session, or token validation. This allows unauthorized users to consume backend resources, call external APIs (YouTube transcripts), execute Fabric patterns, and write arbitrary files to the server filesystem.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/routes/chat/+server.ts",
+              "line_start": 1,
+              "line_end": 90,
+              "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+            },
+            {
+              "file_path": "web/src/routes/api/youtube/transcript/+server.ts",
+              "line_start": 1,
+              "line_end": 45,
+              "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+            },
+            {
+              "file_path": "web/src/routes/obsidian/+server.ts",
+              "line_start": 1,
+              "line_end": 95,
+              "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+            },
+            {
+              "file_path": "web/src/routes/notes/+server.ts",
+              "line_start": 1,
+              "line_end": 25,
+              "snippet": "export const POST: RequestHandler = async ({ request }) => { ... } // No auth check"
+            }
+          ],
+          "suggested_fix": "Implement authentication middleware for all API endpoints. Add SvelteKit hooks to validate requests before reaching handlers. Example: Create `src/hooks.server.ts` to check for API key header or session token on all `+server.ts` routes. Validate against environment variable or database. Reject requests with 401 Unauthorized if credentials missing/invalid. Pattern:\n\n```typescript\n// src/hooks.server.ts\nimport { redirect, type Handle } from '@sveltejs/kit';\n\nconst API_KEY = process.env.API_KEY || '';\n\nexport const handle: Handle = async ({ event, resolve }) => {\n  if (event.url.pathname.startsWith('/chat') || \n      event.url.pathname.startsWith('/api/') ||\n      event.url.pathname.startsWith('/obsidian') ||\n      event.url.pathname.startsWith('/notes')) {\n    const apiKey = event.request.headers.get('X-API-Key');\n    if (!apiKey || apiKey !== API_KEY) {\n      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });\n    }\n  }\n  return resolve(event);\n};\n```",
+          "confidence": 0.99,
+          "cwe_id": "CWE-306",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-5e7ef160",
+          "title": "Arbitrary file write vulnerability in /notes endpoint",
+          "description": "The /notes endpoint (web/src/routes/notes/+server.ts) writes user-supplied filename and content directly to the filesystem without validation. An attacker can use path traversal (e.g., '../../../etc/passwd') to write files outside the intended directory. No checks on filename format, content type, or file size. File permissions set to world-readable (0644).",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/routes/notes/+server.ts",
+              "line_start": 12,
+              "line_end": 22,
+              "snippet": "const inboxPath = join(__dirname, '...', 'myfiles', 'inbox', filename);\nawait writeFile(inboxPath, content, 'utf-8');"
+            }
+          ],
+          "suggested_fix": "Validate and sanitize the filename before writing. Use path.basename() to strip directory components, validate filename format (alphanumeric + safe chars only), and reject suspicious paths. Example:\n\n```typescript\nimport { basename, join, resolve } from 'path';\nimport { writeFile } from 'fs/promises';\n\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    const { filename, content } = await request.json();\n    \n    // Validate inputs\n    if (!filename || !content) {\n      return json({ error: 'Missing required fields' }, { status: 400 });\n    }\n    \n    // Sanitize filename - use only the basename, reject path traversal\n    const sanitized = basename(filename);\n    if (!sanitized || sanitized !== filename) {\n      return json({ error: 'Invalid filename' }, { status: 400 });\n    }\n    \n    // Validate filename format (alphanumeric, dash, underscore, dot only)\n    if (!/^[a-zA-Z0-9._-]+$/.test(sanitized)) {\n      return json({ error: 'Filename contains invalid characters' }, { status: 400 });\n    }\n    \n    // Validate content size (e.g., max 1MB)\n    if (content.length > 1024 * 1024) {\n      return json({ error: 'Content too large' }, { status: 413 });\n    }\n    \n    const inboxPath = resolve(join(__dirname, '...', 'myfiles', 'inbox'), sanitized);\n    \n    // Double-check the resolved path is within inbox directory\n    const expectedBase = resolve(join(__dirname, '...', 'myfiles', 'inbox'));\n    if (!inboxPath.startsWith(expectedBase)) {\n      return json({ error: 'Invalid path' }, { status: 400 });\n    }\n    \n    await writeFile(inboxPath, content, 'utf-8');\n    return json({ success: true, filename: sanitized });\n  } catch (error) {\n    return json({ error: '...' }, { status: 500 });\n  }\n};\n```",
+          "confidence": 0.98,
+          "cwe_id": "CWE-22",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-deb91026",
+          "title": "Command injection vulnerability in /obsidian endpoint",
+          "description": "The /obsidian endpoint uses shell command execution (execAsync) with user-supplied input. Although the code attempts to escape shell arguments via escapeShellArg(), the function only escapes single quotes and may miss edge cases. The mkdir, echo, cp, ls, and wc commands execute user content. Attacker can craft malicious 'noteName' or 'content' values to break out of quotes and execute arbitrary commands.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/routes/obsidian/+server.ts",
+              "line_start": 30,
+              "line_end": 65,
+              "snippet": "const formattedContent = `...${body.content}...`;\nconst escapedFormattedContent = escapeShellArg(formattedContent);\nawait execAsync(`echo ${escapedFormattedContent} > \"${tempFile}\"`);"
+            }
+          ],
+          "suggested_fix": "Avoid shell execution entirely. Use Node.js filesystem APIs directly instead of shelling out. Example:\n\n```typescript\nimport { json } from '@sveltejs/kit';\nimport type { RequestHandler } from './$types';\nimport { writeFile, mkdir } from 'fs/promises';\nimport { join, resolve, basename } from 'path';\n\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    const body = await request.json() as ObsidianRequest;\n    \n    // Validate inputs\n    if (!body.pattern || !body.noteName || !body.content) {\n      return json({ error: 'Missing required fields' }, { status: 400 });\n    }\n    \n    // Sanitize noteName - prevent path traversal\n    const sanitizedName = basename(body.noteName);\n    if (!sanitizedName || !/^[a-zA-Z0-9._-]+$/.test(sanitizedName)) {\n      return json({ error: 'Invalid note name' }, { status: 400 });\n    }\n    \n    // Validate content size\n    if (body.content.length > 10 * 1024 * 1024) {\n      return json({ error: 'Content too large' }, { status: 413 });\n    }\n    \n    // Use proper path resolution\n    const obsidianDir = resolve('myfiles/Fabric_obsidian');\n    const fileName = `${new Date().toISOString().split('T')[0]}-${sanitizedName}.md`;\n    const filePath = join(obsidianDir, fileName);\n    \n    // Ensure resolved path is within obsidianDir\n    if (!resolve(filePath).startsWith(obsidianDir)) {\n      return json({ error: 'Invalid path' }, { status: 400 });\n    }\n    \n    // Create directory and write file using Node.js APIs\n    await mkdir(obsidianDir, { recursive: true });\n    const formattedContent = `\\`\\`\\`markdown\\n${body.content}\\n\\`\\`\\``;\n    await writeFile(filePath, formattedContent, 'utf-8');\n    \n    return json({\n      success: true,\n      fileName,\n      filePath,\n      message: `Successfully saved to ${fileName}`\n    });\n  } catch (error) {\n    return json({ error: '...' }, { status: 500 });\n  }\n};\n```",
+          "confidence": 0.97,
+          "cwe_id": "CWE-78",
+          "owasp_ref": "A03:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-0ce2cbb0",
+          "title": "Missing API key authentication on Go REST API backend",
+          "description": "The Go backend implements APIKeyMiddleware in internal/server/auth.go (line 11-35) but exempt Swagger documentation endpoints from auth (/swagger/*). However, no evidence that this middleware is actually applied to protected routes in the server setup. The middleware exists but may not be enforced on all handlers, particularly the sessions and patterns endpoints that manage user data. No mention of auth enforcement in handler registration code.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "internal/server/auth.go",
+              "line_start": 11,
+              "line_end": 35,
+              "snippet": "func APIKeyMiddleware(apiKey string) gin.HandlerFunc { ... if strings.HasPrefix(c.Request.URL.Path, \"/swagger/\") { c.Next() return } ... }"
+            },
+            {
+              "file_path": "internal/server/sessions.go",
+              "line_start": 1,
+              "line_end": 20,
+              "snippet": "type SessionsHandler struct { ... } func NewSessionsHandler(r *gin.Engine, sessions *fsdb.SessionsEntity) { ... } // No evidence of middleware applied"
+            }
+          ],
+          "suggested_fix": "Verify and enforce APIKeyMiddleware on all sensitive routes in the server setup. In the main server initialization code (not shown but presumably in internal/server or cmd), apply middleware like:\n\n```go\n// In server initialization\nprotectedRoutes := r.Group(\"/api\")\nprotectedRoutes.Use(auth.APIKeyMiddleware(apiKey)) // Apply to all /api/* routes\n{\n  NewSessionsHandler(protectedRoutes, sessionEntity)\n  NewPatternsHandler(protectedRoutes, patternEntity)\n  // ... other protected handlers\n}\n\n// Public routes (no middleware)\npublicRoutes := r.Group(\"/public\")\n{\n  // endpoints that should be public\n}\n\n// Documentation (no middleware)\nr.StaticFS(\"/swagger\", http.Dir(\"swagger\"))\n```\n\nAlternatively, ensure middleware is applied globally or per-route explicitly. Document which endpoints require authentication and which don't.",
+          "confidence": 0.85,
+          "cwe_id": "CWE-306",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-8cea43b7",
+          "title": "GitHub token exposure in environment variable and CLI flag",
+          "description": "GitHub API tokens are passed via environment variable GITHUB_TOKEN and CLI flag --token in cmd/generate_changelog/main.go and cmd/generate_changelog/util/token.go. While the token is loaded from environment (checking GITHUB_TOKEN and GH_TOKEN), the token value may be logged, printed to stdout, or stored in plaintext .env files. The .env file loaded in main.go (line 75-80) stores the token on disk with default 0644 permissions (world-readable).",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "cmd/generate_changelog/main.go",
+              "line_start": 75,
+              "line_end": 80,
+              "snippet": "if err := godotenv.Load(envPath); err != nil { fmt.Fprintf(os.Stderr, \"Warning: Failed to load .env file: %v\\n\", err) }"
+            },
+            {
+              "file_path": "cmd/generate_changelog/util/token.go",
+              "line_start": 1,
+              "line_end": 33,
+              "snippet": "func GetTokenFromEnv(tokenValue string) string { if tokenValue == \"\" { tokenValue = os.Getenv(\"GITHUB_TOKEN\") ... } return tokenValue }"
+            },
+            {
+              "file_path": "cmd/generate_changelog/main.go",
+              "line_start": 38,
+              "line_end": 40,
+              "snippet": "rootCmd.Flags().StringVar(&cfg.GitHubToken, \"token\", \"\", \"GitHub API token (or set GITHUB_TOKEN env var\")"
+            }
+          ],
+          "suggested_fix": "1. Never store tokens in .env files on disk. Use environment variables exclusively or secure credential storage (e.g., OS keychain, HashiCorp Vault).\n2. Never log or print token values. Mask sensitive fields in logs.\n3. If .env loading is necessary, restrict file permissions to 0600 (owner read-write only):\n\n```go\n// In main.go\nif exePath, err := os.Executable(); err == nil {\n  envPath := filepath.Join(filepath.Dir(exePath), \".env\")\n  if _, err := os.Stat(envPath); err == nil {\n    // Check file permissions before loading\n    fi, err := os.Stat(envPath)\n    if err != nil {\n      fmt.Fprintf(os.Stderr, \"Warning: Cannot stat .env file: %v\\n\", err)\n    } else if mode := fi.Mode(); mode.Perm() != 0600 {\n      fmt.Fprintf(os.Stderr, \"Warning: .env file has overly permissive permissions %o (expected 0600). Token may be exposed.\\n\", mode.Perm())\n    }\n    \n    if err := godotenv.Load(envPath); err != nil {\n      fmt.Fprintf(os.Stderr, \"Warning: Failed to load .env file: %v\\n\", err)\n    }\n  }\n}\n\n// In token.go - do not print token values\nfunc GetTokenFromEnv(tokenValue string) string {\n  if tokenValue == \"\" {\n    tokenValue = os.Getenv(\"GITHUB_TOKEN\")\n    if tokenValue == \"\" {\n      tokenValue = os.Getenv(\"GH_TOKEN\")\n    }\n  }\n  // Never return or print the token - return a masked version for logging\n  return tokenValue\n}\n\n// Helper to mask tokens in logs\nfunc MaskToken(token string) string {\n  if len(token) < 8 {\n    return \"***\"\n  }\n  return token[:4] + \"****\" + token[len(token)-4:]\n}\n```\n\n4. Use environment variables only: `export GITHUB_TOKEN=...` rather than storing in files.\n5. Rotate tokens regularly and use fine-grained personal access tokens with minimal scopes.",
+          "confidence": 0.92,
+          "cwe_id": "CWE-798",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-847104f7",
+          "title": "Hardcoded API endpoint without TLS verification",
+          "description": "The chat endpoint in web/src/routes/chat/+server.ts hardcodes localhost:8080 backend address (line 78) without verifying HTTPS or TLS. This is acceptable for development but dangerous in production. No certificate pinning or validation. If the frontend is served over HTTPS but backend communication is HTTP, this creates a mixed-content vulnerability and allows MITM attacks on sensitive chat data.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/routes/chat/+server.ts",
+              "line_start": 77,
+              "line_end": 85,
+              "snippet": "const fabricResponse = await fetch('http://localhost:8080/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });"
+            }
+          ],
+          "suggested_fix": "Use environment variables to configure backend URL and enforce HTTPS in production:\n\n```typescript\n// In web/src/routes/chat/+server.ts\nconst FABRIC_API_URL = process.env.FABRIC_API_URL || 'http://localhost:8080';\n\n// Add validation\nif (import.meta.env.PROD && !FABRIC_API_URL.startsWith('https://')) {\n  console.error('Production backend must use HTTPS');\n  return json({ error: 'Backend misconfigured' }, { status: 500 });\n}\n\nconst fabricResponse = await fetch(`${FABRIC_API_URL}/api/chat`, {\n  method: 'POST',\n  headers: { 'Content-Type': 'application/json' },\n  body: JSON.stringify(body)\n});\n```\n\nSet environment variable in deployment:\n```bash\nexport FABRIC_API_URL=https://api.example.com\n```",
+          "confidence": 0.88,
+          "cwe_id": "CWE-295",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-0cc2049b",
+          "title": "Session state stored entirely on client side without integrity protection",
+          "description": "Sessions in the web frontend (web/src/lib/store/session-store.ts and related components) appear to load session history from API endpoints (lines 23-62 in session-store.ts) but the session selector allows arbitrary user input for session names with no server-side validation. A user can request any session name and retrieve its data. There is no CSRF token protection, no signature verification, and sessions are tied only to a session name string.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/lib/store/session-store.ts",
+              "line_start": 23,
+              "line_end": 62,
+              "snippet": "async loadSessions() { const response = await fetch(`/api/sessions/names`); ... const response = await fetch(`/api/sessions/${name}`); }"
+            },
+            {
+              "file_path": "web/src/lib/components/chat/SessionSelector.svelte",
+              "line_start": 32,
+              "line_end": 51,
+              "snippet": "const messages = await sessionAPI.loadSessionMessages(sessionInput); messageStore.set(messages);"
+            }
+          ],
+          "suggested_fix": "Implement server-side session management with CSRF protection and access control:\n\n1. Replace arbitrary session names with server-generated session IDs.\n2. Add CSRF token validation to all session endpoints.\n3. Implement authentication to ensure users can only access their own sessions.\n4. Example changes:\n\n```typescript\n// In session-store.ts\nexport const sessionAPI = {\n  async loadSessions() {\n    try {\n      // Retrieve CSRF token from meta tag or cookie\n      const csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content') || '';\n      \n      const response = await fetch(`/api/sessions/names`, {\n        headers: {\n          'X-CSRF-Token': csrfToken,\n          'X-API-Key': sessionStorage.getItem('apiKey') || '' // If using API key auth\n        }\n      });\n      if (!response.ok) throw new Error(`Failed: ${response.status}`);\n      const sessionNames: string[] = await response.json();\n      sessions.set(sessionNames.map(name => ({ Name: name, Message: [], Session: '' })));\n    } catch (error) {\n      console.error('Failed to load sessions:', error);\n      sessions.set([]);\n    }\n  },\n\n  async loadSessionMessages(sessionName: string) {\n    try {\n      const csrfToken = document.querySelector('meta[name=\"csrf-token\"]')?.getAttribute('content') || '';\n      \n      const response = await fetch(`/api/sessions/${encodeURIComponent(sessionName)}`, {\n        headers: {\n          'X-CSRF-Token': csrfToken,\n          'X-API-Key': sessionStorage.getItem('apiKey') || ''\n        }\n      });\n      if (!response.ok) {\n        if (response.status === 403) throw new Error('Access denied to this session');\n        throw new Error(`Failed: ${response.status}`);\n      }\n      return await response.json();\n    } catch (error) {\n      console.error(`Error loading session ${sessionName}:`, error);\n      throw error;\n    }\n  }\n};\n```\n\n4. On backend (Go), validate CSRF token and enforce authentication before returning session data.\n5. Use SvelteKit's built-in CSRF protection: enable in svelte.config.js and use form actions instead of raw fetch.",
+          "confidence": 0.85,
+          "cwe_id": "CWE-352",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-73bb561e",
+          "title": "Missing input validation on pattern execution",
+          "description": "The chat endpoint accepts user input (body.prompts[0].userInput, body.messages) and forwards it directly to the Go backend without validation. No checks for command injection, malicious patterns, size limits, or content type. User can send extremely large payloads, special characters, or control sequences that may break pattern parsing on the backend.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/routes/chat/+server.ts",
+              "line_start": 35,
+              "line_end": 75,
+              "snippet": "const body = await request.json(); ... console.log('3. Full request:', JSON.stringify(body, null, 2)); const fabricResponse = await fetch('http://localhost:8080/api/chat', { ... body: JSON.stringify(body) });"
+            }
+          ],
+          "suggested_fix": "Validate and sanitize all user inputs before forwarding to backend:\n\n```typescript\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    const body = await request.json();\n    \n    // Validate request size (max 2MB)\n    if (request.headers.get('content-length')) {\n      const contentLength = parseInt(request.headers.get('content-length') || '0');\n      if (contentLength > 2 * 1024 * 1024) {\n        return json({ error: 'Request too large' }, { status: 413 });\n      }\n    }\n    \n    // Validate structure\n    if (!body || typeof body !== 'object') {\n      return json({ error: 'Invalid request body' }, { status: 400 });\n    }\n    \n    // Validate prompts if present\n    if (body.prompts && Array.isArray(body.prompts)) {\n      for (const prompt of body.prompts) {\n        if (prompt.userInput && typeof prompt.userInput === 'string') {\n          if (prompt.userInput.length > 10000) {\n            return json({ error: 'User input too long (max 10000 chars)' }, { status: 400 });\n          }\n          // Check for null bytes\n          if (prompt.userInput.includes('\\0')) {\n            return json({ error: 'Invalid input' }, { status: 400 });\n          }\n        }\n        if (prompt.patternName && typeof prompt.patternName === 'string') {\n          // Validate pattern name format (alphanumeric, underscore, dash only)\n          if (!/^[a-zA-Z0-9_-]+$/.test(prompt.patternName)) {\n            return json({ error: 'Invalid pattern name' }, { status: 400 });\n          }\n        }\n      }\n    }\n    \n    // Validate messages if present\n    if (body.messages && Array.isArray(body.messages)) {\n      if (body.messages.length > 100) {\n        return json({ error: 'Too many messages' }, { status: 400 });\n      }\n      for (const msg of body.messages) {\n        if (msg.content && typeof msg.content === 'string') {\n          if (msg.content.length > 50000) {\n            return json({ error: 'Message too long' }, { status: 400 });\n          }\n        }\n      }\n    }\n    \n    // Forward validated request\n    const fabricResponse = await fetch('http://localhost:8080/api/chat', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(body)\n    });\n    // ... rest of handler\n  } catch (error) {\n    return json({ error: '...' }, { status: 500 });\n  }\n};\n```",
+          "confidence": 0.9,
+          "cwe_id": "CWE-400",
+          "owasp_ref": "A05:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-b5be61d2",
+          "title": "Session files stored on disk with default permissions",
+          "description": "Session data is stored as JSON files in ~/.config/fabric/sessions (via internal/plugins/db/fsdb/sessions.go). The SaveSession function (line 22) saves to disk but there is no mention of file permission restrictions. Sessions may contain sensitive chat history and AI-generated content. If file permissions default to world-readable (0644), other users on the system can read session data.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "internal/plugins/db/fsdb/sessions.go",
+              "line_start": 22,
+              "line_end": 25,
+              "snippet": "func (o *SessionsEntity) SaveSession(session *Session) (err error) { return o.SaveAsJson(session.Name, session.Messages) }"
+            }
+          ],
+          "suggested_fix": "Ensure session files are saved with restrictive permissions (0600 - owner read/write only). Modify the SaveAsJson method or create a wrapper:\n\n```go\n// In sessions.go or base storage entity\nfunc (o *SessionsEntity) SaveSession(session *Session) (err error) {\n  err = o.SaveAsJson(session.Name, session.Messages)\n  if err != nil {\n    return err\n  }\n  \n  // Ensure restrictive permissions on the saved file\n  sessionFilePath := filepath.Join(o.Dir, session.Name+o.FileExtension)\n  if err := os.Chmod(sessionFilePath, 0600); err != nil {\n    return fmt.Errorf(\"failed to set session file permissions: %w\", err)\n  }\n  return nil\n}\n\n// Also ensure directory itself has restricted permissions (0700)\nfunc EnsureSessionDirPermissions(sessionDir string) error {\n  return os.Chmod(sessionDir, 0700)\n}\n```\n\nCall EnsureSessionDirPermissions when initializing the sessions storage entity.",
+          "confidence": 0.82,
+          "cwe_id": "CWE-276",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-6f181616",
+          "title": "No rate limiting on API endpoints",
+          "description": "The web API endpoints (/chat, /api/youtube/transcript, /obsidian, /notes) have no rate limiting. An attacker can make unlimited requests to consume backend resources, call expensive YouTube API repeatedly, or fill disk space with arbitrarily named files via the /obsidian endpoint.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/routes/chat/+server.ts",
+              "line_start": 1,
+              "line_end": 20,
+              "snippet": "export const POST: RequestHandler = async ({ request }) => { // No rate limit check"
+            },
+            {
+              "file_path": "web/src/routes/api/youtube/transcript/+server.ts",
+              "line_start": 1,
+              "line_end": 20,
+              "snippet": "export const POST: RequestHandler = async ({ request }) => { // No rate limit check"
+            }
+          ],
+          "suggested_fix": "Implement rate limiting using a library like `bottleneck` or `express-rate-limit`. For SvelteKit, create a rate limit utility:\n\n```typescript\n// lib/middleware/rateLimiter.ts\nimport { Ratelimit } from '@upstash/ratelimit';\n\nconst ratelimit = new Ratelimit({\n  redis: Redis.fromEnv(),\n  limiter: Ratelimit.slidingWindow(10, '1 m'), // 10 requests per minute\n  analytics: true,\n});\n\nexport async function checkRateLimit(identifier: string) {\n  const { success } = await ratelimit.limit(identifier);\n  return success;\n}\n\n// In chat/+server.ts\nimport { checkRateLimit } from '$lib/middleware/rateLimiter';\n\nexport const POST: RequestHandler = async ({ request }) => {\n  // Rate limit by IP address\n  const clientIP = request.headers.get('x-forwarded-for') || \n                   request.headers.get('x-client-ip') || \n                   'unknown';\n  \n  const allowed = await checkRateLimit(`chat:${clientIP}`);\n  if (!allowed) {\n    return json(\n      { error: 'Too many requests' },\n      { status: 429, headers: { 'Retry-After': '60' } }\n    );\n  }\n  \n  // ... rest of handler\n};\n```\n\nAlternatively, use Svelte hooks to apply rate limiting globally. Set appropriate limits per endpoint based on expected usage.",
+          "confidence": 0.88,
+          "cwe_id": "CWE-770",
+          "owasp_ref": "A05:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d9127866",
+          "title": "Verbose error messages exposing system details",
+          "description": "Error responses return detailed error messages and stack traces (web/src/routes/chat/+server.ts line 120-130, obsidian/+server.ts line 84-93). In production, detailed error messages can leak information about system architecture, file paths, backend dependencies, and API keys.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "web/src/routes/chat/+server.ts",
+              "line_start": 120,
+              "line_end": 130,
+              "snippet": "return json( { error: error instanceof Error ? error.message : 'Failed to process request' }, { status: 500 } );"
+            },
+            {
+              "file_path": "web/src/routes/obsidian/+server.ts",
+              "line_start": 84,
+              "line_end": 93,
+              "snippet": "return json( { error: error instanceof Error ? error.message : 'Failed to process request', details: error instanceof Error ? error.stack : undefined }, { status: 500 } );"
+            }
+          ],
+          "suggested_fix": "Return generic error messages in production and log detailed errors server-side only:\n\n```typescript\nexport const POST: RequestHandler = async ({ request }) => {\n  try {\n    // ... handler code\n  } catch (error) {\n    // Log detailed error server-side for debugging\n    console.error('Chat endpoint error:', error);\n    \n    // Return generic message to client\n    const isDevelopment = process.env.NODE_ENV === 'development';\n    const errorMessage = isDevelopment \n      ? (error instanceof Error ? error.message : String(error))\n      : 'An error occurred processing your request';\n    \n    return json(\n      { error: errorMessage },\n      { status: 500 }\n    );\n  }\n};\n```\n\nFor production, ensure NODE_ENV is set to 'production' in deployment configuration.",
+          "confidence": 0.85,
+          "cwe_id": "CWE-209",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 10 security findings: 3 critical (missing auth on all web API endpoints, arbitrary file write, command injection), 4 high (API key middleware not enforced, GitHub token exposure, hardcoded insecure backend URL, unprotected session state), 2 medium (missing input validation, unprotected session files), and 1 low (verbose errors). All web API routes lack authentication, enabling unauthorized access to sensitive operations. Multiple code injection vulnerabilities in file operations via unsanitized input.",
+      "files_analyzed": 15
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "",
+      "files_analyzed": 0
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [],
+      "pass_summary": "Found 11 critical/high severity infrastructure security issues: hardcoded unencrypted secrets in environment variables, exposed API keys in HTTP responses, missing CORS configuration, missing authentication on public endpoints, unsafe shell command execution, unencrypted credential storage, missing security headers, SSRF vulnerability in URL handling, missing rate limiting, and insufficient secrets scanning. Immediate action required for all critical findings.",
+      "files_analyzed": 47
+    }
+  ],
+  "total_findings": 11,
+  "critical_count": 3,
+  "high_count": 4
+}

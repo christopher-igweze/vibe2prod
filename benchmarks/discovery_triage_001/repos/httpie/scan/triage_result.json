@@ -1,0 +1,219 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-012bb652",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_error_boundary",
+      "fix_template_id": "add-error-boundary",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0391dbba",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-2ccac889",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-c491918d",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: httpie/cli",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-bea35acf",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: httpie/output",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e9757918",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: httpie/manager/tasks",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-b23efcd9",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: httpie",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-9458d64f",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: httpie/plugins",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-ccceaf3a",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Plugin registration error handling is a localized fix to httpie/plugins/registry.py. Requires adding try/except wrapper around plugin imports with appropriate logging/warning handling. Scoped to 1-2 files (registry.py and potentially a logging utility).",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/plugins/registry.py",
+        "httpie/plugins/manager.py"
+      ]
+    },
+    {
+      "finding_id": "F-2c280d33",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Nested JSON parsing error handling requires adding try/except blocks in parse.py and interpret.py entry points. This is a scoped fix affecting 2-3 files in the nested_json module with clear error conversion requirements.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/cli/nested_json/parse.py",
+        "httpie/cli/nested_json/interpret.py",
+        "httpie/cli/nested_json/errors.py"
+      ]
+    },
+    {
+      "finding_id": "F-63e70501",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Global exception handler in CLI entry points is a known pattern. Requires adding top-level try/except in __main__.py and/or core.py with appropriate exit status handling. Scoped to 2 files with clear requirements based on existing test patterns.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/__main__.py",
+        "httpie/core.py"
+      ]
+    },
+    {
+      "finding_id": "F-51aeaec4",
+      "tier": 2,
+      "confidence": 0.7,
+      "rationale": "Socket error handling for DNS failures is localized to httpie/core.py or httpie/client.py. Requires enhancing existing socket.gaierror handling to cover additional error codes. Scoped to 1-2 files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/core.py",
+        "httpie/client.py"
+      ]
+    },
+    {
+      "finding_id": "F-2b317903",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Download resume error handling is a localized fix to httpie/downloads.py. Requires checking response status codes and adding user-facing warnings. Scoped to 1 file.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/downloads.py"
+      ]
+    },
+    {
+      "finding_id": "F-7fb749d6",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Config file write error handling is a localized enhancement to httpie/config.py. Requires wrapping save operations with try/except for OSError/PermissionError. Scoped to 1 file.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/config.py"
+      ]
+    },
+    {
+      "finding_id": "F-1732678a",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "File handle management in process_file_upload_arg is a scoped fix to httpie/cli/requestitems.py and likely its callers. Requires refactoring file handling (context manager or handle wrapper pattern). Affects 2-3 files in request processing flow.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/cli/requestitems.py",
+        "httpie/uploads.py"
+      ]
+    },
+    {
+      "finding_id": "F-b38226ce",
+      "tier": 1,
+      "confidence": 0.8,
+      "rationale": "Algorithm optimization in merge_all_the_people is a known pattern (set intersection). Simple refactoring with proven optimization technique. Localized to docs/contributors/fetch.py with no dependencies.",
+      "fix_template_id": "set_intersection_optimization",
+      "relevant_files": [
+        "docs/contributors/fetch.py"
+      ]
+    },
+    {
+      "finding_id": "F-9ef1268c",
+      "tier": 1,
+      "confidence": 0.8,
+      "rationale": "Connection pooling in fetch() is a known pattern (requests.Session reuse). Simple refactoring creating module-level Session and updating API calls. Localized to docs/contributors/fetch.py.",
+      "fix_template_id": "requests_session_pooling",
+      "relevant_files": [
+        "docs/contributors/fetch.py"
+      ]
+    },
+    {
+      "finding_id": "F-6236f6bb",
+      "tier": 1,
+      "confidence": 0.75,
+      "rationale": "Debug flag caching is a deterministic optimization pattern. Simple one-time refactor to cache DEBUG environment variable at module load. Localized to docs/contributors/fetch.py with no external dependencies.",
+      "fix_template_id": "debug_flag_caching",
+      "relevant_files": [
+        "docs/contributors/fetch.py"
+      ]
+    },
+    {
+      "finding_id": "F-f80a34c0",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Config and context module boundary overlap is an architectural concern affecting separation of concerns. Requires consolidating configuration logic across 2 modules with ripple effects throughout the codebase (both modules are widely imported). Affects httpie/config.py, httpie/context.py, and all dependent modules.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/config.py",
+        "httpie/context.py",
+        "httpie/core.py",
+        "httpie/cli/definition.py",
+        "httpie/client.py"
+      ]
+    },
+    {
+      "finding_id": "F-e90bdc19",
+      "tier": 3,
+      "confidence": 0.85,
+      "rationale": "Core module orchestration complexity is a cross-cutting architectural refactor. Requires introducing intermediate service/executor layers and reorganizing dependencies across HTTP execution pipeline. Affects httpie/core.py, httpie/client.py, httpie/downloads.py, httpie/sessions.py, and output modules (5+ files with dependency implications).",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/core.py",
+        "httpie/client.py",
+        "httpie/downloads.py",
+        "httpie/sessions.py",
+        "httpie/output/writer.py",
+        "httpie/uploads.py"
+      ]
+    },
+    {
+      "finding_id": "F-8461d1ce",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Downloads module decomposition is architectural refactoring requiring extraction of progress reporting, download state, and file handling into separate classes. While primarily httpie/downloads.py, this affects httpie/core.py (caller), output modules (progress integration), and potentially new utility modules. Requires significant restructuring.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "httpie/downloads.py",
+        "httpie/core.py",
+        "httpie/output/ui/rich_progress.py"
+      ]
+    }
+  ],
+  "tier_0_count": 5,
+  "tier_1_count": 6,
+  "tier_2_count": 7,
+  "tier_3_count": 3
+}

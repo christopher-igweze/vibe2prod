@@ -1,0 +1,326 @@
+{
+  "findings": [
+    {
+      "id": "F-98f9f73b",
+      "title": "God module: backend/routes/generate_code.py exceeds 800 LOC with mixed responsibilities",
+      "description": "The main route handler contains 824 lines of code mixing HTTP request handling, orchestration, prompt construction, agent execution, WebSocket streaming, and response formatting. This violates separation of concerns and makes the module difficult to test and maintain.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 824,
+          "snippet": "Contains request parsing, prompt building, agent orchestration, WebSocket management, and response handling"
+        }
+      ],
+      "suggested_fix": "Extract into: (1) RequestOrchestrator - handles request parsing and setup, (2) PromptBuilder - constructs prompts from requests, (3) ResponseStreamer - manages WebSocket/SSE output, (4) CodeGenController - coordinates the flow. Routes should remain thin.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8e2e47bf",
+      "title": "Missing service layer between routes and agent/prompts modules",
+      "description": "Routes directly instantiate and call agent.engine, prompts modules, and tools. There is no service abstraction layer, creating tight coupling and making it hard to swap implementations or add cross-cutting concerns like caching, retry logic, or metrics.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Direct imports and instantiation of agent engine and prompt builders"
+        },
+        {
+          "file_path": "backend/routes/evals.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Direct calls to evals.runner and agent modules"
+        }
+      ],
+      "suggested_fix": "Create backend/services/ layer with CodeGenerationService, EvaluationService. Routes should only call services. Services handle agent/prompt orchestration, error handling, and business logic.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-da861edf",
+      "title": "Tight coupling between routes and WebSocket/streaming infrastructure",
+      "description": "Routes directly manage WebSocket connections, message formatting, and streaming logic. Changes to streaming requirements (SSE to WebSocket, message format) require modifying route handlers. No abstraction for output streaming.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 200,
+          "line_end": 400,
+          "snippet": "Direct WebSocket manager calls and message streaming logic mixed with business logic"
+        }
+      ],
+      "suggested_fix": "Create OutputStreamer abstraction with implementations: WebSocketStreamer, SSEStreamer, ConsoleStreamer. Routes accept injected streamer, decouple transport from business logic.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-11f6269d",
+      "title": "Circular-like dependency risk: prompts module imports from agent.tools",
+      "description": "backend/prompts/ modules may import from backend/agent/tools/ for tool definitions and parsing, while agent engine imports from prompts. This creates implicit coupling and risk of circular imports if dependencies grow.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/prompts/",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Review prompts/__init__.py and message_builder.py for agent.tools imports"
+        },
+        {
+          "file_path": "backend/agent/engine.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Review agent engine imports from prompts module"
+        }
+      ],
+      "suggested_fix": "Create backend/core/ or backend/shared/ module for shared types (ToolDefinition, MessageFormat, etc.). Both prompts and agent import from shared layer only. Break circular dependency chain.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9a0d7dd3",
+      "title": "Inconsistent patterns: backend/routes/evals.py (445 LOC) mixes endpoint handlers with business logic",
+      "description": "The evals route handler contains 445 lines with request handling, eval execution, file I/O, and result processing. Similar god module problem as generate_code.py but smaller scale. Evals core logic should be in service or dedicated module.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/evals.py",
+          "line_start": 1,
+          "line_end": 445,
+          "snippet": "Mixed endpoint handlers, evaluation orchestration, file operations, and result compilation"
+        }
+      ],
+      "suggested_fix": "Move eval orchestration to backend/evals/service.py. Routes delegate to service for eval execution, keep routes thin. Maintain evals/runner.py for execution logic separate from HTTP concerns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-404e2046",
+      "title": "Frontend components layer lacks clear separation between page components, feature components, and UI primitives",
+      "description": "frontend/src/components/ contains 5200 LOC across 68 files with mixed concerns: page-level containers (EvalsPage, RunEvalsPage), feature components (UnifiedInputPane, Sidebar), UI primitives (all ui/ folder), and utility components. No clear layering makes refactoring and reuse difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/components/",
+          "line_start": 1,
+          "line_end": 68,
+          "snippet": "68 components with mixed responsibilities across pages, features, and primitives"
+        }
+      ],
+      "suggested_fix": "Restructure: (1) components/pages/ - full page containers, (2) components/features/ - feature-specific component clusters, (3) components/ui/ - primitive UI building blocks. Create feature folders with index.ts exports.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-654fa269",
+      "title": "Configuration scatter: hardcoded values and API endpoints spread across frontend and backend files",
+      "description": "API endpoints, model choices, prompt policies, and generation settings are defined in multiple places: backend/config.py (minimal), backend/prompts/policies.py, frontend/src/lib/models.ts, frontend/src/config.ts, routes handlers. No centralized configuration or env-based management.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/config.py",
+          "line_start": 1,
+          "line_end": 21,
+          "snippet": "Minimal config file"
+        },
+        {
+          "file_path": "frontend/src/lib/models.ts",
+          "line_start": 1,
+          "line_end": 93,
+          "snippet": "Hardcoded model choices and configurations"
+        },
+        {
+          "file_path": "backend/prompts/policies.py",
+          "line_start": 1,
+          "line_end": 18,
+          "snippet": "Hardcoded prompt policies"
+        }
+      ],
+      "suggested_fix": "Create backend/config/ directory with: models.py, prompts.py, endpoints.py. Create frontend/src/config/ with constants.ts. Load from environment variables or JSON. Export shared config schema.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-655cc290",
+      "title": "High coupling between agent tool execution and file system operations",
+      "description": "backend/agent/tools/runtime.py (362 LOC) directly executes bash commands, writes files, and manages project state. No abstraction for file operations or command execution. Changes to tool behavior require modifying runtime.py directly.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/agent/tools/runtime.py",
+          "line_start": 1,
+          "line_end": 362,
+          "snippet": "Direct file system and bash command execution"
+        }
+      ],
+      "suggested_fix": "Create FileSystemAdapter and CommandExecutor abstractions. Inject into runtime. Enables testing, stubbing, logging, and alternate implementations (remote execution, transaction logs).",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e5ccfb84",
+      "title": "Missing abstraction for LLM provider interactions creates tight coupling to specific provider APIs",
+      "description": "While there is a factory pattern for providers, routes and services directly instantiate providers and call their methods. No unified service interface for LLM operations. Provider-specific error handling scattered across route handlers.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/agent/providers/factory.py",
+          "line_start": 1,
+          "line_end": 65,
+          "snippet": "Factory pattern exists but route handlers still interact directly with provider instances"
+        }
+      ],
+      "suggested_fix": "Create backend/services/llm_service.py wrapping provider factory. Route handlers call LLMService.generate() only. Service handles provider selection, error translation, retry logic, rate limiting.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e22eabb2",
+      "title": "Frontend state management coupling: app-store and project-store have unclear separation of concerns",
+      "description": "frontend/src/store/ has app-store.ts (48 LOC) and project-store.ts (458 LOC) with unclear boundary between what should be app-level vs project-level state. Project store is significantly larger, suggesting mixed concerns.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/store/app-store.ts",
+          "line_start": 1,
+          "line_end": 48,
+          "snippet": "Minimal app state store"
+        },
+        {
+          "file_path": "frontend/src/store/project-store.ts",
+          "line_start": 1,
+          "line_end": 458,
+          "snippet": "Large project state store with 458 LOC"
+        }
+      ],
+      "suggested_fix": "Document and enforce store boundaries. Consider splitting project-store into: ProjectStore (code/files), GenerationStore (current generation state), HistoryStore (commit/variant history). Use store composition.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-dcc31d3b",
+      "title": "Inconsistent error handling patterns across backend modules",
+      "description": "Routes, agent engine, prompts, and tools use different error handling approaches. No centralized error handling middleware or custom exception hierarchy. Makes debugging and client error messages inconsistent.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Route-level try/catch blocks"
+        },
+        {
+          "file_path": "backend/agent/engine.py",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Engine-level error handling"
+        }
+      ],
+      "suggested_fix": "Create backend/exceptions.py with custom exception hierarchy (CodeGenException, ToolExecutionException, ProviderException, etc.). Add FastAPI exception handlers in main.py. Use consistently across modules.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1481cee9",
+      "title": "Testing infrastructure fragmented: test utilities in codegen module but used across backend",
+      "description": "backend/codegen/test_utils.py contains shared test utilities (57 LOC) but is colocated with codegen logic. Test utilities should be in dedicated test fixtures module. Makes test dependency unclear.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/codegen/test_utils.py",
+          "line_start": 1,
+          "line_end": 57,
+          "snippet": "Shared test utilities mixed with codegen module"
+        },
+        {
+          "file_path": "backend/tests/",
+          "line_start": 1,
+          "line_end": 748,
+          "snippet": "Multiple test files that likely import from codegen/test_utils.py"
+        }
+      ],
+      "suggested_fix": "Move test utilities to backend/tests/fixtures.py or backend/tests/conftest.py. Make test infrastructure explicit and separate from production code. Import test utils from tests module only.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 52,
+  "coupling_assessment": "The backend exhibits high coupling at the HTTP layer: routes directly instantiate and orchestrate agent, prompt, and tool modules without service abstraction. The frontend has moderate coupling through Zustand stores that are tightly integrated into component props. Provider-specific logic is partially abstracted via factory pattern but still tightly coupled at the route level. Missing service layer means business logic is scattered across routes and route-level orchestration code.",
+  "layering_assessment": "The architecture lacks clear layering. Current structure: (1) Routes layer mixes HTTP concerns with business orchestration, (2) Agent/Prompts layer contains core logic but is called directly from routes, (3) Tools layer handles execution but lacks abstractions for filesystem/command operations. Missing: (1) Service layer for business logic, (2) Adapter layer for external system integration (file system, bash), (3) Consistent error handling layer. Frontend has mixed component hierarchy but no clear separation between page/feature/primitive components.",
+  "summary": "The codebase has 11 significant architectural issues affecting maintainability and scalability. The most critical problems are: (1) God modules in route handlers (generate_code.py at 824 LOC, evals.py at 445 LOC) mixing HTTP handling with orchestration and business logic, (2) Missing service layer creating direct coupling between routes and core modules (agent, prompts, tools), (3) Tight coupling to infrastructure concerns (WebSocket streaming, file system, bash execution) scattered in business logic, (4) Circular dependency risks between prompts and agent.tools modules, (5) Configuration scattered across files with no centralization. The frontend has less critical issues but needs component layer restructuring for clarity. Overall structural coherence score of 52 reflects functional system that works but needs significant refactoring to improve maintainability, testability, and scalability."
+}

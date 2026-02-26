@@ -1,0 +1,680 @@
+{
+  "run_id": "76b98f909681",
+  "generated_at": "2026-02-26T01:06:49.812889+00:00",
+  "phase": "discovery",
+  "duration_seconds": 323.6,
+  "cost_usd": 0.0,
+  "total_findings": 21,
+  "severity_breakdown": {
+    "medium": 10,
+    "high": 7,
+    "low": 4
+  },
+  "category_breakdown": {
+    "performance": 7,
+    "architecture": 14
+  },
+  "findings": [
+    {
+      "id": "F-a4d6084d",
+      "title": "Repeated localStorage reads on every HTTP request without memoization",
+      "description": "The RequestInterceptor reads from localStorage on every single HTTP request. The token and email values are read synchronously from localStorage on every request, causing unnecessary I/O overhead. These values could be cached in memory after first access.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/app/Services/request.interceptor.ts",
+          "line_start": 14,
+          "line_end": 23,
+          "snippet": "if (localStorage.getItem('token')) {\n      req = req.clone({\n        setHeaders: {\n          Authorization: `Bearer ${localStorage.getItem('token')}`\n        }\n      })\n    }\n    if (localStorage.getItem('email')) {\n      req = req.clone({\n        setHeaders: {\n          'X-User-Email': String(localStorage.getItem('email'))\n        }\n      })"
+        }
+      ],
+      "suggested_fix": "Cache the token and email values in module-level variables or use a BehaviorSubject in an AuthService. Only update the cache when the token actually changes.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d206e995",
+      "title": "Unbounded list queries without pagination on Products API endpoint",
+      "description": "The /api/Products endpoint returns all products without pagination. Tests verify that all products are returned (products.length) with no limit/offset parameters. This will cause performance degradation as the product catalog grows.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/searchApiSpec.ts",
+          "line_start": 106,
+          "line_end": 114,
+          "snippet": "it('GET product search without search parameter returns all products', () => {\n    return frisby.get(`${API_URL}/Products`)\n      .expect('status', 200)\n      .expect('header', 'content-type', /application\\/json/)\n      .then(({ json }) => {\n        const products = json.data\n        return frisby.get(`${REST_URL}/products/search`)\n          .expect('status', 200)\n          .expect('header', 'content-type', /application\\/json/)\n          .then(({ json }) => {\n            expect(json.data.length).toBe(products.length)\n          })\n      })\n  })"
+        }
+      ],
+      "suggested_fix": "Add pagination support to the Products endpoint: include limit and offset/page query parameters, default to reasonable limits (e.g., 20 items), and return total count for pagination UI.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4de63ec7",
+      "title": "Unbounded list queries without pagination on Feedbacks API endpoint",
+      "description": "The /api/Feedbacks endpoint returns all feedback without pagination, similar to Products. This will cause memory and performance issues with large feedback datasets.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/feedbackApiSpec.ts",
+          "line_start": 8,
+          "line_end": 14,
+          "snippet": "it('GET all feedback', () => {\n    return frisby.get(API_URL + '/Feedbacks')\n      .expect('status', 200)\n  })"
+        }
+      ],
+      "suggested_fix": "Add pagination support to the Feedbacks endpoint with limit and offset/page parameters.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e1ec7ea1",
+      "title": "Unbounded list queries without pagination on Users API endpoint",
+      "description": "The /api/Users endpoint returns all users without pagination. This is a security and performance concern - exposing all user data and causing memory issues with large user bases.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/userApiSpec.ts",
+          "line_start": 10,
+          "line_end": 22,
+          "snippet": "it('GET all users', () => {\n    return frisby.get(`${API_URL}/Users`, { headers: authHeader })\n      .expect('status', 200)\n  })\n\n  it('GET all users doesnt include passwords', () => {\n    return frisby.get(`${API_URL}/Users`, { headers: authHeader })\n      .expect('status', 200)\n      .expect('jsonTypes', 'data.*', {\n        password: Joi.any().forbidden()\n      })"
+        }
+      ],
+      "suggested_fix": "Add pagination to the Users endpoint with limit and page parameters, plus server-side filtering capabilities.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a35c2452",
+      "title": "Expensive reduce operation on config products array in test",
+      "description": "The productReviewApiSpec performs a reduce operation on config.get<Product[]>('products') to count reviews. If this config is accessed repeatedly without caching, it causes unnecessary computation.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/productReviewApiSpec.ts",
+          "line_start": 89,
+          "line_end": 106,
+          "snippet": "it('PATCH multiple product review via injection', () => {\n    // Count all the reviews. (Count starts at one because of the review inserted by the other tests...)\n    const totalReviews = config.get<Product[]>('products').reduce((sum: number, { reviews = [] }: any) => sum + reviews.length, 1)"
+        }
+      ],
+      "suggested_fix": "Cache the product config at module level or before the test suite to avoid repeated config access.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1a8e2f4a",
+      "title": "Nested promise chains without parallel execution in data export tests",
+      "description": "The dataExportApiSpec has multiple sequential .then() chains that could be parallelized. For example, login followed by data export could run login once and reuse the token.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/dataExportApiSpec.ts",
+          "line_start": 1,
+          "line_end": 60,
+          "snippet": "it('Export data without use of CAPTCHA', () => {\n    return frisby.post(REST_URL + '/user/login', {...})\n      .expect('status', 200)\n      .then(({ json: jsonLogin }) => {\n        return frisby.post(REST_URL + '/user/data-export', {...})"
+        }
+      ],
+      "suggested_fix": "Use Promise.all() to run independent API calls in parallel where applicable, or cache auth tokens for reuse across multiple test cases.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d2428b60",
+      "title": "Missing eager loading for related data in API responses",
+      "description": "API endpoints like basket with products likely perform N+1 queries - fetching basket then iterating to fetch each product separately. The test verifies Products are loaded but doesn't show efficient loading.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/basketApiSpec.ts",
+          "line_start": 39,
+          "line_end": 48,
+          "snippet": "it('GET existing basket with contained products by id', () => {\n    return frisby.get(REST_URL + '/basket/1', { headers: authHeader })\n      .expect('status', 200)\n      .expect('header', 'content-type', /application\\/json/)\n      .expect('json', 'data', { id: 1 })\n      .then(({ json }) => {\n        expect(json.data.Products.length).toBe(3)\n      })\n  })"
+        }
+      ],
+      "suggested_fix": "Implement eager loading using Sequelize's include option or Mongoose's populate() to fetch related products in a single query rather than N+1 queries.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8c19916d",
+      "title": "Missing service layer between API routes and data access",
+      "description": "API routes (2500 LOC) directly access the data layer and models without intermediate business logic layer. This violates separation of concerns and creates tight coupling between route handlers and persistence logic. Changes to database queries require modifications throughout multiple route files.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Route handlers directly import and use data-layer modules and Mongoose models"
+        },
+        {
+          "file_path": "data/",
+          "line_start": 1,
+          "line_end": 800,
+          "snippet": "Data layer exposes raw database operations without abstraction"
+        }
+      ],
+      "suggested_fix": "Introduce a service layer (e.g., services/) between api-routes and data-layer. Services should encapsulate business logic, data validation, and database operations. Routes should only handle HTTP concerns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e258f622",
+      "title": "Tight coupling between frontend components and services",
+      "description": "Frontend components (4500 LOC) directly inject and use HTTP services without abstraction. Each component independently manages API calls, error handling, and state. This creates multiple copies of similar logic across components and makes it difficult to refactor API changes.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/",
+          "line_start": 1,
+          "line_end": 4500,
+          "snippet": "Components directly call service methods and subscribe to observables"
+        },
+        {
+          "file_path": "frontend/src/app/Services/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "Services expose raw HTTP calls without consistent error handling patterns"
+        }
+      ],
+      "suggested_fix": "Create a facade service layer or HTTP interceptor to standardize API communication, error handling, and response transformation. Implement a centralized store (NgRx/Akita) for state management.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b202478a",
+      "title": "God modules in api-routes: inconsistent responsibility distribution",
+      "description": "The api-routes module contains 10 route files with 2500 LOC covering diverse concerns: authentication, products, basket, users, admin, chatbot, feedback, challenges, and more. Some route files like verify.ts (440 LOC) and metrics.ts (233 LOC) exceed recommended boundaries and contain mixed business logic.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/verify.ts",
+          "line_start": 1,
+          "line_end": 440,
+          "snippet": "Challenge verification endpoint with complex business logic"
+        },
+        {
+          "file_path": "routes/metrics.ts",
+          "line_start": 1,
+          "line_end": 233,
+          "snippet": "Metrics aggregation with multiple calculation concerns"
+        },
+        {
+          "file_path": "routes/order.ts",
+          "line_start": 1,
+          "line_end": 208,
+          "snippet": "Order processing with multiple domain concerns"
+        }
+      ],
+      "suggested_fix": "Split routes into domain-specific route modules with corresponding service layers. Group related routes: auth-routes, product-routes, order-routes, challenge-routes, admin-routes. Move business logic to dedicated service classes.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c95d5c7a",
+      "title": "Data layer lacks repository pattern abstraction",
+      "description": "Data access is scattered across data/mongodb.ts, data/datacreator.ts, and direct Mongoose model imports in routes. No consistent repository or DAO pattern. Changes to query logic scattered across multiple files make maintenance difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "data/mongodb.ts",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "Minimal abstraction layer"
+        },
+        {
+          "file_path": "data/datacreator.ts",
+          "line_start": 1,
+          "line_end": 746,
+          "snippet": "Data initialization mixed with creation logic"
+        },
+        {
+          "file_path": "models/",
+          "line_start": 1,
+          "line_end": 600,
+          "snippet": "Mongoose models imported directly throughout routes"
+        }
+      ],
+      "suggested_fix": "Implement repository pattern with repositories for each entity (UserRepository, ProductRepository, ChallengeRepository, etc.). Repositories should encapsulate all database queries and provide a consistent interface.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-333946be",
+      "title": "Configuration scatter: hardcoded values across codebase",
+      "description": "Configuration values spread throughout route handlers, services, and startup files. While config files exist (config/default.yml, config/test.yml), many settings are hardcoded in code or loaded inconsistently. Makes configuration management difficult in different environments.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "lib/startup/validateConfig.ts",
+          "line_start": 1,
+          "line_end": 186,
+          "snippet": "Configuration validation scattered across startup code"
+        },
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Hardcoded values in multiple route files"
+        },
+        {
+          "file_path": "lib/config.types.ts",
+          "line_start": 1,
+          "line_end": 138,
+          "snippet": "Config type definitions present but not consistently used"
+        }
+      ],
+      "suggested_fix": "Create a centralized ConfigService that loads from environment-specific YAML files and provides typed access to all configuration. Inject ConfigService into services and route handlers instead of direct imports.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3f4968e0",
+      "title": "Frontend-backend API contract not formally defined",
+      "description": "Frontend services and backend routes evolved independently. No OpenAPI/Swagger schema enforced, no shared DTOs between client and server, no centralized API contract. Multiple services independently handle the same endpoints with different approaches.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/Services/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "Services independently define API calls without shared contract"
+        },
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Route handlers return data with inconsistent structure"
+        },
+        {
+          "file_path": "swagger.yml",
+          "line_start": 1,
+          "line_end": 52,
+          "snippet": "Swagger definition exists but appears minimal and not enforced"
+        }
+      ],
+      "suggested_fix": "Adopt OpenAPI 3.0 specification. Generate TypeScript types from OpenAPI schema for both frontend and backend. Create shared DTO interfaces. Use tools like OpenAPI Generator to maintain consistency.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ef9c75c1",
+      "title": "Inconsistent error handling across modules",
+      "description": "Error handling patterns vary significantly. Some routes use try-catch, others use promise rejection, frontend services have different error interceptors. No unified error response format or error codes. Error recovery logic duplicated across components.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/errorHandler.ts",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "Minimal error handler implementation"
+        },
+        {
+          "file_path": "frontend/src/app/Services/request.interceptor.ts",
+          "line_start": 1,
+          "line_end": 29,
+          "snippet": "Request interceptor without comprehensive error handling"
+        },
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Inconsistent error handling in different route files"
+        }
+      ],
+      "suggested_fix": "Create centralized error handling: (1) Backend: Custom error classes and middleware for consistent error responses; (2) Frontend: Comprehensive HTTP interceptor with centralized error handling and user notifications.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a8dd5250",
+      "title": "Authentication/Authorization logic scattered across routes",
+      "description": "JWT verification, role checking, and permission logic implemented inline in multiple route files. middleware concepts not consistently applied. Makes audit and changes to auth logic difficult. Auth routes (login.ts, register.ts, 2fa.ts) handle different auth concerns without shared abstraction.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/login.ts",
+          "line_start": 1,
+          "line_end": 84,
+          "snippet": "Authentication logic mixed with route handler"
+        },
+        {
+          "file_path": "routes/2fa.ts",
+          "line_start": 1,
+          "line_end": 176,
+          "snippet": "2FA logic with inline verification"
+        },
+        {
+          "file_path": "routes/verify.ts",
+          "line_start": 1,
+          "line_end": 440,
+          "snippet": "Permission verification mixed with challenge logic"
+        },
+        {
+          "file_path": "frontend/src/app/app.guard.ts",
+          "line_start": 1,
+          "line_end": 88,
+          "snippet": "Route guard with inline permission checks"
+        }
+      ],
+      "suggested_fix": "Create auth module with: (1) AuthService handling login, token refresh, 2FA; (2) Authorization middleware for role/permission checking; (3) Frontend: Centralized AuthGuard and role-based AccessControl service; (4) Shared auth-related middleware/guards.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-459c1fb8",
+      "title": "Frontend models fragmented: Models/ and Service types inconsistent",
+      "description": "Frontend has Models directory (frontend/src/app/Models/) with DTO interfaces, but services define their own types. No single source of truth for data structures. Models rarely correspond to backend responses.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/Models/",
+          "line_start": 1,
+          "line_end": 150,
+          "snippet": "DTO interfaces in Models/ directory"
+        },
+        {
+          "file_path": "frontend/src/app/Services/user.service.ts",
+          "line_start": 1,
+          "line_end": 81,
+          "snippet": "Service with inline type definitions"
+        },
+        {
+          "file_path": "frontend/src/app/Services/product.service.ts",
+          "line_start": 1,
+          "line_end": 36,
+          "snippet": "Service with different type naming convention"
+        }
+      ],
+      "suggested_fix": "Create shared models directory with all DTOs representing backend responses. Generate models from OpenAPI schema. All services should exclusively use these types. Remove inline type definitions from services.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0f6e0f8d",
+      "title": "Test code lacks structural clarity: three test frameworks without clear separation",
+      "description": "Three separate test modules (test-server using Mocha, test-api using Jest/Frisby, test-e2e using Cypress) with 3300 LOC total. No clear guidance on which tests cover which layers. Test data and fixtures not centralized. Makes test maintenance and execution difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "test/server/",
+          "line_start": 1,
+          "line_end": 1500,
+          "snippet": "Server-side unit tests with Mocha"
+        },
+        {
+          "file_path": "test/api/",
+          "line_start": 1,
+          "line_end": 1000,
+          "snippet": "API integration tests with Jest/Frisby"
+        },
+        {
+          "file_path": "test/e2e/",
+          "line_start": 1,
+          "line_end": 800,
+          "snippet": "E2E tests with Cypress"
+        }
+      ],
+      "suggested_fix": "Consolidate test strategy: (1) Use Jest for all server unit/integration tests; (2) Cypress for E2E tests only; (3) Create shared test fixtures and factory functions; (4) Document test pyramid and coverage requirements.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8de2fc93",
+      "title": "Hacking instructor tutorial system loosely integrated",
+      "description": "frontend/src/hacking-instructor module (600 LOC) operates as separate subsystem with minimal integration with main application. Tutorial state management, challenge flow, and helper functions duplicated or inconsistently wired to main app components.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/hacking-instructor/",
+          "line_start": 1,
+          "line_end": 600,
+          "snippet": "Hacking instructor as separate module"
+        },
+        {
+          "file_path": "frontend/src/hacking-instructor/index.ts",
+          "line_start": 1,
+          "line_end": 218,
+          "snippet": "Main tutorial orchestrator with inline logic"
+        },
+        {
+          "file_path": "frontend/src/hacking-instructor/helpers/helpers.ts",
+          "line_start": 1,
+          "line_end": 261,
+          "snippet": "Helper utilities duplicating main app functions"
+        }
+      ],
+      "suggested_fix": "Integrate hacking instructor as proper Angular module. Create TutorialService with state management (NgRx). Share utilities with main app instead of duplication. Wire tutorial mode into main authentication/navigation flow.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6217f1b7",
+      "title": "Web3/Blockchain integration lacks abstraction layer",
+      "description": "Ethereum contract interactions (ethers.js) scattered across frontend components and routes. No abstraction for contract methods, transaction handling, or wallet integration. Web3 modules (web3-sandbox, wallet-web3, faucet) operate independently with duplicated logic.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/app/web3-sandbox/",
+          "line_start": 1,
+          "line_end": 315,
+          "snippet": "Direct ethers.js integration in component"
+        },
+        {
+          "file_path": "frontend/src/app/wallet-web3/",
+          "line_start": 1,
+          "line_end": 172,
+          "snippet": "Wallet management with inline contract calls"
+        },
+        {
+          "file_path": "frontend/src/app/faucet/",
+          "line_start": 1,
+          "line_end": 316,
+          "snippet": "Faucet component with duplicated Web3 logic"
+        },
+        {
+          "file_path": "data/static/web3-snippets/",
+          "line_start": 1,
+          "line_end": 400,
+          "snippet": "Smart contract code without abstraction"
+        }
+      ],
+      "suggested_fix": "Create Web3Service encapsulating ethers.js interactions. Create ContractService for each contract type (Wallet, NFT, Token). Implement wallet connection abstraction. Centralize transaction handling and error recovery.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a61cb57a",
+      "title": "Challenge domain logic mixed across modules",
+      "description": "Challenge-related logic distributed across: routes/verify.ts, routes/challenges.ts (missing but referenced), data/static/challenges.yml, frontend/src/app/score-board, frontend/src/hacking-instructor. No unified challenge domain service. Challenge state management inconsistent.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/verify.ts",
+          "line_start": 1,
+          "line_end": 440,
+          "snippet": "Challenge verification with mixed concerns"
+        },
+        {
+          "file_path": "data/static/challenges.yml",
+          "line_start": 1,
+          "line_end": 1535,
+          "snippet": "Challenge definitions without API schema"
+        },
+        {
+          "file_path": "frontend/src/app/score-board/",
+          "line_start": 1,
+          "line_end": 204,
+          "snippet": "Challenge display with local state management"
+        },
+        {
+          "file_path": "frontend/src/hacking-instructor/challenges/",
+          "line_start": 1,
+          "line_end": 600,
+          "snippet": "Challenge tutorials with duplicated logic"
+        }
+      ],
+      "suggested_fix": "Create ChallengeService (backend) to manage challenge state, verification, and scoring. Create ChallengeStore (frontend) for centralized challenge state. Unify challenge DTO across frontend/backend. Remove challenge logic from route handlers.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-035c4d75",
+      "title": "Inconsistent module naming and organization patterns",
+      "description": "Module organization lacks consistency: some use .ts files (routes/login.ts), others use directories (frontend/src/app/score-board/), some use subfolders (frontend/src/app/score-board/components/). Naming conventions vary: camelCase for services, PascalCase for components inconsistently applied.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "routes/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Route handlers as individual .ts files"
+        },
+        {
+          "file_path": "frontend/src/app/",
+          "line_start": 1,
+          "line_end": 4500,
+          "snippet": "Mixed directory and single-file component organization"
+        }
+      ],
+      "suggested_fix": "Standardize organization: (1) Backend: route-based directory structure (routes/auth/, routes/products/, etc.); (2) Frontend: feature-based modules with consistent component/service/model subdirectories; (3) Enforce naming conventions with linting rules.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "remediation_plan": {
+    "items": [],
+    "dependencies": [],
+    "execution_levels": [],
+    "deferred_finding_ids": [],
+    "dedup_summary": "",
+    "total_items": 0,
+    "estimated_invocations": 0,
+    "summary": "Parse error: 1 validation error for RemediationPlan\ndependencies.5.depends_on_finding_id\n  Input should be a valid string [type=string_type, input_value=['F-8c19916d', 'F-c95d5c7a'], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type. Raw findings count: 21"
+  }
+}

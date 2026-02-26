@@ -1,0 +1,21 @@
+{
+  "findings": [],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": "Found 6 issues with error handling coverage. The Docker entrypoint lacks error handling for database operations (critical), the NestJS API lacks a global exception filter, and several Angular components have observable subscriptions without proper error handling. The benchmark dialog component has a particularly high-risk missing error handler on its data fetch operation."
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": "Found 11 issues across code patterns. Key findings: duplicate date utility functions (resetHours/getStartOfUtcDate), magic numbers in config.ts, long switch statement in getIntervalFromDateRange, long if-else chain in getDateFnsLocale, and inconsistent type safety with 'any' types."
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [],
+      "pass_summary": ""
+    }
+  ],
+  "total_findings": 0
+}

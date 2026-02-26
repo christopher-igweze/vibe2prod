@@ -1,0 +1,1502 @@
+{
+  "modules": [
+    {
+      "name": "backend-api",
+      "path": "backend/app/api/",
+      "purpose": "FastAPI REST API routes and dependencies for users, items, login, and private endpoints",
+      "files": [
+        "backend/app/api/main.py",
+        "backend/app/api/deps.py",
+        "backend/app/api/routes/users.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/api/routes/login.py",
+        "backend/app/api/routes/private.py",
+        "backend/app/api/routes/utils.py"
+      ],
+      "loc": 800,
+      "language": "python"
+    },
+    {
+      "name": "backend-core",
+      "path": "backend/app/core/",
+      "purpose": "Core application utilities including configuration, database connection, and security/JWT handling",
+      "files": [
+        "backend/app/core/config.py",
+        "backend/app/core/db.py",
+        "backend/app/core/security.py"
+      ],
+      "loc": 350,
+      "language": "python"
+    },
+    {
+      "name": "backend-models",
+      "path": "backend/app/",
+      "purpose": "SQLAlchemy ORM models, CRUD operations, and database utilities",
+      "files": [
+        "backend/app/models.py",
+        "backend/app/crud.py",
+        "backend/app/utils.py",
+        "backend/app/initial_data.py",
+        "backend/app/backend_pre_start.py",
+        "backend/app/tests_pre_start.py"
+      ],
+      "loc": 600,
+      "language": "python"
+    },
+    {
+      "name": "backend-migrations",
+      "path": "backend/app/alembic/",
+      "purpose": "Alembic database migration scripts and configuration",
+      "files": [
+        "backend/app/alembic/env.py",
+        "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py",
+        "backend/app/alembic/versions/9c0a54914c78_add_max_length_for_string_varchar_.py",
+        "backend/app/alembic/versions/d98dd8ec85a3_edit_replace_id_integers_in_all_models_.py",
+        "backend/app/alembic/versions/e2412789c190_initialize_models.py",
+        "backend/app/alembic/versions/fe56fa70289e_add_created_at_to_user_and_item.py"
+      ],
+      "loc": 400,
+      "language": "python"
+    },
+    {
+      "name": "backend-tests",
+      "path": "backend/tests/",
+      "purpose": "Backend unit tests, API route tests, and integration tests",
+      "files": [
+        "backend/tests/conftest.py",
+        "backend/tests/api/routes/test_users.py",
+        "backend/tests/api/routes/test_items.py",
+        "backend/tests/api/routes/test_login.py",
+        "backend/tests/api/routes/test_private.py",
+        "backend/tests/crud/test_user.py",
+        "backend/tests/utils/user.py",
+        "backend/tests/utils/item.py",
+        "backend/tests/utils/utils.py"
+      ],
+      "loc": 550,
+      "language": "python"
+    },
+    {
+      "name": "frontend-client",
+      "path": "frontend/src/client/",
+      "purpose": "Generated OpenAPI client SDK and TypeScript types for API communication",
+      "files": [
+        "frontend/src/client/sdk.gen.ts",
+        "frontend/src/client/types.gen.ts",
+        "frontend/src/client/schemas.gen.ts",
+        "frontend/src/client/index.ts",
+        "frontend/src/client/core/OpenAPI.ts",
+        "frontend/src/client/core/request.ts",
+        "frontend/src/client/core/ApiError.ts",
+        "frontend/src/client/core/CancelablePromise.ts"
+      ],
+      "loc": 450,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-components",
+      "path": "frontend/src/components/",
+      "purpose": "React UI components including Admin, Items, UserSettings, Sidebar, Common, and UI library",
+      "files": [
+        "frontend/src/components/Admin/AddUser.tsx",
+        "frontend/src/components/Admin/DeleteUser.tsx",
+        "frontend/src/components/Admin/EditUser.tsx",
+        "frontend/src/components/Admin/UserActionsMenu.tsx",
+        "frontend/src/components/Admin/columns.tsx",
+        "frontend/src/components/Items/AddItem.tsx",
+        "frontend/src/components/Items/DeleteItem.tsx",
+        "frontend/src/components/Items/EditItem.tsx",
+        "frontend/src/components/Items/ItemActionsMenu.tsx",
+        "frontend/src/components/Items/columns.tsx",
+        "frontend/src/components/UserSettings/ChangePassword.tsx",
+        "frontend/src/components/UserSettings/DeleteAccount.tsx",
+        "frontend/src/components/UserSettings/DeleteConfirmation.tsx",
+        "frontend/src/components/UserSettings/UserInformation.tsx",
+        "frontend/src/components/Sidebar/AppSidebar.tsx",
+        "frontend/src/components/Sidebar/Main.tsx",
+        "frontend/src/components/Sidebar/User.tsx",
+        "frontend/src/components/Pending/PendingItems.tsx",
+        "frontend/src/components/Pending/PendingUsers.tsx",
+        "frontend/src/components/Common/Appearance.tsx",
+        "frontend/src/components/Common/AuthLayout.tsx",
+        "frontend/src/components/Common/DataTable.tsx",
+        "frontend/src/components/Common/ErrorComponent.tsx",
+        "frontend/src/components/Common/Footer.tsx",
+        "frontend/src/components/Common/Logo.tsx",
+        "frontend/src/components/Common/NotFound.tsx",
+        "frontend/src/components/theme-provider.tsx",
+        "frontend/src/components/ui/alert.tsx",
+        "frontend/src/components/ui/avatar.tsx",
+        "frontend/src/components/ui/badge.tsx",
+        "frontend/src/components/ui/button-group.tsx",
+        "frontend/src/components/ui/button.tsx",
+        "frontend/src/components/ui/card.tsx",
+        "frontend/src/components/ui/checkbox.tsx",
+        "frontend/src/components/ui/dialog.tsx",
+        "frontend/src/components/ui/dropdown-menu.tsx",
+        "frontend/src/components/ui/form.tsx",
+        "frontend/src/components/ui/input.tsx",
+        "frontend/src/components/ui/label.tsx",
+        "frontend/src/components/ui/loading-button.tsx",
+        "frontend/src/components/ui/pagination.tsx",
+        "frontend/src/components/ui/password-input.tsx",
+        "frontend/src/components/ui/select.tsx",
+        "frontend/src/components/ui/separator.tsx",
+        "frontend/src/components/ui/sheet.tsx",
+        "frontend/src/components/ui/sidebar.tsx",
+        "frontend/src/components/ui/skeleton.tsx",
+        "frontend/src/components/ui/sonner.tsx",
+        "frontend/src/components/ui/table.tsx",
+        "frontend/src/components/ui/tabs.tsx",
+        "frontend/src/components/ui/tooltip.tsx"
+      ],
+      "loc": 2500,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-routes",
+      "path": "frontend/src/routes/",
+      "purpose": "TanStack Router route definitions for login, signup, admin, items, settings pages",
+      "files": [
+        "frontend/src/routes/__root.tsx",
+        "frontend/src/routes/_layout.tsx",
+        "frontend/src/routes/login.tsx",
+        "frontend/src/routes/signup.tsx",
+        "frontend/src/routes/recover-password.tsx",
+        "frontend/src/routes/reset-password.tsx",
+        "frontend/src/routes/_layout/index.tsx",
+        "frontend/src/routes/_layout/admin.tsx",
+        "frontend/src/routes/_layout/items.tsx",
+        "frontend/src/routes/_layout/settings.tsx"
+      ],
+      "loc": 400,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-hooks",
+      "path": "frontend/src/hooks/",
+      "purpose": "Custom React hooks for authentication, toasts, mobile detection, clipboard",
+      "files": [
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/hooks/useCustomToast.ts",
+        "frontend/src/hooks/useMobile.ts",
+        "frontend/src/hooks/useCopyToClipboard.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-tests",
+      "path": "frontend/tests/",
+      "purpose": "Playwright end-to-end tests for auth, admin, items, user settings",
+      "files": [
+        "frontend/tests/login.spec.ts",
+        "frontend/tests/sign-up.spec.ts",
+        "frontend/tests/reset-password.spec.ts",
+        "frontend/tests/admin.spec.ts",
+        "frontend/tests/items.spec.ts",
+        "frontend/tests/user-settings.spec.ts",
+        "frontend/tests/auth.setup.ts",
+        "frontend/tests/utils/user.ts",
+        "frontend/tests/utils/privateApi.ts",
+        "frontend/tests/utils/mailcatcher.ts",
+        "frontend/tests/utils/random.ts"
+      ],
+      "loc": 400,
+      "language": "typescript"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "fastapi",
+      "version": "0.109.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.27.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "sqlalchemy",
+      "version": "2.0.25",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "alembic",
+      "version": "1.13.1",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "pydantic",
+      "version": "2.5.3",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "python-jose",
+      "version": "3.3.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "passlib",
+      "version": "1.7.4",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "python-multipart",
+      "version": "0.0.6",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "psycopg2-binary",
+      "version": "2.9.9",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "react",
+      "version": "18.2.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-dom",
+      "version": "18.2.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@tanstack/react-router",
+      "version": "1.14.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@tanstack/react-query",
+      "version": "5.17.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "openapi-fetch",
+      "version": "0.3.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "vite",
+      "version": "5.0.11",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "typescript",
+      "version": "5.3.3",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "playwright",
+      "version": "1.41.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    }
+  ],
+  "data_flows": [
+    {
+      "source": "Frontend React App",
+      "destination": "FastAPI Backend",
+      "data_type": "HTTP requests with JSON payloads",
+      "is_authenticated": false
+    },
+    {
+      "source": "FastAPI Backend",
+      "destination": "PostgreSQL Database",
+      "data_type": "User credentials, items, session data",
+      "is_authenticated": true
+    },
+    {
+      "source": "API Routes (users, items, private)",
+      "destination": "SQLAlchemy Models",
+      "data_type": "ORM queries and mutations",
+      "is_authenticated": true
+    },
+    {
+      "source": "Login/Auth Endpoints",
+      "destination": "JWT Security Module",
+      "data_type": "Password verification, token generation",
+      "is_authenticated": false
+    },
+    {
+      "source": "Frontend Auth Hook",
+      "destination": "JWT Token Storage",
+      "data_type": "Bearer tokens for subsequent requests",
+      "is_authenticated": true
+    }
+  ],
+  "auth_boundaries": [
+    {
+      "path": "/api/login",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/signup",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/recover-password",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/reset-password",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/users",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/items",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/private",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/utils",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/dependencies",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/frontend/admin",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/frontend/settings",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/frontend/items",
+      "auth_type": "jwt",
+      "is_protected": true
+    }
+  ],
+  "entry_points": [
+    {
+      "path": "backend/app/main.py",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "type": "web",
+      "is_public": true
+    },
+    {
+      "path": "compose.yml",
+      "type": "infrastructure",
+      "is_public": false
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + TanStack Router + Vite",
+    "backend": "FastAPI + Python 3.11",
+    "database": "PostgreSQL via SQLAlchemy + Alembic",
+    "hosting": "Docker + Traefik",
+    "packages": [
+      "fastapi",
+      "sqlalchemy",
+      "alembic",
+      "react",
+      "vite",
+      "@tanstack/react-router",
+      "openapi-fetch",
+      "playwright"
+    ]
+  },
+  "files": [
+    {
+      "path": "compose.override.yml",
+      "language": "yaml",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "release-notes.md",
+      "language": "markdown",
+      "loc": 845,
+      "purpose": ""
+    },
+    {
+      "path": ".pre-commit-config.yaml",
+      "language": "yaml",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "copier.yml",
+      "language": "yaml",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "compose.traefik.yml",
+      "language": "yaml",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "pyproject.toml",
+      "language": "toml",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 233,
+      "purpose": ""
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "deployment.md",
+      "language": "markdown",
+      "loc": 344,
+      "purpose": ""
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "development.md",
+      "language": "markdown",
+      "loc": 221,
+      "purpose": ""
+    },
+    {
+      "path": "compose.yml",
+      "language": "yaml",
+      "loc": 174,
+      "purpose": ""
+    },
+    {
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tsconfig.node.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/index.html",
+      "language": "html",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/README.md",
+      "language": "markdown",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/package.json",
+      "language": "json",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tsconfig.build.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/components.json",
+      "language": "json",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "language": "json",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/playwright.config.ts",
+      "language": "typescript",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/biome.json",
+      "language": "json",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/openapi-ts.config.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/items.spec.ts",
+      "language": "typescript",
+      "loc": 132,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/reset-password.spec.ts",
+      "language": "typescript",
+      "loc": 125,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/sign-up.spec.ts",
+      "language": "typescript",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/auth.setup.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/login.spec.ts",
+      "language": "typescript",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/admin.spec.ts",
+      "language": "typescript",
+      "loc": 205,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/user-settings.spec.ts",
+      "language": "typescript",
+      "loc": 256,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/config.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/utils/mailcatcher.ts",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/utils/random.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/utils/privateApi.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tests/utils/user.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/utils.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/index.css",
+      "language": "css",
+      "loc": 124,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/vite-env.d.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routeTree.gen.ts",
+      "language": "typescript",
+      "loc": 235,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/theme-provider.tsx",
+      "language": "typescript",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Sidebar/Main.tsx",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Sidebar/User.tsx",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Sidebar/AppSidebar.tsx",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/pagination.tsx",
+      "language": "typescript",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/tabs.tsx",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/button-group.tsx",
+      "language": "typescript",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/card.tsx",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/sheet.tsx",
+      "language": "typescript",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/label.tsx",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/sonner.tsx",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/tooltip.tsx",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/alert.tsx",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/password-input.tsx",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/loading-button.tsx",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/avatar.tsx",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/dialog.tsx",
+      "language": "typescript",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/badge.tsx",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/sidebar.tsx",
+      "language": "typescript",
+      "loc": 737,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/table.tsx",
+      "language": "typescript",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/separator.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/button.tsx",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/checkbox.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/dropdown-menu.tsx",
+      "language": "typescript",
+      "loc": 257,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/select.tsx",
+      "language": "typescript",
+      "loc": 185,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/input.tsx",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/skeleton.tsx",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/form.tsx",
+      "language": "typescript",
+      "loc": 165,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Admin/DeleteUser.tsx",
+      "language": "typescript",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Admin/columns.tsx",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Admin/EditUser.tsx",
+      "language": "typescript",
+      "loc": 239,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Admin/UserActionsMenu.tsx",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Admin/AddUser.tsx",
+      "language": "typescript",
+      "loc": 238,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/UserSettings/UserInformation.tsx",
+      "language": "typescript",
+      "loc": 171,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/UserSettings/ChangePassword.tsx",
+      "language": "typescript",
+      "loc": 146,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/UserSettings/DeleteAccount.tsx",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/UserSettings/DeleteConfirmation.tsx",
+      "language": "typescript",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Common/AuthLayout.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Common/ErrorComponent.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Common/Footer.tsx",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Common/DataTable.tsx",
+      "language": "typescript",
+      "loc": 194,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Common/Logo.tsx",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Common/Appearance.tsx",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Common/NotFound.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Items/AddItem.tsx",
+      "language": "typescript",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Items/columns.tsx",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Items/EditItem.tsx",
+      "language": "typescript",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Items/ItemActionsMenu.tsx",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Items/DeleteItem.tsx",
+      "language": "typescript",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Pending/PendingItems.tsx",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/Pending/PendingUsers.tsx",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hooks/useCustomToast.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hooks/useMobile.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hooks/useAuth.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hooks/useCopyToClipboard.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/lib/utils.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/types.gen.ts",
+      "language": "typescript",
+      "loc": 240,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/sdk.gen.ts",
+      "language": "typescript",
+      "loc": 468,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/index.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/schemas.gen.ts",
+      "language": "typescript",
+      "loc": 559,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/core/CancelablePromise.ts",
+      "language": "typescript",
+      "loc": 126,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/core/ApiRequestOptions.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/core/ApiResult.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/core/request.ts",
+      "language": "typescript",
+      "loc": 347,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/core/ApiError.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/client/core/OpenAPI.ts",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/__root.tsx",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/login.tsx",
+      "language": "typescript",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/recover-password.tsx",
+      "language": "typescript",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/signup.tsx",
+      "language": "typescript",
+      "loc": 189,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/reset-password.tsx",
+      "language": "typescript",
+      "loc": 166,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/_layout.tsx",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/_layout/settings.tsx",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/_layout/index.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/_layout/items.tsx",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/routes/_layout/admin.tsx",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "backend/pyproject.toml",
+      "language": "toml",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "backend/README.md",
+      "language": "markdown",
+      "loc": 172,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/models.py",
+      "language": "python",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/backend_pre_start.py",
+      "language": "python",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/initial_data.py",
+      "language": "python",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/utils.py",
+      "language": "python",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/tests_pre_start.py",
+      "language": "python",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/main.py",
+      "language": "python",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/crud.py",
+      "language": "python",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/core/db.py",
+      "language": "python",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/core/config.py",
+      "language": "python",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/core/security.py",
+      "language": "python",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/core/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/deps.py",
+      "language": "python",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/main.py",
+      "language": "python",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/routes/users.py",
+      "language": "python",
+      "loc": 231,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/routes/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/routes/utils.py",
+      "language": "python",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/routes/login.py",
+      "language": "python",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/routes/items.py",
+      "language": "python",
+      "loc": 112,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/api/routes/private.py",
+      "language": "python",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/alembic/env.py",
+      "language": "python",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/alembic/versions/fe56fa70289e_add_created_at_to_user_and_item.py",
+      "language": "python",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/alembic/versions/d98dd8ec85a3_edit_replace_id_integers_in_all_models_.py",
+      "language": "python",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/alembic/versions/e2412789c190_initialize_models.py",
+      "language": "python",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/alembic/versions/1a31ce608336_add_cascade_delete_relationships.py",
+      "language": "python",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "backend/app/alembic/versions/9c0a54914c78_add_max_length_for_string_varchar_.py",
+      "language": "python",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/conftest.py",
+      "language": "python",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/utils/user.py",
+      "language": "python",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/utils/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/utils/utils.py",
+      "language": "python",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/utils/item.py",
+      "language": "python",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/scripts/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/scripts/test_backend_pre_start.py",
+      "language": "python",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/scripts/test_test_pre_start.py",
+      "language": "python",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/crud/test_user.py",
+      "language": "python",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/crud/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/api/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/api/routes/test_login.py",
+      "language": "python",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/api/routes/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/api/routes/test_items.py",
+      "language": "python",
+      "loc": 164,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/api/routes/test_users.py",
+      "language": "python",
+      "loc": 521,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/api/routes/test_private.py",
+      "language": "python",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "backend/scripts/prestart.sh",
+      "language": "bash",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "backend/scripts/lint.sh",
+      "language": "bash",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "backend/scripts/tests-start.sh",
+      "language": "bash",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "backend/scripts/test.sh",
+      "language": "bash",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "backend/scripts/format.sh",
+      "language": "bash",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "hooks/post_gen_project.py",
+      "language": "python",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/generate-client.sh",
+      "language": "bash",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/test-local.sh",
+      "language": "bash",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/test.sh",
+      "language": "bash",
+      "loc": 11,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 15620,
+  "file_count": 172,
+  "primary_language": "typescript",
+  "languages": [
+    "bash",
+    "css",
+    "html",
+    "json",
+    "markdown",
+    "python",
+    "toml",
+    "typescript",
+    "yaml"
+  ],
+  "architecture_summary": "A full-stack FastAPI + React application using a monorepo structure with Bun workspaces. Backend provides REST API with JWT authentication via Python-Jose, stores data in PostgreSQL using SQLAlchemy ORM with Alembic migrations. Frontend uses React 18 with TanStack Router for navigation, TanStack Query for data fetching, and openapi-fetch for type-safe API calls. Docker Compose orchestrates frontend, backend, PostgreSQL, Traefik reverse proxy, and Mailcatcher for development. shadcn/ui components used for UI library with dark mode support.",
+  "key_patterns": [
+    "JWT Bearer token authentication via FastAPI dependencies",
+    "SQLAlchemy ORM with Alembic migrations for database schema",
+    "OpenAPI client code generation for type-safe API communication",
+    "TanStack Router file-based routing with layout system",
+    "shadcn/ui component composition pattern",
+    "React Query for server state management",
+    "Password hashing with Passlib bcrypt",
+    "Role-based access control via dependency injection",
+    "Docker multi-service orchestration with Traefik",
+    "End-to-end testing with Playwright",
+    "Dark/light theme persistence via React Context"
+  ]
+}

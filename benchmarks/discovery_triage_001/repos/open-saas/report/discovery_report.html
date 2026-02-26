@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: 90e919d92545 &bull; Generated: 2026-02-26 01:12 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>39 findings</span>
+        <span>315s runtime</span>
+        <span>$0.0000 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box critical"><div class="num">4</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">6</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">18</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">11</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing authentication check on getDownloadFileSignedURL operation</strong>
+                <div class="desc">The getDownloadFileSignedURL operation in file-upload/operations.ts does not validate that the requesting user owns the file before generating a download URL. This allows any authenticated user to gen</div>
+            </td>
+            <td class="loc">template/app/src/file-upload/operations.ts:79</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing RBAC check for admin dashboard access</strong>
+                <div class="desc">Admin dashboard pages (UsersDashboardPage, AnalyticsDashboardPage, SettingsPage) accept a user parameter but do not validate that the user has admin privileges. Any authenticated user who can navigate</div>
+            </td>
+            <td class="loc">template/app/src/admin/dashboards/users/UsersDashboardPage.tsx:5</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Cross-user file access via direct S3 key manipulation</strong>
+                <div class="desc">The FileUploadPage allows users to download files by setting s3Key state, which is then used in getDownloadFileSignedURL. Since getDownloadFileSignedURL doesn't validate file ownership, a user could m</div>
+            </td>
+            <td class="loc">template/app/src/file-upload/FileUploadPage.tsx:58</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing authentication on payment webhook endpoints</strong>
+                <div class="desc">The webhook.ts file exports paymentsWebhook and paymentsMiddlewareConfigFn, which should rely on signature verification from payment providers. However, if signature validation is misconfigured or mis</div>
+            </td>
+            <td class="loc">template/app/src/payment/webhook.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unauthenticated access to getDailyStats analytics query</strong>
+                <div class="desc">The getDailyStats operation is called from AnalyticsDashboardPage without visible authentication enforcement in the client code. If the server-side operation lacks proper authentication checks, sensit</div>
+            </td>
+            <td class="loc">template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx:11</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Weak password reset token validation flow</strong>
+                <div class="desc">The PasswordResetPage and RequestPasswordResetPage components use Wasp's built-in auth forms (ResetPasswordForm, ForgotPasswordForm) without visible token validation logic in the provided code. If the</div>
+            </td>
+            <td class="loc">template/app/src/auth/email-and-pass/PasswordResetPage.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Admin role assignment based on email without validation</strong>
+                <div class="desc">The userSignupFields.ts file sets isAdmin=true based on matching email addresses from an ADMIN_EMAILS environment variable. However, there's no verification that the email is actually verified before </div>
+            </td>
+            <td class="loc">template/app/src/auth/userSignupFields.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Potential runtime error: Non-null assertions on env vars without validation</strong>
+                <div class="desc">Environment variables are accessed with non-null assertions (!) in multiple files. If these are not set, the application will crash at runtime rather than failing gracefully.</div>
+            </td>
+            <td class="loc">template/app/src/file-upload/s3Utils.ts:16</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: admin module exceeds 1800 LOC with mixed concerns</strong>
+                <div class="desc">The admin module contains 1800 LOC across 21 files with mixed responsibilities including layout components, dashboard pages, analytics, user management, and settings. This violates single responsibili</div>
+            </td>
+            <td class="loc">template/app/src/admin/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: payment module exceeds 1200 LOC with multiple provider integrations</strong>
+                <div class="desc">The payment module contains 1200 LOC across 21 files with three separate payment provider implementations (Stripe, LemonSqueezy, Polar), each with duplicate webhook, checkout, and payment processor lo</div>
+            </td>
+            <td class="loc">template/app/src/payment/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Email verification token sent in plaintext via email</strong>
+                <div class="desc">The getVerificationEmailContent function in emails.ts sends the full verification link (which includes the token) in plaintext in the email body. If email is intercepted or logs are accessed, the toke</div>
+            </td>
+            <td class="loc">template/app/src/auth/email-and-pass/emails.ts:5</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>OAuth provider email verification bypass for GitHub</strong>
+                <div class="desc">In getGitHubUserFields, the isAdmin check verifies email is verified, but the primary login flow doesn't enforce verified email status. A user could potentially register via GitHub without a verified </div>
+            </td>
+            <td class="loc">template/app/src/auth/userSignupFields.ts:33</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>User data leakage in error messages on failed auth</strong>
+                <div class="desc">Auth pages (LoginPage, SignupPage) use Wasp's built-in auth forms which may expose whether an email exists in the system through different error messages (e.g., 'User already exists' vs 'Invalid crede</div>
+            </td>
+            <td class="loc">template/app/src/auth/LoginPage.tsx:5</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing rate limiting on payment operations</strong>
+                <div class="desc">The generateCheckoutSession operation can be called repeatedly without rate limiting, potentially allowing attackers to create numerous checkout sessions (DoS) or spam payment provider APIs.</div>
+            </td>
+            <td class="loc">template/app/src/payment/operations.ts:14</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Type safety: any-typed array in analytics</strong>
+                <div class="desc">In googleAnalyticsUtils.ts, an array is typed as `any[]` which bypasses TypeScript's type checking and can lead to runtime errors.</div>
+            </td>
+            <td class="loc">template/app/src/analytics/providers/googleAnalyticsUtils.ts:41</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Type safety: @ts-ignore usage in analytics</strong>
+                <div class="desc">Multiple `@ts-ignore` comments are used to suppress TypeScript errors, indicating underlying type issues that should be properly resolved.</div>
+            </td>
+            <td class="loc">template/app/src/analytics/providers/googleAnalyticsUtils.ts:63</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Code duplication: Duplicate headers object in Plausible analytics</strong>
+                <div class="desc">A `headers` object with identical content is defined both at module level and within the `getPageviewsForDate` function, creating redundant code.</div>
+            </td>
+            <td class="loc">template/app/src/analytics/providers/plausibleAnalyticsUtils.ts:16</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Inconsistent error handling: Different patterns across payment webhooks</strong>
+                <div class="desc">Each payment provider webhook (Stripe, LemonSqueezy, Polar) uses slightly different patterns for error logging and response. This inconsistency makes maintenance harder.</div>
+            </td>
+            <td class="loc">template/app/src/payment/stripe/webhook.ts:73</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Code duplication: Payment plan card data repeated in component</strong>
+                <div class="desc">The `paymentPlanCards` object contains display data (name, price, features) that could be consolidated with the `paymentPlans` object in plans.ts</div>
+            </td>
+            <td class="loc">template/app/src/payment/PricingPage.tsx:40</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Incomplete implementation: MessageButton has placeholder code</strong>
+                <div class="desc">The MessageButton component has a TODO comment indicating incomplete implementation for message notifications.</div>
+            </td>
+            <td class="loc">template/app/src/admin/dashboards/messages/MessageButton.tsx:14</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Incomplete implementation: Settings form has placeholder submit</strong>
+                <div class="desc">The SettingsPage form has a TODO and alerts 'Not yet implemented' on submit.</div>
+            </td>
+            <td class="loc">template/app/src/admin/elements/settings/SettingsPage.tsx:13</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Incomplete implementation: Messages page placeholder</strong>
+                <div class="desc">The AdminMessages page shows a placeholder 'under construction' message.</div>
+            </td>
+            <td class="loc">template/app/src/admin/dashboards/messages/MessagesPage.tsx:4</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Type safety: Generic type parameter uses any in throttle function</strong>
+                <div class="desc">The throttleWithTrailingInvocation function accepts `...args: any[]` which bypasses type safety for the throttled function.</div>
+            </td>
+            <td class="loc">template/app/src/shared/utils.ts:14</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction layer between admin/payment pages and analytics operations</strong>
+                <div class="desc">Admin dashboard pages (AnalyticsDashboardPage, TotalRevenueCard, TotalSignupsCard) directly import analytics/operations.ts. Analytics operations contain business logic for fetching and aggregating use</div>
+            </td>
+            <td class="loc">template/app/src/admin/dashboards/analytics/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Client module exhibits high internal cohesion with unclear responsibilities</strong>
+                <div class="desc">The client module contains 2500 LOC across 34 files including app shell (App.tsx), routing, theming (DarkModeSwitcher), UI component library (30+ Radix UI wrapper components), hooks (useColorMode, use</div>
+            </td>
+            <td class="loc">template/app/src/client/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Tight coupling between payment providers and checkout/PricingPage</strong>
+                <div class="desc">The PricingPage.tsx directly imports from payment/paymentProcessor.ts and specific provider implementations. Changes to payment provider selection logic or provider instantiation require modifying the</div>
+            </td>
+            <td class="loc">template/app/src/payment/PricingPage.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>No clear service layer between UI components and database operations</strong>
+                <div class="desc">Multiple modules (user, file-upload, demo-ai-app) define operations.ts files that directly handle database queries and business logic. Components import these operations directly without an intermedia</div>
+            </td>
+            <td class="loc">template/app/src/user/operations.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>DemoAppPage exhibits god component pattern with 487 LOC</strong>
+                <div class="desc">The DemoAppPage.tsx contains 487 lines of code handling UI rendering, state management, scheduling logic, and potentially API integration. This file is substantially larger than typical React componen</div>
+            </td>
+            <td class="loc">template/app/src/demo-ai-app/DemoAppPage.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Insufficient input validation on S3 key generation</strong>
+                <div class="desc">The getS3Key function in s3Utils.ts uses user-supplied fileName to construct the S3 key. While it extracts only the extension, a malicious filename could still cause issues (e.g., path traversal attem</div>
+            </td>
+            <td class="loc">template/app/src/file-upload/s3Utils.ts:53</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Magic number: URL expiration timeout repeated across files</strong>
+                <div class="desc">The value 3600 (seconds) for signed URL expiration is hardcoded in multiple files. This should be a named constant.</div>
+            </td>
+            <td class="loc">template/app/src/file-upload/s3Utils.ts:34</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Magic number: Hardcoded redirect delay in CheckoutResultPage</strong>
+                <div class="desc">The redirect delay value 4000ms is hardcoded and used both as a constant and inline in the code, creating potential inconsistency.</div>
+            </td>
+            <td class="loc">template/app/src/payment/CheckoutResultPage.tsx:5</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Inconsistent naming: Mixed camelCase and snake_case in analytics</strong>
+                <div class="desc">Some functions use camelCase (getDailyPageViews) while others use similar patterns inconsistently. The API keys are also named with inconsistent patterns (PLAUSIBLE_API_KEY vs GOOGLE_ANALYTICS_PROPERT</div>
+            </td>
+            <td class="loc">template/app/src/analytics/providers/plausibleAnalyticsUtils.ts:11</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Magic number: Hardcoded test card number in pricing page</strong>
+                <div class="desc">The Stripe test card number '4242 4242 4242 4242 4242' is hardcoded in the pricing page UI.</div>
+            </td>
+            <td class="loc">template/app/src/payment/PricingPage.tsx:124</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Magic string: Hardcoded 'today' date in Google Analytics</strong>
+                <div class="desc">The string 'today' is used as a date parameter in the Google Analytics query. While it works, using dynamic dates would be more robust.</div>
+            </td>
+            <td class="loc">template/app/src/analytics/providers/googleAnalyticsUtils.ts:30</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Dead code: Commented out logo reference in settings page</strong>
+                <div class="desc">In SettingsPage.tsx, there's a commented-out img tag for user photo that appears to be leftover from template creation.</div>
+            </td>
+            <td class="loc">template/app/src/admin/elements/settings/SettingsPage.tsx:118</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Inconsistent constant patterns in pricing page</strong>
+                <div class="desc">The pricing page mixes inline constant definition (bestDealPaymentPlanId) with paymentPlanCards object. The constant could be in plans.ts for consistency.</div>
+            </td>
+            <td class="loc">template/app/src/payment/PricingPage.tsx:38</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent error handling and validation patterns across modules</strong>
+                <div class="desc">Different modules handle validation and errors differently: payment/errors.ts, file-upload/validation.ts, server/validation.ts exist without clear cohesion. No unified validation or error handling fra</div>
+            </td>
+            <td class="loc">template/app/src/payment/errors.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Landing page and blog modules lack clear separation from main app</strong>
+                <div class="desc">Landing page (1100 LOC) and blog (800 LOC) exist as separate modules but share UI components, styling, and potentially utilities with main client application. No clear boundary between marketing conte</div>
+            </td>
+            <td class="loc">template/app/src/landing-page/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Analytics module tightly coupled to admin dashboard without provider abstraction</strong>
+                <div class="desc">Analytics module contains provider-specific implementations (googleAnalyticsUtils.ts, plausibleAnalyticsUtils.ts) but admin dashboard components directly depend on these specifics. No provider-agnosti</div>
+            </td>
+            <td class="loc">template/app/src/analytics/providers/googleAnalyticsUtils.ts:1</td>
+            <td></td>
+        </tr></tbody>
+    </table>
+
+    
+        <h2>Remediation Plan (38 items across 4 levels)</h2>
+        <p class="plan-summary">34 actionable items across 4 execution levels, prioritized by security impact. Level 1 contains 12 critical/high-priority security fixes (auth, file access, rate limiting, env validation). Level 2 refines remaining security items and type safety improvements. Level 3 completes type safety chain. Level 4 completes feature implementations. 10 findings deferred as Tier 0 architectural issues requiring strategic review and major refactoring—these should be scheduled in a separate architectural planning phase.</p>
+        <table>
+            <thead><tr><th>Priority</th><th>Tier</th><th>Fix</th><th>Files</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>P1</td>
+                <td>T2</td>
+                <td><strong>Add ownership validation to getDownloadFileSignedURL operation</strong></td>
+                <td>template/app/src/file-upload/operations.ts, template/app/src/file-upload/FileUploadPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T2</td>
+                <td><strong>Prevent cross-user file access via S3 key manipulation</strong></td>
+                <td>template/app/src/file-upload/operations.ts, template/app/src/file-upload/FileUploadPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Add authentication and admin authorization to getDailyStats operation</strong></td>
+                <td>template/app/src/analytics/operations.ts, template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx, template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T3</td>
+                <td><strong>Enforce RBAC checks on all admin dashboard pages</strong></td>
+                <td>template/app/src/admin/dashboards/users/UsersDashboardPage.tsx, template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx, template/app/src/admin/elements/settings/SettingsPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Require email verification before granting admin privileges</strong></td>
+                <td>template/app/src/auth/userSignupFields.ts, template/app/src/auth/email-and-pass/EmailVerificationPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Enforce verified email requirement for OAuth providers</strong></td>
+                <td>template/app/src/auth/userSignupFields.ts</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T1</td>
+                <td><strong>Verify password reset token validation in main.wasp configuration</strong></td>
+                <td>template/app/wasp</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T3</td>
+                <td><strong>Verify webhook signature validation across all payment providers</strong></td>
+                <td>template/app/src/payment/stripe/webhook.ts, template/app/src/payment/lemonSqueezy/webhook.ts, template/app/src/payment/polar/webhook.ts</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Implement rate limiting on generateCheckoutSession operation</strong></td>
+                <td>template/app/src/payment/operations.ts, template/app/wasp</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T1</td>
+                <td><strong>Implement generic error messages for auth flows</strong></td>
+                <td>template/app/wasp</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Add strict file extension validation on S3 key generation</strong></td>
+                <td>template/app/src/file-upload/s3Utils.ts</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T1</td>
+                <td><strong>Replace any[] with proper TypeScript interface in analytics</strong></td>
+                <td>template/app/src/analytics/providers/googleAnalyticsUtils.ts</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Remove @ts-ignore comments and properly type analytics response objects</strong></td>
+                <td>template/app/src/analytics/providers/googleAnalyticsUtils.ts</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Extract signed URL expiration timeout to shared constant</strong></td>
+                <td>template/app/src/shared/constants.ts, template/app/src/file-upload/s3Utils.ts</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Validate environment variables at application startup</strong></td>
+                <td>template/app/src/file-upload/s3Utils.ts, template/app/src/server/utils.ts</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Consolidate webhook error handling patterns across payment providers</strong></td>
+                <td>template/app/src/payment/stripe/webhook.ts, template/app/src/payment/lemonSqueezy/webhook.ts, template/app/src/payment/polar/webhook.ts</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T2</td>
+                <td><strong>Implement message notification system for MessageButton</strong></td>
+                <td>template/app/src/admin/dashboards/messages/MessageButton.tsx, template/app/src/admin/dashboards/messages/MessagesPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T2</td>
+                <td><strong>Implement settings form submission and persistence</strong></td>
+                <td>template/app/src/admin/elements/settings/SettingsPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T2</td>
+                <td><strong>Implement admin messages page functionality</strong></td>
+                <td>template/app/src/admin/dashboards/messages/MessagesPage.tsx, template/app/src/admin/dashboards/messages/MessageButton.tsx</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Add generic type parameter to throttleWithTrailingInvocation</strong></td>
+                <td>template/app/src/shared/utils.ts</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Remove dead code: commented-out user photo in settings</strong></td>
+                <td>template/app/src/admin/elements/settings/SettingsPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Move hardcoded Stripe test card to constants</strong></td>
+                <td>template/app/src/shared/constants.ts, template/app/src/payment/PricingPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Move pricing constants to plans.ts module</strong></td>
+                <td>template/app/src/payment/plans.ts, template/app/src/payment/PricingPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Consolidate payment plan metadata into single source of truth</strong></td>
+                <td>template/app/src/payment/plans.ts, template/app/src/payment/PricingPage.tsx</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T1</td>
+                <td><strong>Document email verification token security in main.wasp</strong></td>
+                <td>template/app/wasp</td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Refactor god admin module - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Refactor payment module for reduced duplication - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Create analytics facade layer - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Reorganize client module structure - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Abstract payment provider selection - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Create service layer abstraction - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Decompose DemoAppPage god component - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Consolidate validation and error handling - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Clarify landing page and blog separation - strategic review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T0</td>
+                <td><strong>Defer: Abstract analytics provider - architecture review required</strong></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Remove duplicate headers object in Plausible analytics</strong></td>
+                <td>template/app/src/analytics/providers/plausibleAnalyticsUtils.ts</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Document environment variable naming conventions</strong></td>
+                <td>template/app/.env.example</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Add comment documenting 'today' relative date in Google Analytics</strong></td>
+                <td>template/app/src/analytics/providers/googleAnalyticsUtils.ts</td>
+            </tr></tbody>
+        </table>
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

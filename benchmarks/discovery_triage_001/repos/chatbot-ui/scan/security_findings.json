@@ -1,0 +1,718 @@
+{
+  "findings": [
+    {
+      "id": "F-e3ce60d1",
+      "title": "Missing authentication check on password reset endpoint",
+      "description": "The password reset handler in login page does not validate user email before sending reset email. An attacker can enumerate valid emails by checking which ones accept password reset requests.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 78,
+          "line_end": 92,
+          "snippet": "const handleResetPassword = async (formData: FormData) => {\n    \"use server\"\n\n    const origin = headers().get(\"origin\")\n    const email = formData.get(\"email\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { error } = await supabase.auth.resetPasswordForEmail(email, {\n      redirectTo: `${origin}/auth/callback?next=/login/password`\n    })"
+        }
+      ],
+      "suggested_fix": "Return a generic success message regardless of whether the email exists in the system. This prevents email enumeration attacks. Supabase will silently ignore non-existent emails by default, but ensure the UI response is identical for both cases: 'If an account exists with this email, you will receive a password reset link.'",
+      "confidence": 0.85,
+      "cwe_id": "CWE-203",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2abb0534",
+      "title": "Unprotected API endpoint - /api/username/available returns user existence information",
+      "description": "The /api/username/available endpoint allows any unauthenticated request to check if a username exists. While usernames may be semi-public, this endpoint should enforce rate limiting and authentication to prevent username enumeration attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/username/available/route.ts",
+          "line_start": 1,
+          "line_end": 25,
+          "snippet": "export async function POST(request: Request) {\n  const json = await request.json()\n  const { username } = json as {\n    username: string\n  }\n\n  try {\n    const supabaseAdmin = createClient<Database>(\n      process.env.NEXT_PUBLIC_SUPABASE_URL!,\n      process.env.SUPABASE_SERVICE_ROLE_KEY!\n    )\n\n    const { data: usernames, error } = await supabaseAdmin\n      .from(\"profiles\")\n      .select(\"username\")\n      .eq(\"username\", username)\n\n    if (!usernames) {\n      throw new Error(error.message)\n    }\n\n    return new Response(JSON.stringify({ isAvailable: !usernames.length }), {\n      status: 200\n    })\n  }"
+        }
+      ],
+      "suggested_fix": "Add rate limiting middleware to this endpoint (e.g., max 10 requests per IP per minute). Consider requiring authentication. Implement exponential backoff for repeated failures. Alternatively, move this check to client-side only during signup with server-side validation only on actual profile creation.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7d26faf0",
+      "title": "Missing CSRF protection on server actions in login form",
+      "description": "The login page uses Next.js server actions (signIn, signUp, handleResetPassword) via formAction attributes. While Next.js provides built-in CSRF protection for server actions, there is no explicit validation of the action origin or explicit CSRF tokens.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 104,
+          "line_end": 145,
+          "snippet": "return (\n    <div className=\"flex w-full flex-1 flex-col justify-center gap-2 px-8 sm:max-w-md\">\n      <form\n        className=\"animate-in text-foreground flex w-full flex-1 flex-col justify-center gap-2\"\n        action={signIn}\n      >"
+        }
+      ],
+      "suggested_fix": "Next.js 14+ automatically provides CSRF protection for server actions, but verify this is enabled. No additional action needed if on Next.js 14+. For explicit security, consider adding a hidden CSRF token field or using the `revalidatePath` API after auth state changes.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2e3549ff",
+      "title": "Weak session validation in middleware - no user_id verification",
+      "description": "The middleware checks for session existence but does not validate the user_id is present or valid. A malformed session token could potentially bypass checks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "middleware.ts",
+          "line_start": 6,
+          "line_end": 26,
+          "snippet": "const session = await supabase.auth.getSession()\n\n    const redirectToChat = session && request.nextUrl.pathname === \"/\"\n\n    if (redirectToChat) {\n      const { data: homeWorkspace, error } = await supabase\n        .from(\"workspaces\")\n        .select(\"*\")\n        .eq(\"user_id\", session.data.session?.user.id)\n        .eq(\"is_home\", true)\n        .single()"
+        }
+      ],
+      "suggested_fix": "Add explicit validation: `if (!session?.user?.id) return NextResponse.redirect(new URL('/login', request.url))` before attempting database queries. Also validate that `session.data.session` is not null and contains required fields (user.id, user.email).",
+      "confidence": 0.78,
+      "cwe_id": "CWE-305",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f12013e9",
+      "title": "No explicit session expiry handling in protected pages",
+      "description": "Protected pages like /[workspaceid]/chat check for session using Supabase client-side, but there is no mechanism to refresh expired sessions or handle token rotation gracefully.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/[workspaceid]/layout.tsx",
+          "line_start": 56,
+          "line_end": 70,
+          "snippet": "useEffect(() => {\n    ;(async () => {\n      const session = (await supabase.auth.getSession()).data.session\n\n      if (!session) {\n        return router.push(\"/login\")\n      } else {\n        await fetchWorkspaceData(workspaceId)\n      }\n    })()\n  }, [])"
+        }
+      ],
+      "suggested_fix": "Implement automatic token refresh using Supabase's `onAuthStateChange` listener: `supabase.auth.onAuthStateChange((event, session) => { if (!session) router.push('/login') })`. This handles token expiry and refresh gracefully without full page reloads.",
+      "confidence": 0.82,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ac6af45b",
+      "title": "API keys stored in user profiles without encryption at rest",
+      "description": "API keys for OpenAI, Anthropic, Azure, etc. are stored in the profiles table (profile.openai_api_key, profile.anthropic_api_key, etc.) without application-level encryption. Database compromise exposes all user API keys.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/setup/page.tsx",
+          "line_start": 145,
+          "line_end": 165,
+          "snippet": "const updateProfilePayload: TablesUpdate<\"profiles\"> = {\n      ...profile,\n      has_onboarded: true,\n      display_name: displayName,\n      username,\n      openai_api_key: openaiAPIKey,\n      openai_organization_id: openaiOrgID,\n      anthropic_api_key: anthropicAPIKey,\n      google_gemini_api_key: googleGeminiAPIKey,\n      mistral_api_key: mistralAPIKey,\n      groq_api_key: groqAPIKey,\n      perplexity_api_key: perplexityAPIKey,\n      openrouter_api_key: openrouterAPIKey,\n      use_azure_openai: useAzureOpenai,\n      azure_openai_api_key: azureOpenaiAPIKey,"
+        }
+      ],
+      "suggested_fix": "Implement server-side encryption for sensitive API keys before storing in database. Use a key derivation function (KDF) like PBKDF2 or Argon2 with a user-specific salt. Store only encrypted values in the database. Decrypt keys only in server-side API routes (app/api/chat/*, app/api/retrieval/*) using Supabase's SECURITY DEFINER functions. Alternatively, use AWS Secrets Manager, HashiCorp Vault, or Supabase Vault (if available) to store API keys separately from user profiles.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-312",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7dd063d3",
+      "title": "API keys exposed in server logs and error messages",
+      "description": "Error responses from API routes may inadvertently expose partial API key information or request details containing keys. Example in app/api/chat/openai/route.ts and similar routes.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 45,
+          "line_end": 52,
+          "snippet": "} catch (error: any) {\n    let errorMessage = error.message || \"An unexpected error occurred\"\n    const errorCode = error.status || 500\n\n    if (errorMessage.toLowerCase().includes(\"api key not found\")) {\n      errorMessage =\n        \"OpenAI API Key not found. Please set it in your profile settings.\"\n    } else if (errorMessage.toLowerCase().includes(\"incorrect api key\")) {"
+        }
+      ],
+      "suggested_fix": "Sanitize error messages to remove sensitive information. Log full errors only to server-side logs (not returned to client). Return generic error messages to the client: 'Authentication failed. Please verify your API keys in settings.' Do NOT include the word 'incorrect' in error messages as it confirms key existence. Implement centralized error handling with logging to secure backend (e.g., Sentry with data redaction).",
+      "confidence": 0.88,
+      "cwe_id": "CWE-532",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-88e605b3",
+      "title": "No rate limiting on authentication endpoints",
+      "description": "Login, signup, and password reset endpoints (/api/username/available, signUp, signIn) have no rate limiting. Attackers can perform brute force attacks, credential stuffing, or password spray.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 34,
+          "line_end": 58,
+          "snippet": "const signIn = async (formData: FormData) => {\n    \"use server\"\n\n    const email = formData.get(\"email\") as string\n    const password = formData.get(\"password\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { data, error } = await supabase.auth.signInWithPassword({\n      email,\n      password\n    })"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting on authentication endpoints using middleware or a rate-limiting library (e.g., `Ratelimit` from `@upstash/ratelimit`). Suggested limits: Login - 5 attempts per IP per 15 minutes; Signup - 3 per IP per hour; Password reset - 3 per email per hour. Return HTTP 429 (Too Many Requests) when limits exceeded. Note: Supabase has built-in auth rate limiting, but verify it is enabled in your Supabase project settings.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-92ebe3e5",
+      "title": "Missing input validation on email in signup - weak email whitelist check",
+      "description": "The email domain/whitelist validation only checks exact string matches and splits by comma. No regex pattern matching or trimming of whitespace in individual domain entries. Malformed whitelist could allow unauthorized signups.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 61,
+          "line_end": 77,
+          "snippet": "const emailDomainWhitelistPatternsString = await getEnvVarOrEdgeConfigValue(\n      \"EMAIL_DOMAIN_WHITELIST\"\n    )\n    const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim()\n      ? emailDomainWhitelistPatternsString?.split(\",\")\n      : []\n    const emailWhitelistPatternsString =\n      await getEnvVarOrEdgeConfigValue(\"EMAIL_WHITELIST\")\n    const emailWhitelist = emailWhitelistPatternsString?.trim()\n      ? emailWhitelistPatternsString?.split(\",\")\n      : []\n\n    // If there are whitelist patterns, check if the email is allowed to sign up\n    if (emailDomainWhitelist.length > 0 || emailWhitelist.length > 0) {\n      const domainMatch = emailDomainWhitelist?.includes(email.split(\"@\")[1])\n      const emailMatch = emailWhitelist?.includes(email)"
+        }
+      ],
+      "suggested_fix": "Trim whitespace from each whitelist entry: `const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim().split(',').map(e => e.trim().toLowerCase()) || []`. Convert email to lowercase for comparison: `const domainMatch = emailDomainWhitelist?.includes(email.toLowerCase().split('@')[1])`. Add regex pattern support for domain wildcards if needed: `const domainRegex = new RegExp(domain.replace('.', '\\\\.').replace('*', '.*'))`. Validate email format using a library like `email-validator` or regex before whitelist check.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-284",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4766f1e2",
+      "title": "No HTTPS enforcement in auth callback redirect",
+      "description": "The password reset callback uses `headers().get('origin')` without validating it's HTTPS. A man-in-the-middle attack could capture the reset token from the redirect URL.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 78,
+          "line_end": 87,
+          "snippet": "const handleResetPassword = async (formData: FormData) => {\n    \"use server\"\n\n    const origin = headers().get(\"origin\")\n    const email = formData.get(\"email\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { error } = await supabase.auth.resetPasswordForEmail(email, {\n      redirectTo: `${origin}/auth/callback?next=/login/password`"
+        }
+      ],
+      "suggested_fix": "Validate origin URL before using it: `const origin = headers().get('origin') || process.env.NEXT_PUBLIC_APP_URL; if (!origin?.startsWith('https://') && !origin?.includes('localhost')) { throw new Error('Invalid origin'); }`. Ensure `X-Forwarded-Proto: https` header is set in production. Verify Supabase HTTPS requirement is enabled in project settings.",
+      "confidence": 0.82,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d0802f11",
+      "title": "No explicit logout/session termination mechanism",
+      "description": "No logout functionality is visible in the codebase. Users have no way to explicitly terminate their sessions, only rely on token expiry. This violates session management best practices.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "components/utility/profile-settings.tsx",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "File not provided in codebase"
+        }
+      ],
+      "suggested_fix": "Add explicit logout endpoint and UI button. Create `app/api/auth/logout/route.ts`: `export async function POST() { const supabase = createClient(); await supabase.auth.signOut(); return NextResponse.redirect('/login'); }`. Add logout button in profile settings component that calls this endpoint and clears client-side context state.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5295a79f",
+      "title": "No validation of workspace user_id ownership before granting access",
+      "description": "The middleware and workspace layout check for session but do not explicitly validate that the user owns the workspace. Row-level security (RLS) policies must exist, but code does not verify them.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "middleware.ts",
+          "line_start": 15,
+          "line_end": 29,
+          "snippet": "const { data: homeWorkspace, error } = await supabase\n        .from(\"workspaces\")\n        .select(\"*\")\n        .eq(\"user_id\", session.data.session?.user.id)\n        .eq(\"is_home\", true)\n        .single()"
+        }
+      ],
+      "suggested_fix": "Verify Supabase RLS policies are properly configured for all tables. Add explicit authorization check in workspace layout: `if (selectedWorkspace?.user_id !== session.user.id) { return router.push('/login'); }`. Verify all database queries filter by `user_id = auth.uid()` at the Supabase level using RLS policies, not just in application code.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8d55433e",
+      "title": "Sensitive data exposure - environment variables accessible via /api/keys endpoint",
+      "description": "The `/api/keys` endpoint returns which API keys are configured from environment variables. This information could help attackers understand which services are in use and target them.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/keys/route.ts",
+          "line_start": 1,
+          "line_end": 31,
+          "snippet": "export async function GET() {\n  const envKeyMap: Record<string, VALID_ENV_KEYS> = {\n    azure: VALID_ENV_KEYS.AZURE_OPENAI_API_KEY,\n    openai: VALID_ENV_KEYS.OPENAI_API_KEY,\n    google: VALID_ENV_KEYS.GOOGLE_GEMINI_API_KEY,\n    anthropic: VALID_ENV_KEYS.ANTHROPIC_API_KEY,\n    mistral: VALID_ENV_KEYS.MISTRAL_API_KEY,\n    groq: VALID_ENV_KEYS.GROQ_API_KEY,\n    perplexity: VALID_ENV_KEYS.PERPLEXITY_API_KEY,\n    openrouter: VALID_ENV_KEYS.OPENROUTER_API_KEY,"
+        }
+      ],
+      "suggested_fix": "Add authentication check: `const { data: { user } } = await supabase.auth.getUser(); if (!user) return new Response('Unauthorized', { status: 401 });` at the start of the GET handler. This endpoint should only be accessible to authenticated users. Consider removing it entirely if not strictly necessary for client functionality.",
+      "confidence": 0.72,
+      "cwe_id": "CWE-200",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c2579710",
+      "title": "No authentication verification in protected API routes",
+      "description": "API routes like `/api/chat/openai`, `/api/retrieval/process`, etc. rely on `getServerProfile()` to implicitly verify authentication, but there is no explicit session/JWT validation before processing requests.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 8,
+          "line_end": 18,
+          "snippet": "export async function POST(request: Request) {\n  const json = await request.json()\n  const { chatSettings, messages } = json as {\n    chatSettings: ChatSettings\n    messages: any[]\n  }\n\n  try {\n    const profile = await getServerProfile()\n\n    checkApiKey(profile.openai_api_key, \"OpenAI\")"
+        }
+      ],
+      "suggested_fix": "Verify `getServerProfile()` implementation (in lib/server/server-chat-helpers.ts) to ensure it explicitly validates authentication. Add explicit auth check before processing: `const { data: { user } } = await supabase.auth.getUser(); if (!user) return new Response('Unauthorized', { status: 401 });` If `getServerProfile()` is secure, document this clearly in comments. Ensure all API routes use this pattern.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c421b848",
+      "title": "No validation of custom model credentials in /api/chat/custom endpoint",
+      "description": "The custom model endpoint retrieves model credentials from database (customModel.api_key) without validating they belong to the requesting user. If a user can guess or enumerate model IDs, they could use other users' API keys.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/chat/custom/route.ts",
+          "line_start": 11,
+          "line_end": 25,
+          "snippet": "const { data: customModel, error } = await supabaseAdmin\n      .from(\"models\")\n      .select(\"*\")\n      .eq(\"id\", customModelId)\n      .single()\n\n    if (!customModel) {\n      throw new Error(error.message)\n    }\n\n    const custom = new OpenAI({\n      apiKey: customModel.api_key || \"\",\n      baseURL: customModel.base_url\n    })"
+        }
+      ],
+      "suggested_fix": "Add ownership validation before using the model: Add `const profile = await getServerProfile(); if (customModel.user_id !== profile.user_id) { throw new Error('Unauthorized'); }`. Ensure the `models` table has a `user_id` column and RLS policy restricting access to model owner. Query should be: `.eq('user_id', profile.user_id)` as well.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [
+        {
+          "id": "F-e3ce60d1",
+          "title": "Missing authentication check on password reset endpoint",
+          "description": "The password reset handler in login page does not validate user email before sending reset email. An attacker can enumerate valid emails by checking which ones accept password reset requests.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/[locale]/login/page.tsx",
+              "line_start": 78,
+              "line_end": 92,
+              "snippet": "const handleResetPassword = async (formData: FormData) => {\n    \"use server\"\n\n    const origin = headers().get(\"origin\")\n    const email = formData.get(\"email\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { error } = await supabase.auth.resetPasswordForEmail(email, {\n      redirectTo: `${origin}/auth/callback?next=/login/password`\n    })"
+            }
+          ],
+          "suggested_fix": "Return a generic success message regardless of whether the email exists in the system. This prevents email enumeration attacks. Supabase will silently ignore non-existent emails by default, but ensure the UI response is identical for both cases: 'If an account exists with this email, you will receive a password reset link.'",
+          "confidence": 0.85,
+          "cwe_id": "CWE-203",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2abb0534",
+          "title": "Unprotected API endpoint - /api/username/available returns user existence information",
+          "description": "The /api/username/available endpoint allows any unauthenticated request to check if a username exists. While usernames may be semi-public, this endpoint should enforce rate limiting and authentication to prevent username enumeration attacks.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/api/username/available/route.ts",
+              "line_start": 1,
+              "line_end": 25,
+              "snippet": "export async function POST(request: Request) {\n  const json = await request.json()\n  const { username } = json as {\n    username: string\n  }\n\n  try {\n    const supabaseAdmin = createClient<Database>(\n      process.env.NEXT_PUBLIC_SUPABASE_URL!,\n      process.env.SUPABASE_SERVICE_ROLE_KEY!\n    )\n\n    const { data: usernames, error } = await supabaseAdmin\n      .from(\"profiles\")\n      .select(\"username\")\n      .eq(\"username\", username)\n\n    if (!usernames) {\n      throw new Error(error.message)\n    }\n\n    return new Response(JSON.stringify({ isAvailable: !usernames.length }), {\n      status: 200\n    })\n  }"
+            }
+          ],
+          "suggested_fix": "Add rate limiting middleware to this endpoint (e.g., max 10 requests per IP per minute). Consider requiring authentication. Implement exponential backoff for repeated failures. Alternatively, move this check to client-side only during signup with server-side validation only on actual profile creation.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-307",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-7d26faf0",
+          "title": "Missing CSRF protection on server actions in login form",
+          "description": "The login page uses Next.js server actions (signIn, signUp, handleResetPassword) via formAction attributes. While Next.js provides built-in CSRF protection for server actions, there is no explicit validation of the action origin or explicit CSRF tokens.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/[locale]/login/page.tsx",
+              "line_start": 104,
+              "line_end": 145,
+              "snippet": "return (\n    <div className=\"flex w-full flex-1 flex-col justify-center gap-2 px-8 sm:max-w-md\">\n      <form\n        className=\"animate-in text-foreground flex w-full flex-1 flex-col justify-center gap-2\"\n        action={signIn}\n      >"
+            }
+          ],
+          "suggested_fix": "Next.js 14+ automatically provides CSRF protection for server actions, but verify this is enabled. No additional action needed if on Next.js 14+. For explicit security, consider adding a hidden CSRF token field or using the `revalidatePath` API after auth state changes.",
+          "confidence": 0.7,
+          "cwe_id": "CWE-352",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2e3549ff",
+          "title": "Weak session validation in middleware - no user_id verification",
+          "description": "The middleware checks for session existence but does not validate the user_id is present or valid. A malformed session token could potentially bypass checks.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "middleware.ts",
+              "line_start": 6,
+              "line_end": 26,
+              "snippet": "const session = await supabase.auth.getSession()\n\n    const redirectToChat = session && request.nextUrl.pathname === \"/\"\n\n    if (redirectToChat) {\n      const { data: homeWorkspace, error } = await supabase\n        .from(\"workspaces\")\n        .select(\"*\")\n        .eq(\"user_id\", session.data.session?.user.id)\n        .eq(\"is_home\", true)\n        .single()"
+            }
+          ],
+          "suggested_fix": "Add explicit validation: `if (!session?.user?.id) return NextResponse.redirect(new URL('/login', request.url))` before attempting database queries. Also validate that `session.data.session` is not null and contains required fields (user.id, user.email).",
+          "confidence": 0.78,
+          "cwe_id": "CWE-305",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f12013e9",
+          "title": "No explicit session expiry handling in protected pages",
+          "description": "Protected pages like /[workspaceid]/chat check for session using Supabase client-side, but there is no mechanism to refresh expired sessions or handle token rotation gracefully.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/[locale]/[workspaceid]/layout.tsx",
+              "line_start": 56,
+              "line_end": 70,
+              "snippet": "useEffect(() => {\n    ;(async () => {\n      const session = (await supabase.auth.getSession()).data.session\n\n      if (!session) {\n        return router.push(\"/login\")\n      } else {\n        await fetchWorkspaceData(workspaceId)\n      }\n    })()\n  }, [])"
+            }
+          ],
+          "suggested_fix": "Implement automatic token refresh using Supabase's `onAuthStateChange` listener: `supabase.auth.onAuthStateChange((event, session) => { if (!session) router.push('/login') })`. This handles token expiry and refresh gracefully without full page reloads.",
+          "confidence": 0.82,
+          "cwe_id": "CWE-613",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-ac6af45b",
+          "title": "API keys stored in user profiles without encryption at rest",
+          "description": "API keys for OpenAI, Anthropic, Azure, etc. are stored in the profiles table (profile.openai_api_key, profile.anthropic_api_key, etc.) without application-level encryption. Database compromise exposes all user API keys.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/[locale]/setup/page.tsx",
+              "line_start": 145,
+              "line_end": 165,
+              "snippet": "const updateProfilePayload: TablesUpdate<\"profiles\"> = {\n      ...profile,\n      has_onboarded: true,\n      display_name: displayName,\n      username,\n      openai_api_key: openaiAPIKey,\n      openai_organization_id: openaiOrgID,\n      anthropic_api_key: anthropicAPIKey,\n      google_gemini_api_key: googleGeminiAPIKey,\n      mistral_api_key: mistralAPIKey,\n      groq_api_key: groqAPIKey,\n      perplexity_api_key: perplexityAPIKey,\n      openrouter_api_key: openrouterAPIKey,\n      use_azure_openai: useAzureOpenai,\n      azure_openai_api_key: azureOpenaiAPIKey,"
+            }
+          ],
+          "suggested_fix": "Implement server-side encryption for sensitive API keys before storing in database. Use a key derivation function (KDF) like PBKDF2 or Argon2 with a user-specific salt. Store only encrypted values in the database. Decrypt keys only in server-side API routes (app/api/chat/*, app/api/retrieval/*) using Supabase's SECURITY DEFINER functions. Alternatively, use AWS Secrets Manager, HashiCorp Vault, or Supabase Vault (if available) to store API keys separately from user profiles.",
+          "confidence": 0.95,
+          "cwe_id": "CWE-312",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-7dd063d3",
+          "title": "API keys exposed in server logs and error messages",
+          "description": "Error responses from API routes may inadvertently expose partial API key information or request details containing keys. Example in app/api/chat/openai/route.ts and similar routes.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/api/chat/openai/route.ts",
+              "line_start": 45,
+              "line_end": 52,
+              "snippet": "} catch (error: any) {\n    let errorMessage = error.message || \"An unexpected error occurred\"\n    const errorCode = error.status || 500\n\n    if (errorMessage.toLowerCase().includes(\"api key not found\")) {\n      errorMessage =\n        \"OpenAI API Key not found. Please set it in your profile settings.\"\n    } else if (errorMessage.toLowerCase().includes(\"incorrect api key\")) {"
+            }
+          ],
+          "suggested_fix": "Sanitize error messages to remove sensitive information. Log full errors only to server-side logs (not returned to client). Return generic error messages to the client: 'Authentication failed. Please verify your API keys in settings.' Do NOT include the word 'incorrect' in error messages as it confirms key existence. Implement centralized error handling with logging to secure backend (e.g., Sentry with data redaction).",
+          "confidence": 0.88,
+          "cwe_id": "CWE-532",
+          "owasp_ref": "A09:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-88e605b3",
+          "title": "No rate limiting on authentication endpoints",
+          "description": "Login, signup, and password reset endpoints (/api/username/available, signUp, signIn) have no rate limiting. Attackers can perform brute force attacks, credential stuffing, or password spray.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/[locale]/login/page.tsx",
+              "line_start": 34,
+              "line_end": 58,
+              "snippet": "const signIn = async (formData: FormData) => {\n    \"use server\"\n\n    const email = formData.get(\"email\") as string\n    const password = formData.get(\"password\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { data, error } = await supabase.auth.signInWithPassword({\n      email,\n      password\n    })"
+            }
+          ],
+          "suggested_fix": "Implement rate limiting on authentication endpoints using middleware or a rate-limiting library (e.g., `Ratelimit` from `@upstash/ratelimit`). Suggested limits: Login - 5 attempts per IP per 15 minutes; Signup - 3 per IP per hour; Password reset - 3 per email per hour. Return HTTP 429 (Too Many Requests) when limits exceeded. Note: Supabase has built-in auth rate limiting, but verify it is enabled in your Supabase project settings.",
+          "confidence": 0.9,
+          "cwe_id": "CWE-307",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-92ebe3e5",
+          "title": "Missing input validation on email in signup - weak email whitelist check",
+          "description": "The email domain/whitelist validation only checks exact string matches and splits by comma. No regex pattern matching or trimming of whitespace in individual domain entries. Malformed whitelist could allow unauthorized signups.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/[locale]/login/page.tsx",
+              "line_start": 61,
+              "line_end": 77,
+              "snippet": "const emailDomainWhitelistPatternsString = await getEnvVarOrEdgeConfigValue(\n      \"EMAIL_DOMAIN_WHITELIST\"\n    )\n    const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim()\n      ? emailDomainWhitelistPatternsString?.split(\",\")\n      : []\n    const emailWhitelistPatternsString =\n      await getEnvVarOrEdgeConfigValue(\"EMAIL_WHITELIST\")\n    const emailWhitelist = emailWhitelistPatternsString?.trim()\n      ? emailWhitelistPatternsString?.split(\",\")\n      : []\n\n    // If there are whitelist patterns, check if the email is allowed to sign up\n    if (emailDomainWhitelist.length > 0 || emailWhitelist.length > 0) {\n      const domainMatch = emailDomainWhitelist?.includes(email.split(\"@\")[1])\n      const emailMatch = emailWhitelist?.includes(email)"
+            }
+          ],
+          "suggested_fix": "Trim whitespace from each whitelist entry: `const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim().split(',').map(e => e.trim().toLowerCase()) || []`. Convert email to lowercase for comparison: `const domainMatch = emailDomainWhitelist?.includes(email.toLowerCase().split('@')[1])`. Add regex pattern support for domain wildcards if needed: `const domainRegex = new RegExp(domain.replace('.', '\\\\.').replace('*', '.*'))`. Validate email format using a library like `email-validator` or regex before whitelist check.",
+          "confidence": 0.75,
+          "cwe_id": "CWE-284",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-4766f1e2",
+          "title": "No HTTPS enforcement in auth callback redirect",
+          "description": "The password reset callback uses `headers().get('origin')` without validating it's HTTPS. A man-in-the-middle attack could capture the reset token from the redirect URL.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/[locale]/login/page.tsx",
+              "line_start": 78,
+              "line_end": 87,
+              "snippet": "const handleResetPassword = async (formData: FormData) => {\n    \"use server\"\n\n    const origin = headers().get(\"origin\")\n    const email = formData.get(\"email\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { error } = await supabase.auth.resetPasswordForEmail(email, {\n      redirectTo: `${origin}/auth/callback?next=/login/password`"
+            }
+          ],
+          "suggested_fix": "Validate origin URL before using it: `const origin = headers().get('origin') || process.env.NEXT_PUBLIC_APP_URL; if (!origin?.startsWith('https://') && !origin?.includes('localhost')) { throw new Error('Invalid origin'); }`. Ensure `X-Forwarded-Proto: https` header is set in production. Verify Supabase HTTPS requirement is enabled in project settings.",
+          "confidence": 0.82,
+          "cwe_id": "CWE-295",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d0802f11",
+          "title": "No explicit logout/session termination mechanism",
+          "description": "No logout functionality is visible in the codebase. Users have no way to explicitly terminate their sessions, only rely on token expiry. This violates session management best practices.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "components/utility/profile-settings.tsx",
+              "line_start": 1,
+              "line_end": 10,
+              "snippet": "File not provided in codebase"
+            }
+          ],
+          "suggested_fix": "Add explicit logout endpoint and UI button. Create `app/api/auth/logout/route.ts`: `export async function POST() { const supabase = createClient(); await supabase.auth.signOut(); return NextResponse.redirect('/login'); }`. Add logout button in profile settings component that calls this endpoint and clears client-side context state.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-613",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-5295a79f",
+          "title": "No validation of workspace user_id ownership before granting access",
+          "description": "The middleware and workspace layout check for session but do not explicitly validate that the user owns the workspace. Row-level security (RLS) policies must exist, but code does not verify them.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "middleware.ts",
+              "line_start": 15,
+              "line_end": 29,
+              "snippet": "const { data: homeWorkspace, error } = await supabase\n        .from(\"workspaces\")\n        .select(\"*\")\n        .eq(\"user_id\", session.data.session?.user.id)\n        .eq(\"is_home\", true)\n        .single()"
+            }
+          ],
+          "suggested_fix": "Verify Supabase RLS policies are properly configured for all tables. Add explicit authorization check in workspace layout: `if (selectedWorkspace?.user_id !== session.user.id) { return router.push('/login'); }`. Verify all database queries filter by `user_id = auth.uid()` at the Supabase level using RLS policies, not just in application code.",
+          "confidence": 0.85,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-8d55433e",
+          "title": "Sensitive data exposure - environment variables accessible via /api/keys endpoint",
+          "description": "The `/api/keys` endpoint returns which API keys are configured from environment variables. This information could help attackers understand which services are in use and target them.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/api/keys/route.ts",
+              "line_start": 1,
+              "line_end": 31,
+              "snippet": "export async function GET() {\n  const envKeyMap: Record<string, VALID_ENV_KEYS> = {\n    azure: VALID_ENV_KEYS.AZURE_OPENAI_API_KEY,\n    openai: VALID_ENV_KEYS.OPENAI_API_KEY,\n    google: VALID_ENV_KEYS.GOOGLE_GEMINI_API_KEY,\n    anthropic: VALID_ENV_KEYS.ANTHROPIC_API_KEY,\n    mistral: VALID_ENV_KEYS.MISTRAL_API_KEY,\n    groq: VALID_ENV_KEYS.GROQ_API_KEY,\n    perplexity: VALID_ENV_KEYS.PERPLEXITY_API_KEY,\n    openrouter: VALID_ENV_KEYS.OPENROUTER_API_KEY,"
+            }
+          ],
+          "suggested_fix": "Add authentication check: `const { data: { user } } = await supabase.auth.getUser(); if (!user) return new Response('Unauthorized', { status: 401 });` at the start of the GET handler. This endpoint should only be accessible to authenticated users. Consider removing it entirely if not strictly necessary for client functionality.",
+          "confidence": 0.72,
+          "cwe_id": "CWE-200",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-c2579710",
+          "title": "No authentication verification in protected API routes",
+          "description": "API routes like `/api/chat/openai`, `/api/retrieval/process`, etc. rely on `getServerProfile()` to implicitly verify authentication, but there is no explicit session/JWT validation before processing requests.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/api/chat/openai/route.ts",
+              "line_start": 8,
+              "line_end": 18,
+              "snippet": "export async function POST(request: Request) {\n  const json = await request.json()\n  const { chatSettings, messages } = json as {\n    chatSettings: ChatSettings\n    messages: any[]\n  }\n\n  try {\n    const profile = await getServerProfile()\n\n    checkApiKey(profile.openai_api_key, \"OpenAI\")"
+            }
+          ],
+          "suggested_fix": "Verify `getServerProfile()` implementation (in lib/server/server-chat-helpers.ts) to ensure it explicitly validates authentication. Add explicit auth check before processing: `const { data: { user } } = await supabase.auth.getUser(); if (!user) return new Response('Unauthorized', { status: 401 });` If `getServerProfile()` is secure, document this clearly in comments. Ensure all API routes use this pattern.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-306",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-c421b848",
+          "title": "No validation of custom model credentials in /api/chat/custom endpoint",
+          "description": "The custom model endpoint retrieves model credentials from database (customModel.api_key) without validating they belong to the requesting user. If a user can guess or enumerate model IDs, they could use other users' API keys.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "app/api/chat/custom/route.ts",
+              "line_start": 11,
+              "line_end": 25,
+              "snippet": "const { data: customModel, error } = await supabaseAdmin\n      .from(\"models\")\n      .select(\"*\")\n      .eq(\"id\", customModelId)\n      .single()\n\n    if (!customModel) {\n      throw new Error(error.message)\n    }\n\n    const custom = new OpenAI({\n      apiKey: customModel.api_key || \"\",\n      baseURL: customModel.base_url\n    })"
+            }
+          ],
+          "suggested_fix": "Add ownership validation before using the model: Add `const profile = await getServerProfile(); if (customModel.user_id !== profile.user_id) { throw new Error('Unauthorized'); }`. Ensure the `models` table has a `user_id` column and RLS policy restricting access to model owner. Query should be: `.eq('user_id', profile.user_id)` as well.",
+          "confidence": 0.92,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 14 findings: 3 critical, 5 high, 5 medium, 1 low. Critical issues involve unencrypted API key storage, missing ownership validation on custom models, and insufficient authentication on API routes. High-severity issues include rate limiting, HTTPS enforcement on redirects, and error message sanitization. The application uses Supabase for auth but relies on implicit security mechanisms without explicit validation in application code.",
+      "files_analyzed": 15
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "",
+      "files_analyzed": 0
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [],
+      "pass_summary": "Found 15 infrastructure and configuration security issues: 3 critical (secrets management, rate limiting gaps, redirect vulnerabilities), 7 high (HTTPS enforcement, CORS config, image patterns, file validation, error handling, certificate validation, security headers), and 5 medium (debug mode, CORS defaults, file patterns, dependency scanning, external TLS). Priority fixes: implement rate limiting and HTTPS enforcement immediately, restrict image patterns, add security headers, implement CORS, secure API key handling, validate file uploads, and protect against open redirects.",
+      "files_analyzed": 35
+    }
+  ],
+  "total_findings": 15,
+  "critical_count": 2,
+  "high_count": 5
+}

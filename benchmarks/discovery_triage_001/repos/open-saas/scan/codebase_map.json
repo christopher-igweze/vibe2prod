@@ -1,0 +1,1720 @@
+{
+  "modules": [
+    {
+      "name": "auth",
+      "path": "template/app/src/auth/",
+      "purpose": "Authentication module handling login, signup, email verification, and password reset flows",
+      "files": [
+        "template/app/src/auth/LoginPage.tsx",
+        "template/app/src/auth/SignupPage.tsx",
+        "template/app/src/auth/AuthPageLayout.tsx",
+        "template/app/src/auth/userSignupFields.ts",
+        "template/app/src/auth/email-and-pass/EmailVerificationPage.tsx",
+        "template/app/src/auth/email-and-pass/PasswordResetPage.tsx",
+        "template/app/src/auth/email-and-pass/RequestPasswordResetPage.tsx",
+        "template/app/src/auth/email-and-pass/emails.ts"
+      ],
+      "loc": 650,
+      "language": "typescript"
+    },
+    {
+      "name": "payment",
+      "path": "template/app/src/payment/",
+      "purpose": "Payment processing module with multiple provider integrations (Stripe, LemonSqueezy, Polar) for subscription management",
+      "files": [
+        "template/app/src/payment/PricingPage.tsx",
+        "template/app/src/payment/CheckoutResultPage.tsx",
+        "template/app/src/payment/operations.ts",
+        "template/app/src/payment/paymentProcessor.ts",
+        "template/app/src/payment/webhook.ts",
+        "template/app/src/payment/plans.ts",
+        "template/app/src/payment/errors.ts",
+        "template/app/src/payment/user.ts",
+        "template/app/src/payment/stripe/stripeClient.ts",
+        "template/app/src/payment/stripe/checkoutUtils.ts",
+        "template/app/src/payment/stripe/paymentProcessor.ts",
+        "template/app/src/payment/stripe/webhook.ts",
+        "template/app/src/payment/lemonSqueezy/paymentDetails.ts",
+        "template/app/src/payment/lemonSqueezy/webhookPayload.ts",
+        "template/app/src/payment/lemonSqueezy/checkoutUtils.ts",
+        "template/app/src/payment/lemonSqueezy/paymentProcessor.ts",
+        "template/app/src/payment/lemonSqueezy/webhook.ts",
+        "template/app/src/payment/polar/polarClient.ts",
+        "template/app/src/payment/polar/checkoutUtils.ts",
+        "template/app/src/payment/polar/paymentProcessor.ts",
+        "template/app/src/payment/polar/webhook.ts"
+      ],
+      "loc": 1200,
+      "language": "typescript"
+    },
+    {
+      "name": "admin",
+      "path": "template/app/src/admin/",
+      "purpose": "Admin dashboard module with analytics, user management, calendar, and settings pages",
+      "files": [
+        "template/app/src/admin/layout/Breadcrumb.tsx",
+        "template/app/src/admin/layout/LoadingSpinner.tsx",
+        "template/app/src/admin/layout/Header.tsx",
+        "template/app/src/admin/layout/Sidebar.tsx",
+        "template/app/src/admin/layout/SidebarLinkGroup.tsx",
+        "template/app/src/admin/layout/DefaultLayout.tsx",
+        "template/app/src/admin/elements/settings/SettingsPage.tsx",
+        "template/app/src/admin/elements/calendar/CalendarPage.tsx",
+        "template/app/src/admin/elements/ui-elements/ButtonsPage.tsx",
+        "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+        "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+        "template/app/src/admin/dashboards/users/DropdownEditDelete.tsx",
+        "template/app/src/admin/dashboards/users/UsersTable.tsx",
+        "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+        "template/app/src/admin/dashboards/analytics/SourcesTable.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalPageViewsCard.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx",
+        "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalPayingUsersCard.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalSignupsCard.tsx",
+        "template/app/src/admin/dashboards/analytics/RevenueAndProfitChart.tsx"
+      ],
+      "loc": 1800,
+      "language": "typescript"
+    },
+    {
+      "name": "user",
+      "path": "template/app/src/user/",
+      "purpose": "User account management module with account page, dropdown, and menu items",
+      "files": [
+        "template/app/src/user/AccountPage.tsx",
+        "template/app/src/user/UserDropdown.tsx",
+        "template/app/src/user/UserMenuItems.tsx",
+        "template/app/src/user/constants.ts",
+        "template/app/src/user/operations.ts"
+      ],
+      "loc": 350,
+      "language": "typescript"
+    },
+    {
+      "name": "file-upload",
+      "path": "template/app/src/file-upload/",
+      "purpose": "File upload handling with S3 integration and validation",
+      "files": [
+        "template/app/src/file-upload/FileUploadPage.tsx",
+        "template/app/src/file-upload/fileUploading.ts",
+        "template/app/src/file-upload/operations.ts",
+        "template/app/src/file-upload/s3Utils.ts",
+        "template/app/src/file-upload/validation.ts"
+      ],
+      "loc": 450,
+      "language": "typescript"
+    },
+    {
+      "name": "demo-ai-app",
+      "path": "template/app/src/demo-ai-app/",
+      "purpose": "Demo AI application page with scheduling capabilities",
+      "files": [
+        "template/app/src/demo-ai-app/DemoAppPage.tsx",
+        "template/app/src/demo-ai-app/schedule.ts",
+        "template/app/src/demo-ai-app/operations.ts"
+      ],
+      "loc": 250,
+      "language": "typescript"
+    },
+    {
+      "name": "landing-page",
+      "path": "template/app/src/landing-page/",
+      "purpose": "Marketing landing page with hero, features, testimonials, FAQ sections",
+      "files": [
+        "template/app/src/landing-page/LandingPage.tsx",
+        "template/app/src/landing-page/ExampleHighlightedFeature.tsx",
+        "template/app/src/landing-page/contentSections.tsx",
+        "template/app/src/landing-page/components/Hero.tsx",
+        "template/app/src/landing-page/components/Features.tsx",
+        "template/app/src/landing-page/components/HighlightedFeature.tsx",
+        "template/app/src/landing-page/components/FeaturesGrid.tsx",
+        "template/app/src/landing-page/components/Footer.tsx",
+        "template/app/src/landing-page/components/Testimonials.tsx",
+        "template/app/src/landing-page/components/ExamplesCarousel.tsx",
+        "template/app/src/landing-page/components/SectionTitle.tsx",
+        "template/app/src/landing-page/components/Clients.tsx",
+        "template/app/src/landing-page/components/FAQ.tsx",
+        "template/app/src/landing-page/logos/PrismaLogo.tsx",
+        "template/app/src/landing-page/logos/AstroLogo.tsx",
+        "template/app/src/landing-page/logos/OpenAILogo.tsx",
+        "template/app/src/landing-page/logos/SalesforceLogo.tsx"
+      ],
+      "loc": 1100,
+      "language": "typescript"
+    },
+    {
+      "name": "client",
+      "path": "template/app/src/client/",
+      "purpose": "Main client application shell with routing, theming, hooks, and UI components",
+      "files": [
+        "template/app/src/client/App.tsx",
+        "template/app/src/client/Main.css",
+        "template/app/src/client/utils.ts",
+        "template/app/src/client/components/DarkModeSwitcher.tsx",
+        "template/app/src/client/components/NotFoundPage.tsx",
+        "template/app/src/client/components/NavBar/NavBar.tsx",
+        "template/app/src/client/components/NavBar/Announcement.tsx",
+        "template/app/src/client/components/NavBar/constants.ts",
+        "template/app/src/client/components/cookie-consent/Banner.tsx",
+        "template/app/src/client/components/cookie-consent/Config.ts",
+        "template/app/src/client/components/ui/card.tsx",
+        "template/app/src/client/components/ui/progress.tsx",
+        "template/app/src/client/components/ui/toaster.tsx",
+        "template/app/src/client/components/ui/sheet.tsx",
+        "template/app/src/client/components/ui/label.tsx",
+        "template/app/src/client/components/ui/accordion.tsx",
+        "template/app/src/client/components/ui/alert.tsx",
+        "template/app/src/client/components/ui/switch.tsx",
+        "template/app/src/client/components/ui/avatar.tsx",
+        "template/app/src/client/components/ui/dialog.tsx",
+        "template/app/src/client/components/ui/separator.tsx",
+        "template/app/src/client/components/ui/button.tsx",
+        "template/app/src/client/components/ui/toast.tsx",
+        "template/app/src/client/components/ui/checkbox.tsx",
+        "template/app/src/client/components/ui/dropdown-menu.tsx",
+        "template/app/src/client/components/ui/select.tsx",
+        "template/app/src/client/components/ui/textarea.tsx",
+        "template/app/src/client/components/ui/input.tsx",
+        "template/app/src/client/components/ui/form.tsx",
+        "template/app/src/client/hooks/useColorMode.ts",
+        "template/app/src/client/hooks/useIsLandingPage.ts",
+        "template/app/src/client/hooks/use-toast.ts",
+        "template/app/src/client/hooks/useLocalStorage.ts",
+        "template/app/src/client/hooks/useDebounce.ts"
+      ],
+      "loc": 2500,
+      "language": "typescript"
+    },
+    {
+      "name": "server",
+      "path": "template/app/src/server/",
+      "purpose": "Server-side utilities, validation, and database seeding scripts",
+      "files": [
+        "template/app/src/server/utils.ts",
+        "template/app/src/server/validation.ts",
+        "template/app/src/server/scripts/dbSeeds.ts"
+      ],
+      "loc": 200,
+      "language": "typescript"
+    },
+    {
+      "name": "shared",
+      "path": "template/app/src/shared/",
+      "purpose": "Shared utilities and common types used across client and server",
+      "files": [
+        "template/app/src/shared/common.ts",
+        "template/app/src/shared/utils.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "analytics",
+      "path": "template/app/src/analytics/",
+      "purpose": "Analytics integration module supporting Google Analytics and Plausible",
+      "files": [
+        "template/app/src/analytics/stats.ts",
+        "template/app/src/analytics/operations.ts",
+        "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+        "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts"
+      ],
+      "loc": 180,
+      "language": "typescript"
+    },
+    {
+      "name": "blog",
+      "path": "template/blog/",
+      "purpose": "Astro-based blog system for documentation and marketing content",
+      "files": [
+        "template/blog/astro.config.mjs",
+        "template/blog/package.json",
+        "template/blog/postcss.config.cjs",
+        "template/blog/tailwind.config.mjs",
+        "template/blog/tsconfig.json",
+        "template/blog/src/content/config.ts",
+        "template/blog/src/content/docs/index.md",
+        "template/blog/src/content/docs/blog/2023-11-23-post.md",
+        "template/blog/src/content/docs/blog/2023-11-21-coverlettergpt.md",
+        "template/blog/src/content/docs/guides/example.md",
+        "template/blog/src/styles/tailwind.css",
+        "template/blog/src/components/imagePaths.ts"
+      ],
+      "loc": 800,
+      "language": "typescript"
+    },
+    {
+      "name": "e2e-tests",
+      "path": "template/e2e-tests/",
+      "purpose": "Playwright-based end-to-end tests for landing page, pricing, and demo app",
+      "files": [
+        "template/e2e-tests/playwright.config.ts",
+        "template/e2e-tests/tests/utils.ts",
+        "template/e2e-tests/tests/pricingPageTests.spec.ts",
+        "template/e2e-tests/tests/demoAppTests.spec.ts",
+        "template/e2e-tests/tests/landingPageTests.spec.ts"
+      ],
+      "loc": 400,
+      "language": "typescript"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "wasp",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react",
+      "version": "18.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "prisma",
+      "version": "5.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "stripe",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@stripe/stripe-js",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "astro",
+      "version": "4.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "tailwindcss",
+      "version": "3.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-accordion",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-alert-dialog",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-avatar",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-checkbox",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-label",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-progress",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-separator",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-switch",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-toast",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "clsx",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "lucide-react",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "tailwind-merge",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "zod",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@aws-sdk/client-s3",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@aws-sdk/s3-request-presigner",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "playwright",
+      "version": "latest",
+      "ecosystem": "npm",
+      "dev_only": true
+    }
+  ],
+  "data_flows": [
+    {
+      "source": "AuthPage (Login/Signup)",
+      "destination": "Database via Wasp Auth",
+      "data_type": "user credentials (email/password)",
+      "is_authenticated": false
+    },
+    {
+      "source": "PricingPage",
+      "destination": "Payment Provider (Stripe/LemonSqueezy/Polar)",
+      "data_type": "payment intent, checkout session",
+      "is_authenticated": true
+    },
+    {
+      "source": "Payment Webhook",
+      "destination": "Database",
+      "data_type": "subscription status, payment confirmation",
+      "is_authenticated": false
+    },
+    {
+      "source": "FileUploadPage",
+      "destination": "AWS S3 + Database",
+      "data_type": "file binary, metadata",
+      "is_authenticated": true
+    },
+    {
+      "source": "Landing Page / Client App",
+      "destination": "Analytics Providers (Google/Plausible)",
+      "data_type": "page views, events",
+      "is_authenticated": false
+    },
+    {
+      "source": "User AccountPage",
+      "destination": "Database via User operations",
+      "data_type": "user profile data",
+      "is_authenticated": true
+    },
+    {
+      "source": "Admin Dashboard",
+      "destination": "Database via Analytics operations",
+      "data_type": "aggregated analytics, user data",
+      "is_authenticated": true
+    }
+  ],
+  "auth_boundaries": [
+    {
+      "path": "/auth/*",
+      "auth_type": "none (public)",
+      "is_protected": false
+    },
+    {
+      "path": "/login",
+      "auth_type": "none (public)",
+      "is_protected": false
+    },
+    {
+      "path": "/signup",
+      "auth_type": "none (public)",
+      "is_protected": false
+    },
+    {
+      "path": "/account",
+      "auth_type": "wasp-auth (session-based)",
+      "is_protected": true
+    },
+    {
+      "path": "/admin/*",
+      "auth_type": "wasp-auth (session-based)",
+      "is_protected": true
+    },
+    {
+      "path": "/pricing",
+      "auth_type": "none (public)",
+      "is_protected": false
+    },
+    {
+      "path": "/checkout-result",
+      "auth_type": "none (public)",
+      "is_protected": false
+    },
+    {
+      "path": "/file-upload",
+      "auth_type": "wasp-auth (session-based)",
+      "is_protected": true
+    },
+    {
+      "path": "/demo-ai-app",
+      "auth_type": "none (public)",
+      "is_protected": false
+    },
+    {
+      "path": "/webhooks/payment",
+      "auth_type": "provider signature verification",
+      "is_protected": false
+    }
+  ],
+  "entry_points": [
+    {
+      "path": "template/app/src/client/App.tsx",
+      "type": "spa_entry",
+      "is_public": true
+    },
+    {
+      "path": "template/app/src/auth/LoginPage.tsx",
+      "type": "page_route",
+      "is_public": true
+    },
+    {
+      "path": "template/app/src/auth/SignupPage.tsx",
+      "type": "page_route",
+      "is_public": true
+    },
+    {
+      "path": "template/app/src/payment/PricingPage.tsx",
+      "type": "page_route",
+      "is_public": true
+    },
+    {
+      "path": "template/app/src/landing-page/LandingPage.tsx",
+      "type": "page_route",
+      "is_public": true
+    },
+    {
+      "path": "template/app/src/user/AccountPage.tsx",
+      "type": "page_route",
+      "is_public": false
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+      "type": "page_route",
+      "is_public": false
+    },
+    {
+      "path": "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+      "type": "page_route",
+      "is_public": false
+    },
+    {
+      "path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+      "type": "page_route",
+      "is_public": false
+    },
+    {
+      "path": "template/app/src/file-upload/FileUploadPage.tsx",
+      "type": "page_route",
+      "is_public": false
+    },
+    {
+      "path": "template/app/src/payment/webhook.ts",
+      "type": "webhook",
+      "is_public": false
+    },
+    {
+      "path": "template/blog/astro.config.mjs",
+      "type": "static_site",
+      "is_public": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Tailwind CSS",
+    "backend": "Express.js via Wasp",
+    "database": "PostgreSQL via Prisma ORM",
+    "hosting": "Wasp deploy (supports Vercel, Fly.io)",
+    "packages": []
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "package-lock.json",
+      "language": "json",
+      "loc": 213,
+      "purpose": ""
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "tools/README.md",
+      "language": "markdown",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "tools/dope.sh",
+      "language": "bash",
+      "loc": 211,
+      "purpose": ""
+    },
+    {
+      "path": "template/README.md",
+      "language": "markdown",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/README.md",
+      "language": "markdown",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/package.json",
+      "language": "json",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/components.json",
+      "language": "json",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/tsconfig.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/vite.config.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/vite-env.d.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/LoginPage.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/AuthPageLayout.tsx",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/userSignupFields.ts",
+      "language": "typescript",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/SignupPage.tsx",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/email-and-pass/EmailVerificationPage.tsx",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/email-and-pass/PasswordResetPage.tsx",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/email-and-pass/RequestPasswordResetPage.tsx",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/auth/email-and-pass/emails.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/errors.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/plans.ts",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/operations.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/paymentProcessor.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/webhook.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/CheckoutResultPage.tsx",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/user.ts",
+      "language": "typescript",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/PricingPage.tsx",
+      "language": "typescript",
+      "loc": 238,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/polar/polarClient.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/polar/checkoutUtils.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/polar/paymentProcessor.ts",
+      "language": "typescript",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/polar/webhook.ts",
+      "language": "typescript",
+      "loc": 169,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/lemonSqueezy/paymentDetails.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/lemonSqueezy/webhookPayload.ts",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/lemonSqueezy/checkoutUtils.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/lemonSqueezy/paymentProcessor.ts",
+      "language": "typescript",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/lemonSqueezy/webhook.ts",
+      "language": "typescript",
+      "loc": 273,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/stripe/stripeClient.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/stripe/checkoutUtils.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/stripe/paymentProcessor.ts",
+      "language": "typescript",
+      "loc": 118,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/payment/stripe/webhook.ts",
+      "language": "typescript",
+      "loc": 267,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/layout/Breadcrumb.tsx",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/layout/LoadingSpinner.tsx",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/layout/Header.tsx",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/layout/Sidebar.tsx",
+      "language": "typescript",
+      "loc": 261,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/layout/SidebarLinkGroup.tsx",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/layout/DefaultLayout.tsx",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+      "language": "typescript",
+      "loc": 205,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/elements/calendar/CalendarPage.tsx",
+      "language": "typescript",
+      "loc": 199,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/elements/ui-elements/ButtonsPage.tsx",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/users/DropdownEditDelete.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/users/UsersTable.tsx",
+      "language": "typescript",
+      "loc": 323,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/SourcesTable.tsx",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/TotalPageViewsCard.tsx",
+      "language": "typescript",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/TotalPayingUsersCard.tsx",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/TotalSignupsCard.tsx",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/admin/dashboards/analytics/RevenueAndProfitChart.tsx",
+      "language": "typescript",
+      "loc": 258,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/server/validation.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/server/utils.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/server/scripts/dbSeeds.ts",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/user/UserDropdown.tsx",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/user/UserMenuItems.tsx",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/user/operations.ts",
+      "language": "typescript",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/user/AccountPage.tsx",
+      "language": "typescript",
+      "loc": 195,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/user/constants.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/shared/common.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/shared/utils.ts",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/demo-ai-app/DemoAppPage.tsx",
+      "language": "typescript",
+      "loc": 487,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/demo-ai-app/schedule.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/demo-ai-app/operations.ts",
+      "language": "typescript",
+      "loc": 342,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/file-upload/validation.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/file-upload/s3Utils.ts",
+      "language": "typescript",
+      "loc": 88,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/file-upload/FileUploadPage.tsx",
+      "language": "typescript",
+      "loc": 319,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/file-upload/fileUploading.ts",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/file-upload/operations.ts",
+      "language": "typescript",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/ExampleHighlightedFeature.tsx",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/LandingPage.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/contentSections.tsx",
+      "language": "typescript",
+      "loc": 166,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/logos/PrismaLogo.tsx",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/logos/AstroLogo.tsx",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/logos/OpenAILogo.tsx",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/logos/SalesforceLogo.tsx",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/Hero.tsx",
+      "language": "typescript",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/Features.tsx",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/HighlightedFeature.tsx",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/FeaturesGrid.tsx",
+      "language": "typescript",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/Footer.tsx",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/Testimonials.tsx",
+      "language": "typescript",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/ExamplesCarousel.tsx",
+      "language": "typescript",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/SectionTitle.tsx",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/Clients.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/landing-page/components/FAQ.tsx",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/App.tsx",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/utils.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/Main.css",
+      "language": "css",
+      "loc": 332,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/DarkModeSwitcher.tsx",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/NotFoundPage.tsx",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/card.tsx",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/progress.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/toaster.tsx",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/sheet.tsx",
+      "language": "typescript",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/label.tsx",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/accordion.tsx",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/alert.tsx",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/switch.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/avatar.tsx",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/dialog.tsx",
+      "language": "typescript",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/separator.tsx",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/button.tsx",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/toast.tsx",
+      "language": "typescript",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/checkbox.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/dropdown-menu.tsx",
+      "language": "typescript",
+      "loc": 247,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/select.tsx",
+      "language": "typescript",
+      "loc": 179,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/textarea.tsx",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/input.tsx",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/ui/form.tsx",
+      "language": "typescript",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/NavBar/NavBar.tsx",
+      "language": "typescript",
+      "loc": 256,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/NavBar/Announcement.tsx",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/NavBar/constants.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/cookie-consent/Banner.tsx",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/components/cookie-consent/Config.ts",
+      "language": "typescript",
+      "loc": 118,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/hooks/useColorMode.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/hooks/useIsLandingPage.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/hooks/use-toast.ts",
+      "language": "typescript",
+      "loc": 188,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/hooks/useLocalStorage.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/client/hooks/useDebounce.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/analytics/stats.ts",
+      "language": "typescript",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/analytics/operations.ts",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+      "language": "typescript",
+      "loc": 147,
+      "purpose": ""
+    },
+    {
+      "path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/README.md",
+      "language": "markdown",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/package-lock.json",
+      "language": "json",
+      "loc": 9170,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/package.json",
+      "language": "json",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/tsconfig.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/public/banner-images/README.md",
+      "language": "markdown",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/env.d.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/virtual.d.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/content/config.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/content/docs/index.md",
+      "language": "markdown",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/content/docs/blog/2023-11-23-post.md",
+      "language": "markdown",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/content/docs/blog/2023-11-21-coverlettergpt.md",
+      "language": "markdown",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/content/docs/guides/example.md",
+      "language": "markdown",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/styles/tailwind.css",
+      "language": "css",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "template/blog/src/components/imagePaths.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/README.md",
+      "language": "markdown",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/package-lock.json",
+      "language": "json",
+      "loc": 255,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/package.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/tsconfig.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/playwright.config.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/tests/utils.ts",
+      "language": "typescript",
+      "loc": 140,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/tests/pricingPageTests.spec.ts",
+      "language": "typescript",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/tests/demoAppTests.spec.ts",
+      "language": "typescript",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "template/e2e-tests/tests/landingPageTests.spec.ts",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "template-test/README.md",
+      "language": "markdown",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "template-test/tools/diff.sh",
+      "language": "bash",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "template-test/tools/patch.sh",
+      "language": "bash",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/README.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/tools/diff.sh",
+      "language": "bash",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/tools/patch.sh",
+      "language": "bash",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/README.md",
+      "language": "markdown",
+      "loc": 172,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/package-lock.json",
+      "language": "json",
+      "loc": 15416,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/package.json",
+      "language": "json",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/tsconfig.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/public/banner-images/README.md",
+      "language": "markdown",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/public/scripts/posthog.js",
+      "language": "javascript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/public/scripts/reo.js",
+      "language": "javascript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/env.d.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/virtual.d.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/config.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/docs/general/user-overview.md",
+      "language": "markdown",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/docs/start/guided-tour.md",
+      "language": "markdown",
+      "loc": 349,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/docs/guides/authentication.md",
+      "language": "markdown",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/docs/guides/authorization.md",
+      "language": "markdown",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/docs/guides/analytics.md",
+      "language": "markdown",
+      "loc": 146,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/docs/guides/tests.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/content/docs/guides/updating-opensaas.md",
+      "language": "markdown",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/styles/tailwind.css",
+      "language": "css",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "opensaas-sh/blog/src/components/imagePaths.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 38491,
+  "file_count": 184,
+  "primary_language": "json",
+  "languages": [
+    "bash",
+    "css",
+    "javascript",
+    "json",
+    "markdown",
+    "typescript"
+  ],
+  "architecture_summary": "A comprehensive Wasp-based full-stack SaaS boilerplate with React frontend, Express backend, Prisma ORM, and PostgreSQL. Features multi-provider payment integration (Stripe/LemonSqueezy/Polar), file upload to S3, analytics tracking, admin dashboard, user authentication, and a marketing blog. Uses Radix UI for accessible components with Tailwind CSS styling. Includes end-to-end tests with Playwright and Astro-based blog system.",
+  "key_patterns": [
+    "Wasp Auth middleware with session-based auth",
+    "Multi-provider payment processor abstraction",
+    "Prisma ORM with migrations",
+    "React functional components with hooks",
+    "Radix UI headless components with Tailwind",
+    "AWS S3 presigned URL for direct file uploads",
+    "Webhooks for payment provider callbacks",
+    "Analytics event tracking pattern",
+    "Cookie consent management",
+    "JWT auth for API boundaries"
+  ]
+}

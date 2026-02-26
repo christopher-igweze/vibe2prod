@@ -1,0 +1,390 @@
+{
+  "benchmark_id": "discovery_triage_001",
+  "benchmark_type": "discovery_triage",
+  "date": "2026-02-26",
+  "forge_version": "0.1.0",
+  "pipeline_mode": "discovery",
+  "matrix": {
+    "dimensions": [
+      "size",
+      "complexity"
+    ],
+    "size_levels": [
+      "small",
+      "medium",
+      "large"
+    ],
+    "complexity_levels": [
+      "simple",
+      "decent",
+      "complex"
+    ]
+  },
+  "models_used": {
+    "planning_agents": "anthropic/claude-haiku-4.5",
+    "analysis_agents": "minimax/minimax-m2.5"
+  },
+  "results": [
+    {
+      "repo": "fabric",
+      "size": "small",
+      "complexity": "simple",
+      "loc": "~5.4k",
+      "description": "Python AI framework \u2014 simple scripts, flat structure",
+      "findings": 21,
+      "severity_breakdown": {
+        "critical": 4,
+        "high": 5,
+        "medium": 10,
+        "low": 2
+      },
+      "category_breakdown": {
+        "security": 11,
+        "architecture": 10
+      },
+      "cost_usd": 0.8488,
+      "duration_seconds": 199.6,
+      "total_tokens": 525597,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.0974,
+        "codebase_analyst": 0.0054,
+        "fix_strategist": 0.1343,
+        "quality_auditor/code_patterns": 0.0453,
+        "quality_auditor/error_handling": 0.028,
+        "quality_auditor/performance": 0.0288,
+        "security_auditor/auth_flow": 0.1437,
+        "security_auditor/data_handling": 0.1405,
+        "security_auditor/infrastructure": 0.198,
+        "triage_classifier": 0.0274
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.7412,
+        "minimax/minimax-m2.5": 0.1075
+      },
+      "has_architecture_context_in_report": true
+    },
+    {
+      "repo": "httpie",
+      "size": "medium",
+      "complexity": "simple",
+      "loc": "~19k",
+      "description": "Python HTTP client \u2014 clean CLI tool, straightforward",
+      "findings": 21,
+      "severity_breakdown": {
+        "high": 5,
+        "medium": 8,
+        "low": 8
+      },
+      "category_breakdown": {
+        "quality": 7,
+        "performance": 6,
+        "architecture": 8
+      },
+      "cost_usd": 0.5956,
+      "duration_seconds": 152.6,
+      "total_tokens": 381882,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.0338,
+        "codebase_analyst": 0.0035,
+        "fix_strategist": 0.0532,
+        "quality_auditor/code_patterns": 0.0282,
+        "quality_auditor/error_handling": 0.0274,
+        "quality_auditor/performance": 0.0263,
+        "security_auditor/auth_flow": 0.1324,
+        "security_auditor/data_handling": 0.1343,
+        "security_auditor/infrastructure": 0.1311,
+        "triage_classifier": 0.0253
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.5101,
+        "minimax/minimax-m2.5": 0.0855
+      },
+      "has_architecture_context_in_report": false
+    },
+    {
+      "repo": "juice-shop",
+      "size": "large",
+      "complexity": "simple",
+      "loc": "~90k",
+      "description": "OWASP Juice Shop \u2014 intentionally insecure, flat patterns",
+      "findings": 21,
+      "severity_breakdown": {
+        "medium": 10,
+        "high": 7,
+        "low": 4
+      },
+      "category_breakdown": {
+        "performance": 7,
+        "architecture": 14
+      },
+      "cost_usd": 1.0217,
+      "duration_seconds": 323.6,
+      "total_tokens": 629688,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.1247,
+        "codebase_analyst": 0.006,
+        "fix_strategist": 0.1449,
+        "quality_auditor/code_patterns": 0.0517,
+        "quality_auditor/error_handling": 0.0261,
+        "quality_auditor/performance": 0.0433,
+        "security_auditor/auth_flow": 0.1587,
+        "security_auditor/data_handling": 0.2505,
+        "security_auditor/infrastructure": 0.1861,
+        "triage_classifier": 0.0296
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.8945,
+        "minimax/minimax-m2.5": 0.1272
+      },
+      "has_architecture_context_in_report": false
+    },
+    {
+      "repo": "open-saas",
+      "size": "small",
+      "complexity": "decent",
+      "loc": "~10.9k",
+      "description": "Wasp SaaS template \u2014 vibecoded starter with auth, payments",
+      "findings": 39,
+      "severity_breakdown": {
+        "critical": 4,
+        "high": 6,
+        "medium": 18,
+        "low": 11
+      },
+      "category_breakdown": {
+        "security": 12,
+        "quality": 17,
+        "architecture": 10
+      },
+      "cost_usd": 0.6783,
+      "duration_seconds": 315.3,
+      "total_tokens": 418189,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.0447,
+        "codebase_analyst": 0.0052,
+        "fix_strategist": 0.0914,
+        "quality_auditor/code_patterns": 0.0277,
+        "quality_auditor/error_handling": 0.0262,
+        "quality_auditor/performance": 0.0255,
+        "security_auditor/auth_flow": 0.1379,
+        "security_auditor/data_handling": 0.1372,
+        "security_auditor/infrastructure": 0.1414,
+        "triage_classifier": 0.0411
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.5938,
+        "minimax/minimax-m2.5": 0.0845
+      },
+      "has_architecture_context_in_report": false
+    },
+    {
+      "repo": "screenshot-to-code",
+      "size": "medium",
+      "complexity": "decent",
+      "loc": "~19.2k",
+      "description": "AI app \u2014 vibecoded, converts screenshots to code",
+      "findings": 45,
+      "severity_breakdown": {
+        "critical": 4,
+        "high": 14,
+        "medium": 18,
+        "low": 9
+      },
+      "category_breakdown": {
+        "security": 26,
+        "performance": 7,
+        "architecture": 12
+      },
+      "cost_usd": 0.7387,
+      "duration_seconds": 198.3,
+      "total_tokens": 451566,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.0413,
+        "codebase_analyst": 0.0042,
+        "fix_strategist": 0.1152,
+        "quality_auditor/code_patterns": 0.0298,
+        "quality_auditor/error_handling": 0.0277,
+        "quality_auditor/performance": 0.0274,
+        "security_auditor/auth_flow": 0.145,
+        "security_auditor/data_handling": 0.1483,
+        "security_auditor/infrastructure": 0.1464,
+        "triage_classifier": 0.0534
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.6496,
+        "minimax/minimax-m2.5": 0.0891
+      },
+      "has_architecture_context_in_report": false
+    },
+    {
+      "repo": "ghostfolio",
+      "size": "large",
+      "complexity": "decent",
+      "loc": "~71k",
+      "description": "Investment tracker \u2014 TypeScript, NestJS, multi-module",
+      "findings": 52,
+      "severity_breakdown": {
+        "high": 24,
+        "low": 4,
+        "medium": 20,
+        "critical": 4
+      },
+      "category_breakdown": {
+        "security": 33,
+        "architecture": 19
+      },
+      "cost_usd": 1.0127,
+      "duration_seconds": 256.8,
+      "total_tokens": 635220,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.1676,
+        "codebase_analyst": 0.0065,
+        "fix_strategist": 0.2324,
+        "quality_auditor/code_patterns": 0.052,
+        "quality_auditor/error_handling": 0.0321,
+        "quality_auditor/performance": 0.044,
+        "security_auditor/auth_flow": 0.1462,
+        "security_auditor/data_handling": 0.1504,
+        "security_auditor/infrastructure": 0.1392,
+        "triage_classifier": 0.0425
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.8782,
+        "minimax/minimax-m2.5": 0.1346
+      },
+      "has_architecture_context_in_report": false
+    },
+    {
+      "repo": "fastapi-fullstack",
+      "size": "small",
+      "complexity": "complex",
+      "loc": "~12.6k",
+      "description": "Full-stack FastAPI+React \u2014 Docker, auth, CRUD, multi-layer",
+      "findings": 35,
+      "severity_breakdown": {
+        "high": 12,
+        "medium": 14,
+        "low": 9
+      },
+      "category_breakdown": {
+        "security": 15,
+        "performance": 10,
+        "architecture": 10
+      },
+      "cost_usd": 0.648,
+      "duration_seconds": 332.7,
+      "total_tokens": 404680,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.0383,
+        "codebase_analyst": 0.0039,
+        "fix_strategist": 0.0813,
+        "quality_auditor/code_patterns": 0.027,
+        "quality_auditor/error_handling": 0.0271,
+        "quality_auditor/performance": 0.0267,
+        "security_auditor/auth_flow": 0.1344,
+        "security_auditor/data_handling": 0.1332,
+        "security_auditor/infrastructure": 0.1426,
+        "triage_classifier": 0.0336
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.5633,
+        "minimax/minimax-m2.5": 0.0847
+      },
+      "has_architecture_context_in_report": false
+    },
+    {
+      "repo": "chatbot-ui",
+      "size": "medium",
+      "complexity": "complex",
+      "loc": "~26.9k",
+      "description": "Multi-provider AI chat \u2014 complex state, auth, Supabase",
+      "findings": 36,
+      "severity_breakdown": {
+        "medium": 17,
+        "low": 7,
+        "critical": 2,
+        "high": 10
+      },
+      "category_breakdown": {
+        "security": 15,
+        "performance": 10,
+        "architecture": 11
+      },
+      "cost_usd": 0.771,
+      "duration_seconds": 266.0,
+      "total_tokens": 478415,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.0662,
+        "codebase_analyst": 0.0075,
+        "fix_strategist": 0.1121,
+        "quality_auditor/code_patterns": 0.0304,
+        "quality_auditor/error_handling": 0.0296,
+        "quality_auditor/performance": 0.031,
+        "security_auditor/auth_flow": 0.1486,
+        "security_auditor/data_handling": 0.147,
+        "security_auditor/infrastructure": 0.1638,
+        "triage_classifier": 0.0349
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.6726,
+        "minimax/minimax-m2.5": 0.0984
+      },
+      "has_architecture_context_in_report": false
+    },
+    {
+      "repo": "jan",
+      "size": "large",
+      "complexity": "complex",
+      "loc": "~89k",
+      "description": "AI desktop app \u2014 Electron, TypeScript, complex arch",
+      "findings": 27,
+      "severity_breakdown": {
+        "high": 10,
+        "medium": 13,
+        "low": 4
+      },
+      "category_breakdown": {
+        "security": 11,
+        "architecture": 16
+      },
+      "cost_usd": 0.952,
+      "duration_seconds": 189.4,
+      "total_tokens": 515039,
+      "total_invocations": 10,
+      "agent_costs": {
+        "architecture_reviewer": 0.1486,
+        "codebase_analyst": 0.006,
+        "fix_strategist": 0.1789,
+        "quality_auditor/code_patterns": 0.0024,
+        "quality_auditor/error_handling": 0.0292,
+        "quality_auditor/performance": 0.0258,
+        "security_auditor/auth_flow": 0.1699,
+        "security_auditor/data_handling": 0.1617,
+        "security_auditor/infrastructure": 0.1983,
+        "triage_classifier": 0.0313
+      },
+      "model_costs": {
+        "anthropic/claude-haiku-4.5": 0.8887,
+        "minimax/minimax-m2.5": 0.0633
+      },
+      "has_architecture_context_in_report": true
+    }
+  ],
+  "totals": {
+    "total_findings": 297,
+    "total_cost_usd": 7.2668,
+    "total_duration_seconds": 2234.3,
+    "total_tokens": 4440276,
+    "avg_cost_per_repo": 0.8074,
+    "avg_findings_per_repo": 33.0,
+    "avg_duration_per_repo_seconds": 248.3
+  }
+}

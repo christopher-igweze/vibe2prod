@@ -1,0 +1,913 @@
+{
+  "findings": [
+    {
+      "id": "F-ac4a34d3",
+      "title": "Type safety: any-typed array in analytics",
+      "description": "In googleAnalyticsUtils.ts, an array is typed as `any[]` which bypasses TypeScript's type checking and can lead to runtime errors.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 41,
+          "line_end": 41,
+          "snippet": "let activeUsersPerReferrer: any[] = [];"
+        }
+      ],
+      "suggested_fix": "Define a proper interface for the referrer data type: `interface ReferrerData { source: string; visitors: string; }` and use `ReferrerData[]` instead of `any[]`.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1dda58f7",
+      "title": "Type safety: @ts-ignore usage in analytics",
+      "description": "Multiple `@ts-ignore` comments are used to suppress TypeScript errors, indicating underlying type issues that should be properly resolved.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 63,
+          "line_end": 63,
+          "snippet": "// @ts-ignore"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 110,
+          "line_end": 110,
+          "snippet": "// @ts-ignore"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 117,
+          "line_end": 117,
+          "snippet": "// @ts-ignore"
+        }
+      ],
+      "suggested_fix": "Remove @ts-ignore comments and properly type the response objects. The `response.rows` and `metricValues` properties should have proper types from the Google Analytics Data client.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f105d914",
+      "title": "Magic number: URL expiration timeout repeated across files",
+      "description": "The value 3600 (seconds) for signed URL expiration is hardcoded in multiple files. This should be a named constant.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 34,
+          "line_end": 34,
+          "snippet": "Expires: 3600,"
+        },
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 50,
+          "line_end": 50,
+          "snippet": "return await getSignedUrl(s3Client, command, { expiresIn: 3600 });"
+        }
+      ],
+      "suggested_fix": "Create a constants file (e.g., `src/shared/constants.ts`) with `export const SIGNED_URL_EXPIRATION_SECONDS = 3600;` and import it in both files.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0a3e50a1",
+      "title": "Magic number: Hardcoded redirect delay in CheckoutResultPage",
+      "description": "The redirect delay value 4000ms is hardcoded and used both as a constant and inline in the code, creating potential inconsistency.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/CheckoutResultPage.tsx",
+          "line_start": 5,
+          "line_end": 5,
+          "snippet": "const ACCOUNT_PAGE_REDIRECT_DELAY_MS = 4000;"
+        },
+        {
+          "file_path": "template/app/src/payment/CheckoutResultPage.tsx",
+          "line_start": 30,
+          "line_end": 30,
+          "snippet": "{ACCOUNT_PAGE_REDIRECT_DELAY_MS / 1000} seconds..."
+        }
+      ],
+      "suggested_fix": "The constant is properly defined and used, but this pattern should be consistent across all timing-related values. Consider moving all timing constants to a shared location.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-efb4ee75",
+      "title": "Code duplication: Duplicate headers object in Plausible analytics",
+      "description": "A `headers` object with identical content is defined both at module level and within the `getPageviewsForDate` function, creating redundant code.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 16,
+          "line_end": 20,
+          "snippet": "const headers = {\n  \"Content-Type\": \"application/json\",\n  Authorization: `Bearer ${PLAUSIBLE_API_KEY}`,\n};"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 78,
+          "line_end": 82,
+          "snippet": "const response = await fetch(url, {\n    method: \"GET\",\n    headers: headers,\n  });"
+        }
+      ],
+      "suggested_fix": "Remove the local `headers` variable inside `getPageviewsForDate` and use the module-level `headers` constant directly, or pass it as a parameter if it needs to be reused differently.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-eb30c5fd",
+      "title": "Inconsistent naming: Mixed camelCase and snake_case in analytics",
+      "description": "Some functions use camelCase (getDailyPageViews) while others use similar patterns inconsistently. The API keys are also named with inconsistent patterns (PLAUSIBLE_API_KEY vs GOOGLE_ANALYTICS_PROPERTY_ID).",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 11,
+          "line_end": 14,
+          "snippet": "const PLAUSIBLE_API_KEY = process.env.PLAUSIBLE_API_KEY!;\nconst PLAUSIBLE_SITE_ID = process.env.PLAUSIBLE_SITE_ID!;\nconst PLAUSIBLE_BASE_URL = process.env.PLAUSIBLE_BASE_URL;"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 7,
+          "line_end": null,
+          "snippet": "const CLIENT_EMAIL = process.env.GOOGLE_ANALYTICS_CLIENT_EMAIL;\nconst PRIVATE_KEY = Buffer.from(\n  process.env.GOOGLE_ANALYTICS_PRIVATE_KEY!,"
+        }
+      ],
+      "suggested_fix": "Document the environment variable naming convention and ensure consistency. Consider creating a unified env config file that normalizes all environment variable access.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e13c2a2b",
+      "title": "Potential runtime error: Non-null assertions on env vars without validation",
+      "description": "Environment variables are accessed with non-null assertions (!) in multiple files. If these are not set, the application will crash at runtime rather than failing gracefully.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 16,
+          "line_end": 19,
+          "snippet": "credentials: {\n    accessKeyId: process.env.AWS_S3_IAM_ACCESS_KEY!,\n    secretAccessKey: process.env.AWS_S3_IAM_SECRET_KEY!,\n  },"
+        },
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 28,
+          "line_end": 28,
+          "snippet": "Bucket: process.env.AWS_S3_FILES_BUCKET!,"
+        }
+      ],
+      "suggested_fix": "Use the existing `requireNodeEnvVar` function from `../../server/utils` to validate env vars at startup, or create a config initialization that validates all required env vars before the app starts.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-832b857c",
+      "title": "Magic number: Hardcoded test card number in pricing page",
+      "description": "The Stripe test card number '4242 4242 4242 4242 4242' is hardcoded in the pricing page UI.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 124,
+          "line_end": 127,
+          "snippet": "<span className=\"bg-muted text-muted-foreground rounded-md px-2 py-1 font-mono text-sm\">\n            4242 4242 4242 4242 4242\n          </span>"
+        }
+      ],
+      "suggested_fix": "Move this to a constants file or configuration. While this is a well-known test value, keeping it separate makes it easier to update and document.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-75dec326",
+      "title": "Inconsistent error handling: Different patterns across payment webhooks",
+      "description": "Each payment provider webhook (Stripe, LemonSqueezy, Polar) uses slightly different patterns for error logging and response. This inconsistency makes maintenance harder.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/stripe/webhook.ts",
+          "line_start": 73,
+          "line_end": 82,
+          "snippet": "if (process.env.NODE_ENV === \"development\") {\n        console.info(\"Unhandled Stripe webhook event in development: \", error);\n      } else if (process.env.NODE_ENV === \"production\") {\n        console.error(\"Unhandled Stripe webhook event in production: \", error);\n      }"
+        },
+        {
+          "file_path": "template/app/src/payment/polar/webhook.ts",
+          "line_start": 63,
+          "line_end": 71,
+          "snippet": "if (process.env.NODE_ENV === \"development\") {\n        console.info(\"Unhandled Polar webhook event in development: \", error);\n      } else if (process.env.NODE_ENV === \"production\") {\n        console.error(\"Unhandled Polar webhook event in production: \", error);\n      }"
+        }
+      ],
+      "suggested_fix": "Create a shared utility function for webhook error logging that all payment providers can use, ensuring consistent error handling behavior.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0e94e9ce",
+      "title": "Magic string: Hardcoded 'today' date in Google Analytics",
+      "description": "The string 'today' is used as a date parameter in the Google Analytics query. While it works, using dynamic dates would be more robust.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 30,
+          "line_end": 30,
+          "snippet": "endDate: \"today\","
+        }
+      ],
+      "suggested_fix": "Consider adding a comment explaining that 'today' is a valid GA4 relative date, or create a constant for clarity.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-51528115",
+      "title": "Code duplication: Payment plan card data repeated in component",
+      "description": "The `paymentPlanCards` object contains display data (name, price, features) that could be consolidated with the `paymentPlans` object in plans.ts",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 40,
+          "line_end": 66,
+          "snippet": "export const paymentPlanCards: Record<PaymentPlanId, PaymentPlanCard> = {\n  [PaymentPlanId.Hobby]: {\n    name: prettyPaymentPlanName(PaymentPlanId.Hobby),\n    price: \"$9.99\",\n    description: \"All you need to get started\",\n    features: [\"Limited monthly usage\", \"Basic support\"],\n  },"
+        },
+        {
+          "file_path": "template/app/src/payment/plans.ts",
+          "line_start": 27,
+          "line_end": 44,
+          "snippet": "export const paymentPlans = {\n  [PaymentPlanId.Hobby]: {\n    getPaymentProcessorPlanId: () =>\n      requireNodeEnvVar(\"PAYMENTS_HOBBY_SUBSCRIPTION_PLAN_ID\"),\n    effect: { kind: \"subscription\" },\n  },"
+        }
+      ],
+      "suggested_fix": "Consider consolidating plan metadata into a single source of truth, or at minimum ensure the `name` property in `paymentPlanCards` references the constant rather than duplicating `prettyPaymentPlanName()` calls.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-aff6bd81",
+      "title": "Dead code: Commented out logo reference in settings page",
+      "description": "In SettingsPage.tsx, there's a commented-out img tag for user photo that appears to be leftover from template creation.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+          "line_start": 118,
+          "line_end": 120,
+          "snippet": "<div className=\"h-14 w-14 rounded-full\">\n                      {/* <img src={userThree} alt=\"User\" /> */}\n                    </div>"
+        }
+      ],
+      "suggested_fix": "Remove the commented-out code or replace with actual image handling logic if user avatars are part of the feature set.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-272336fb",
+      "title": "Incomplete implementation: MessageButton has placeholder code",
+      "description": "The MessageButton component has a TODO comment indicating incomplete implementation for message notifications.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+          "line_start": 14,
+          "line_end": 14,
+          "snippet": "<span className=\"z-1 bg-meta-1 absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full\">\n          {/* TODO: only animate if there are new messages */}\n          <span className=\"-z-1 bg-meta-1 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75\"></span>\n        </span>"
+        }
+      ],
+      "suggested_fix": "Implement the TODO by adding a prop or connecting to a real-time message count source to conditionally show the notification badge.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-aacba715",
+      "title": "Incomplete implementation: Settings form has placeholder submit",
+      "description": "The SettingsPage form has a TODO and alerts 'Not yet implemented' on submit.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+          "line_start": 13,
+          "line_end": 17,
+          "snippet": "const handleSubmit = (event: FormEvent<HTMLFormElement>) => {\n    // TODO implement\n    event.preventDefault();\n    alert(\"Not yet implemented\");\n  };"
+        }
+      ],
+      "suggested_fix": "Implement the form submission logic or remove the form if not needed for the initial template release.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-09ec96f6",
+      "title": "Incomplete implementation: Messages page placeholder",
+      "description": "The AdminMessages page shows a placeholder 'under construction' message.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+          "line_start": 4,
+          "line_end": 6,
+          "snippet": "// TODO: Add messages page\nimport type { AuthUser } from \"wasp/auth\";\nimport DefaultLayout from \"../../layout/DefaultLayout\";\n\nfunction AdminMessages({ user }: { user: AuthUser }) {\n  return (\n    <DefaultLayout user={user}>\n      <div>This page is under construction \ud83d\udea7</div>\n    </DefaultLayout>\n  );"
+        }
+      ],
+      "suggested_fix": "Implement the messages feature or remove the route if not part of the planned functionality.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-702fc339",
+      "title": "Type safety: Generic type parameter uses any in throttle function",
+      "description": "The throttleWithTrailingInvocation function accepts `...args: any[]` which bypasses type safety for the throttled function.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/shared/utils.ts",
+          "line_start": 14,
+          "line_end": 14,
+          "snippet": "export function throttleWithTrailingInvocation(\n  fn: () => void,\n  delayInMilliseconds: number,\n): ((...args: any[]) => void) & { cancel: () => void } {"
+        }
+      ],
+      "suggested_fix": "Use a generic type parameter to preserve the function's parameter types: `export function throttleWithTrailingInvocation<T extends (...args: any[]) => any>(fn: T, ...)` and return `T & { cancel: () => void }`.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b3189a10",
+      "title": "Inconsistent constant patterns in pricing page",
+      "description": "The pricing page mixes inline constant definition (bestDealPaymentPlanId) with paymentPlanCards object. The constant could be in plans.ts for consistency.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 38,
+          "line_end": 38,
+          "snippet": "const bestDealPaymentPlanId: PaymentPlanId = PaymentPlanId.Pro;"
+        }
+      ],
+      "suggested_fix": "Consider moving `bestDealPaymentPlanId` to plans.ts as a constant export if it's a fixed value, or make it configurable via environment variables.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": ""
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [
+        {
+          "id": "F-ac4a34d3",
+          "title": "Type safety: any-typed array in analytics",
+          "description": "In googleAnalyticsUtils.ts, an array is typed as `any[]` which bypasses TypeScript's type checking and can lead to runtime errors.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+              "line_start": 41,
+              "line_end": 41,
+              "snippet": "let activeUsersPerReferrer: any[] = [];"
+            }
+          ],
+          "suggested_fix": "Define a proper interface for the referrer data type: `interface ReferrerData { source: string; visitors: string; }` and use `ReferrerData[]` instead of `any[]`.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-1dda58f7",
+          "title": "Type safety: @ts-ignore usage in analytics",
+          "description": "Multiple `@ts-ignore` comments are used to suppress TypeScript errors, indicating underlying type issues that should be properly resolved.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+              "line_start": 63,
+              "line_end": 63,
+              "snippet": "// @ts-ignore"
+            },
+            {
+              "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+              "line_start": 110,
+              "line_end": 110,
+              "snippet": "// @ts-ignore"
+            },
+            {
+              "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+              "line_start": 117,
+              "line_end": 117,
+              "snippet": "// @ts-ignore"
+            }
+          ],
+          "suggested_fix": "Remove @ts-ignore comments and properly type the response objects. The `response.rows` and `metricValues` properties should have proper types from the Google Analytics Data client.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f105d914",
+          "title": "Magic number: URL expiration timeout repeated across files",
+          "description": "The value 3600 (seconds) for signed URL expiration is hardcoded in multiple files. This should be a named constant.",
+          "category": "quality",
+          "severity": "low",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/file-upload/s3Utils.ts",
+              "line_start": 34,
+              "line_end": 34,
+              "snippet": "Expires: 3600,"
+            },
+            {
+              "file_path": "template/app/src/file-upload/s3Utils.ts",
+              "line_start": 50,
+              "line_end": 50,
+              "snippet": "return await getSignedUrl(s3Client, command, { expiresIn: 3600 });"
+            }
+          ],
+          "suggested_fix": "Create a constants file (e.g., `src/shared/constants.ts`) with `export const SIGNED_URL_EXPIRATION_SECONDS = 3600;` and import it in both files.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-0a3e50a1",
+          "title": "Magic number: Hardcoded redirect delay in CheckoutResultPage",
+          "description": "The redirect delay value 4000ms is hardcoded and used both as a constant and inline in the code, creating potential inconsistency.",
+          "category": "quality",
+          "severity": "low",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/payment/CheckoutResultPage.tsx",
+              "line_start": 5,
+              "line_end": 5,
+              "snippet": "const ACCOUNT_PAGE_REDIRECT_DELAY_MS = 4000;"
+            },
+            {
+              "file_path": "template/app/src/payment/CheckoutResultPage.tsx",
+              "line_start": 30,
+              "line_end": 30,
+              "snippet": "{ACCOUNT_PAGE_REDIRECT_DELAY_MS / 1000} seconds..."
+            }
+          ],
+          "suggested_fix": "The constant is properly defined and used, but this pattern should be consistent across all timing-related values. Consider moving all timing constants to a shared location.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-efb4ee75",
+          "title": "Code duplication: Duplicate headers object in Plausible analytics",
+          "description": "A `headers` object with identical content is defined both at module level and within the `getPageviewsForDate` function, creating redundant code.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+              "line_start": 16,
+              "line_end": 20,
+              "snippet": "const headers = {\n  \"Content-Type\": \"application/json\",\n  Authorization: `Bearer ${PLAUSIBLE_API_KEY}`,\n};"
+            },
+            {
+              "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+              "line_start": 78,
+              "line_end": 82,
+              "snippet": "const response = await fetch(url, {\n    method: \"GET\",\n    headers: headers,\n  });"
+            }
+          ],
+          "suggested_fix": "Remove the local `headers` variable inside `getPageviewsForDate` and use the module-level `headers` constant directly, or pass it as a parameter if it needs to be reused differently.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-eb30c5fd",
+          "title": "Inconsistent naming: Mixed camelCase and snake_case in analytics",
+          "description": "Some functions use camelCase (getDailyPageViews) while others use similar patterns inconsistently. The API keys are also named with inconsistent patterns (PLAUSIBLE_API_KEY vs GOOGLE_ANALYTICS_PROPERTY_ID).",
+          "category": "quality",
+          "severity": "low",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+              "line_start": 11,
+              "line_end": 14,
+              "snippet": "const PLAUSIBLE_API_KEY = process.env.PLAUSIBLE_API_KEY!;\nconst PLAUSIBLE_SITE_ID = process.env.PLAUSIBLE_SITE_ID!;\nconst PLAUSIBLE_BASE_URL = process.env.PLAUSIBLE_BASE_URL;"
+            },
+            {
+              "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+              "line_start": 7,
+              "line_end": null,
+              "snippet": "const CLIENT_EMAIL = process.env.GOOGLE_ANALYTICS_CLIENT_EMAIL;\nconst PRIVATE_KEY = Buffer.from(\n  process.env.GOOGLE_ANALYTICS_PRIVATE_KEY!,"
+            }
+          ],
+          "suggested_fix": "Document the environment variable naming convention and ensure consistency. Consider creating a unified env config file that normalizes all environment variable access.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-e13c2a2b",
+          "title": "Potential runtime error: Non-null assertions on env vars without validation",
+          "description": "Environment variables are accessed with non-null assertions (!) in multiple files. If these are not set, the application will crash at runtime rather than failing gracefully.",
+          "category": "quality",
+          "severity": "high",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/file-upload/s3Utils.ts",
+              "line_start": 16,
+              "line_end": 19,
+              "snippet": "credentials: {\n    accessKeyId: process.env.AWS_S3_IAM_ACCESS_KEY!,\n    secretAccessKey: process.env.AWS_S3_IAM_SECRET_KEY!,\n  },"
+            },
+            {
+              "file_path": "template/app/src/file-upload/s3Utils.ts",
+              "line_start": 28,
+              "line_end": 28,
+              "snippet": "Bucket: process.env.AWS_S3_FILES_BUCKET!,"
+            }
+          ],
+          "suggested_fix": "Use the existing `requireNodeEnvVar` function from `../../server/utils` to validate env vars at startup, or create a config initialization that validates all required env vars before the app starts.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-832b857c",
+          "title": "Magic number: Hardcoded test card number in pricing page",
+          "description": "The Stripe test card number '4242 4242 4242 4242 4242' is hardcoded in the pricing page UI.",
+          "category": "quality",
+          "severity": "low",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/payment/PricingPage.tsx",
+              "line_start": 124,
+              "line_end": 127,
+              "snippet": "<span className=\"bg-muted text-muted-foreground rounded-md px-2 py-1 font-mono text-sm\">\n            4242 4242 4242 4242 4242\n          </span>"
+            }
+          ],
+          "suggested_fix": "Move this to a constants file or configuration. While this is a well-known test value, keeping it separate makes it easier to update and document.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-75dec326",
+          "title": "Inconsistent error handling: Different patterns across payment webhooks",
+          "description": "Each payment provider webhook (Stripe, LemonSqueezy, Polar) uses slightly different patterns for error logging and response. This inconsistency makes maintenance harder.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/payment/stripe/webhook.ts",
+              "line_start": 73,
+              "line_end": 82,
+              "snippet": "if (process.env.NODE_ENV === \"development\") {\n        console.info(\"Unhandled Stripe webhook event in development: \", error);\n      } else if (process.env.NODE_ENV === \"production\") {\n        console.error(\"Unhandled Stripe webhook event in production: \", error);\n      }"
+            },
+            {
+              "file_path": "template/app/src/payment/polar/webhook.ts",
+              "line_start": 63,
+              "line_end": 71,
+              "snippet": "if (process.env.NODE_ENV === \"development\") {\n        console.info(\"Unhandled Polar webhook event in development: \", error);\n      } else if (process.env.NODE_ENV === \"production\") {\n        console.error(\"Unhandled Polar webhook event in production: \", error);\n      }"
+            }
+          ],
+          "suggested_fix": "Create a shared utility function for webhook error logging that all payment providers can use, ensuring consistent error handling behavior.",
+          "confidence": 0.8,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-0e94e9ce",
+          "title": "Magic string: Hardcoded 'today' date in Google Analytics",
+          "description": "The string 'today' is used as a date parameter in the Google Analytics query. While it works, using dynamic dates would be more robust.",
+          "category": "quality",
+          "severity": "low",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+              "line_start": 30,
+              "line_end": 30,
+              "snippet": "endDate: \"today\","
+            }
+          ],
+          "suggested_fix": "Consider adding a comment explaining that 'today' is a valid GA4 relative date, or create a constant for clarity.",
+          "confidence": 0.8,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-51528115",
+          "title": "Code duplication: Payment plan card data repeated in component",
+          "description": "The `paymentPlanCards` object contains display data (name, price, features) that could be consolidated with the `paymentPlans` object in plans.ts",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/payment/PricingPage.tsx",
+              "line_start": 40,
+              "line_end": 66,
+              "snippet": "export const paymentPlanCards: Record<PaymentPlanId, PaymentPlanCard> = {\n  [PaymentPlanId.Hobby]: {\n    name: prettyPaymentPlanName(PaymentPlanId.Hobby),\n    price: \"$9.99\",\n    description: \"All you need to get started\",\n    features: [\"Limited monthly usage\", \"Basic support\"],\n  },"
+            },
+            {
+              "file_path": "template/app/src/payment/plans.ts",
+              "line_start": 27,
+              "line_end": 44,
+              "snippet": "export const paymentPlans = {\n  [PaymentPlanId.Hobby]: {\n    getPaymentProcessorPlanId: () =>\n      requireNodeEnvVar(\"PAYMENTS_HOBBY_SUBSCRIPTION_PLAN_ID\"),\n    effect: { kind: \"subscription\" },\n  },"
+            }
+          ],
+          "suggested_fix": "Consider consolidating plan metadata into a single source of truth, or at minimum ensure the `name` property in `paymentPlanCards` references the constant rather than duplicating `prettyPaymentPlanName()` calls.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-aff6bd81",
+          "title": "Dead code: Commented out logo reference in settings page",
+          "description": "In SettingsPage.tsx, there's a commented-out img tag for user photo that appears to be leftover from template creation.",
+          "category": "quality",
+          "severity": "low",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+              "line_start": 118,
+              "line_end": 120,
+              "snippet": "<div className=\"h-14 w-14 rounded-full\">\n                      {/* <img src={userThree} alt=\"User\" /> */}\n                    </div>"
+            }
+          ],
+          "suggested_fix": "Remove the commented-out code or replace with actual image handling logic if user avatars are part of the feature set.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-272336fb",
+          "title": "Incomplete implementation: MessageButton has placeholder code",
+          "description": "The MessageButton component has a TODO comment indicating incomplete implementation for message notifications.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+              "line_start": 14,
+              "line_end": 14,
+              "snippet": "<span className=\"z-1 bg-meta-1 absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full\">\n          {/* TODO: only animate if there are new messages */}\n          <span className=\"-z-1 bg-meta-1 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75\"></span>\n        </span>"
+            }
+          ],
+          "suggested_fix": "Implement the TODO by adding a prop or connecting to a real-time message count source to conditionally show the notification badge.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-aacba715",
+          "title": "Incomplete implementation: Settings form has placeholder submit",
+          "description": "The SettingsPage form has a TODO and alerts 'Not yet implemented' on submit.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+              "line_start": 13,
+              "line_end": 17,
+              "snippet": "const handleSubmit = (event: FormEvent<HTMLFormElement>) => {\n    // TODO implement\n    event.preventDefault();\n    alert(\"Not yet implemented\");\n  };"
+            }
+          ],
+          "suggested_fix": "Implement the form submission logic or remove the form if not needed for the initial template release.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-09ec96f6",
+          "title": "Incomplete implementation: Messages page placeholder",
+          "description": "The AdminMessages page shows a placeholder 'under construction' message.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+              "line_start": 4,
+              "line_end": 6,
+              "snippet": "// TODO: Add messages page\nimport type { AuthUser } from \"wasp/auth\";\nimport DefaultLayout from \"../../layout/DefaultLayout\";\n\nfunction AdminMessages({ user }: { user: AuthUser }) {\n  return (\n    <DefaultLayout user={user}>\n      <div>This page is under construction \ud83d\udea7</div>\n    </DefaultLayout>\n  );"
+            }
+          ],
+          "suggested_fix": "Implement the messages feature or remove the route if not part of the planned functionality.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-702fc339",
+          "title": "Type safety: Generic type parameter uses any in throttle function",
+          "description": "The throttleWithTrailingInvocation function accepts `...args: any[]` which bypasses type safety for the throttled function.",
+          "category": "quality",
+          "severity": "medium",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/shared/utils.ts",
+              "line_start": 14,
+              "line_end": 14,
+              "snippet": "export function throttleWithTrailingInvocation(\n  fn: () => void,\n  delayInMilliseconds: number,\n): ((...args: any[]) => void) & { cancel: () => void } {"
+            }
+          ],
+          "suggested_fix": "Use a generic type parameter to preserve the function's parameter types: `export function throttleWithTrailingInvocation<T extends (...args: any[]) => any>(fn: T, ...)` and return `T & { cancel: () => void }`.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-b3189a10",
+          "title": "Inconsistent constant patterns in pricing page",
+          "description": "The pricing page mixes inline constant definition (bestDealPaymentPlanId) with paymentPlanCards object. The constant could be in plans.ts for consistency.",
+          "category": "quality",
+          "severity": "low",
+          "audit_pass": "code_patterns",
+          "locations": [
+            {
+              "file_path": "template/app/src/payment/PricingPage.tsx",
+              "line_start": 38,
+              "line_end": 38,
+              "snippet": "const bestDealPaymentPlanId: PaymentPlanId = PaymentPlanId.Pro;"
+            }
+          ],
+          "suggested_fix": "Consider moving `bestDealPaymentPlanId` to plans.ts as a constant export if it's a fixed value, or make it configurable via environment variables.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 18 code pattern issues across multiple modules. Key areas: type safety concerns in analytics (any types, @ts-ignore), magic numbers/strings, incomplete implementations (TODO comments), and some code duplication in payment and analytics modules."
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [],
+      "pass_summary": ""
+    }
+  ],
+  "total_findings": 17
+}

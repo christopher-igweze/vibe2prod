@@ -1,0 +1,375 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-e3ce60d1",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-2abb0534",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-7d26faf0",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-2e3549ff",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-f12013e9",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-ac6af45b",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-7dd063d3",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-88e605b3",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-4766f1e2",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-d0802f11",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8d55433e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-c421b848",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-b43819d5",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8459224d",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-6f49eeb4",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-cca89594",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_error_boundary",
+      "fix_template_id": "add-error-boundary",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-958d2c7e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0396fe09",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: components/ui/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-953985f5",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-92ebe3e5",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Input validation fix localized to signup email whitelist logic in 1-2 files. Requires adding trimming, lowercase conversion, and optional regex pattern support. Straightforward pattern matching improvements without architectural changes.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "app/[locale]/login/page.tsx",
+        "app/[locale]/login/password/page.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-5295a79f",
+      "tier": 3,
+      "confidence": 0.9,
+      "rationale": "Requires cross-cutting security changes: Supabase RLS policy review/implementation across multiple tables, explicit authorization checks in middleware and layout, and verification across all database operations. This is architectural-level security enforcement affecting 5+ files and database configuration.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "middleware.ts",
+        "app/[locale]/[workspaceid]/layout.tsx",
+        "app/[locale]/[workspaceid]/page.tsx",
+        "db/chats.ts",
+        "db/assistants.ts",
+        "supabase/migrations/20240108234540_setup.sql"
+      ]
+    },
+    {
+      "finding_id": "F-c2579710",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Requires verification and potentially adding explicit auth checks to multiple API routes. If getServerProfile() is already secure, this is documentation/code audit in each route (1-3 files per fix). If not, requires implementation of proper auth validation pattern. Scoped to API route layer.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "app/api/chat/openai/route.ts",
+        "app/api/chat/anthropic/route.ts",
+        "app/api/retrieval/process/route.ts"
+      ]
+    },
+    {
+      "finding_id": "F-56231c2f",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Known pattern: parallelize async operations using Promise.all. The fix is deterministic and well-validated (replace for-loop with Promise.all mapping). Single file affected with clear replacement pattern.",
+      "fix_template_id": "parallelize_async_loop",
+      "relevant_files": [
+        "app/api/chat/tools/route.ts"
+      ]
+    },
+    {
+      "finding_id": "F-cb369bad",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Known pattern: parallelize sequential data fetching using Promise.all. Clear, deterministic fix with pre-validated pattern. Single file with straightforward transformation.",
+      "fix_template_id": "parallelize_sequential_fetches",
+      "relevant_files": [
+        "app/[locale]/[workspaceid]/layout.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-0690457d",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Add pagination parameters to API route and propagate to database query. Requires changes to route parameter handling, query logic, and response format. Localized to retrieval API route(s) and potentially database helper functions (2-3 files).",
+      "fix_template_id": "",
+      "relevant_files": [
+        "app/api/retrieval/retrieve/route.ts",
+        "db/retrieval.ts"
+      ]
+    },
+    {
+      "finding_id": "F-dc387c29",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Implement caching mechanism for profile data. Requires creating cache utility/middleware and updating multiple API routes to use it. Affects 2-4 files but follows established caching patterns.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "app/api/chat/openai/route.ts",
+        "app/api/chat/anthropic/route.ts",
+        "lib/server/server-chat-helpers.ts",
+        "lib/cache/profile-cache.ts"
+      ]
+    },
+    {
+      "finding_id": "F-240fe672",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Implement caching for external model API calls. Requires adding caching logic to fetch functions and potentially a cache storage utility. Localized to model fetching module (2-3 files).",
+      "fix_template_id": "",
+      "relevant_files": [
+        "lib/models/fetch-models.ts",
+        "lib/cache/models-cache.ts"
+      ]
+    },
+    {
+      "finding_id": "F-c8a8002a",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Known pattern: parallelize sequential tool execution using Promise.all. Deterministic fix with clear before/after transformation. Single file affected.",
+      "fix_template_id": "parallelize_async_loop",
+      "relevant_files": [
+        "app/api/chat/tools/route.ts"
+      ]
+    },
+    {
+      "finding_id": "F-a27463cb",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Add dynamic imports for heavy components. Requires identifying which components to lazy-load and adding dynamic() wrappers. Affects 1-3 component files and potentially main page files. Standard Next.js optimization pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "app/[locale]/[workspaceid]/chat/page.tsx",
+        "components/chat/chat-ui.tsx",
+        "components/chat/chat-settings.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-71ea047e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Current implementation already uses Promise.all for parallelization. The suggestion is for future optimization (batching, workers) which are not critical. Mark as Tier 0 or acknowledge as already optimized. Conservative approach: Tier 1 with documentation fix only.",
+      "fix_template_id": "add_performance_comment",
+      "relevant_files": [
+        "app/api/retrieval/process/route.ts"
+      ]
+    },
+    {
+      "finding_id": "F-20a40415",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Optimize middleware database call with caching. Requires implementing cache mechanism and updating middleware logic. Affects middleware.ts and potentially a new cache utility (2 files). Scoped optimization.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "middleware.ts",
+        "lib/cache/workspace-cache.ts"
+      ]
+    },
+    {
+      "finding_id": "F-7b814902",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Known pattern: parallelize Promise.all on model fetching. Deterministic fix with clear transformation. Single file affected.",
+      "fix_template_id": "parallelize_async_operations",
+      "relevant_files": [
+        "app/[locale]/setup/page.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-71d6c76b",
+      "tier": 3,
+      "confidence": 0.85,
+      "rationale": "Architectural refactor required to decompose 34-file sidebar module with 2800 LOC. Requires separation of concerns, entity-specific modules, abstraction layers (ItemRenderer interface, useSidebarItem hook), and extraction of generic CRUD logic. Affects 34 sidebar component files plus core hook/service files. Cross-cutting refactor.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "components/sidebar/items/all/sidebar-update-item.tsx",
+        "components/sidebar/items/all/sidebar-display-item.tsx",
+        "components/sidebar/items/all/sidebar-create-item.tsx",
+        "components/sidebar/items/all/sidebar-delete-item.tsx",
+        "components/sidebar/sidebar-data-list.tsx",
+        "components/sidebar/items/chat/chat-item.tsx",
+        "components/sidebar/items/assistants/assistant-item.tsx",
+        "components/sidebar/items/files/file-item.tsx",
+        "components/sidebar/items/models/model-item.tsx",
+        "components/sidebar/items/prompts/prompt-item.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-fe4b0aa5",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Architectural reorganization of types/ directory. Requires restructuring 19+ type files into domain-based modules (chat/, assistant/, file/, etc.). Affects all 19 type files and all files that import from types/ (5+ files). Cross-cutting organizational change.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "types/index.ts",
+        "types/chat.ts",
+        "types/chat-message.ts",
+        "types/chat-file.tsx",
+        "types/assistant-retrieval-item.ts",
+        "context/context.tsx",
+        "app/[locale]/[workspaceid]/layout.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-ead07def",
+      "tier": 3,
+      "confidence": 0.85,
+      "rationale": "Requires architectural changes: create queue processing abstraction, add batch processing support, add embedding cache layer. Affects retrieval module (5+ files) including lib/retrieval/*, app/api/retrieval/process route, and database layer. Future scalability concerns and abstraction needed across multiple concerns.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "lib/retrieval/processing/index.ts",
+        "app/api/retrieval/process/route.ts",
+        "app/api/retrieval/process/docx/route.ts",
+        "lib/retrieval/extraction/extract-chunks.ts",
+        "lib/retrieval/embedding/generate-embeddings.ts"
+      ]
+    },
+    {
+      "finding_id": "F-173e8ad5",
+      "tier": 3,
+      "confidence": 0.9,
+      "rationale": "High-severity architectural security issue requiring cross-cutting implementation: Supabase RLS policies on 10+ tables, authorization service layer creation, and validation enforcement across 30+ API routes and database functions. Requires database schema changes, service layer creation, and verification across entire application. Fundamental security architecture fix.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "lib/services/auth-service.ts",
+        "middleware.ts",
+        "db/chats.ts",
+        "db/assistants.ts",
+        "db/files.ts",
+        "db/presets.ts",
+        "db/prompts.ts",
+        "db/tools.ts",
+        "db/models.ts",
+        "app/api/chat/openai/route.ts",
+        "supabase/migrations/20240108234540_setup.sql"
+      ]
+    }
+  ],
+  "tier_0_count": 1,
+  "tier_1_count": 19,
+  "tier_2_count": 7,
+  "tier_3_count": 9
+}

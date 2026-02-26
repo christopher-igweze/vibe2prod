@@ -1,0 +1,991 @@
+{
+  "run_id": "85c99af7fad8",
+  "generated_at": "2026-02-26T01:30:17.048860+00:00",
+  "phase": "discovery",
+  "duration_seconds": 266.0,
+  "cost_usd": 0.771,
+  "total_findings": 36,
+  "severity_breakdown": {
+    "medium": 17,
+    "low": 7,
+    "critical": 2,
+    "high": 10
+  },
+  "category_breakdown": {
+    "security": 15,
+    "performance": 10,
+    "architecture": 11
+  },
+  "findings": [
+    {
+      "id": "F-e3ce60d1",
+      "title": "Missing authentication check on password reset endpoint",
+      "description": "The password reset handler in login page does not validate user email before sending reset email. An attacker can enumerate valid emails by checking which ones accept password reset requests.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 78,
+          "line_end": 92,
+          "snippet": "const handleResetPassword = async (formData: FormData) => {\n    \"use server\"\n\n    const origin = headers().get(\"origin\")\n    const email = formData.get(\"email\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { error } = await supabase.auth.resetPasswordForEmail(email, {\n      redirectTo: `${origin}/auth/callback?next=/login/password`\n    })"
+        }
+      ],
+      "suggested_fix": "Return a generic success message regardless of whether the email exists in the system. This prevents email enumeration attacks. Supabase will silently ignore non-existent emails by default, but ensure the UI response is identical for both cases: 'If an account exists with this email, you will receive a password reset link.'",
+      "confidence": 0.85,
+      "cwe_id": "CWE-203",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2abb0534",
+      "title": "Unprotected API endpoint - /api/username/available returns user existence information",
+      "description": "The /api/username/available endpoint allows any unauthenticated request to check if a username exists. While usernames may be semi-public, this endpoint should enforce rate limiting and authentication to prevent username enumeration attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/username/available/route.ts",
+          "line_start": 1,
+          "line_end": 25,
+          "snippet": "export async function POST(request: Request) {\n  const json = await request.json()\n  const { username } = json as {\n    username: string\n  }\n\n  try {\n    const supabaseAdmin = createClient<Database>(\n      process.env.NEXT_PUBLIC_SUPABASE_URL!,\n      process.env.SUPABASE_SERVICE_ROLE_KEY!\n    )\n\n    const { data: usernames, error } = await supabaseAdmin\n      .from(\"profiles\")\n      .select(\"username\")\n      .eq(\"username\", username)\n\n    if (!usernames) {\n      throw new Error(error.message)\n    }\n\n    return new Response(JSON.stringify({ isAvailable: !usernames.length }), {\n      status: 200\n    })\n  }"
+        }
+      ],
+      "suggested_fix": "Add rate limiting middleware to this endpoint (e.g., max 10 requests per IP per minute). Consider requiring authentication. Implement exponential backoff for repeated failures. Alternatively, move this check to client-side only during signup with server-side validation only on actual profile creation.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7d26faf0",
+      "title": "Missing CSRF protection on server actions in login form",
+      "description": "The login page uses Next.js server actions (signIn, signUp, handleResetPassword) via formAction attributes. While Next.js provides built-in CSRF protection for server actions, there is no explicit validation of the action origin or explicit CSRF tokens.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 104,
+          "line_end": 145,
+          "snippet": "return (\n    <div className=\"flex w-full flex-1 flex-col justify-center gap-2 px-8 sm:max-w-md\">\n      <form\n        className=\"animate-in text-foreground flex w-full flex-1 flex-col justify-center gap-2\"\n        action={signIn}\n      >"
+        }
+      ],
+      "suggested_fix": "Next.js 14+ automatically provides CSRF protection for server actions, but verify this is enabled. No additional action needed if on Next.js 14+. For explicit security, consider adding a hidden CSRF token field or using the `revalidatePath` API after auth state changes.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2e3549ff",
+      "title": "Weak session validation in middleware - no user_id verification",
+      "description": "The middleware checks for session existence but does not validate the user_id is present or valid. A malformed session token could potentially bypass checks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "middleware.ts",
+          "line_start": 6,
+          "line_end": 26,
+          "snippet": "const session = await supabase.auth.getSession()\n\n    const redirectToChat = session && request.nextUrl.pathname === \"/\"\n\n    if (redirectToChat) {\n      const { data: homeWorkspace, error } = await supabase\n        .from(\"workspaces\")\n        .select(\"*\")\n        .eq(\"user_id\", session.data.session?.user.id)\n        .eq(\"is_home\", true)\n        .single()"
+        }
+      ],
+      "suggested_fix": "Add explicit validation: `if (!session?.user?.id) return NextResponse.redirect(new URL('/login', request.url))` before attempting database queries. Also validate that `session.data.session` is not null and contains required fields (user.id, user.email).",
+      "confidence": 0.78,
+      "cwe_id": "CWE-305",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f12013e9",
+      "title": "No explicit session expiry handling in protected pages",
+      "description": "Protected pages like /[workspaceid]/chat check for session using Supabase client-side, but there is no mechanism to refresh expired sessions or handle token rotation gracefully.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/[workspaceid]/layout.tsx",
+          "line_start": 56,
+          "line_end": 70,
+          "snippet": "useEffect(() => {\n    ;(async () => {\n      const session = (await supabase.auth.getSession()).data.session\n\n      if (!session) {\n        return router.push(\"/login\")\n      } else {\n        await fetchWorkspaceData(workspaceId)\n      }\n    })()\n  }, [])"
+        }
+      ],
+      "suggested_fix": "Implement automatic token refresh using Supabase's `onAuthStateChange` listener: `supabase.auth.onAuthStateChange((event, session) => { if (!session) router.push('/login') })`. This handles token expiry and refresh gracefully without full page reloads.",
+      "confidence": 0.82,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ac6af45b",
+      "title": "API keys stored in user profiles without encryption at rest",
+      "description": "API keys for OpenAI, Anthropic, Azure, etc. are stored in the profiles table (profile.openai_api_key, profile.anthropic_api_key, etc.) without application-level encryption. Database compromise exposes all user API keys.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/setup/page.tsx",
+          "line_start": 145,
+          "line_end": 165,
+          "snippet": "const updateProfilePayload: TablesUpdate<\"profiles\"> = {\n      ...profile,\n      has_onboarded: true,\n      display_name: displayName,\n      username,\n      openai_api_key: openaiAPIKey,\n      openai_organization_id: openaiOrgID,\n      anthropic_api_key: anthropicAPIKey,\n      google_gemini_api_key: googleGeminiAPIKey,\n      mistral_api_key: mistralAPIKey,\n      groq_api_key: groqAPIKey,\n      perplexity_api_key: perplexityAPIKey,\n      openrouter_api_key: openrouterAPIKey,\n      use_azure_openai: useAzureOpenai,\n      azure_openai_api_key: azureOpenaiAPIKey,"
+        }
+      ],
+      "suggested_fix": "Implement server-side encryption for sensitive API keys before storing in database. Use a key derivation function (KDF) like PBKDF2 or Argon2 with a user-specific salt. Store only encrypted values in the database. Decrypt keys only in server-side API routes (app/api/chat/*, app/api/retrieval/*) using Supabase's SECURITY DEFINER functions. Alternatively, use AWS Secrets Manager, HashiCorp Vault, or Supabase Vault (if available) to store API keys separately from user profiles.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-312",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7dd063d3",
+      "title": "API keys exposed in server logs and error messages",
+      "description": "Error responses from API routes may inadvertently expose partial API key information or request details containing keys. Example in app/api/chat/openai/route.ts and similar routes.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 45,
+          "line_end": 52,
+          "snippet": "} catch (error: any) {\n    let errorMessage = error.message || \"An unexpected error occurred\"\n    const errorCode = error.status || 500\n\n    if (errorMessage.toLowerCase().includes(\"api key not found\")) {\n      errorMessage =\n        \"OpenAI API Key not found. Please set it in your profile settings.\"\n    } else if (errorMessage.toLowerCase().includes(\"incorrect api key\")) {"
+        }
+      ],
+      "suggested_fix": "Sanitize error messages to remove sensitive information. Log full errors only to server-side logs (not returned to client). Return generic error messages to the client: 'Authentication failed. Please verify your API keys in settings.' Do NOT include the word 'incorrect' in error messages as it confirms key existence. Implement centralized error handling with logging to secure backend (e.g., Sentry with data redaction).",
+      "confidence": 0.88,
+      "cwe_id": "CWE-532",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-88e605b3",
+      "title": "No rate limiting on authentication endpoints",
+      "description": "Login, signup, and password reset endpoints (/api/username/available, signUp, signIn) have no rate limiting. Attackers can perform brute force attacks, credential stuffing, or password spray.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 34,
+          "line_end": 58,
+          "snippet": "const signIn = async (formData: FormData) => {\n    \"use server\"\n\n    const email = formData.get(\"email\") as string\n    const password = formData.get(\"password\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { data, error } = await supabase.auth.signInWithPassword({\n      email,\n      password\n    })"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting on authentication endpoints using middleware or a rate-limiting library (e.g., `Ratelimit` from `@upstash/ratelimit`). Suggested limits: Login - 5 attempts per IP per 15 minutes; Signup - 3 per IP per hour; Password reset - 3 per email per hour. Return HTTP 429 (Too Many Requests) when limits exceeded. Note: Supabase has built-in auth rate limiting, but verify it is enabled in your Supabase project settings.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-92ebe3e5",
+      "title": "Missing input validation on email in signup - weak email whitelist check",
+      "description": "The email domain/whitelist validation only checks exact string matches and splits by comma. No regex pattern matching or trimming of whitespace in individual domain entries. Malformed whitelist could allow unauthorized signups.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 61,
+          "line_end": 77,
+          "snippet": "const emailDomainWhitelistPatternsString = await getEnvVarOrEdgeConfigValue(\n      \"EMAIL_DOMAIN_WHITELIST\"\n    )\n    const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim()\n      ? emailDomainWhitelistPatternsString?.split(\",\")\n      : []\n    const emailWhitelistPatternsString =\n      await getEnvVarOrEdgeConfigValue(\"EMAIL_WHITELIST\")\n    const emailWhitelist = emailWhitelistPatternsString?.trim()\n      ? emailWhitelistPatternsString?.split(\",\")\n      : []\n\n    // If there are whitelist patterns, check if the email is allowed to sign up\n    if (emailDomainWhitelist.length > 0 || emailWhitelist.length > 0) {\n      const domainMatch = emailDomainWhitelist?.includes(email.split(\"@\")[1])\n      const emailMatch = emailWhitelist?.includes(email)"
+        }
+      ],
+      "suggested_fix": "Trim whitespace from each whitelist entry: `const emailDomainWhitelist = emailDomainWhitelistPatternsString?.trim().split(',').map(e => e.trim().toLowerCase()) || []`. Convert email to lowercase for comparison: `const domainMatch = emailDomainWhitelist?.includes(email.toLowerCase().split('@')[1])`. Add regex pattern support for domain wildcards if needed: `const domainRegex = new RegExp(domain.replace('.', '\\\\.').replace('*', '.*'))`. Validate email format using a library like `email-validator` or regex before whitelist check.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-284",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4766f1e2",
+      "title": "No HTTPS enforcement in auth callback redirect",
+      "description": "The password reset callback uses `headers().get('origin')` without validating it's HTTPS. A man-in-the-middle attack could capture the reset token from the redirect URL.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/[locale]/login/page.tsx",
+          "line_start": 78,
+          "line_end": 87,
+          "snippet": "const handleResetPassword = async (formData: FormData) => {\n    \"use server\"\n\n    const origin = headers().get(\"origin\")\n    const email = formData.get(\"email\") as string\n    const cookieStore = cookies()\n    const supabase = createClient(cookieStore)\n\n    const { error } = await supabase.auth.resetPasswordForEmail(email, {\n      redirectTo: `${origin}/auth/callback?next=/login/password`"
+        }
+      ],
+      "suggested_fix": "Validate origin URL before using it: `const origin = headers().get('origin') || process.env.NEXT_PUBLIC_APP_URL; if (!origin?.startsWith('https://') && !origin?.includes('localhost')) { throw new Error('Invalid origin'); }`. Ensure `X-Forwarded-Proto: https` header is set in production. Verify Supabase HTTPS requirement is enabled in project settings.",
+      "confidence": 0.82,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d0802f11",
+      "title": "No explicit logout/session termination mechanism",
+      "description": "No logout functionality is visible in the codebase. Users have no way to explicitly terminate their sessions, only rely on token expiry. This violates session management best practices.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "components/utility/profile-settings.tsx",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "File not provided in codebase"
+        }
+      ],
+      "suggested_fix": "Add explicit logout endpoint and UI button. Create `app/api/auth/logout/route.ts`: `export async function POST() { const supabase = createClient(); await supabase.auth.signOut(); return NextResponse.redirect('/login'); }`. Add logout button in profile settings component that calls this endpoint and clears client-side context state.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5295a79f",
+      "title": "No validation of workspace user_id ownership before granting access",
+      "description": "The middleware and workspace layout check for session but do not explicitly validate that the user owns the workspace. Row-level security (RLS) policies must exist, but code does not verify them.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "middleware.ts",
+          "line_start": 15,
+          "line_end": 29,
+          "snippet": "const { data: homeWorkspace, error } = await supabase\n        .from(\"workspaces\")\n        .select(\"*\")\n        .eq(\"user_id\", session.data.session?.user.id)\n        .eq(\"is_home\", true)\n        .single()"
+        }
+      ],
+      "suggested_fix": "Verify Supabase RLS policies are properly configured for all tables. Add explicit authorization check in workspace layout: `if (selectedWorkspace?.user_id !== session.user.id) { return router.push('/login'); }`. Verify all database queries filter by `user_id = auth.uid()` at the Supabase level using RLS policies, not just in application code.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8d55433e",
+      "title": "Sensitive data exposure - environment variables accessible via /api/keys endpoint",
+      "description": "The `/api/keys` endpoint returns which API keys are configured from environment variables. This information could help attackers understand which services are in use and target them.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/keys/route.ts",
+          "line_start": 1,
+          "line_end": 31,
+          "snippet": "export async function GET() {\n  const envKeyMap: Record<string, VALID_ENV_KEYS> = {\n    azure: VALID_ENV_KEYS.AZURE_OPENAI_API_KEY,\n    openai: VALID_ENV_KEYS.OPENAI_API_KEY,\n    google: VALID_ENV_KEYS.GOOGLE_GEMINI_API_KEY,\n    anthropic: VALID_ENV_KEYS.ANTHROPIC_API_KEY,\n    mistral: VALID_ENV_KEYS.MISTRAL_API_KEY,\n    groq: VALID_ENV_KEYS.GROQ_API_KEY,\n    perplexity: VALID_ENV_KEYS.PERPLEXITY_API_KEY,\n    openrouter: VALID_ENV_KEYS.OPENROUTER_API_KEY,"
+        }
+      ],
+      "suggested_fix": "Add authentication check: `const { data: { user } } = await supabase.auth.getUser(); if (!user) return new Response('Unauthorized', { status: 401 });` at the start of the GET handler. This endpoint should only be accessible to authenticated users. Consider removing it entirely if not strictly necessary for client functionality.",
+      "confidence": 0.72,
+      "cwe_id": "CWE-200",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c2579710",
+      "title": "No authentication verification in protected API routes",
+      "description": "API routes like `/api/chat/openai`, `/api/retrieval/process`, etc. rely on `getServerProfile()` to implicitly verify authentication, but there is no explicit session/JWT validation before processing requests.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 8,
+          "line_end": 18,
+          "snippet": "export async function POST(request: Request) {\n  const json = await request.json()\n  const { chatSettings, messages } = json as {\n    chatSettings: ChatSettings\n    messages: any[]\n  }\n\n  try {\n    const profile = await getServerProfile()\n\n    checkApiKey(profile.openai_api_key, \"OpenAI\")"
+        }
+      ],
+      "suggested_fix": "Verify `getServerProfile()` implementation (in lib/server/server-chat-helpers.ts) to ensure it explicitly validates authentication. Add explicit auth check before processing: `const { data: { user } } = await supabase.auth.getUser(); if (!user) return new Response('Unauthorized', { status: 401 });` If `getServerProfile()` is secure, document this clearly in comments. Ensure all API routes use this pattern.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c421b848",
+      "title": "No validation of custom model credentials in /api/chat/custom endpoint",
+      "description": "The custom model endpoint retrieves model credentials from database (customModel.api_key) without validating they belong to the requesting user. If a user can guess or enumerate model IDs, they could use other users' API keys.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "app/api/chat/custom/route.ts",
+          "line_start": 11,
+          "line_end": 25,
+          "snippet": "const { data: customModel, error } = await supabaseAdmin\n      .from(\"models\")\n      .select(\"*\")\n      .eq(\"id\", customModelId)\n      .single()\n\n    if (!customModel) {\n      throw new Error(error.message)\n    }\n\n    const custom = new OpenAI({\n      apiKey: customModel.api_key || \"\",\n      baseURL: customModel.base_url\n    })"
+        }
+      ],
+      "suggested_fix": "Add ownership validation before using the model: Add `const profile = await getServerProfile(); if (customModel.user_id !== profile.user_id) { throw new Error('Unauthorized'); }`. Ensure the `models` table has a `user_id` column and RLS policy restricting access to model owner. Query should be: `.eq('user_id', profile.user_id)` as well.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-56231c2f",
+      "title": "Sequential tool processing in chat/tools API route",
+      "description": "In app/api/chat/tools/route.ts, tools are processed sequentially in a for loop (lines 34-64). Each tool requires schema conversion via openapiToFunctions, which is an async operation. These could be parallelized using Promise.all for significant performance improvement.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/api/chat/tools/route.ts",
+          "line_start": 34,
+          "line_end": 64,
+          "snippet": "for (const selectedTool of selectedTools) {\n  try {\n    const convertedSchema = await openapiToFunctions(\n      JSON.parse(selectedTool.schema as string)\n    )\n    // ... more processing\n  } catch (error: any) {\n    console.error(\"Error converting schema\", error)\n  }\n}"
+        }
+      ],
+      "suggested_fix": "Replace the sequential for loop with Promise.all to parallelize schema conversions:\n\nconst convertedTools = await Promise.all(\n  selectedTools.map(async (selectedTool) => {\n    try {\n      const convertedSchema = await openapiToFunctions(\n        JSON.parse(selectedTool.schema as string)\n      )\n      return { tool: selectedTool, schema: convertedSchema }\n    } catch (error) {\n      console.error(\"Error converting schema\", error)\n      return null\n    }\n  })\n).then(results => results.filter(Boolean))\n\n// Then process convertedTools",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-cb369bad",
+      "title": "Sequential data fetching in workspace layout",
+      "description": "In app/[locale]/[workspaceid]/layout.tsx, the fetchWorkspaceData function (lines 82-160) makes 10+ sequential database calls to fetch different entity types. These could be parallelized with Promise.all to reduce loading time.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/[locale]/[workspaceid]/layout.tsx",
+          "line_start": 82,
+          "line_end": 160,
+          "snippet": "const assistantData = await getAssistantWorkspacesByWorkspaceId(workspaceId)\nsetAssistants(assistantData.assistants)\n// ... 10+ more sequential awaits for chats, collections, folders, files, presets, prompts, tools, models"
+        }
+      ],
+      "suggested_fix": "Parallelize all data fetching using Promise.all:\n\nconst [assistantData, chats, collectionData, folders, fileData, presetData, promptData, toolData, modelData] = await Promise.all([\n  getAssistantWorkspacesByWorkspaceId(workspaceId),\n  getChatsByWorkspaceId(workspaceId),\n  getCollectionWorkspacesByWorkspaceId(workspaceId),\n  getFoldersByWorkspaceId(workspaceId),\n  getFileWorkspacesByWorkspaceId(workspaceId),\n  getPresetWorkspacesByWorkspaceId(workspaceId),\n  getPromptWorkspacesByWorkspaceId(workspaceId),\n  getToolWorkspacesByWorkspaceId(workspaceId),\n  getModelWorkspacesByWorkspaceId(workspaceId)\n])\n\n// Then set all states",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0690457d",
+      "title": "No pagination on retrieval queries",
+      "description": "In app/api/retrieval/retrieve/route.ts, the database queries for file items (lines 55-75) use a fixed sourceCount parameter but there's no pagination for the results returned to the client. Large result sets could cause memory issues.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/api/retrieval/retrieve/route.ts",
+          "line_start": 55,
+          "line_end": 75,
+          "snippet": "const { data: openaiFileItems, error: openaiError } =\n  await supabaseAdmin.rpc(\"match_file_items_openai\", {\n    query_embedding: openaiEmbedding as any,\n    match_count: sourceCount,\n    file_ids: uniqueFileIds\n  })"
+        }
+      ],
+      "suggested_fix": "Add pagination parameters (page/limit or offset) to the API route and propagate them to the database query. Consider implementing cursor-based pagination for large datasets.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-dc387c29",
+      "title": "Repeated profile fetch in every API route",
+      "description": "Multiple API routes (all in app/api/chat/*, app/api/retrieval/*) call getServerProfile() which fetches the user profile from the database on every request. This could be cached or optimized.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 15,
+          "line_end": 17,
+          "snippet": "const profile = await getServerProfile()\n\n// This pattern repeats in all 9+ API routes"
+        }
+      ],
+      "suggested_fix": "Consider implementing a lightweight caching mechanism for the profile data (e.g., in-memory cache with TTL or using Next.js data caching). For the same user session, the profile rarely changes during a request.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-240fe672",
+      "title": "No caching for model fetching",
+      "description": "lib/models/fetch-models.ts makes network calls to external APIs (OpenRouter, Ollama) every time fetchOpenRouterModels or fetchOllamaModels is called. These results could be cached.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "lib/models/fetch-models.ts",
+          "line_start": 40,
+          "line_end": 70,
+          "snippet": "export const fetchOpenRouterModels = async () => {\n  try {\n    const response = await fetch(\"https://openrouter.ai/api/v1/models\")\n    // ... no caching mechanism\n  }\n}"
+        }
+      ],
+      "suggested_fix": "Implement caching using React Query, SWR, or a simple in-memory cache with TTL. For server-side, use Next.js cache() or a simple Map with expiration.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c8a8002a",
+      "title": "Sequential tool execution in chat/tools route",
+      "description": "In app/api/chat/tools/route.ts, tool calls are executed sequentially in a for loop (lines 83-165). When multiple tools are called, each external API call (fetch) happens one after another. These could be parallelized.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/api/chat/tools/route.ts",
+          "line_start": 83,
+          "line_end": 165,
+          "snippet": "for (const toolCall of toolCalls) {\n  // ... process each tool call sequentially\n  const response = await fetch(fullUrl, requestInit)\n  // ... more processing\n}"
+        }
+      ],
+      "suggested_fix": "Parallelize tool execution using Promise.all:\n\nconst toolResults = await Promise.all(\n  toolCalls.map(async (toolCall) => {\n    // ... process each tool call\n    const response = await fetch(fullUrl, requestInit)\n    return { tool_call_id: toolCall.id, name: functionName, content: JSON.stringify(data) }\n  })\n)\n\nmessages.push(...toolResults)",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a27463cb",
+      "title": "No lazy loading for heavy components",
+      "description": "The Next.js app loads many components eagerly. Large components like ChatUI, message rendering components, and sidebar components could benefit from React.lazy() and dynamic imports.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/[locale]/[workspaceid]/chat/page.tsx",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "import { ChatHelp } from \"@/components/chat/chat-help\"\nimport { ChatInput } from \"@/components/chat/chat-input\"\nimport { ChatSettings } from \"@/components/chat/chat-settings\"\nimport { ChatUI } from \"@/components/chat/chat-ui\"\n// All imported eagerly"
+        }
+      ],
+      "suggested_fix": "Use Next.js dynamic imports for heavy components:\n\nconst ChatUI = dynamic(() => import(\"@/components/chat/chat-ui\"), { ssr: false })\nconst ChatSettings = dynamic(() => import(\"@/components/chat/chat-settings\"))\n\nThis reduces initial bundle size and speeds up first contentful paint.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-71ea047e",
+      "title": "Repeated embedding generation in file processing",
+      "description": "In app/api/retrieval/process/route.ts (lines 99-115), local embeddings are generated sequentially using Promise.all but could be optimized with better batching or using a more efficient embedding model configuration.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/api/retrieval/process/route.ts",
+          "line_start": 99,
+          "line_end": 115,
+          "snippet": "const embeddingPromises = chunks.map(async chunk => {\n  try {\n    return await generateLocalEmbedding(chunk.content)\n  } catch (error) {\n    console.error(`Error generating embedding for chunk: ${chunk}`, error)\n    return null\n  }\n})\n\nembeddings = await Promise.all(embeddingPromises)"
+        }
+      ],
+      "suggested_fix": "The current Promise.all approach is reasonable. For further optimization, consider: 1) Processing chunks in batches to control memory usage, 2) Using Web Workers for CPU-intensive embedding generation, 3) Implementing progress streaming to client.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-20a40415",
+      "title": "Middleware database call on every request",
+      "description": "In middleware.ts (lines 14-32), there's a database call to fetch the home workspace for authenticated users on every request. This could be optimized with caching.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "middleware.ts",
+          "line_start": 14,
+          "line_end": 32,
+          "snippet": "const { data: homeWorkspace, error } = await supabase\n  .from(\"workspaces\")\n  .select(\"*\")\n  .eq(\"user_id\", session.data.session?.user.id)\n  .eq(\"is_home\", true)\n  .single()"
+        }
+      ],
+      "suggested_fix": "Cache the home workspace ID in a cookie or session storage after first fetch, or use Edge Config for simple redirects. Only re-fetch when necessary (e.g., after workspace creation/deletion).",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7b814902",
+      "title": "Sequential setup page API calls",
+      "description": "In app/[locale]/setup/page.tsx, the useEffect makes sequential API calls (lines 52-75) to fetch hosted models and OpenRouter models. These could be parallelized.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "app/[locale]/setup/page.tsx",
+          "line_start": 52,
+          "line_end": 75,
+          "snippet": "const data = await fetchHostedModels(profile)\n// ... set states\nif (profile[\"openrouter_api_key\"] || data.envKeyMap[\"openrouter\"]) {\n  const openRouterModels = await fetchOpenRouterModels()\n  // ... set states\n}"
+        }
+      ],
+      "suggested_fix": "Parallelize the model fetching:\n\nconst [hostedData, openRouterData] = await Promise.all([\n  fetchHostedModels(profile),\n  profile.openrouter_api_key ? fetchOpenRouterModels() : Promise.resolve(null)\n])\n\n// Then process both results",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b43819d5",
+      "title": "God module: chat-components exceeds recommended size with mixed responsibilities",
+      "description": "The chat-components module contains 3200 LOC across 22 files with multiple concerns: UI rendering, state management, file handling, hooks, and helpers. The chat-helpers/index.ts file alone contains 511 LOC mixing unrelated utility functions. This violates single responsibility principle and makes testing and maintenance difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "components/chat/",
+          "line_start": 1,
+          "line_end": 3200,
+          "snippet": "22 files with mixed concerns: chat-input.tsx, chat-messages.tsx, chat-ui.tsx, chat-settings.tsx, chat-files-display.tsx, file-picker.tsx, tool-picker.tsx, assistant-picker.tsx, prompt-picker.tsx, quick-settings.tsx, chat-command-input.tsx, chat-help.tsx, chat-retrieval-settings.tsx, chat-scroll-buttons.tsx, chat-secondary-buttons.tsx, quick-setting-option.tsx, chat-helpers/index.ts (511 LOC), use-chat-handler.tsx (422 LOC), use-chat-history.tsx, use-prompt-and-command.tsx, use-scroll.tsx, use-select-file-handler.tsx"
+        },
+        {
+          "file_path": "components/chat/chat-helpers/index.ts",
+          "line_start": 1,
+          "line_end": 511,
+          "snippet": "Large utility file mixing file handling, message building, streaming logic, and state transformations"
+        },
+        {
+          "file_path": "components/chat/chat-hooks/use-chat-handler.tsx",
+          "line_start": 1,
+          "line_end": 422,
+          "snippet": "Complex hook handling chat submission, file processing, streaming, and state management"
+        }
+      ],
+      "suggested_fix": "Decompose chat-components into focused sub-modules: chat-core (UI shell), chat-input-management (input-related logic), chat-file-handling (file operations), chat-streaming (message rendering with streaming), chat-state-management (hooks). Move 511 LOC from chat-helpers/index.ts into domain-specific utilities: file-utils.ts, message-utils.ts, streaming-utils.ts.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8459224d",
+      "title": "Missing abstraction layer between API routes and database operations",
+      "description": "API routes (app/api/chat/*, app/api/retrieval/*) directly import and call database functions from db/ module. There is no service/repository pattern abstraction. Changes to database schema require modifications across multiple API routes, creating tight coupling and increasing bug risk.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 1,
+          "line_end": 58,
+          "snippet": "API route directly calling db functions for messages, chats, files"
+        },
+        {
+          "file_path": "app/api/chat/anthropic/route.ts",
+          "line_start": 1,
+          "line_end": 111,
+          "snippet": "API route directly calling db functions for assistants, tools, messages"
+        },
+        {
+          "file_path": "app/api/retrieval/process/route.ts",
+          "line_start": 1,
+          "line_end": 175,
+          "snippet": "API route directly calling db.files, db.collections, storage functions"
+        },
+        {
+          "file_path": "db/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "24 database files with no service layer abstraction: chats.ts, messages.ts, assistants.ts, assistant-tools.ts, assistant-files.ts, models.ts, presets.ts, prompts.ts, tools.ts, files.ts, folders.ts, collections.ts, collection-files.ts, chat-files.ts, message-file-items.ts, workspaces.ts, profile.ts, limits.ts, storage/*"
+        }
+      ],
+      "suggested_fix": "Create lib/services/ layer with domain-focused service classes: ChatService (handles chat creation, message persistence), AssistantService (assistant CRUD and tool/file assignments), FileService (file processing, storage, retrieval), RetrievalService (embedding, vector search). API routes should depend on services, not db directly. Services encapsulate all database access patterns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6f49eeb4",
+      "title": "Inconsistent state management patterns across chat and sidebar components",
+      "description": "Chat state is managed via React Context (context-providers), hooks (use-chat-handler.tsx, use-chat-history.tsx), and local component state. Sidebar uses similar patterns but with different conventions. This creates confusion and makes refactoring state difficult. Some components lift state unnecessarily high (workspace-level) when they could be local.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "context/context.tsx",
+          "line_start": 1,
+          "line_end": 265,
+          "snippet": "Global context for workspace, chats, assistants, models, files, presets, prompts, tools, collections managing app-level state"
+        },
+        {
+          "file_path": "components/chat/chat-hooks/use-chat-handler.tsx",
+          "line_start": 1,
+          "line_end": 422,
+          "snippet": "Custom hook with extensive local state management for chat submission and streaming"
+        },
+        {
+          "file_path": "components/sidebar/sidebar-data-list.tsx",
+          "line_start": 1,
+          "line_end": 344,
+          "snippet": "Sidebar component managing local state for items and using context simultaneously"
+        },
+        {
+          "file_path": "components/utility/global-state.tsx",
+          "line_start": 1,
+          "line_end": 331,
+          "snippet": "Additional global state management component creating parallel state system"
+        }
+      ],
+      "suggested_fix": "Standardize state management: (1) Use React Context only for truly global state (user, workspace, theme). (2) Use local state + hooks for feature-specific state (chat, sidebar items). (3) Create custom hooks (useChat, useSidebar, useAssistants) that encapsulate state logic. (4) Remove redundant state from global-state.tsx and consolidate into context.tsx. (5) Document state ownership at module level.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-71d6c76b",
+      "title": "Sidebar component module has high complexity and mixed concerns",
+      "description": "sidebar-components contains 2800 LOC across 34 files handling multiple entity types (chats, assistants, models, prompts, files, folders, presets, tools, collections) with separate CRUD operations for each. The sidebar-update-item.tsx file is 680 LOC, and sidebar-data-list.tsx is 344 LOC. This creates a maintainability burden when adding new entity types.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "components/sidebar/items/all/sidebar-update-item.tsx",
+          "line_start": 1,
+          "line_end": 680,
+          "snippet": "Massive component handling update logic for 8+ different entity types with conditional rendering"
+        },
+        {
+          "file_path": "components/sidebar/sidebar-data-list.tsx",
+          "line_start": 1,
+          "line_end": 344,
+          "snippet": "Complex data list rendering with filters, search, and type-specific rendering logic"
+        },
+        {
+          "file_path": "components/sidebar/items/all/",
+          "line_start": 1,
+          "line_end": 1200,
+          "snippet": "Four large files (sidebar-create-item.tsx 254 LOC, sidebar-delete-item.tsx 142 LOC, sidebar-display-item.tsx 127 LOC) handling generic CRUD across multiple entity types"
+        }
+      ],
+      "suggested_fix": "Refactor sidebar into entity-specific modules: chat-sidebar, assistant-sidebar, file-sidebar, etc. Each module owns its CRUD operations. Create abstraction: ItemRenderer interface with specific implementations (ChatRenderer, AssistantRenderer). Use composition over conditionals in sidebar-data-list.tsx. Extract generic CRUD logic into useSidebarItem hook. This reduces sidebar-update-item.tsx from 680 LOC to <150 LOC per entity.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-cca89594",
+      "title": "API routes layer lacks consistent error handling and validation",
+      "description": "API routes across chat, retrieval, and assistants endpoints have inconsistent error handling patterns. Some routes validate input, others don't. Error responses vary in format. No centralized request validation or error boundary exists, making API contract unstable and client error handling inconsistent.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 1,
+          "line_end": 58,
+          "snippet": "Minimal validation, direct error throws without consistent response format"
+        },
+        {
+          "file_path": "app/api/chat/tools/route.ts",
+          "line_start": 1,
+          "line_end": 218,
+          "snippet": "Complex tool execution logic without centralized validation or error handling"
+        },
+        {
+          "file_path": "app/api/retrieval/process/route.ts",
+          "line_start": 1,
+          "line_end": 175,
+          "snippet": "File processing without consistent error handling across multiple processing paths"
+        },
+        {
+          "file_path": "app/api/retrieval/retrieve/route.ts",
+          "line_start": 1,
+          "line_end": 102,
+          "snippet": "Vector retrieval without input validation or error standardization"
+        }
+      ],
+      "suggested_fix": "Create lib/api/request-handler.ts wrapper with: (1) Automatic JWT validation via middleware, (2) Zod schema validation for request bodies, (3) Standardized error response format, (4) Error logging and telemetry. Create lib/api/error-handler.ts with typed error classes (ValidationError, NotFoundError, ServerError). Update all routes to use wrapper. Example: const handler = createApiHandler(z.object({...}), async (req, validated) => {...})",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-958d2c7e",
+      "title": "Configuration values scattered across codebase without centralized config module",
+      "description": "Magic numbers and configuration strings are hardcoded in multiple files: API timeouts in chat routes, embedding limits in retrieval, token limits in chat-setting-limits.ts, model context windows in lib/models/. No single source of truth for configuration, making it difficult to adjust system parameters.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "lib/chat-setting-limits.ts",
+          "line_start": 1,
+          "line_end": 240,
+          "snippet": "Chat-specific limits defined locally without connection to model configuration"
+        },
+        {
+          "file_path": "lib/models/llm/openai-llm-list.ts",
+          "line_start": 1,
+          "line_end": 90,
+          "snippet": "Model context windows and token limits hardcoded in model list files"
+        },
+        {
+          "file_path": "app/api/chat/tools/route.ts",
+          "line_start": 1,
+          "line_end": 218,
+          "snippet": "Tool execution timeouts and retry logic with hardcoded values"
+        },
+        {
+          "file_path": "components/chat/chat-files-display.tsx",
+          "line_start": 1,
+          "line_end": 283,
+          "snippet": "File size limits hardcoded in component logic"
+        }
+      ],
+      "suggested_fix": "Create lib/config/index.ts exporting: CHAT_LIMITS (max tokens, timeout, retry count), MODEL_CONFIG (context windows by provider), FILE_CONFIG (max size, allowed types), API_CONFIG (endpoints, timeouts). Import throughout codebase. Use environment variables for environment-specific values. This creates single source of truth for all configuration.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fe4b0aa5",
+      "title": "Type definitions scattered across types/ directory without clear organizational structure",
+      "description": "The types/ directory has 19 files with minimal organization. Related types are split across files (chat.ts, chat-message.ts, chat-file.tsx). No clear dependency hierarchy between type files. Adding new entity types requires decisions about where to define types, leading to inconsistency.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "types/index.ts",
+          "line_start": 1,
+          "line_end": 15,
+          "snippet": "Re-exports all types without clear organization or documentation"
+        },
+        {
+          "file_path": "types/",
+          "line_start": 1,
+          "line_end": 500,
+          "snippet": "Fragmented types: chat.ts, chat-message.ts, chat-file.tsx, collection-file.ts, content-type.ts, error-response.ts, file-item-chunk.ts, key-type.ts, llms.ts, models.ts, sharing.ts, sidebar-data.ts, valid-keys.ts, announcement.ts, assistant-retrieval-item.ts, images/*"
+        }
+      ],
+      "suggested_fix": "Reorganize types/ as: domains/ (chat/, assistant/, file/, model/, user/), core/ (error-response.ts, content-type.ts, valid-keys.ts), api/ (request/response types). Group related types: types/domains/chat/ contains Chat, ChatMessage, ChatFile types. Clear dependency tree with core as foundation.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ead07def",
+      "title": "Retrieval processing module has potential bottleneck with sequential file processing",
+      "description": "The retrieval-processing module (lib/retrieval/) handles file parsing and embedding sequentially. Files like PDF, DOCX, CSV are processed one at a time. The API route (app/api/retrieval/process) doesn't support batch processing. As file volumes grow, this becomes a performance bottleneck with no clear async processing queue or job management.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "lib/retrieval/processing/index.ts",
+          "line_start": 1,
+          "line_end": 9,
+          "snippet": "Sequential file processing without async/queue abstraction"
+        },
+        {
+          "file_path": "app/api/retrieval/process/route.ts",
+          "line_start": 1,
+          "line_end": 175,
+          "snippet": "Single file processing per request, no batch or queue support"
+        }
+      ],
+      "suggested_fix": "Create lib/retrieval/queue-processor.ts with job abstraction for async file processing. Implement batch processing in app/api/retrieval/process route. Add lib/retrieval/embedding-cache.ts to cache embeddings and avoid reprocessing. Future: add Redis-backed queue (Bull or similar) for scale.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0396fe09",
+      "title": "UI components library (ui-components) lacks semantic organization despite large size",
+      "description": "The components/ui/ directory contains 52 files of Radix UI wrapper components with no clear organization. Primitives (button, input, dialog) are mixed with composite components (chat-settings-form, advanced-settings) and utilities (with-tooltip, use-toast). This makes discovery difficult and increases chances of duplicating components.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "components/ui/",
+          "line_start": 1,
+          "line_end": 2200,
+          "snippet": "52 files mixing: primitives (button.tsx, input.tsx, textarea.tsx, dialog.tsx, etc.), composites (chat-settings-form.tsx, advanced-settings.tsx, dashboard.tsx), utilities (with-tooltip.tsx, use-toast.ts, file-icon.tsx)"
+        }
+      ],
+      "suggested_fix": "Reorganize components/ui/ into: primitives/ (button, input, textarea, dialog, etc.), forms/ (form.tsx, chat-settings-form.tsx), composites/ (dashboard.tsx, command.tsx), utilities/ (with-tooltip.tsx, file-icon.tsx), hooks/ (use-toast.ts). Update index.ts to clearly export from each category. Add README documenting which component to use for different scenarios.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-953985f5",
+      "title": "Tight coupling between chat UI and database operations via context",
+      "description": "The context.tsx (265 LOC) directly manages all entity CRUD operations (create, update, delete chats, messages, assistants, etc.). Components throughout the app directly call these methods. This couples UI rendering directly to database operations with no separation of concerns. Testing UI components requires mocking entire database layer.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "context/context.tsx",
+          "line_start": 1,
+          "line_end": 265,
+          "snippet": "Context handling simultaneous concerns: state management, database operations, async loading, error handling across 8+ entity types"
+        },
+        {
+          "file_path": "components/sidebar/items/chat/update-chat.tsx",
+          "line_start": 1,
+          "line_end": 76,
+          "snippet": "Component directly calling context database methods: updateChat, deleteChat"
+        },
+        {
+          "file_path": "components/chat/chat-hooks/use-chat-handler.tsx",
+          "line_start": 1,
+          "line_end": 422,
+          "snippet": "Hook directly calling context methods for message persistence"
+        }
+      ],
+      "suggested_fix": "Refactor context.tsx into three layers: (1) UIContext (state + loading/error states only), (2) ApiLayer (service classes calling API routes), (3) Components use only UIContext and ApiLayer. Move all db operations to lib/services/. Example: context provides updateChatAsync which calls ChatService.updateChat which calls /api/chats/{id}. Components don't know about database.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-173e8ad5",
+      "title": "Workspace isolation not enforced at database layer - relies on application logic",
+      "description": "Workspace-scoped data access is implemented in components and API routes (checking workspace_id before queries) but not at database layer. If someone misses the check in one place, data leaks between workspaces. No row-level security (RLS) policies enforced in Supabase, no service layer validation before database access.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "db/chats.ts",
+          "line_start": 1,
+          "line_end": 81,
+          "snippet": "Chat database functions accept workspace_id but don't enforce access control at database layer"
+        },
+        {
+          "file_path": "db/assistants.ts",
+          "line_start": 1,
+          "line_end": 184,
+          "snippet": "Assistant queries require workspace_id parameter but no RLS policies guard access"
+        },
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 1,
+          "line_end": 58,
+          "snippet": "API route checks workspace_id manually without centralized authorization"
+        }
+      ],
+      "suggested_fix": "Implement Supabase RLS policies: all SELECT/UPDATE/DELETE operations on tenant-scoped tables require user_id match AND workspace_id match. Add authorization service in lib/services/auth-service.ts that validates workspace access before all operations. Example: await AuthService.validateWorkspaceAccess(userId, workspaceId) before any db call. Add tests verifying RLS prevents cross-workspace access.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "remediation_plan": {
+    "items": [],
+    "dependencies": [],
+    "execution_levels": [],
+    "deferred_finding_ids": [],
+    "dedup_summary": "",
+    "total_items": 0,
+    "estimated_invocations": 0,
+    "summary": "Parse error: 2 validation errors for RemediationPlan\ndependencies.4.depends_on_finding_id\n  Input should be a valid string [type=string_type, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type\ndependencies.5.depends_on_finding_id\n  Input should be a valid string [type=string_type, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type. Raw findings count: 36"
+  }
+}

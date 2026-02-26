@@ -1,0 +1,851 @@
+{
+  "items": [
+    {
+      "finding_id": "F-d7a3a5e4",
+      "title": "Migrate JWT tokens from localStorage to HttpOnly cookies",
+      "tier": 2,
+      "priority": 1,
+      "estimated_files": 6,
+      "files_to_modify": [
+        "backend/app/api/routes/login.py",
+        "backend/app/core/security.py",
+        "frontend/src/main.tsx",
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/client/core/OpenAPI.ts",
+        "frontend/src/routes/login.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "JWT tokens set in HttpOnly, Secure, SameSite=Strict cookies on backend",
+        "Frontend removes all localStorage.getItem('access_token') calls",
+        "OpenAPI client configured to use cookie-based auth automatically",
+        "Login/logout flow uses cookies instead of localStorage",
+        "Tokens not exposed in browser DevTools or JavaScript context"
+      ],
+      "approach": "Backend sets token in cookie response header; frontend removes localStorage access token storage; update OpenAPI client configuration to use credential mode",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-eca7ffd0",
+      "title": "Add JWT token expiration validation on frontend",
+      "tier": 1,
+      "priority": 2,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/main.tsx",
+        "package.json"
+      ],
+      "depends_on": [
+        "F-d7a3a5e4"
+      ],
+      "acceptance_criteria": [
+        "Install jwt-decode library",
+        "Decode JWT and check exp claim before API calls",
+        "Proactively clear expired tokens from storage",
+        "Redirect to login if token is expired",
+        "No API requests sent with expired tokens"
+      ],
+      "approach": "Add jwt-decode dependency; create token validation utility; check expiration in useAuth hook and before API calls",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-43db71b3",
+      "title": "Implement CSRF protection with token validation",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "backend/app/main.py",
+        "backend/app/api/deps.py",
+        "backend/app/core/config.py",
+        "backend/tests/conftest.py"
+      ],
+      "depends_on": [
+        "F-d7a3a5e4"
+      ],
+      "acceptance_criteria": [
+        "CSRF token issued in cookie on login",
+        "POST/PUT/DELETE requests require X-CSRF-Token header matching cookie",
+        "CORS allows only specific methods (not '*')",
+        "SameSite=Strict enforced on session cookies",
+        "Test verifies CSRF protection on state-changing operations"
+      ],
+      "approach": "Add CsrfProtectMiddleware or custom middleware; restrict CORS allow_methods; require CSRF token in request headers for mutations",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-0f8fb89f",
+      "title": "Add rate limiting to authentication endpoints",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "backend/app/main.py",
+        "backend/app/api/routes/login.py",
+        "backend/pyproject.toml"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Login endpoint limited to 5 attempts per minute per IP",
+        "Password recovery limited to 3 per hour per email",
+        "Rate limit headers included in responses",
+        "Generic error message returned to prevent user enumeration",
+        "Failed attempts logged for security monitoring"
+      ],
+      "approach": "Add slowapi library; decorate login and password-recovery endpoints with @limiter decorators",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-fcfe2c8e",
+      "title": "Implement account lockout after failed login attempts",
+      "tier": 2,
+      "priority": 5,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "backend/app/api/routes/login.py",
+        "backend/app/crud.py",
+        "backend/app/models.py",
+        "backend/app/alembic/versions/new_migration_failed_attempts.py"
+      ],
+      "depends_on": [
+        "F-0f8fb89f"
+      ],
+      "acceptance_criteria": [
+        "Track failed login attempts per user in database",
+        "Lock account after 5 failed attempts for 30 minutes",
+        "Send email notification on account lockout",
+        "Admin can manually unlock accounts",
+        "Successful login resets failed attempt counter",
+        "All lockout events logged with timestamp and IP"
+      ],
+      "approach": "Add failed_login_attempts and locked_until columns to User model; increment counter on failed login; check lockout status before authentication",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-a02adee5",
+      "title": "Add strict password reset token expiration validation",
+      "tier": 1,
+      "priority": 6,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/app/utils.py",
+        "backend/app/api/routes/login.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "verify_password_reset_token validates token expiration",
+        "Tokens expire after 24 hours",
+        "Expired tokens return None/False",
+        "Only valid, non-expired tokens allow password reset",
+        "Token creation timestamp logged for audit"
+      ],
+      "approach": "Verify verify_password_reset_token implementation includes exp claim check; add 24-hour expiration to token generation",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-bf69a6d1",
+      "title": "Implement server-side token revocation and blacklist",
+      "tier": 2,
+      "priority": 7,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "backend/app/api/routes/login.py",
+        "backend/app/api/deps.py",
+        "backend/app/core/config.py",
+        "backend/pyproject.toml"
+      ],
+      "depends_on": [
+        "F-d7a3a5e4"
+      ],
+      "acceptance_criteria": [
+        "POST /api/logout endpoint accepts and revokes token",
+        "Revoked tokens stored in Redis or database with TTL",
+        "Token validation checks blacklist before processing request",
+        "Stolen token cannot be used after logout",
+        "Token refresh endpoint implemented with rotation"
+      ],
+      "approach": "Create Redis-backed token blacklist; add logout endpoint that calls blacklist function; check blacklist in token validation dependency",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-b8dc7e19",
+      "title": "Add ownership verification to user and item endpoints",
+      "tier": 2,
+      "priority": 8,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "backend/app/api/routes/users.py",
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_users.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Non-superuser cannot read other users' details",
+        "Non-owner cannot read/modify other users' items",
+        "Unauthorized access returns 404 not 403",
+        "Superusers can access any resource",
+        "Tests verify ownership checks on read and write"
+      ],
+      "approach": "Add ownership verification before returning resources; return 404 for unauthorized access to prevent enumeration; add helper function to verify ownership",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-2183b8f5",
+      "title": "Strengthen admin authorization with audit logging",
+      "tier": 2,
+      "priority": 9,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "backend/app/api/deps.py",
+        "backend/app/api/routes/users.py",
+        "backend/app/models.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "get_current_active_superuser verifies is_superuser AND is_active",
+        "All admin operations logged with timestamp, user_id, action, resource",
+        "Audit log immutable and queryable by admins",
+        "Critical operations (user deletion) logged with details",
+        "No admin operations allowed for inactive accounts"
+      ],
+      "approach": "Strengthen superuser dependency check; add audit log table; create audit logging middleware/decorator",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-f102282d",
+      "title": "Add security headers to FastAPI responses",
+      "tier": 1,
+      "priority": 10,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/app/main.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Strict-Transport-Security: max-age=31536000; includeSubDomains",
+        "X-Content-Type-Options: nosniff",
+        "X-Frame-Options: DENY",
+        "X-XSS-Protection: 1; mode=block",
+        "Content-Security-Policy configured appropriately",
+        "Referrer-Policy: strict-origin-when-cross-origin"
+      ],
+      "approach": "Add middleware to set security headers; use starlette.middleware.TrustedHostMiddleware",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-d89f4126",
+      "title": "Verify and document password hashing algorithm strength",
+      "tier": 1,
+      "priority": 11,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/app/core/security.py",
+        "backend/README.md"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Argon2 configured as default with time_cost=2, memory_cost=19 minimum",
+        "Verify function uses constant-time comparison",
+        "Password reset tokens use secrets.token_urlsafe(32)",
+        "Hashed passwords stored with algorithm identifier",
+        "Documentation includes hashing parameters and algorithm choice"
+      ],
+      "approach": "Review security.py implementation; ensure pwdlib uses Argon2; document parameters",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-a3d4cf3e",
+      "title": "Implement password strength validation against breach databases",
+      "tier": 1,
+      "priority": 12,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "backend/app/utils.py",
+        "backend/app/api/routes/login.py",
+        "backend/pyproject.toml"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Signup rejects passwords in HaveIBeenPwned top 100k",
+        "Minimum password requirements: 12+ chars, mixed case, numbers, symbols",
+        "Password strength meter on frontend",
+        "Clear error message for weak passwords",
+        "Validation occurs before user creation"
+      ],
+      "approach": "Integrate pydantic-zxcvbn or similar; validate on signup; call HaveIBeenPwned API or use local password list",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-98c7d6c4",
+      "title": "Implement email verification on user registration",
+      "tier": 3,
+      "priority": 13,
+      "estimated_files": 7,
+      "files_to_modify": [
+        "backend/app/models.py",
+        "backend/app/api/routes/login.py",
+        "backend/app/utils.py",
+        "backend/app/alembic/versions/new_migration_email_verification.py",
+        "frontend/src/routes/signup.tsx",
+        "frontend/src/components/Common/VerifyEmail.tsx",
+        "backend/tests/api/routes/test_login.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "New users marked as is_verified=false on signup",
+        "Verification email sent with time-limited token",
+        "Unverified users cannot login or are restricted",
+        "Email verification endpoint accepts token and activates account",
+        "Resend verification email with rate limiting",
+        "Verification tokens expire after 24 hours",
+        "Tokens are single-use"
+      ],
+      "approach": "Add email verification flow; modify signup to set is_verified=false; add verify-email endpoint; restrict login for unverified users",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-3600d5f1",
+      "title": "Enforce TLS 1.2+, strong ciphers, and HSTS in production",
+      "tier": 1,
+      "priority": 14,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "compose.traefik.yml",
+        "backend/app/main.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "TLS 1.2 minimum enforced in Traefik",
+        "Only strong cipher suites allowed",
+        "HSTS header set with max-age=31536000",
+        "Certificate pinning configured in production",
+        "CSP headers prevent man-in-the-middle"
+      ],
+      "approach": "Configure Traefik with minVersion=TLS12; strong cipher suites; add HSTS middleware; set security headers",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-f9c0f999",
+      "title": "Verify and document health-check endpoint authorization",
+      "tier": 1,
+      "priority": 15,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/app/api/routes/utils.py",
+        "backend/README.md"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Health-check endpoint intentionally public for monitoring",
+        "Returns minimal information (no version/system details)",
+        "Documentation explains public nature and risk mitigation",
+        "No sensitive data exposed in health-check response"
+      ],
+      "approach": "Review utils.py health-check implementation; document intentional public access; ensure response is minimal",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-d6546373",
+      "title": "Enable tree-shaking in OpenAPI SDK generation",
+      "tier": 1,
+      "priority": 16,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "frontend/openapi-ts.config.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Remove asClass: true from SDK configuration",
+        "Unused SDK code eliminated in production build",
+        "Bundle size reduced by ~10-15%",
+        "All functionality still works"
+      ],
+      "approach": "Remove asClass: true from openapi-ts.config.ts; regenerate SDK; verify functionality",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-32a34ad6",
+      "title": "Add maximum pagination limit validation to users endpoint",
+      "tier": 1,
+      "priority": 17,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/app/api/routes/users.py",
+        "backend/tests/api/routes/test_users.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Maximum limit of 100 enforced",
+        "Requests with limit > 100 capped at 100",
+        "Test verifies limit cap behavior"
+      ],
+      "approach": "Add limit = min(limit, 100) to read_users function",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-24aef368",
+      "title": "Add maximum pagination limit validation to items endpoint",
+      "tier": 1,
+      "priority": 18,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/app/api/routes/items.py",
+        "backend/tests/api/routes/test_items.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Maximum limit of 100 enforced",
+        "Requests with limit > 100 capped at 100",
+        "Test verifies limit cap behavior"
+      ],
+      "approach": "Add limit = min(limit, 100) to read_items function",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-58a0b40d",
+      "title": "Create singleton axios instance for API requests",
+      "tier": 1,
+      "priority": 19,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "frontend/src/client/core/request.ts",
+        "frontend/src/client/core/OpenAPI.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Single axios instance created once and reused",
+        "Instance configured with base URL, interceptors, timeout",
+        "All requests use singleton instance",
+        "Request overhead reduced"
+      ],
+      "approach": "Create axiosInstance.ts with singleton pattern; pass to request function; remove default parameter",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-2db62f51",
+      "title": "Implement response caching in API client",
+      "tier": 2,
+      "priority": 20,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "frontend/src/main.tsx",
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/client/core/request.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "React Query configured with sensible defaults",
+        "GET requests cached by default",
+        "Cache invalidation on mutations",
+        "Stale data strategy configured",
+        "Network calls reduced for repeated requests"
+      ],
+      "approach": "Configure React Query client with defaultOptions; wrap API calls in useQuery hooks; implement mutation-based cache invalidation",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-5aa19e2d",
+      "title": "Implement lazy loading for route components",
+      "tier": 2,
+      "priority": 21,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "frontend/src/routes/_layout.tsx",
+        "frontend/src/routes/_layout/admin.tsx",
+        "frontend/src/routes/_layout/items.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Route components use React.lazy()",
+        "Suspense boundaries shown during load",
+        "Initial bundle size reduced",
+        "Admin and items pages lazy loaded"
+      ],
+      "approach": "Convert component imports to React.lazy(); wrap routes with Suspense; add loading UI",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-181ad702",
+      "title": "Create service layer abstraction for backend business logic",
+      "tier": 3,
+      "priority": 22,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "backend/app/services/__init__.py",
+        "backend/app/services/user_service.py",
+        "backend/app/services/item_service.py",
+        "backend/app/services/auth_service.py",
+        "backend/app/api/routes/users.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "UserService encapsulates user business logic",
+        "ItemService encapsulates item business logic",
+        "AuthService handles authentication/authorization",
+        "Routes delegate to services instead of calling CRUD directly",
+        "Services handle validation, cross-cutting concerns",
+        "Services are testable independently"
+      ],
+      "approach": "Create services directory; implement domain services with methods like create_user, update_user, etc.; inject into routes",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-f76f4098",
+      "title": "Refactor frontend components into presentational and container patterns",
+      "tier": 3,
+      "priority": 23,
+      "estimated_files": 8,
+      "files_to_modify": [
+        "frontend/src/components/Admin/AddUser.tsx",
+        "frontend/src/components/Admin/AddUserForm.tsx",
+        "frontend/src/components/Admin/AddUserContainer.tsx",
+        "frontend/src/hooks/useAddUser.ts",
+        "frontend/src/components/Admin/EditUser.tsx",
+        "frontend/src/components/Items/AddItem.tsx",
+        "frontend/src/hooks/useItemForm.ts",
+        "frontend/src/hooks/useEditItem.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Form components are pure presentational (no hooks, no API calls)",
+        "Custom hooks handle data fetching and mutations",
+        "Container components orchestrate hooks and pass props",
+        "Components are independently testable",
+        "No API calls or business logic in presentation layer"
+      ],
+      "approach": "Extract form components to presentational versions; create custom hooks for mutations/data fetching; wrap in container components",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-41282ca1",
+      "title": "Create page/container components layer for routes",
+      "tier": 3,
+      "priority": 24,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "frontend/src/pages/AdminPage.tsx",
+        "frontend/src/pages/ItemsPage.tsx",
+        "frontend/src/routes/_layout/admin.tsx",
+        "frontend/src/routes/_layout/items.tsx"
+      ],
+      "depends_on": [
+        "F-f76f4098"
+      ],
+      "acceptance_criteria": [
+        "Page components separate from route definitions",
+        "Pages orchestrate child components and data fetching",
+        "Routes reference page components",
+        "Easy to swap implementations or create variations",
+        "Clear abstraction between routing and presentation"
+      ],
+      "approach": "Create frontend/src/pages/ directory; move business logic from routes to pages; routes import and render pages",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-530c7b55",
+      "title": "Standardize frontend API client usage with wrapper service",
+      "tier": 2,
+      "priority": 25,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "frontend/src/services/api.ts",
+        "frontend/src/main.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Central API client wrapper with consistent error handling",
+        "React Query hooks for all API calls",
+        "Standardized request/response transformation",
+        "Centralized interceptor configuration",
+        "Documentation on API layer conventions"
+      ],
+      "approach": "Create api.ts service with wrapper functions; define React Query hooks that use wrapper; update components to use hooks",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-1b296a34",
+      "title": "Reorganize backend directory structure by concern",
+      "tier": 3,
+      "priority": 26,
+      "estimated_files": 12,
+      "files_to_modify": [
+        "backend/app/schemas/__init__.py",
+        "backend/app/schemas/user.py",
+        "backend/app/schemas/item.py",
+        "backend/app/models/__init__.py",
+        "backend/app/models/user.py",
+        "backend/app/models/item.py",
+        "backend/app/repositories/__init__.py",
+        "backend/app/repositories/user_repository.py",
+        "backend/app/repositories/item_repository.py",
+        "backend/app/utils/__init__.py",
+        "backend/app/utils/validation.py",
+        "backend/app/utils/password.py"
+      ],
+      "depends_on": [
+        "F-181ad702"
+      ],
+      "acceptance_criteria": [
+        "Pydantic schemas in backend/app/schemas/",
+        "ORM models organized in backend/app/models/",
+        "CRUD operations in backend/app/repositories/",
+        "Utilities organized by function in backend/app/utils/",
+        "Business logic in backend/app/services/",
+        "All imports updated to new locations"
+      ],
+      "approach": "Create new directory structure; move files; update imports systematically; verify all tests pass",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-aa5fada1",
+      "title": "Create abstraction layer for dependency injection",
+      "tier": 2,
+      "priority": 27,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/app/api/dependencies.py",
+        "backend/app/api/routes/users.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Dependency interfaces defined clearly",
+        "Dependency providers centralized",
+        "Easy to mock dependencies in tests",
+        "Route signatures depend on interfaces not implementations"
+      ],
+      "approach": "Create dependencies.py with documented dependency functions; ensure routes use typed dependencies",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-05cd41bc",
+      "title": "Consolidate hardcoded configuration into config module",
+      "tier": 1,
+      "priority": 28,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "backend/app/core/config.py",
+        "backend/app/core/security.py",
+        "backend/app/api/routes/login.py",
+        "backend/app/utils.py",
+        "backend/app/crud.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "All timeout values in config",
+        "Token expiry in config",
+        "Pagination defaults in config",
+        "Validation rules in config",
+        "No hardcoded values in route/service code"
+      ],
+      "approach": "Audit all Python files for hardcoded values; move to config.py with typed settings; reference config everywhere",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-59f9860c",
+      "title": "Organize frontend hooks by concern with subdirectories",
+      "tier": 2,
+      "priority": 29,
+      "estimated_files": 6,
+      "files_to_modify": [
+        "frontend/src/hooks/auth/useAuth.ts",
+        "frontend/src/hooks/ui/useCustomToast.ts",
+        "frontend/src/hooks/ui/useMobile.ts",
+        "frontend/src/hooks/utils/useCopyToClipboard.ts",
+        "frontend/src/hooks/index.ts",
+        "frontend/src/components/Admin/AddUser.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Auth hooks in hooks/auth/",
+        "UI hooks in hooks/ui/",
+        "Utility hooks in hooks/utils/",
+        "All imports updated",
+        "Clear directory structure for scalability"
+      ],
+      "approach": "Create subdirectories; move hooks; update all imports; maintain index.ts for convenience exports",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-1d15dced",
+      "title": "Reorganize frontend tests into specs and utilities",
+      "tier": 0,
+      "priority": 30,
+      "estimated_files": 8,
+      "files_to_modify": [
+        "frontend/tests/specs/login.spec.ts",
+        "frontend/tests/specs/admin.spec.ts",
+        "frontend/tests/fixtures/users.ts",
+        "frontend/tests/helpers/random.ts",
+        "frontend/tests/services/mailcatcher.ts",
+        "frontend/tests/api/privateApi.ts",
+        "frontend/tests/api/user.ts",
+        "frontend/playwright.config.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Test files in tests/specs/",
+        "Test data in tests/fixtures/",
+        "Utility functions in tests/helpers/",
+        "API helpers in tests/api/",
+        "All imports updated"
+      ],
+      "approach": "Create new directory structure; move files; update imports; low impact refactor",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-f687b337",
+      "title": "Create API contract layer with documented interfaces",
+      "tier": 2,
+      "priority": 31,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "frontend/src/types/api.ts",
+        "frontend/docs/api-contract.md",
+        "frontend/src/client/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Frontend/docs/api-contract.md documents API assumptions",
+        "Frontend/src/types/api.ts defines contract interfaces",
+        "Breaking change procedures documented",
+        "API versioning strategy established",
+        "Schema registry or OpenAPI versioning in place"
+      ],
+      "approach": "Create api.ts with documented interfaces; create contract docs; establish versioning strategy",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-261b26e1",
+      "title": "Optimize database queries in users endpoint (deferred)",
+      "tier": 0,
+      "priority": 32,
+      "estimated_files": 0,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Current implementation is acceptable for pagination; window functions not necessary",
+      "group": "deferred"
+    },
+    {
+      "finding_id": "F-b2faf41c",
+      "title": "Optimize database queries in items endpoint (deferred)",
+      "tier": 0,
+      "priority": 33,
+      "estimated_files": 0,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Current implementation is acceptable for pagination; window functions not necessary",
+      "group": "deferred"
+    },
+    {
+      "finding_id": "F-6b47effd",
+      "title": "Implement database query result caching (deferred)",
+      "tier": 0,
+      "priority": 34,
+      "estimated_files": 0,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Redis caching adds infrastructure complexity; defer until performance issues measured",
+      "group": "deferred"
+    },
+    {
+      "finding_id": "F-35480525",
+      "title": "Configure database connection pooling (deferred)",
+      "tier": 0,
+      "priority": 35,
+      "estimated_files": 0,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "SQLAlchemy defaults are reasonable; configure when load testing shows need",
+      "group": "deferred"
+    }
+  ],
+  "dependencies": [
+    {
+      "finding_id": "F-eca7ffd0",
+      "depends_on_finding_id": "F-d7a3a5e4",
+      "reason": "Token validation needs cookie-based auth in place first"
+    },
+    {
+      "finding_id": "F-43db71b3",
+      "depends_on_finding_id": "F-d7a3a5e4",
+      "reason": "CSRF protection requires cookie infrastructure from token migration"
+    },
+    {
+      "finding_id": "F-bf69a6d1",
+      "depends_on_finding_id": "F-d7a3a5e4",
+      "reason": "Token revocation endpoint needs cookie-based auth"
+    },
+    {
+      "finding_id": "F-fcfe2c8e",
+      "depends_on_finding_id": "F-0f8fb89f",
+      "reason": "Account lockout builds on rate limiting implementation"
+    },
+    {
+      "finding_id": "F-41282ca1",
+      "depends_on_finding_id": "F-f76f4098",
+      "reason": "Page components use refactored component structure"
+    },
+    {
+      "finding_id": "F-1b296a34",
+      "depends_on_finding_id": "F-181ad702",
+      "reason": "Directory reorganization depends on service layer being in place"
+    }
+  ],
+  "execution_levels": [
+    [
+      "F-0f8fb89f",
+      "F-a02adee5",
+      "F-f102282d",
+      "F-d89f4126",
+      "F-a3d4cf3e",
+      "F-3600d5f1",
+      "F-f9c0f999",
+      "F-d6546373",
+      "F-32a34ad6",
+      "F-24aef368",
+      "F-58a0b40d",
+      "F-05cd41bc",
+      "F-aa5fada1"
+    ],
+    [
+      "F-d7a3a5e4",
+      "F-b8dc7e19",
+      "F-2183b8f5",
+      "F-2db62f51",
+      "F-5aa19e2d",
+      "F-530c7b55",
+      "F-59f9860c",
+      "F-181ad702"
+    ],
+    [
+      "F-eca7ffd0",
+      "F-43db71b3",
+      "F-bf69a6d1",
+      "F-98c7d6c4",
+      "F-f76f4098",
+      "F-f687b337",
+      "F-aa5fada1"
+    ],
+    [
+      "F-fcfe2c8e",
+      "F-41282ca1",
+      "F-1b296a34"
+    ]
+  ],
+  "deferred_finding_ids": [
+    "F-261b26e1",
+    "F-b2faf41c",
+    "F-6b47effd",
+    "F-35480525",
+    "F-1d15dced"
+  ],
+  "dedup_summary": "No findings were exact duplicates. F-32a34ad6 and F-24aef368 were similar pagination limit issues but addressed separately as they affect different endpoints. F-261b26e1 and F-b2faf41c were deferred as common pagination patterns.",
+  "total_items": 35,
+  "estimated_invocations": 47,
+  "summary": "31 actionable items across 4 execution levels prioritizing security hardening (auth, CSRF, rate limiting), then backend refactoring (services, reorganization), then frontend refactoring (components, hooks, pages), then remaining optimizations. 5 low-value items deferred. Level 0: Infrastructure basics (rate limiting, headers, hashing verification, pagination, config). Level 1: Token migration (localStorage to cookies). Level 2: Token validation, CSRF, revocation, ownership checks, admin audit logging, email verification. Level 3: Account lockout, service layer creation, component refactoring, page components, directory reorganization. Critical security path: complete all Level 0 items, then token migration (Level 1), then implement CSRF and logout (Level 2), then account lockout (Level 3)."
+}

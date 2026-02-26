@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        h3 { font-size: 1rem; color: #334155; margin: 1rem 0 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .arch-summary { color: #475569; line-height: 1.6; margin-bottom: 1rem; white-space: pre-line; }
+        .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .arch-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; }
+        .arch-card h4 { font-size: 0.85rem; color: #0f172a; margin-bottom: 0.5rem; }
+        .arch-card .mono { font-family: monospace; font-size: 0.8rem; color: #475569; }
+        .flow-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .flow-arrow { color: #94a3b8; flex-shrink: 0; }
+        .flow-src, .flow-dst { font-family: monospace; font-size: 0.78rem; color: #334155; }
+        .flow-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .flow-auth { font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; }
+        .flow-auth.yes { background: #f0fdf4; color: #166534; }
+        .flow-auth.no { background: #fef2f2; color: #991b1b; }
+        .auth-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .auth-path { font-family: monospace; font-size: 0.78rem; color: #334155; flex: 1; }
+        .auth-badge { font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+        .auth-badge.protected { background: #f0fdf4; color: #166534; }
+        .auth-badge.unprotected { background: #fef2f2; color: #991b1b; }
+        .auth-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .impact { margin-top: 0.25rem; }
+        .flow-tag { display: inline-block; font-size: 0.7rem; color: #6366f1; background: #eef2ff; padding: 1px 6px; border-radius: 3px; margin-right: 4px; font-family: monospace; }
+        .pattern-tag { display: inline-block; font-size: 0.75rem; color: #475569; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; margin: 2px 4px 2px 0; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: e194407ff788 &bull; Generated: 2026-02-26 01:40 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>21 findings</span>
+        <span>200s runtime</span>
+        <span>$0.8488 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box critical"><div class="num">4</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">5</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">10</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">2</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>Architecture Context</h2>
+<div class="arch-summary">A multi-tool AI CLI application written in Go with a SvelteKit web frontend. The core functionality uses pattern-based AI prompting (200+ patterns in data/patterns/) to analyze, extract, summarize, and transform text content. Supports multiple AI providers (OpenAI, Anthropic, Ollama, AWS Bedrock, Perplexity, Google Gemini). Includes auxiliary tools for changelog generation, code context extraction, and PDF conversion. The web interface provides a chat UI and pattern browsing. All AI calls are authenticated via environment API keys; the web interface has no authentication layer.</div>
+<div class="arch-grid"><div class="arch-card"><h4>Modules (7)</h4><div class="mono">cmd/fabric/ &mdash; Main CLI application providing AI-powered text analysis via pattern-based prompts (150 LOC)</div>
+<div class="mono">cmd/code2context/ &mdash; Extract code context and structure from source files for AI analysis (200 LOC)</div>
+<div class="mono">cmd/generate_changelog/ &mdash; Automated changelog generation from git history and GitHub releases (800 LOC)</div>
+<div class="mono">cmd/to_pdf/ &mdash; Convert documents to PDF format (50 LOC)</div>
+<div class="mono">web/ &mdash; SvelteKit-based web interface for interacting with AI patterns and chat functionality (3500 LOC)</div>
+<div class="mono">internal/tools/ &mdash; Shared utilities for pattern loading, HTML readability conversion, and default tool configurations (300 LOC)</div>
+<div class="mono">internal/ &mdash; AI provider integrations (OpenAI, Anthropic, Ollama, AWS Bedrock, Perplexity) (400 LOC)</div>
+</div><div class="arch-card"><h4>Entry Points (9)</h4><div class="mono">cmd/fabric/main.go <span class="flow-type">cli</span> (public)</div>
+<div class="mono">cmd/code2context/main.go <span class="flow-type">cli</span> (public)</div>
+<div class="mono">cmd/generate_changelog/main.go <span class="flow-type">cli</span> (public)</div>
+<div class="mono">cmd/to_pdf/main.go <span class="flow-type">cli</span> (public)</div>
+<div class="mono">web/src/routes/+page.svelte <span class="flow-type">web</span> (public)</div>
+<div class="mono">web/src/routes/chat/+server.ts <span class="flow-type">api</span> (public)</div>
+<div class="mono">web/src/routes/api/youtube/transcript/+server.ts <span class="flow-type">api</span> (public)</div>
+<div class="mono">web/src/routes/obsidian/+server.ts <span class="flow-type">api</span> (public)</div>
+</div></div>
+<h3>Key Patterns</h3><div style="margin-bottom:1rem"><span class="pattern-tag">AI Provider abstraction layer (multiple backends)</span> <span class="pattern-tag">Pattern-based prompting system (200+ markdown patterns)</span> <span class="pattern-tag">Cobra CLI framework</span> <span class="pattern-tag">Gin web server for API routes</span> <span class="pattern-tag">SvelteKit reactive frontend</span> <span class="pattern-tag">Git-based changelog generation with merge detection</span> <span class="pattern-tag">GitHub API integration for releases and PRs</span> <span class="pattern-tag">HTML readability extraction</span> <span class="pattern-tag">SQLite caching for changelog generation</span></div>
+<h3>Data Flows (6)</h3>
+<div class="flow-row"><span class="flow-src">CLI user input</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">AI Provider APIs</span> <span class="flow-type">user text prompts</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">Web UI Chat</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Web API server (+server.ts)</span> <span class="flow-type">chat messages</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Web API server</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">AI Provider APIs</span> <span class="flow-type">user prompts via backend proxy</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">GitHub client</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">GitHub API</span> <span class="flow-type">commits, PRs, releases</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">Pattern loader</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Pattern files (data/patterns/)</span> <span class="flow-type">markdown pattern definitions</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">YouTube transcript API</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">YouTube API</span> <span class="flow-type">video transcripts</span> <span class="flow-auth no">no auth</span></div>
+
+<h3>Auth Boundaries (5)</h3>
+<div class="auth-row"><span class="auth-path">/chat/*</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+<div class="auth-row"><span class="auth-path">/api/youtube/transcript/*</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+<div class="auth-row"><span class="auth-path">/obsidian/*</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+<div class="auth-row"><span class="auth-path">/notes/*</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+<div class="auth-row"><span class="auth-path">CLI commands</span><span class="auth-badge protected">protected</span> <span class="auth-type">env_api_keys</span></div>
+
+<h3>Finding Hotspots by Module</h3>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">web-frontend</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">32</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">generate_changelog</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">10</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">ai-providers</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">7</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">internal-tools</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:45%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">3</span></div>
+
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unauthenticated API endpoints in web frontend</strong>
+                <div class="desc">Multiple SvelteKit API routes lack any authentication mechanism. The endpoints /chat, /api/youtube/transcript, /obsidian, and /notes are publicly accessible with no API key, session, or token validation. This allows unauthorized users to consume backend resources, call external APIs (YouTube transcripts), execute Fabric patterns, and write arbitrary files to the server filesystem.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/chat/+server.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Arbitrary file write vulnerability in /notes endpoint</strong>
+                <div class="desc">The /notes endpoint (web/src/routes/notes/+server.ts) writes user-supplied filename and content directly to the filesystem without validation. An attacker can use path traversal (e.g., '../../../etc/passwd') to write files outside the intended directory. No checks on filename format, content type, or file size. File permissions set to world-readable (0644).</div>
+                
+            </td>
+            <td class="loc">web/src/routes/notes/+server.ts:12</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Command injection vulnerability in /obsidian endpoint</strong>
+                <div class="desc">The /obsidian endpoint uses shell command execution (execAsync) with user-supplied input. Although the code attempts to escape shell arguments via escapeShellArg(), the function only escapes single quotes and may miss edge cases. The mkdir, echo, cp, ls, and wc commands execute user content. Attacker can craft malicious 'noteName' or 'content' values to break out of quotes and execute arbitrary commands.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/obsidian/+server.ts:30</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent authentication patterns between CLI and web interface</strong>
+                <div class="desc">CLI commands (fabric-cli, code2context, etc.) authenticate via environment variables (API_KEY, OPENAI_API_KEY, etc.), while the web interface has zero authentication at all—all endpoints are completely public. This creates a security inconsistency where the same AI provider credentials can be accessed by any network user via the web interface without authorization.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/chat/+server.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing API key authentication on Go REST API backend</strong>
+                <div class="desc">The Go backend implements APIKeyMiddleware in internal/server/auth.go (line 11-35) but exempt Swagger documentation endpoints from auth (/swagger/*). However, no evidence that this middleware is actually applied to protected routes in the server setup. The middleware exists but may not be enforced on all handlers, particularly the sessions and patterns endpoints that manage user data. No mention of auth enforcement in handler registration code.</div>
+                
+            </td>
+            <td class="loc">internal/server/auth.go:11</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>GitHub token exposure in environment variable and CLI flag</strong>
+                <div class="desc">GitHub API tokens are passed via environment variable GITHUB_TOKEN and CLI flag --token in cmd/generate_changelog/main.go and cmd/generate_changelog/util/token.go. While the token is loaded from environment (checking GITHUB_TOKEN and GH_TOKEN), the token value may be logged, printed to stdout, or stored in plaintext .env files. The .env file loaded in main.go (line 75-80) stores the token on disk with default 0644 permissions (world-readable).</div>
+                
+            </td>
+            <td class="loc">cmd/generate_changelog/main.go:75</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Hardcoded API endpoint without TLS verification</strong>
+                <div class="desc">The chat endpoint in web/src/routes/chat/+server.ts hardcodes localhost:8080 backend address (line 78) without verifying HTTPS or TLS. This is acceptable for development but dangerous in production. No certificate pinning or validation. If the frontend is served over HTTPS but backend communication is HTTP, this creates a mixed-content vulnerability and allows MITM attacks on sensitive chat data.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/chat/+server.ts:77</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Session state stored entirely on client side without integrity protection</strong>
+                <div class="desc">Sessions in the web frontend (web/src/lib/store/session-store.ts and related components) appear to load session history from API endpoints (lines 23-62 in session-store.ts) but the session selector allows arbitrary user input for session names with no server-side validation. A user can request any session name and retrieve its data. There is no CSRF token protection, no signature verification, and sessions are tied only to a session name string.</div>
+                
+            </td>
+            <td class="loc">web/src/lib/store/session-store.ts:23</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction layer between web routes and AI providers</strong>
+                <div class="desc">Web API routes (web/src/routes/chat/+server.ts, web/src/routes/api/youtube/transcript/+server.ts, web/src/routes/obsidian/+server.ts) directly instantiate and call AI provider implementations. This creates tight coupling between request handlers and provider logic, making it difficult to swap providers or add new ones without modifying route handlers.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/chat/+server.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing input validation on pattern execution</strong>
+                <div class="desc">The chat endpoint accepts user input (body.prompts[0].userInput, body.messages) and forwards it directly to the Go backend without validation. No checks for command injection, malicious patterns, size limits, or content type. User can send extremely large payloads, special characters, or control sequences that may break pattern parsing on the backend.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/chat/+server.ts:35</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Session files stored on disk with default permissions</strong>
+                <div class="desc">Session data is stored as JSON files in ~/.config/fabric/sessions (via internal/plugins/db/fsdb/sessions.go). The SaveSession function (line 22) saves to disk but there is no mention of file permission restrictions. Sessions may contain sensitive chat history and AI-generated content. If file permissions default to world-readable (0644), other users on the system can read session data.</div>
+                
+            </td>
+            <td class="loc">internal/plugins/db/fsdb/sessions.go:22</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No rate limiting on API endpoints</strong>
+                <div class="desc">The web API endpoints (/chat, /api/youtube/transcript, /obsidian, /notes) have no rate limiting. An attacker can make unlimited requests to consume backend resources, call expensive YouTube API repeatedly, or fill disk space with arbitrarily named files via the /obsidian endpoint.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/chat/+server.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: cmd/generate_changelog/ mixes concerns across 16 files with 800 LOC</strong>
+                <div class="desc">The changelog generator contains multiple responsibility domains spread across files: git operations (walker.go, 582 LOC), GitHub API client (client.go, 431 LOC), changelog generation (generator.go, 806 LOC), processing (processing.go, 544 LOC), caching (cache.go, 485 LOC). These should be organized into distinct packages with clear boundaries rather than bundled under a single command.</div>
+                
+            </td>
+            <td class="loc">cmd/generate_changelog/internal/git/walker.go:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Tight coupling: web frontend services depend directly on API endpoints without abstraction</strong>
+                <div class="desc">Web services (ChatService.ts, transcriptService.ts, PdfConversionService.ts) make HTTP calls directly to specific route paths hardcoded in base.ts. There is no API client abstraction or versioning layer, making refactoring API routes difficult without updating multiple service files.</div>
+                
+            </td>
+            <td class="loc">web/src/lib/services/ChatService.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing service layer in web application: business logic scattered across components and stores</strong>
+                <div class="desc">Web components (Chat.svelte, ChatInput.svelte, ChatMessages.svelte) directly access stores and make API calls. There is no service layer to encapsulate business logic like session management, context handling, or message processing. This violates separation of concerns and makes testing difficult.</div>
+                
+            </td>
+            <td class="loc">web/src/lib/components/chat/Chat.svelte:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Configuration scatter: hardcoded values and settings spread across multiple files</strong>
+                <div class="desc">Configuration values are scattered throughout the codebase: API endpoints in base.ts, feature flags in config/features.ts, environment settings in config/environment.ts, model configurations in multiple places, and pattern defaults in internal/tools/defaults.go. There is no centralized configuration system.</div>
+                
+            </td>
+            <td class="loc">web/src/lib/config/environment.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent error handling and logging patterns across Go modules</strong>
+                <div class="desc">Different Go packages use different error handling approaches: some return errors directly, some wrap with context, some use panic. The logging module (internal/log/) exists but is not consistently used across all packages. This makes debugging and monitoring difficult.</div>
+                
+            </td>
+            <td class="loc">internal/log/log.go:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>High coupling: AI provider implementations tightly bound to CLI and web interfaces</strong>
+                <div class="desc">AI provider packages (internal/plugins/ai/openai/, internal/plugins/ai/anthropic/, etc.) are directly imported and instantiated by CLI commands (internal/cli/chat.go) and web routes without using a factory or registry pattern. Adding a new provider requires modifying multiple entry points.</div>
+                
+            </td>
+            <td class="loc">internal/cli/chat.go:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing layering: web routes directly access file system and perform I/O without abstraction</strong>
+                <div class="desc">Routes like /obsidian/+server.ts and /notes/+server.ts directly access the file system and parse markdown. There is no persistence abstraction layer or repository pattern to isolate I/O operations from request handlers.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/obsidian/+server.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Verbose error messages exposing system details</strong>
+                <div class="desc">Error responses return detailed error messages and stack traces (web/src/routes/chat/+server.ts line 120-130, obsidian/+server.ts line 84-93). In production, detailed error messages can leak information about system architecture, file paths, backend dependencies, and API keys.</div>
+                
+            </td>
+            <td class="loc">web/src/routes/chat/+server.ts:120</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Circular dependencies risk: tool-specific code in internal/tools/ may depend on core plugins</strong>
+                <div class="desc">The internal/tools/ package contains multiple tool implementations (youtube.go, spotify.go, jina.go) that may create circular import chains if core plugin systems depend on them while they depend on plugin registries.</div>
+                
+            </td>
+            <td class="loc">internal/tools/youtube/youtube.go:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr></tbody>
+    </table>
+
+    
+        <h2>Remediation Plan (21 items across 4 levels)</h2>
+        <p class="plan-summary">21 remediation items across 4 execution levels. Level 0 (10 items): Critical auth and secrets fixes, 3 days. Level 1 (6 items): Input validation, CSRF, rate limiting, 2 days. Level 2 (3 items): File security and abstraction layers, 2 days. Level 3 (2 items): Major refactoring (changelog reorganization, service extraction), 3 days. Total estimated effort: 10 days for team of 2 engineers. No items deferred; all critical security and architectural issues addressed.</p>
+        <table>
+            <thead><tr><th>Priority</th><th>Tier</th><th>Fix</th><th>Files</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Implement authentication for all web API endpoints</strong></td>
+                <td>web/src/hooks.server.ts, web/src/routes/chat/+server.ts, web/src/routes/api/youtube/transcript/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Fix arbitrary file write vulnerability in /notes endpoint</strong></td>
+                <td>web/src/routes/notes/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Replace shell execution with Node.js APIs in /obsidian endpoint</strong></td>
+                <td>web/src/routes/obsidian/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Verify and enforce API key middleware on Go backend routes</strong></td>
+                <td>internal/server/serve.go, internal/server/sessions.go, internal/server/patterns.go</td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T1</td>
+                <td><strong>Secure GitHub token handling and prevent exposure</strong></td>
+                <td>cmd/generate_changelog/main.go, cmd/generate_changelog/util/token.go, cmd/generate_changelog/internal/github/client.go</td>
+            </tr>
+            <tr>
+                <td>P6</td>
+                <td>T1</td>
+                <td><strong>Enforce HTTPS for backend API calls in production</strong></td>
+                <td>web/src/routes/chat/+server.ts, web/src/lib/config/environment.ts</td>
+            </tr>
+            <tr>
+                <td>P7</td>
+                <td>T2</td>
+                <td><strong>Add CSRF protection and server-side session validation</strong></td>
+                <td>web/src/lib/store/session-store.ts, web/src/lib/components/chat/SessionSelector.svelte, web/src/routes/chat/+layout.svelte</td>
+            </tr>
+            <tr>
+                <td>P8</td>
+                <td>T2</td>
+                <td><strong>Add input validation on chat and pattern endpoints</strong></td>
+                <td>web/src/routes/chat/+server.ts, web/src/routes/api/youtube/transcript/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P9</td>
+                <td>T2</td>
+                <td><strong>Restrict file permissions on session files</strong></td>
+                <td>internal/plugins/db/fsdb/sessions.go, internal/plugins/db/fsdb/db.go</td>
+            </tr>
+            <tr>
+                <td>P10</td>
+                <td>T1</td>
+                <td><strong>Implement rate limiting on API endpoints</strong></td>
+                <td>web/src/hooks.server.ts, web/src/lib/middleware/rateLimiter.ts</td>
+            </tr>
+            <tr>
+                <td>P11</td>
+                <td>T1</td>
+                <td><strong>Sanitize error messages in production</strong></td>
+                <td>web/src/routes/chat/+server.ts, web/src/routes/obsidian/+server.ts, web/src/routes/notes/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P12</td>
+                <td>T3</td>
+                <td><strong>Create abstraction layer for web routes to AI providers</strong></td>
+                <td>web/src/lib/services/AIFacade.ts, web/src/routes/chat/+server.ts, web/src/routes/obsidian/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P13</td>
+                <td>T3</td>
+                <td><strong>Reorganize changelog generator into distinct packages</strong></td>
+                <td>cmd/generate_changelog/internal/git/walker.go, cmd/generate_changelog/internal/github/client.go, cmd/generate_changelog/internal/changelog/generator.go</td>
+            </tr>
+            <tr>
+                <td>P14</td>
+                <td>T1</td>
+                <td><strong>Document authentication model and unify auth patterns</strong></td>
+                <td>docs/SECURITY.md, README.md, web/src/routes/+layout.svelte</td>
+            </tr>
+            <tr>
+                <td>P15</td>
+                <td>T2</td>
+                <td><strong>Create API client abstraction layer for web services</strong></td>
+                <td>web/src/lib/api/ApiClient.ts, web/src/lib/services/ChatService.ts, web/src/lib/services/transcriptService.ts</td>
+            </tr>
+            <tr>
+                <td>P16</td>
+                <td>T3</td>
+                <td><strong>Extract business logic into service layer</strong></td>
+                <td>web/src/lib/services/ChatSessionService.ts, web/src/lib/services/MessageProcessingService.ts, web/src/lib/components/chat/Chat.svelte</td>
+            </tr>
+            <tr>
+                <td>P17</td>
+                <td>T1</td>
+                <td><strong>Centralize configuration management</strong></td>
+                <td>web/src/lib/config/index.ts, web/src/lib/api/base.ts, internal/tools/defaults.go</td>
+            </tr>
+            <tr>
+                <td>P18</td>
+                <td>T3</td>
+                <td><strong>Standardize error handling and logging in Go modules</strong></td>
+                <td>internal/log/log.go, cmd/generate_changelog/internal/git/walker.go, cmd/generate_changelog/internal/github/client.go</td>
+            </tr>
+            <tr>
+                <td>P19</td>
+                <td>T2</td>
+                <td><strong>Ensure AI provider instantiation uses plugin registry</strong></td>
+                <td>internal/core/plugin_registry.go, internal/cli/chat.go, web/src/routes/chat/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P20</td>
+                <td>T2</td>
+                <td><strong>Add persistence abstraction layer for file operations</strong></td>
+                <td>web/src/lib/repository/NoteRepository.ts, web/src/lib/repository/ObsidianVaultAdapter.ts, web/src/routes/obsidian/+server.ts</td>
+            </tr>
+            <tr>
+                <td>P21</td>
+                <td>T1</td>
+                <td><strong>Verify and document dependency graph to prevent circular imports</strong></td>
+                <td>docs/ARCHITECTURE.md, go.mod</td>
+            </tr></tbody>
+        </table>
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

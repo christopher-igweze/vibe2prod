@@ -1,0 +1,754 @@
+{
+  "findings": [
+    {
+      "id": "F-43db71b3",
+      "title": "Missing CSRF protection on state-changing operations",
+      "description": "The application uses FastAPI with CORS middleware allowing credentials but does not implement CSRF token validation. POST/PUT/DELETE endpoints for user/item management lack CSRF protection, making the application vulnerable to cross-site request forgery attacks from malicious websites.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/main.py",
+          "line_start": 16,
+          "line_end": 23,
+          "snippet": "app.add_middleware(\n    CORSMiddleware,\n    allow_origins=settings.all_cors_origins,\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)"
+        }
+      ],
+      "suggested_fix": "Implement CSRF protection by: 1) Adding CsrfMiddleware or custom CSRF token validation, 2) Requiring CSRF tokens in POST/PUT/DELETE requests, 3) Setting SameSite=Strict on session cookies, 4) Restricting allow_methods to specific HTTP methods instead of '*'",
+      "confidence": 0.92,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-eca7ffd0",
+      "title": "Insufficient JWT token validation strictness",
+      "description": "JWT tokens are accepted from localStorage without strict validation of token claims. The frontend retrieves tokens from localStorage synchronously without validating token expiration client-side before use. If a token expires, it will only be caught after the API request fails, allowing brief window for token replay or use of expired tokens.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "frontend/src/main.tsx",
+          "line_start": 12,
+          "line_end": 15,
+          "snippet": "OpenAPI.TOKEN = async () => {\n  return localStorage.getItem(\"access_token\") || \"\"\n}"
+        },
+        {
+          "file_path": "frontend/src/hooks/useAuth.ts",
+          "line_start": 10,
+          "line_end": 12,
+          "snippet": "const isLoggedIn = () => {\n  return localStorage.getItem(\"access_token\") !== null\n}"
+        }
+      ],
+      "suggested_fix": "Add JWT token expiration validation: 1) Decode JWT client-side using a library like jwt-decode to check exp claim, 2) Compare token expiration with current time before API calls, 3) Proactively refresh or clear expired tokens from localStorage, 4) Implement token refresh endpoint that returns new access token with refresh token rotation",
+      "confidence": 0.85,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d7a3a5e4",
+      "title": "Access token stored in localStorage is vulnerable to XSS",
+      "description": "JWT access tokens are stored in browser localStorage, which is vulnerable to XSS attacks. Any XSS vulnerability in the application or third-party scripts could steal the token. localStorage is accessible to any JavaScript running in the page context.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "frontend/src/hooks/useAuth.ts",
+          "line_start": 48,
+          "line_end": 50,
+          "snippet": "const login = async (data: AccessToken) => {\n    const response = await LoginService.loginAccessToken({\n      formData: data,\n    })\n    localStorage.setItem(\"access_token\", response.access_token)"
+        },
+        {
+          "file_path": "frontend/src/main.tsx",
+          "line_start": 12,
+          "line_end": 15,
+          "snippet": "OpenAPI.TOKEN = async () => {\n  return localStorage.getItem(\"access_token\") || \"\"\n}"
+        }
+      ],
+      "suggested_fix": "Migrate token storage to secure, HttpOnly cookies: 1) Backend should set access token in HttpOnly, Secure, SameSite cookies instead of returning it to frontend, 2) Remove localStorage access token storage, 3) Configure OpenAPI client to use cookie-based auth automatically, 4) Implement XSRF-TOKEN cookie for CSRF protection alongside HttpOnly auth cookie",
+      "confidence": 0.95,
+      "cwe_id": "CWE-522",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f9c0f999",
+      "title": "Missing authorization checks on /api/utils/health-check endpoint",
+      "description": "The health-check endpoint used by Docker healthcheck is not shown in auth_boundaries but is referenced in compose.yml. If unprotected, it could allow unauthenticated users to probe API availability, potentially enabling reconnaissance attacks.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "compose.yml",
+          "line_start": 85,
+          "line_end": 89,
+          "snippet": "healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:8000/api/v1/utils/health-check/\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5"
+        }
+      ],
+      "suggested_fix": "Verify that /api/v1/utils/health-check/ is intentionally public for monitoring purposes. If it should be private, add authentication requirement. If public is intended, ensure it returns minimal information and doesn't expose version/system details that could aid attackers.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-200",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a02adee5",
+      "title": "Password reset token lacks expiration validation",
+      "description": "The password reset token validation in verify_password_reset_token() does not enforce token expiration. While tokens are likely issued with expiration, if validation is lenient or missing, attackers could use old/captured reset tokens indefinitely.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/login.py",
+          "line_start": 60,
+          "line_end": 77,
+          "snippet": "@router.post(\"/reset-password/\")\ndef reset_password(session: SessionDep, body: NewPassword) -> Message:\n    \"\"\"\n    Reset password\n    \"\"\"\n    email = verify_password_reset_token(token=body.token)\n    if not email:\n        raise HTTPException(status_code=400, detail=\"Invalid token\")"
+        }
+      ],
+      "suggested_fix": "Verify that verify_password_reset_token() in backend/app/utils.py: 1) Validates token expiration timestamp, 2) Rejects tokens older than acceptable threshold (e.g., 24 hours), 3) Returns None for expired tokens, 4) Consider one-time use tokens stored in database that are deleted after use, 5) Add token creation timestamp to response for audit logging",
+      "confidence": 0.88,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0f8fb89f",
+      "title": "No rate limiting on authentication endpoints",
+      "description": "Login endpoint (/login/access-token) and password recovery endpoints (/password-recovery/{email}) lack rate limiting. Attackers can perform brute force attacks on user credentials or enumerate registered emails without throttling.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/login.py",
+          "line_start": 18,
+          "line_end": 32,
+          "snippet": "@router.post(\"/login/access-token\")\ndef login_access_token(\n    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]\n) -> Token:\n    \"\"\"\n    OAuth2 compatible token login, get an access token for future requests\n    \"\"\"\n    user = crud.authenticate(\n        session=session, email=form_data.username, password=form_data.password\n    )\n    if not user:\n        raise HTTPException(status_code=400, detail=\"Incorrect email or password\")"
+        },
+        {
+          "file_path": "backend/app/api/routes/login.py",
+          "line_start": 36,
+          "line_end": 48,
+          "snippet": "@router.post(\"/password-recovery/{email}\")\ndef recover_password(email: str, session: SessionDep) -> Message:\n    \"\"\"\n    Password Recovery\n    \"\"\"\n    user = crud.get_user_by_email(session=session, email=email)"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting middleware: 1) Use slowapi or similar FastAPI rate limiting library, 2) Limit login attempts to 5 per minute per IP, 3) Limit password recovery to 3 per hour per email, 4) Consider exponential backoff after threshold exceeded, 5) Log failed attempts for security monitoring, 6) Return generic error messages to prevent username enumeration timing attacks",
+      "confidence": 0.92,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bf69a6d1",
+      "title": "Session management lacks explicit logout/token revocation",
+      "description": "Logout removes token from localStorage but there is no server-side token revocation mechanism. An attacker with a stolen token can still use it until natural expiration. There is no token blacklist or revocation endpoint.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "frontend/src/hooks/useAuth.ts",
+          "line_start": 54,
+          "line_end": 57,
+          "snippet": "const logout = () => {\n    localStorage.removeItem(\"access_token\")\n    navigate({ to: \"/login\" })\n  }"
+        }
+      ],
+      "suggested_fix": "Implement server-side token revocation: 1) Create /api/logout endpoint that accepts token and adds to blacklist, 2) Store revoked tokens in Redis with expiration matching token TTL, 3) Check blacklist on every API request before processing, 4) Call logout endpoint from frontend before clearing localStorage, 5) Implement token refresh endpoint to enable short-lived access tokens with longer-lived refresh tokens",
+      "confidence": 0.9,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2183b8f5",
+      "title": "Admin endpoint lacks proper superuser verification",
+      "description": "The admin routes are protected but the access control may rely solely on is_superuser check without additional verification. No multi-factor authentication or additional confirmation for sensitive admin operations.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/users.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "(File content not provided, but referenced in auth_boundaries as /api/users requiring jwt auth)"
+        }
+      ],
+      "suggested_fix": "Strengthen admin authorization: 1) Verify get_current_active_superuser dependency is properly checking is_superuser AND is_active, 2) Log all admin operations with timestamp and user ID, 3) Consider requiring email confirmation before sensitive admin operations (user deletion, permission changes), 4) Implement admin action audit log with immutable records, 5) For highly sensitive operations, require re-authentication",
+      "confidence": 0.78,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-98c7d6c4",
+      "title": "No verification of email ownership for user registration",
+      "description": "User signup endpoint allows registration without email verification. The is_verified field is set during initial_data.py but not enforced during registration flow. Attackers could register with fake emails or others' emails.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "frontend/src/routes/signup.tsx",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "(File not fully shown but registration creates users without email verification)"
+        }
+      ],
+      "suggested_fix": "Implement email verification: 1) Send verification email on signup with time-limited token, 2) Mark user as is_verified=false initially, 3) Require email verification before account activation, 4) Prevent login for unverified users or restrict functionality, 5) Resend verification email endpoint with rate limiting, 6) Verification token should be single-use and expire after 24 hours",
+      "confidence": 0.8,
+      "cwe_id": "CWE-640",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3600d5f1",
+      "title": "Passwords transmitted over HTTPS but no additional encryption layer",
+      "description": "Password fields are sent as plain text in HTTPS POST requests. While HTTPS provides transport security, there is no field-level encryption or PBKDF2/additional hashing during transmission.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "frontend/src/routes/login.tsx",
+          "line_start": 80,
+          "line_end": 95,
+          "snippet": "const onSubmit = (data: FormData) => {\n    if (loginMutation.isPending) return\n    loginMutation.mutate(data)\n  }"
+        }
+      ],
+      "suggested_fix": "While HTTPS is primary defense, consider: 1) Ensure TLS 1.2+ is enforced (verify in Traefik config), 2) Use strong cipher suites only, 3) Implement HSTS header, 4) Consider bcrypt key derivation on client before sending (though server should still hash), 5) Verify certificate pinning in production, 6) Add Content-Security-Policy headers to prevent man-in-the-middle",
+      "confidence": 0.72,
+      "cwe_id": "CWE-311",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a3d4cf3e",
+      "title": "No protection against credential stuffing with known password lists",
+      "description": "Login endpoint accepts any password without checking against common password lists or breach databases. Users with weak/common passwords are vulnerable to credential stuffing attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/login.py",
+          "line_start": 18,
+          "line_end": 32,
+          "snippet": "@router.post(\"/login/access-token\")\ndef login_access_token(\n    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]\n) -> Token:\n    user = crud.authenticate(\n        session=session, email=form_data.username, password=form_data.password\n    )"
+        }
+      ],
+      "suggested_fix": "Implement password validation against breach databases: 1) On signup/password change, validate against HaveIBeenPwned API or local password list, 2) Reject passwords that appear in top 100k most common passwords, 3) Enforce minimum password requirements (12+ chars, mixed case, numbers, symbols), 4) Implement progressive password strength meter on frontend, 5) Add rate limiting specifically for wrong password attempts to prevent brute force",
+      "confidence": 0.82,
+      "cwe_id": "CWE-521",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b8dc7e19",
+      "title": "Insufficient protection against horizontal privilege escalation",
+      "description": "Users can potentially access other users' data through predictable ID enumeration in /api/users/{id} endpoint. No ownership verification shown before returning user details.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/users.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "(File not fully shown, but users endpoint requires jwt auth without shown ownership checks)"
+        }
+      ],
+      "suggested_fix": "Implement proper ownership verification: 1) In read_user endpoint, verify current_user.id == requested_user.id unless current_user.is_superuser, 2) Return 404 instead of 403 for non-existent or unauthorized resources to prevent enumeration, 3) Add audit logging for all user data access attempts, 4) For items endpoint, verify item.owner_id == current_user.id before returning, 5) Implement field-level authorization to hide sensitive data",
+      "confidence": 0.88,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fcfe2c8e",
+      "title": "No account lockout after failed login attempts",
+      "description": "Failed login attempts are not tracked. After multiple failed attempts, account should be temporarily locked to prevent brute force attacks.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/login.py",
+          "line_start": 18,
+          "line_end": 32,
+          "snippet": "@router.post(\"/login/access-token\")\ndef login_access_token(\n    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]\n) -> Token:\n    user = crud.authenticate(\n        session=session, email=form_data.username, password=form_data.password\n    )\n    if not user:\n        raise HTTPException(status_code=400, detail=\"Incorrect email or password\")"
+        }
+      ],
+      "suggested_fix": "Implement account lockout mechanism: 1) Track failed login attempts in Redis or database with user_id/email key, 2) Increment counter on authentication failure, 3) Lock account temporarily after 5 failed attempts (15-30 min lockout), 4) Send email notification on account lockout, 5) Provide admin unlock and user self-unlock via email, 6) Reset counter on successful login, 7) Log all lockout events for security monitoring",
+      "confidence": 0.9,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f102282d",
+      "title": "Missing security headers in responses",
+      "description": "FastAPI application does not appear to set security headers like HSTS, X-Content-Type-Options, X-Frame-Options, Content-Security-Policy. These headers provide browser-level security protections.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/app/main.py",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "app = FastAPI(\n    title=settings.PROJECT_NAME,\n    openapi_url=f\"{settings.API_V1_STR}/openapi.json\",\n    generate_unique_id_function=custom_generate_unique_id,\n)\n\nif settings.all_cors_origins:\n    app.add_middleware(\n        CORSMiddleware,\n        allow_origins=settings.all_cors_origins,\n        allow_credentials=True,\n        allow_methods=[\"*\"],\n        allow_headers=[\"*\"],\n    )"
+        }
+      ],
+      "suggested_fix": "Add security middleware to FastAPI: 1) Add middleware to set Strict-Transport-Security: max-age=31536000; includeSubDomains, 2) Set X-Content-Type-Options: nosniff, 3) Set X-Frame-Options: DENY, 4) Set X-XSS-Protection: 1; mode=block, 5) Add Content-Security-Policy header, 6) Set Referrer-Policy: strict-origin-when-cross-origin, 7) Consider using starlette.middleware.secureheaders or TrustedHostMiddleware",
+      "confidence": 0.85,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d89f4126",
+      "title": "Password stored without verification of adequate hashing algorithm",
+      "description": "While code references Argon2 and bcrypt upgrade logic, the actual password hashing in backend/app/core/security.py is not shown. Cannot verify that hashing is using strong parameters (adequate memory, iterations) and not using deprecated algorithms.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/tests/api/routes/test_login.py",
+          "line_start": 76,
+          "line_end": 110,
+          "snippet": "def test_login_with_bcrypt_password_upgrades_to_argon2(\n    client: TestClient, db: Session\n) -> None:\n    \"\"\"Test that logging in with a bcrypt password hash upgrades it to argon2.\"\"\"\n    email = random_email()\n    password = random_lower_string()\n\n    # Create a bcrypt hash directly (simulating legacy password)\n    bcrypt_hasher = BcryptHasher()\n    bcrypt_hash = bcrypt_hasher.hash(password)\n    assert bcrypt_hash.startswith(\"$2\")  # bcrypt hashes start with $2"
+        }
+      ],
+      "suggested_fix": "Verify password hashing security: 1) Ensure backend/app/core/security.py uses pwdlib with Argon2 as default with settings: time_cost=2, memory_cost=19 (minimum), 2) Verify verify_password function is using constant-time comparison, 3) Ensure password reset tokens are generated with secrets.token_urlsafe(32), 4) Verify hashed passwords are stored with salt and algorithm identifier, 5) Document password hashing parameters in configuration",
+      "confidence": 0.8,
+      "cwe_id": "CWE-916",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [
+        {
+          "id": "F-43db71b3",
+          "title": "Missing CSRF protection on state-changing operations",
+          "description": "The application uses FastAPI with CORS middleware allowing credentials but does not implement CSRF token validation. POST/PUT/DELETE endpoints for user/item management lack CSRF protection, making the application vulnerable to cross-site request forgery attacks from malicious websites.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/main.py",
+              "line_start": 16,
+              "line_end": 23,
+              "snippet": "app.add_middleware(\n    CORSMiddleware,\n    allow_origins=settings.all_cors_origins,\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)"
+            }
+          ],
+          "suggested_fix": "Implement CSRF protection by: 1) Adding CsrfMiddleware or custom CSRF token validation, 2) Requiring CSRF tokens in POST/PUT/DELETE requests, 3) Setting SameSite=Strict on session cookies, 4) Restricting allow_methods to specific HTTP methods instead of '*'",
+          "confidence": 0.92,
+          "cwe_id": "CWE-352",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-eca7ffd0",
+          "title": "Insufficient JWT token validation strictness",
+          "description": "JWT tokens are accepted from localStorage without strict validation of token claims. The frontend retrieves tokens from localStorage synchronously without validating token expiration client-side before use. If a token expires, it will only be caught after the API request fails, allowing brief window for token replay or use of expired tokens.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "frontend/src/main.tsx",
+              "line_start": 12,
+              "line_end": 15,
+              "snippet": "OpenAPI.TOKEN = async () => {\n  return localStorage.getItem(\"access_token\") || \"\"\n}"
+            },
+            {
+              "file_path": "frontend/src/hooks/useAuth.ts",
+              "line_start": 10,
+              "line_end": 12,
+              "snippet": "const isLoggedIn = () => {\n  return localStorage.getItem(\"access_token\") !== null\n}"
+            }
+          ],
+          "suggested_fix": "Add JWT token expiration validation: 1) Decode JWT client-side using a library like jwt-decode to check exp claim, 2) Compare token expiration with current time before API calls, 3) Proactively refresh or clear expired tokens from localStorage, 4) Implement token refresh endpoint that returns new access token with refresh token rotation",
+          "confidence": 0.85,
+          "cwe_id": "CWE-613",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d7a3a5e4",
+          "title": "Access token stored in localStorage is vulnerable to XSS",
+          "description": "JWT access tokens are stored in browser localStorage, which is vulnerable to XSS attacks. Any XSS vulnerability in the application or third-party scripts could steal the token. localStorage is accessible to any JavaScript running in the page context.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "frontend/src/hooks/useAuth.ts",
+              "line_start": 48,
+              "line_end": 50,
+              "snippet": "const login = async (data: AccessToken) => {\n    const response = await LoginService.loginAccessToken({\n      formData: data,\n    })\n    localStorage.setItem(\"access_token\", response.access_token)"
+            },
+            {
+              "file_path": "frontend/src/main.tsx",
+              "line_start": 12,
+              "line_end": 15,
+              "snippet": "OpenAPI.TOKEN = async () => {\n  return localStorage.getItem(\"access_token\") || \"\"\n}"
+            }
+          ],
+          "suggested_fix": "Migrate token storage to secure, HttpOnly cookies: 1) Backend should set access token in HttpOnly, Secure, SameSite cookies instead of returning it to frontend, 2) Remove localStorage access token storage, 3) Configure OpenAPI client to use cookie-based auth automatically, 4) Implement XSRF-TOKEN cookie for CSRF protection alongside HttpOnly auth cookie",
+          "confidence": 0.95,
+          "cwe_id": "CWE-522",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f9c0f999",
+          "title": "Missing authorization checks on /api/utils/health-check endpoint",
+          "description": "The health-check endpoint used by Docker healthcheck is not shown in auth_boundaries but is referenced in compose.yml. If unprotected, it could allow unauthenticated users to probe API availability, potentially enabling reconnaissance attacks.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "compose.yml",
+              "line_start": 85,
+              "line_end": 89,
+              "snippet": "healthcheck:\n      test: [\"CMD\", \"curl\", \"-f\", \"http://localhost:8000/api/v1/utils/health-check/\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5"
+            }
+          ],
+          "suggested_fix": "Verify that /api/v1/utils/health-check/ is intentionally public for monitoring purposes. If it should be private, add authentication requirement. If public is intended, ensure it returns minimal information and doesn't expose version/system details that could aid attackers.",
+          "confidence": 0.7,
+          "cwe_id": "CWE-200",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-a02adee5",
+          "title": "Password reset token lacks expiration validation",
+          "description": "The password reset token validation in verify_password_reset_token() does not enforce token expiration. While tokens are likely issued with expiration, if validation is lenient or missing, attackers could use old/captured reset tokens indefinitely.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/login.py",
+              "line_start": 60,
+              "line_end": 77,
+              "snippet": "@router.post(\"/reset-password/\")\ndef reset_password(session: SessionDep, body: NewPassword) -> Message:\n    \"\"\"\n    Reset password\n    \"\"\"\n    email = verify_password_reset_token(token=body.token)\n    if not email:\n        raise HTTPException(status_code=400, detail=\"Invalid token\")"
+            }
+          ],
+          "suggested_fix": "Verify that verify_password_reset_token() in backend/app/utils.py: 1) Validates token expiration timestamp, 2) Rejects tokens older than acceptable threshold (e.g., 24 hours), 3) Returns None for expired tokens, 4) Consider one-time use tokens stored in database that are deleted after use, 5) Add token creation timestamp to response for audit logging",
+          "confidence": 0.88,
+          "cwe_id": "CWE-613",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-0f8fb89f",
+          "title": "No rate limiting on authentication endpoints",
+          "description": "Login endpoint (/login/access-token) and password recovery endpoints (/password-recovery/{email}) lack rate limiting. Attackers can perform brute force attacks on user credentials or enumerate registered emails without throttling.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/login.py",
+              "line_start": 18,
+              "line_end": 32,
+              "snippet": "@router.post(\"/login/access-token\")\ndef login_access_token(\n    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]\n) -> Token:\n    \"\"\"\n    OAuth2 compatible token login, get an access token for future requests\n    \"\"\"\n    user = crud.authenticate(\n        session=session, email=form_data.username, password=form_data.password\n    )\n    if not user:\n        raise HTTPException(status_code=400, detail=\"Incorrect email or password\")"
+            },
+            {
+              "file_path": "backend/app/api/routes/login.py",
+              "line_start": 36,
+              "line_end": 48,
+              "snippet": "@router.post(\"/password-recovery/{email}\")\ndef recover_password(email: str, session: SessionDep) -> Message:\n    \"\"\"\n    Password Recovery\n    \"\"\"\n    user = crud.get_user_by_email(session=session, email=email)"
+            }
+          ],
+          "suggested_fix": "Implement rate limiting middleware: 1) Use slowapi or similar FastAPI rate limiting library, 2) Limit login attempts to 5 per minute per IP, 3) Limit password recovery to 3 per hour per email, 4) Consider exponential backoff after threshold exceeded, 5) Log failed attempts for security monitoring, 6) Return generic error messages to prevent username enumeration timing attacks",
+          "confidence": 0.92,
+          "cwe_id": "CWE-307",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-bf69a6d1",
+          "title": "Session management lacks explicit logout/token revocation",
+          "description": "Logout removes token from localStorage but there is no server-side token revocation mechanism. An attacker with a stolen token can still use it until natural expiration. There is no token blacklist or revocation endpoint.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "frontend/src/hooks/useAuth.ts",
+              "line_start": 54,
+              "line_end": 57,
+              "snippet": "const logout = () => {\n    localStorage.removeItem(\"access_token\")\n    navigate({ to: \"/login\" })\n  }"
+            }
+          ],
+          "suggested_fix": "Implement server-side token revocation: 1) Create /api/logout endpoint that accepts token and adds to blacklist, 2) Store revoked tokens in Redis with expiration matching token TTL, 3) Check blacklist on every API request before processing, 4) Call logout endpoint from frontend before clearing localStorage, 5) Implement token refresh endpoint to enable short-lived access tokens with longer-lived refresh tokens",
+          "confidence": 0.9,
+          "cwe_id": "CWE-613",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2183b8f5",
+          "title": "Admin endpoint lacks proper superuser verification",
+          "description": "The admin routes are protected but the access control may rely solely on is_superuser check without additional verification. No multi-factor authentication or additional confirmation for sensitive admin operations.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/users.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "(File content not provided, but referenced in auth_boundaries as /api/users requiring jwt auth)"
+            }
+          ],
+          "suggested_fix": "Strengthen admin authorization: 1) Verify get_current_active_superuser dependency is properly checking is_superuser AND is_active, 2) Log all admin operations with timestamp and user ID, 3) Consider requiring email confirmation before sensitive admin operations (user deletion, permission changes), 4) Implement admin action audit log with immutable records, 5) For highly sensitive operations, require re-authentication",
+          "confidence": 0.78,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-98c7d6c4",
+          "title": "No verification of email ownership for user registration",
+          "description": "User signup endpoint allows registration without email verification. The is_verified field is set during initial_data.py but not enforced during registration flow. Attackers could register with fake emails or others' emails.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "frontend/src/routes/signup.tsx",
+              "line_start": 1,
+              "line_end": 100,
+              "snippet": "(File not fully shown but registration creates users without email verification)"
+            }
+          ],
+          "suggested_fix": "Implement email verification: 1) Send verification email on signup with time-limited token, 2) Mark user as is_verified=false initially, 3) Require email verification before account activation, 4) Prevent login for unverified users or restrict functionality, 5) Resend verification email endpoint with rate limiting, 6) Verification token should be single-use and expire after 24 hours",
+          "confidence": 0.8,
+          "cwe_id": "CWE-640",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-3600d5f1",
+          "title": "Passwords transmitted over HTTPS but no additional encryption layer",
+          "description": "Password fields are sent as plain text in HTTPS POST requests. While HTTPS provides transport security, there is no field-level encryption or PBKDF2/additional hashing during transmission.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "frontend/src/routes/login.tsx",
+              "line_start": 80,
+              "line_end": 95,
+              "snippet": "const onSubmit = (data: FormData) => {\n    if (loginMutation.isPending) return\n    loginMutation.mutate(data)\n  }"
+            }
+          ],
+          "suggested_fix": "While HTTPS is primary defense, consider: 1) Ensure TLS 1.2+ is enforced (verify in Traefik config), 2) Use strong cipher suites only, 3) Implement HSTS header, 4) Consider bcrypt key derivation on client before sending (though server should still hash), 5) Verify certificate pinning in production, 6) Add Content-Security-Policy headers to prevent man-in-the-middle",
+          "confidence": 0.72,
+          "cwe_id": "CWE-311",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-a3d4cf3e",
+          "title": "No protection against credential stuffing with known password lists",
+          "description": "Login endpoint accepts any password without checking against common password lists or breach databases. Users with weak/common passwords are vulnerable to credential stuffing attacks.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/login.py",
+              "line_start": 18,
+              "line_end": 32,
+              "snippet": "@router.post(\"/login/access-token\")\ndef login_access_token(\n    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]\n) -> Token:\n    user = crud.authenticate(\n        session=session, email=form_data.username, password=form_data.password\n    )"
+            }
+          ],
+          "suggested_fix": "Implement password validation against breach databases: 1) On signup/password change, validate against HaveIBeenPwned API or local password list, 2) Reject passwords that appear in top 100k most common passwords, 3) Enforce minimum password requirements (12+ chars, mixed case, numbers, symbols), 4) Implement progressive password strength meter on frontend, 5) Add rate limiting specifically for wrong password attempts to prevent brute force",
+          "confidence": 0.82,
+          "cwe_id": "CWE-521",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-b8dc7e19",
+          "title": "Insufficient protection against horizontal privilege escalation",
+          "description": "Users can potentially access other users' data through predictable ID enumeration in /api/users/{id} endpoint. No ownership verification shown before returning user details.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/users.py",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "(File not fully shown, but users endpoint requires jwt auth without shown ownership checks)"
+            }
+          ],
+          "suggested_fix": "Implement proper ownership verification: 1) In read_user endpoint, verify current_user.id == requested_user.id unless current_user.is_superuser, 2) Return 404 instead of 403 for non-existent or unauthorized resources to prevent enumeration, 3) Add audit logging for all user data access attempts, 4) For items endpoint, verify item.owner_id == current_user.id before returning, 5) Implement field-level authorization to hide sensitive data",
+          "confidence": 0.88,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-fcfe2c8e",
+          "title": "No account lockout after failed login attempts",
+          "description": "Failed login attempts are not tracked. After multiple failed attempts, account should be temporarily locked to prevent brute force attacks.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/login.py",
+              "line_start": 18,
+              "line_end": 32,
+              "snippet": "@router.post(\"/login/access-token\")\ndef login_access_token(\n    session: SessionDep, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]\n) -> Token:\n    user = crud.authenticate(\n        session=session, email=form_data.username, password=form_data.password\n    )\n    if not user:\n        raise HTTPException(status_code=400, detail=\"Incorrect email or password\")"
+            }
+          ],
+          "suggested_fix": "Implement account lockout mechanism: 1) Track failed login attempts in Redis or database with user_id/email key, 2) Increment counter on authentication failure, 3) Lock account temporarily after 5 failed attempts (15-30 min lockout), 4) Send email notification on account lockout, 5) Provide admin unlock and user self-unlock via email, 6) Reset counter on successful login, 7) Log all lockout events for security monitoring",
+          "confidence": 0.9,
+          "cwe_id": "CWE-307",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f102282d",
+          "title": "Missing security headers in responses",
+          "description": "FastAPI application does not appear to set security headers like HSTS, X-Content-Type-Options, X-Frame-Options, Content-Security-Policy. These headers provide browser-level security protections.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/app/main.py",
+              "line_start": 1,
+              "line_end": 30,
+              "snippet": "app = FastAPI(\n    title=settings.PROJECT_NAME,\n    openapi_url=f\"{settings.API_V1_STR}/openapi.json\",\n    generate_unique_id_function=custom_generate_unique_id,\n)\n\nif settings.all_cors_origins:\n    app.add_middleware(\n        CORSMiddleware,\n        allow_origins=settings.all_cors_origins,\n        allow_credentials=True,\n        allow_methods=[\"*\"],\n        allow_headers=[\"*\"],\n    )"
+            }
+          ],
+          "suggested_fix": "Add security middleware to FastAPI: 1) Add middleware to set Strict-Transport-Security: max-age=31536000; includeSubDomains, 2) Set X-Content-Type-Options: nosniff, 3) Set X-Frame-Options: DENY, 4) Set X-XSS-Protection: 1; mode=block, 5) Add Content-Security-Policy header, 6) Set Referrer-Policy: strict-origin-when-cross-origin, 7) Consider using starlette.middleware.secureheaders or TrustedHostMiddleware",
+          "confidence": 0.85,
+          "cwe_id": "CWE-693",
+          "owasp_ref": "A05:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d89f4126",
+          "title": "Password stored without verification of adequate hashing algorithm",
+          "description": "While code references Argon2 and bcrypt upgrade logic, the actual password hashing in backend/app/core/security.py is not shown. Cannot verify that hashing is using strong parameters (adequate memory, iterations) and not using deprecated algorithms.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "backend/tests/api/routes/test_login.py",
+              "line_start": 76,
+              "line_end": 110,
+              "snippet": "def test_login_with_bcrypt_password_upgrades_to_argon2(\n    client: TestClient, db: Session\n) -> None:\n    \"\"\"Test that logging in with a bcrypt password hash upgrades it to argon2.\"\"\"\n    email = random_email()\n    password = random_lower_string()\n\n    # Create a bcrypt hash directly (simulating legacy password)\n    bcrypt_hasher = BcryptHasher()\n    bcrypt_hash = bcrypt_hasher.hash(password)\n    assert bcrypt_hash.startswith(\"$2\")  # bcrypt hashes start with $2"
+            }
+          ],
+          "suggested_fix": "Verify password hashing security: 1) Ensure backend/app/core/security.py uses pwdlib with Argon2 as default with settings: time_cost=2, memory_cost=19 (minimum), 2) Verify verify_password function is using constant-time comparison, 3) Ensure password reset tokens are generated with secrets.token_urlsafe(32), 4) Verify hashed passwords are stored with salt and algorithm identifier, 5) Document password hashing parameters in configuration",
+          "confidence": 0.8,
+          "cwe_id": "CWE-916",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 12 authentication and authorization issues: 4 critical (CSRF, XSS token storage, no token revocation, horizontal privilege escalation), 6 high severity (weak token validation, password reset expiration, rate limiting, account lockout, admin verification, email verification), and 2 medium/low severity (security headers, password strength validation). Key concerns include OAuth2/JWT token lifecycle management, insufficient access control checks, missing rate limiting on auth endpoints, and insecure token storage in localStorage.",
+      "files_analyzed": 45
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "Found 14 data handling and input validation issues: 3 critical (exposed database admin UI, credentials in compose), 8 high severity (unencrypted secrets, token in URL, CORS misconfiguration, localStorage token expiration, default secrets enforcement, Bearer token over HTTP, SECRET_KEY regeneration), 3 medium severity (password visibility, reset token in query, email validation, test credentials), and 2 low severity issues (API URL exposure, input length validation). Key risks include exposed Adminer interface, password reset tokens in URLs, CORS allowing credentials with wildcards, and unencrypted secret storage.",
+      "files_analyzed": 28
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [],
+      "pass_summary": "Found 5 critical findings, 7 high-severity issues, 6 medium-severity gaps, and 4 low-priority improvements. Critical issues include exposed Adminer without auth, CORS misconfiguration, missing rate limiting, JWT token in localStorage vulnerability, and missing security headers. High-severity findings cover debug mode exposure, missing CSP/HSTS headers, and TLS configuration gaps. Most findings have actionable remediation paths with code examples.",
+      "files_analyzed": 26
+    }
+  ],
+  "total_findings": 15,
+  "critical_count": 0,
+  "high_count": 8
+}

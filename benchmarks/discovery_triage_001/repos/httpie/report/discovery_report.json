@@ -1,0 +1,877 @@
+{
+  "run_id": "d076ffee85ad",
+  "generated_at": "2026-02-26T01:01:25.809700+00:00",
+  "phase": "discovery",
+  "duration_seconds": 152.6,
+  "cost_usd": 0.0,
+  "total_findings": 21,
+  "severity_breakdown": {
+    "high": 5,
+    "medium": 8,
+    "low": 8
+  },
+  "category_breakdown": {
+    "quality": 7,
+    "performance": 6,
+    "architecture": 8
+  },
+  "findings": [
+    {
+      "id": "F-ccceaf3a",
+      "title": "Plugin registration lacks error handling for import failures",
+      "description": "In httpie/plugins/registry.py, plugins are imported and registered directly without any try/except wrapper. If importing a plugin raises an exception (e.g., ImportError, ModuleNotFoundError), the entire application will crash instead of gracefully handling the error.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/plugins/registry.py",
+          "line_start": 1,
+          "line_end": 25,
+          "snippet": "plugin_manager.register(\n    BasicAuthPlugin,\n    DigestAuthPlugin,\n    BearerAuthPlugin,\n    HeadersFormatter,\n    JSONFormatter,\n    XMLFormatter,\n    ColorFormatter,\n)"
+        }
+      ],
+      "suggested_fix": "Wrap the plugin registration in a try/except block to catch ImportError and other exceptions, logging warnings instead of crashing:\n\ntry:\n    plugin_manager.register(...)\nexcept ImportError as e:\n    import warnings\n    warnings.warn(f'Failed to import plugin: {e}')",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2c280d33",
+      "title": "Missing error handling in nested JSON parsing",
+      "description": "The nested JSON parser (httpie/cli/nested_json/) handles syntax errors via NestedJSONSyntaxError but there's no catch-all error handler at the entry points (parsing.py, interpret.py) to handle unexpected runtime errors that could occur during JSON construction.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/cli/nested_json/parse.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Files not fully visible in provided source but referenced in nested_json module"
+        }
+      ],
+      "suggested_fix": "Add try/except blocks around JSON construction operations to catch KeyError, IndexError, TypeError and convert them to user-friendly error messages rather than tracebacks.",
+      "confidence": 0.65,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-63e70501",
+      "title": "No global exception handler in CLI entry points",
+      "description": "The CLI entry points (httpie/__main__.py, httpie/core.py) should have top-level exception handling to catch unexpected errors and provide graceful degradation. Based on test patterns in test_exit_status.py and test_errors.py, exceptions like KeyboardInterrupt are handled, but general Exception handling is missing.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/cli/definition.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Parser definition file without visible main() entry point handling"
+        }
+      ],
+      "suggested_fix": "Add a main() function wrapper with sys.excepthook or try/except that catches Exception, logs it appropriately, and returns ExitStatus.ERROR instead of letting raw tracebacks propagate to users.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-51aeaec4",
+      "title": "Socket error handling incomplete for DNS failures",
+      "description": "In tests/test_errors.py, there's explicit testing for socket.gaierror with EAI_AGAIN and EAI_NONAME codes. The actual handling code should be in httpie/core.py or httpie/client.py but wasn't provided. If the handling exists, it's only for specific error codes - other gaierror subtypes could cause unhandled crashes.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/core.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Main entry point file - error handling code not visible in provided source"
+        }
+      ],
+      "suggested_fix": "Add comprehensive socket.gaierror handling that catches all error codes (not just EAI_AGAIN, EAI_NONAME) and provides appropriate user-facing messages for each category of DNS/network failure.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-012bb652",
+      "title": "Missing error boundary for SSL certificate failures",
+      "description": "tests/test_ssl.py shows extensive SSL testing but the actual SSL error handling should wrap certificate validation. If SSLError or related exceptions propagate without handling, users see Python tracebacks instead of helpful messages.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/client.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "HTTP client implementation - SSL handling not visible in provided source"
+        }
+      ],
+      "suggested_fix": "Add try/except around requests.Session.send() calls to catch ssl.SSLError, requests.exceptions.SSLError, and provide user-friendly error messages with suggestions (e.g., --verify=no for self-signed certs).",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2b317903",
+      "title": "Download resume error handling may fail silently",
+      "description": "tests/test_downloads.py shows resume logic with Range headers. In httpie/downloads.py, if the server doesn't support resume (returns different status than 206), the error may not be communicated clearly to the user.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/downloads.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Download handling file - resume error handling not visible"
+        }
+      ],
+      "suggested_fix": "Check response status code after Range request and warn user if resume isn't supported instead of silently downloading from scratch.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7fb749d6",
+      "title": "Config file error handling issues",
+      "description": "tests/test_config.py shows handling for invalid JSON and inaccessible config files, but there's no indication of error handling for config file write failures. If disk is full or permissions change, the error could crash the application.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "error_handling",
+      "locations": [
+        {
+          "file_path": "httpie/config.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Config handling file - write error handling not visible"
+        }
+      ],
+      "suggested_fix": "Wrap config.save() calls in try/except to catch OSError, PermissionError and provide graceful degradation (use in-memory config instead).",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0391dbba",
+      "title": "Missing caching for repeated GitHub API calls in user lookup",
+      "description": "The user() function in docs/contributors/fetch.py makes API calls to GitHub for each user lookup without any caching mechanism. When processing large contributor lists, the same user may be looked up multiple times, causing redundant API calls and rate limit issues.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 174,
+          "line_end": 195,
+          "snippet": "def user(fullname: Optional[str] = '', github_username: Optional[str] = '') -> UserInfo:\n    if github_username:\n        url = f'{API_URL}/users/{github_username}'\n        return fetch(url)\n\n    url = f'{API_URL}/search/users'\n    for query in (f'fullname:{fullname}', f'user:{fullname}'):\n        params = {\n            'q': f'repo:{REPO}/{OWNER} {query}',\n            'per_page': 1,\n        }\n        user_info = fetch(url, params=params)\n        if user_info['items']:\n            user_url = user_info['items'][0]['url']\n            return fetch(user_url)"
+        }
+      ],
+      "suggested_fix": "Implement a memoization cache using functools.lru_cache or a dictionary to cache user lookups. Example: @functools.lru_cache(maxsize=500) decorator on the user() function, or use a dict to cache results keyed by (fullname, github_username).",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2ccac889",
+      "title": "Sequential API calls without batching in fetch_missing_users_details",
+      "description": "The fetch_missing_users_details function iterates through all people and makes individual API calls sequentially. For large contributor databases, this is extremely slow and could hit rate limits.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 198,
+          "line_end": 208,
+          "snippet": "def fetch_missing_users_details(people: People) -> None:\n    for name, details in people.items():\n        if details['github'] and details['twitter']:\n            continue\n        user_info = user(github_username=details['github'], fullname=name)\n        if not details['github']:\n            details['github'] = user_info['login']\n        if not details['twitter']:\n            details['twitter'] = user_info['twitter_username']"
+        }
+      ],
+      "suggested_fix": "Batch the API calls by collecting all github_username values that need lookup, then use GitHub's user lookup endpoint which supports multiple users in a single call (GET /users/{user1},{user2},{user3}). This reduces N API calls to 1 call.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1732678a",
+      "title": "Open file handle not properly managed in process_file_upload_arg",
+      "description": "The process_file_upload_arg function opens a file (line 115-116 in requestitems.py) and returns a tuple containing the file object. There's no guarantee the file will be closed after use, as the caller doesn't explicitly close it. This can lead to resource leaks when processing many file uploads.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "httpie/cli/requestitems.py",
+          "line_start": 109,
+          "line_end": 121,
+          "snippet": "def process_file_upload_arg(arg: KeyValueArg) -> Tuple[str, IO, str]:\n    parts = arg.value.split(SEPARATOR_FILE_UPLOAD_TYPE)\n    filename = parts[0]\n    mime_type = parts[1] if len(parts) > 1 else None\n    try:\n        f = open(os.path.expanduser(filename), 'rb')\n    except OSError as e:\n        raise ParseError(f'{arg.orig!r}: {e}')\n    return (\n        os.path.basename(filename),\n        f,\n        mime_type or get_content_type(filename),\n    )"
+        }
+      ],
+      "suggested_fix": "Use a context manager pattern or ensure the caller closes the file handle. Consider returning a path instead of an open file handle, or use a with statement in the caller. Alternatively, use a file wrapper class that properly manages the lifecycle.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b38226ce",
+      "title": "Repeated iteration over contributors in merge_all_the_people",
+      "description": "The merge_all_the_people function performs set membership checks and removals in a loop over all contributors. While set operations are O(1), the algorithm could be more efficient by pre-indexing or using set intersections.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 130,
+          "line_end": 169,
+          "snippet": "def merge_all_the_people(release: str, contributors: People, committers: FullNames, reporters: GitHubLogins) -> None:\n    # Update known contributors.\n    for name, details in contributors.items():\n        if name in committers:\n            if release not in details['committed']:\n                details['committed'].append(release)\n            committers.remove(name)\n        if details['github'] in reporters:\n            if release not in details['reported']:\n                details['reported'].append(release)\n            reporters.remove(details['github'])"
+        }
+      ],
+      "suggested_fix": "Use set intersection to find common contributors first, then process in a single pass: common_names = set(contributors.keys()) & committers. This reduces the number of set membership checks from O(n*m) to O(n+m).",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9ef1268c",
+      "title": "No connection pooling configuration for requests library",
+      "description": "The fetch() function uses requests.get() without explicitly configuring session pooling. While requests handles this internally, creating a persistent Session object would enable connection reuse across multiple API calls, reducing overhead.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 220,
+          "line_end": 247,
+          "snippet": "def fetch(url: str, params: Optional[Dict[str, str]] = None) -> UserInfo:\n    headers = {\n        'Accept': 'application/vnd.github.v3+json',\n        'Authentication': f'token {GITHUB_TOKEN}'\n    }\n    for retry in range(1, 6):\n        debug(f'[{retry}/5]', f'{url = }', f'{params = }')\n        with requests.get(url, params=params, headers=headers) as req:"
+        }
+      ],
+      "suggested_fix": "Create a requests.Session() object at module level and reuse it for all API calls. This enables HTTP keep-alive and connection pooling: session = requests.Session(); session.headers.update(headers); then use session.get() instead of requests.get().",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6236f6bb",
+      "title": "Inefficient string formatting in debug output",
+      "description": "The debug() function uses f-strings but is called multiple times in loops (e.g., find_committers, find_reporters). When DEBUG is disabled, these string constructions still occur.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "docs/contributors/fetch.py",
+          "line_start": 259,
+          "line_end": 263,
+          "snippet": "def debug(*args: Any) -> None:\n    if os.getenv('DEBUG') == '1':\n        print(*args)"
+        }
+      ],
+      "suggested_fix": "Use a module-level flag to check DEBUG once at startup: DEBUG = os.getenv('DEBUG') == '1', then check this boolean in the debug() function to avoid calling os.getenv() on every debug call.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c491918d",
+      "title": "Large CLI module with mixed responsibilities",
+      "description": "The httpie.cli module (1200 LOC across 15 files) combines argument parsing, type validation, nested JSON interpretation, request item handling, and constants. While organized into submodules, the module lacks clear separation between parsing logic, validation, and domain-specific concerns.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/cli",
+          "line_start": 1,
+          "line_end": 1200,
+          "snippet": "httpie/cli/definition.py (956 LOC) - command definition; argparser.py (613 LOC) - parsing logic; argtypes.py (275 LOC) - type converters; requestitems.py (230 LOC) - request item parsing; nested_json/ (449 LOC) - JSON interpretation"
+        }
+      ],
+      "suggested_fix": "Consider extracting validation logic into a dedicated validation layer separate from parsing. Move nested JSON interpretation to a standalone utility module. Group related type converters (auth, URL, headers) into semantic sub-packages within cli.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bea35acf",
+      "title": "Large output module with formatting and UI concerns intermingled",
+      "description": "The httpie.output module (1100 LOC across 23 files) combines response processing, formatting, UI rendering, color management, and lexing. The ui/ subdirectory (795 LOC) handles both palette management and rich terminal integration. The formatters/ and lexers/ subdirectories have clear purposes but lack a unified output pipeline abstraction.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/output",
+          "line_start": 1,
+          "line_end": 1100,
+          "snippet": "output/writer.py (204 LOC) - main output; streams.py (254 LOC) - stream handling; ui/palette.py (269 LOC) + ui/rich_help.py (230 LOC) - UI concerns; formatters/ (519 LOC) - format-specific logic; lexers/ (279 LOC) - syntax highlighting"
+        }
+      ],
+      "suggested_fix": "Create a unified OutputPipeline abstraction that coordinates between stream handling, formatting, and UI rendering. Separate color/palette concerns (ui/palette.py, formatters/colors.py) into a dedicated theming subsystem. Move help/progress UI logic to a separate ui_commands module.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e9757918",
+      "title": "Manager module contains subcommand business logic with insufficient abstraction",
+      "description": "The httpie.manager module (500 LOC across 10 files) implements plugin management and session management tasks directly in task modules (plugins.py: 248 LOC, sessions.py: 86 LOC) without intermediate service or domain layers. Task logic is tightly coupled to CLI interaction.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/manager/tasks",
+          "line_start": 1,
+          "line_end": 500,
+          "snippet": "manager/tasks/plugins.py (248 LOC) - plugin install/list/remove logic mixed with output formatting; manager/tasks/sessions.py (86 LOC) - session manipulation; manager/cli.py (181 LOC) - command definition and dispatch"
+        }
+      ],
+      "suggested_fix": "Extract plugin and session operations into service classes (PluginService, SessionService). Have task modules delegate to services and focus on CLI/output concerns. This enables reuse and testing of business logic independently of CLI framework.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f80a34c0",
+      "title": "Config and context modules have overlapping responsibilities",
+      "description": "httpie.config (172 LOC) and httpie.context (217 LOC) both manage user configuration and environment state. The boundary between configuration (preferences, settings) and context (runtime state, environment) is unclear. Both are imported throughout the codebase, creating implicit coupling.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/config.py",
+          "line_start": 1,
+          "line_end": 172,
+          "snippet": "Handles config file loading, directory management, and preferences"
+        },
+        {
+          "file_path": "httpie/context.py",
+          "line_start": 1,
+          "line_end": 217,
+          "snippet": "Handles runtime context, environment state, and configuration access"
+        }
+      ],
+      "suggested_fix": "Consolidate configuration concerns into a single Config module. Move runtime state management (stdout/stderr handling, environment variables) into a separate Context or Environment module. Establish clear contracts between the two.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b23efcd9",
+      "title": "Misc module contains diverse utilities without cohesion",
+      "description": "The httpie.misc module (250 LOC across 8 files at root level) includes models.py (233 LOC), utils.py (309 LOC), ssl_.py (109 LOC), status.py (40 LOC), encoding.py (50 LOC), and compat.py (113 LOC). These are domain-specific utilities mixed with cross-cutting concerns, violating single responsibility principle.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie",
+          "line_start": 1,
+          "line_end": 250,
+          "snippet": "Root level: models.py (HTTP models), utils.py (general utilities), ssl_.py (SSL config), status.py (exit codes), encoding.py (charset handling), compat.py (compatibility shims)"
+        }
+      ],
+      "suggested_fix": "Organize into thematic packages: httpie/models/ for domain models, httpie/security/ for SSL management, httpie/http/ for HTTP-specific utilities. Keep only true cross-cutting utilities in root-level utils.py. Move compatibility shims to a httpie/compat/ package.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e90bdc19",
+      "title": "Core module orchestrates multiple concerns without clear layering",
+      "description": "httpie.core (298 LOC) acts as the main orchestrator but directly handles HTTP request execution, error handling, output formatting, and session management. It imports from cli, client, output, sessions, and downloads modules, creating a hub of dependencies. No clear separation between orchestration logic and business logic.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/core.py",
+          "line_start": 1,
+          "line_end": 298,
+          "snippet": "Main execution function handles: CLI parsing delegation, HTTP client creation, request execution, response formatting, session persistence, error handling, and download coordination"
+        }
+      ],
+      "suggested_fix": "Introduce a RequestExecutor or RequestService layer that coordinates HTTP client, session management, and downloads. Have core.py focus on orchestration and error handling at the entry point level. This separates CLI integration from business logic.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8461d1ce",
+      "title": "Downloads module size and complexity warrant further decomposition",
+      "description": "httpie.downloads (377 LOC in single file) combines download management, progress reporting, resume logic, file handling, and state management. While focused on downloads, the module handles multiple orthogonal concerns without clear abstraction layers.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/downloads.py",
+          "line_start": 1,
+          "line_end": 377,
+          "snippet": "Single file handling: progress tracking, file I/O, resume state management, download coordination, response streaming"
+        }
+      ],
+      "suggested_fix": "Extract progress reporting into a separate Progress or ProgressReporter class. Create a DownloadState class for resume logic. Have the main module coordinate these concerns. Consider separating file operations into a FileHandler utility.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9458d64f",
+      "title": "Implicit dependencies on global plugin registry",
+      "description": "The httpie.plugins module provides a registry pattern, but usage throughout the codebase (core.py, cli modules, output formatters) creates implicit coupling to plugin discovery. Modules import and call plugin registry functions directly without explicit dependency injection.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "httpie/plugins",
+          "line_start": 1,
+          "line_end": 350,
+          "snippet": "manager.py (121 LOC) - PluginManager; registry.py (21 LOC) - PLUGINS registry; base.py (165 LOC) - Plugin ABC; builtin.py (79 LOC) - builtin plugins"
+        }
+      ],
+      "suggested_fix": "Pass plugin manager/registry as explicit dependencies to modules that need plugins. Consider creating plugin hook points as interfaces. This makes plugin usage explicit and testable.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "remediation_plan": {
+    "items": [
+      {
+        "finding_id": "F-012bb652",
+        "title": "Add error boundary for SSL certificate failures",
+        "tier": 1,
+        "priority": 1,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "httpie/client.py",
+          "httpie/core.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "ssl.SSLError and requests.exceptions.SSLError are caught in HTTP client",
+          "User receives helpful error message instead of Python traceback",
+          "Message suggests --verify=no for self-signed certificates when appropriate",
+          "All existing SSL tests pass"
+        ],
+        "approach": "Wrap requests.Session.send() calls in try/except to catch SSL errors and convert to user-friendly messages via ExitStatus.NETWORK_ERROR",
+        "group": "error-handling-critical"
+      },
+      {
+        "finding_id": "F-ccceaf3a",
+        "title": "Add error handling for plugin import failures",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "httpie/plugins/registry.py",
+          "httpie/plugins/manager.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Plugin import failures are caught and logged as warnings",
+          "Application continues running with remaining plugins",
+          "User is notified that some plugins failed to load",
+          "No change to successful plugin loading behavior"
+        ],
+        "approach": "Wrap plugin_manager.register() calls in try/except to catch ImportError and ModuleNotFoundError, log warnings via logging module instead of crashing",
+        "group": "error-handling-critical"
+      },
+      {
+        "finding_id": "F-51aeaec4",
+        "title": "Improve DNS failure error handling",
+        "tier": 2,
+        "priority": 3,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "httpie/core.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "All socket.gaierror subtypes are caught, not just EAI_AGAIN and EAI_NONAME",
+          "Each error code receives appropriate user-facing message",
+          "Test coverage for all DNS error scenarios",
+          "Existing DNS error tests continue to pass"
+        ],
+        "approach": "Audit existing socket.gaierror handling in core.py; expand to cover all errno codes with specific helpful messages",
+        "group": "error-handling-critical"
+      },
+      {
+        "finding_id": "F-63e70501",
+        "title": "Add global exception handler in CLI entry points",
+        "tier": 2,
+        "priority": 4,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "httpie/__main__.py",
+          "httpie/core.py"
+        ],
+        "depends_on": [
+          "F-012bb652",
+          "F-51aeaec4"
+        ],
+        "acceptance_criteria": [
+          "Unexpected exceptions are caught at CLI entry point",
+          "User sees friendly error message with exit code, not traceback",
+          "KeyboardInterrupt and SystemExit continue to work as before",
+          "Logging captures full exception for debugging"
+        ],
+        "approach": "Add top-level try/except in main() function; catch Exception and convert to ExitStatus.ERROR with logged traceback",
+        "group": "error-handling-critical"
+      },
+      {
+        "finding_id": "F-2c280d33",
+        "title": "Add catch-all error handling in nested JSON parsing",
+        "tier": 2,
+        "priority": 5,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "httpie/cli/nested_json/parse.py",
+          "httpie/cli/nested_json/interpret.py",
+          "httpie/cli/nested_json/__init__.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "KeyError, IndexError, TypeError during JSON construction are caught",
+          "User receives error message referencing the nested JSON syntax",
+          "NestedJSONSyntaxError continues to work as designed",
+          "All existing nested JSON tests pass"
+        ],
+        "approach": "Add try/except blocks around JSON construction in interpret.py and parse.py, convert runtime errors to NestedJSONSyntaxError subclass or user message",
+        "group": "error-handling-quality"
+      },
+      {
+        "finding_id": "F-2b317903",
+        "title": "Improve download resume error handling",
+        "tier": 2,
+        "priority": 6,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "httpie/downloads.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "When server doesn't support resume (returns non-206 status), user is warned",
+          "Download proceeds from start instead of silently failing",
+          "User knows resume capability was not available",
+          "Existing download tests pass"
+        ],
+        "approach": "Check response status code after Range request; if not 206 Partial Content, log warning and reset download position",
+        "group": "error-handling-quality"
+      },
+      {
+        "finding_id": "F-7fb749d6",
+        "title": "Add error handling for config file write failures",
+        "tier": 2,
+        "priority": 7,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "httpie/config.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "OSError and PermissionError during config save are caught",
+          "User is notified of save failure with helpful message",
+          "Application falls back to in-memory config",
+          "User can still make HTTP requests even if config write fails"
+        ],
+        "approach": "Wrap config.save() calls in try/except to catch OSError/PermissionError and fall back to in-memory config with warning",
+        "group": "error-handling-quality"
+      },
+      {
+        "finding_id": "F-1732678a",
+        "title": "Fix file handle leak in process_file_upload_arg",
+        "tier": 2,
+        "priority": 8,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "httpie/cli/requestitems.py",
+          "httpie/uploads.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "File handles opened in process_file_upload_arg are properly closed",
+          "No resource leaks when processing multiple file uploads",
+          "Upload functionality unchanged",
+          "Existing upload tests pass"
+        ],
+        "approach": "Refactor process_file_upload_arg to return file path instead of open handle, or ensure caller uses context manager to close file",
+        "group": "resource-management"
+      },
+      {
+        "finding_id": "F-0391dbba",
+        "title": "Add caching to GitHub API user lookup",
+        "tier": 1,
+        "priority": 9,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "docs/contributors/fetch.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Repeated lookups for same user are cached",
+          "Cache size limited to 500 users (LRU eviction)",
+          "API call count reduced when processing large contributor lists",
+          "Cache hit/miss stats available via DEBUG mode"
+        ],
+        "approach": "Add @functools.lru_cache(maxsize=500) decorator to user() function",
+        "group": "performance-optimization"
+      },
+      {
+        "finding_id": "F-2ccac889",
+        "title": "Batch GitHub API calls in fetch_missing_users_details",
+        "tier": 1,
+        "priority": 10,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "docs/contributors/fetch.py"
+        ],
+        "depends_on": [
+          "F-0391dbba"
+        ],
+        "acceptance_criteria": [
+          "Multiple user lookups combined into single API call where possible",
+          "API call count reduced from O(n) to O(log n) for typical contributor lists",
+          "Batch size respects GitHub API limits (typically 100 users per call)",
+          "Existing contributor fetch tests pass"
+        ],
+        "approach": "Refactor fetch_missing_users_details to batch github_username lookups using GitHub's search API with multiple username queries or graphql bulk fetch",
+        "group": "performance-optimization"
+      },
+      {
+        "finding_id": "F-b38226ce",
+        "title": "Optimize set operations in merge_all_the_people",
+        "tier": 1,
+        "priority": 11,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "docs/contributors/fetch.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Set intersection used instead of repeated membership checks",
+          "Algorithm complexity reduced from O(n*m) to O(n+m)",
+          "Contributor merging produces identical results",
+          "Existing contributor fetch tests pass"
+        ],
+        "approach": "Replace nested loops with set intersection: common_names = set(contributors.keys()) & committers; process in single pass",
+        "group": "performance-optimization"
+      },
+      {
+        "finding_id": "F-9ef1268c",
+        "title": "Add connection pooling to GitHub API requests",
+        "tier": 1,
+        "priority": 12,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "docs/contributors/fetch.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "requests.Session object reused for all API calls",
+          "HTTP keep-alive and connection pooling enabled",
+          "API call latency reduced for large contributor lists",
+          "Existing contributor fetch tests pass"
+        ],
+        "approach": "Create module-level requests.Session() object; reuse for all fetch() calls instead of creating new connection for each request",
+        "group": "performance-optimization"
+      },
+      {
+        "finding_id": "F-6236f6bb",
+        "title": "Optimize debug logging in contributors fetch",
+        "tier": 1,
+        "priority": 13,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "docs/contributors/fetch.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "DEBUG flag cached at module startup",
+          "os.getenv() called once instead of on every debug() call",
+          "Debug behavior unchanged when DEBUG=1",
+          "No performance impact when DEBUG disabled"
+        ],
+        "approach": "Add module-level DEBUG = os.getenv('DEBUG') == '1'; check boolean flag in debug() function instead of calling os.getenv()",
+        "group": "performance-optimization"
+      },
+      {
+        "finding_id": "F-f80a34c0",
+        "title": "Consolidate config and context modules",
+        "tier": 3,
+        "priority": 14,
+        "estimated_files": 4,
+        "files_to_modify": [
+          "httpie/config.py",
+          "httpie/context.py",
+          "httpie/core.py",
+          "httpie/__init__.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Config (preferences, settings) clearly separated from Context (runtime state)",
+          "Single authoritative source for configuration",
+          "All imports of config and context modules continue to work",
+          "All existing tests pass",
+          "Code duplication between modules eliminated"
+        ],
+        "approach": "Merge httpie.context into httpie.config; rename internal config management to ConfigManager; move runtime state to separate Context class with explicit dependency injection",
+        "group": "architecture-refactor"
+      },
+      {
+        "finding_id": "F-e90bdc19",
+        "title": "Extract RequestExecutor service from core.py",
+        "tier": 3,
+        "priority": 15,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "httpie/core.py",
+          "httpie/request_executor.py",
+          "httpie/client.py"
+        ],
+        "depends_on": [
+          "F-f80a34c0"
+        ],
+        "acceptance_criteria": [
+          "HTTP execution logic separated from CLI orchestration",
+          "RequestExecutor coordinates client, sessions, downloads independently",
+          "core.py focuses on entry point error handling and orchestration",
+          "All existing tests pass",
+          "RequestExecutor is independently testable"
+        ],
+        "approach": "Create httpie/request_executor.py with RequestExecutor class; move HTTP client creation, request execution, session persistence, and download coordination from core.py; have core.py delegate to RequestExecutor",
+        "group": "architecture-refactor"
+      }
+    ],
+    "dependencies": [
+      {
+        "finding_id": "F-63e70501",
+        "depends_on_finding_id": "F-012bb652",
+        "reason": "Global exception handler must be added after SSL error handling is in place to avoid double-catching"
+      },
+      {
+        "finding_id": "F-63e70501",
+        "depends_on_finding_id": "F-51aeaec4",
+        "reason": "Global exception handler should be added after DNS error handling is improved to have consistent error handling patterns"
+      },
+      {
+        "finding_id": "F-2ccac889",
+        "depends_on_finding_id": "F-0391dbba",
+        "reason": "Batching optimization builds on caching; caching must be in place first for batching to be effective"
+      },
+      {
+        "finding_id": "F-e90bdc19",
+        "depends_on_finding_id": "F-f80a34c0",
+        "reason": "RequestExecutor needs clear separation of config/context before extracting execution logic"
+      }
+    ],
+    "execution_levels": [
+      [
+        "F-012bb652",
+        "F-ccceaf3a",
+        "F-51aeaec4",
+        "F-2c280d33",
+        "F-2b317903",
+        "F-7fb749d6",
+        "F-1732678a",
+        "F-0391dbba",
+        "F-b38226ce",
+        "F-9ef1268c",
+        "F-6236f6bb"
+      ],
+      [
+        "F-63e70501",
+        "F-2ccac889"
+      ],
+      [
+        "F-f80a34c0"
+      ],
+      [
+        "F-e90bdc19"
+      ]
+    ],
+    "deferred_finding_ids": [
+      "F-c491918d",
+      "F-bea35acf",
+      "F-e9757918",
+      "F-b23efcd9",
+      "F-8461d1ce",
+      "F-9458d64f"
+    ],
+    "dedup_summary": "No duplicates found across auditors. All findings are distinct. Architecture findings (F-c491918d, F-bea35acf, F-e9757918, F-b23efcd9, F-8461d1ce, F-9458d64f) deferred as Tier 0 refactoring with high risk and low immediate value.",
+    "total_items": 15,
+    "estimated_invocations": 18,
+    "summary": "15 actionable items across 4 execution levels prioritizing error handling (tier 1-2, level 0) before orchestration improvements (tier 3, levels 1-3). Error handling covers SSL, plugins, DNS, exceptions, JSON parsing, downloads, config, and file leaks. Performance optimizations target GitHub API usage in contributor scripts. Architecture consolidation (config/context merge, RequestExecutor extraction) deferred to later phase. 6 architecture findings deferred as low-immediate-impact refactoring."
+  }
+}

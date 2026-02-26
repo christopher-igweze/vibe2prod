@@ -1,0 +1,6116 @@
+{
+  "modules": [
+    {
+      "name": "server-core",
+      "path": "",
+      "purpose": "Main Express.js server entry point and application bootstrap",
+      "files": [
+        "server.ts",
+        "app.ts"
+      ],
+      "loc": 500,
+      "language": "typescript"
+    },
+    {
+      "name": "api-routes",
+      "path": "routes/",
+      "purpose": "Express.js API route handlers for all endpoints",
+      "files": [
+        "routes/index.ts",
+        "routes/login.ts",
+        "routes/register.ts",
+        "routes/products.ts",
+        "routes/basket.ts",
+        "routes/users.ts",
+        "routes/admin.ts",
+        "routes/chatbot.ts",
+        "routes/feedback.ts",
+        "routes/challenges.ts"
+      ],
+      "loc": 2500,
+      "language": "typescript"
+    },
+    {
+      "name": "data-layer",
+      "path": "data/",
+      "purpose": "MongoDB database operations, data initialization, and caching",
+      "files": [
+        "data/mongodb.ts",
+        "data/datacache.ts",
+        "data/datacreator.ts",
+        "data/staticData.ts",
+        "data/types.ts"
+      ],
+      "loc": 800,
+      "language": "typescript"
+    },
+    {
+      "name": "models",
+      "path": "models/",
+      "purpose": "Mongoose data models for User, Product, Challenge, etc.",
+      "files": [
+        "models/user.ts",
+        "models/product.ts",
+        "models/challenge.ts",
+        "models/basket.ts",
+        "models/feedback.ts"
+      ],
+      "loc": 600,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-core",
+      "path": "frontend/src/",
+      "purpose": "Angular application bootstrap and configuration",
+      "files": [
+        "frontend/src/main.ts",
+        "frontend/src/index.html",
+        "frontend/src/app/app.module.ts",
+        "frontend/src/app/app.component.ts",
+        "frontend/src/app/app.routing.ts"
+      ],
+      "loc": 350,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-services",
+      "path": "frontend/src/app/Services/",
+      "purpose": "Angular services for API communication and state management",
+      "files": [
+        "frontend/src/app/Services/user.service.ts",
+        "frontend/src/app/Services/product.service.ts",
+        "frontend/src/app/Services/basket.service.ts",
+        "frontend/src/app/Services/challenge.service.ts",
+        "frontend/src/app/Services/auth.service.ts",
+        "frontend/src/app/Services/configuration.service.ts"
+      ],
+      "loc": 1800,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-components",
+      "path": "frontend/src/app/",
+      "purpose": "Angular components for UI rendering",
+      "files": [
+        "frontend/src/app/login/login.component.ts",
+        "frontend/src/app/basket/basket.component.ts",
+        "frontend/src/app/score-board/score-board.component.ts",
+        "frontend/src/app/admin/admin.component.ts",
+        "frontend/src/app/chatbot/chatbot.component.ts",
+        "frontend/src/app/navbar/navbar.component.ts"
+      ],
+      "loc": 4500,
+      "language": "typescript"
+    },
+    {
+      "name": "security-challenges",
+      "path": "data/static/",
+      "purpose": "Security challenge definitions and solutions for CTF",
+      "files": [
+        "data/static/challenges.yml",
+        "data/static/users.yml",
+        "data/static/codefixes/"
+      ],
+      "loc": 1200,
+      "language": "typescript"
+    },
+    {
+      "name": "web3-contracts",
+      "path": "data/static/web3-snippets/",
+      "purpose": "Solidity smart contracts for blockchain security challenges",
+      "files": [
+        "data/static/web3-snippets/ETHWalletBank.sol",
+        "data/static/web3-snippets/HoneyPotNFT.sol",
+        "data/static/web3-snippets/JuiceShopSBT.sol"
+      ],
+      "loc": 400,
+      "language": "solidity"
+    },
+    {
+      "name": "hacking-instructor",
+      "path": "frontend/src/hacking-instructor/",
+      "purpose": "Interactive tutorial system for guided exploitation",
+      "files": [
+        "frontend/src/hacking-instructor/index.ts",
+        "frontend/src/hacking-instructor/challenges/domXss.ts",
+        "frontend/src/hacking-instructor/challenges/loginAdmin.ts"
+      ],
+      "loc": 600,
+      "language": "typescript"
+    },
+    {
+      "name": "i18n",
+      "path": "data/static/i18n/",
+      "purpose": "Internationalization translation files",
+      "files": [
+        "data/static/i18n/en.json",
+        "data/static/i18n/de_DE.json",
+        "data/static/i18n/es_ES.json"
+      ],
+      "loc": 3000,
+      "language": "json"
+    },
+    {
+      "name": "test-server",
+      "path": "test/server/",
+      "purpose": "Backend integration tests with Mocha",
+      "files": [
+        "test/server/**/*.ts"
+      ],
+      "loc": 1500,
+      "language": "typescript"
+    },
+    {
+      "name": "test-api",
+      "path": "test/api/",
+      "purpose": "API endpoint tests with Jest/Frisby",
+      "files": [
+        "test/api/*Spec.ts"
+      ],
+      "loc": 1000,
+      "language": "typescript"
+    },
+    {
+      "name": "test-e2e",
+      "path": "test/e2e/",
+      "purpose": "End-to-end tests with Cypress",
+      "files": [
+        "test/e2e/*.cy.ts"
+      ],
+      "loc": 800,
+      "language": "typescript"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "express",
+      "version": "4.21.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "helmet",
+      "version": "4.6.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "express-jwt",
+      "version": "0.1.3",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "body-parser",
+      "version": "1.20.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "cookie-parser",
+      "version": "1.4.6",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "cors",
+      "version": "2.8.5",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "ethers",
+      "version": "6.13.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "mongoose",
+      "version": "8.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@angular/core",
+      "version": "17.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "passport",
+      "version": "0.7.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "jsonwebtoken",
+      "version": "9.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "bcrypt",
+      "version": "5.x",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "cypress",
+      "version": "13.x",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "jest",
+      "version": "29.x",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "mocha",
+      "version": "10.x",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "grunt",
+      "version": "1.6.1",
+      "ecosystem": "npm",
+      "dev_only": true
+    }
+  ],
+  "data_flows": [
+    {
+      "source": "Angular Frontend",
+      "destination": "Express API",
+      "data_type": "JSON (user input, products, basket)",
+      "is_authenticated": true
+    },
+    {
+      "source": "Express API",
+      "destination": "MongoDB",
+      "data_type": "User credentials, products, orders",
+      "is_authenticated": true
+    },
+    {
+      "source": "Chatbot Component",
+      "destination": "Chatbot API",
+      "data_type": "User messages, feedback",
+      "is_authenticated": false
+    },
+    {
+      "source": "API Routes",
+      "destination": "Challenge Service",
+      "data_type": "Challenge solve attempts, flags",
+      "is_authenticated": false
+    },
+    {
+      "source": "Web3 Wallet",
+      "destination": "Ethereum Contracts",
+      "data_type": "Transaction data, wallet addresses",
+      "is_authenticated": false
+    },
+    {
+      "source": "Admin Routes",
+      "destination": "User Database",
+      "data_type": "User management, privileges",
+      "is_authenticated": true
+    },
+    {
+      "source": "Feedback Form",
+      "destination": "Feedback API",
+      "data_type": "User feedback, contact info",
+      "is_authenticated": false
+    }
+  ],
+  "auth_boundaries": [
+    {
+      "path": "/api/Users",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/Admin",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/Challenges",
+      "auth_type": "jwt",
+      "is_protected": false
+    },
+    {
+      "path": "/api/Basket",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/Products",
+      "auth_type": "jwt",
+      "is_protected": false
+    },
+    {
+      "path": "/api/Chatbot",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/Feedback",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/Login",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/Register",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/ChangePassword",
+      "auth_type": "jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/api/2fa",
+      "auth_type": "jwt",
+      "is_protected": true
+    }
+  ],
+  "entry_points": [
+    {
+      "path": "server.ts",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "app.ts",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "frontend/src/main.ts",
+      "type": "web",
+      "is_public": true
+    },
+    {
+      "path": "routes/index.ts",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "cypress.config.ts",
+      "type": "test",
+      "is_public": false
+    }
+  ],
+  "tech_stack": {
+    "frontend": "Angular 17 + TypeScript",
+    "backend": "Express.js 4.21",
+    "database": "MongoDB via Mongoose",
+    "hosting": "Node.js standalone / Docker",
+    "packages": [
+      "express",
+      "mongoose",
+      "helmet",
+      "passport",
+      "jsonwebtoken",
+      "bcrypt",
+      "ethers",
+      "@angular/core"
+    ]
+  },
+  "files": [
+    {
+      "path": "Gruntfile.js",
+      "language": "javascript",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "config.schema.yml",
+      "language": "yaml",
+      "loc": 746,
+      "purpose": ""
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "language": "markdown",
+      "loc": 132,
+      "purpose": ""
+    },
+    {
+      "path": "HALL_OF_FAME.md",
+      "language": "markdown",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "SOLUTIONS.md",
+      "language": "markdown",
+      "loc": 169,
+      "purpose": ""
+    },
+    {
+      "path": "swagger.yml",
+      "language": "yaml",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "app.json",
+      "language": "json",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "threat-model.json",
+      "language": "json",
+      "loc": 1070,
+      "purpose": ""
+    },
+    {
+      "path": "app.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 241,
+      "purpose": ""
+    },
+    {
+      "path": "crowdin.yaml",
+      "language": "yaml",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "REFERENCES.md",
+      "language": "markdown",
+      "loc": 631,
+      "purpose": ""
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "loc": 291,
+      "purpose": ""
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": ".eslintrc.js",
+      "language": "javascript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": ".gitpod.yml",
+      "language": "yaml",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "docker-compose.test.yml",
+      "language": "yaml",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": ".gitlab-ci.yml",
+      "language": "yaml",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "loc": 165,
+      "purpose": ""
+    },
+    {
+      "path": "server.ts",
+      "language": "typescript",
+      "loc": 755,
+      "purpose": ""
+    },
+    {
+      "path": ".codeclimate.yml",
+      "language": "yaml",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "SECURITY.md",
+      "language": "markdown",
+      "loc": 126,
+      "purpose": ""
+    },
+    {
+      "path": ".devcontainer.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "cypress.config.ts",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "ftp/suspicious_errors.yml",
+      "language": "yaml",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "ftp/acquisitions.md",
+      "language": "markdown",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "ftp/announcement_encrypted.md",
+      "language": "markdown",
+      "loc": 1194,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/.stylelintrc.js",
+      "language": "javascript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/webpack.angular.js",
+      "language": "javascript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tsconfig.base.json",
+      "language": "json",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/angular.json",
+      "language": "json",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/package.json",
+      "language": "json",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "language": "json",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/eslint.config.js",
+      "language": "javascript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/index.html",
+      "language": "html",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/main.ts",
+      "language": "typescript",
+      "loc": 152,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/tsconfig.app.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/styles.scss",
+      "language": "scss",
+      "loc": 308,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/test.ts",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/karma.conf.js",
+      "language": "javascript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/theme.scss",
+      "language": "scss",
+      "loc": 110,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/tsconfig.spec.json",
+      "language": "json",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/hacking-instructor.scss",
+      "language": "scss",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/tutorialUnavailable.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/index.ts",
+      "language": "typescript",
+      "loc": 218,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/domXss.ts",
+      "language": "typescript",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/reflectedXss.ts",
+      "language": "typescript",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/forgedFeedback.ts",
+      "language": "typescript",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/exposedCredentials.ts",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/privacyPolicy.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/loginAdmin.ts",
+      "language": "typescript",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/passwordStrength.ts",
+      "language": "typescript",
+      "loc": 88,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/viewBasket.ts",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/loginJim.ts",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/adminSection.ts",
+      "language": "typescript",
+      "loc": 106,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/codingChallenges.ts",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/scoreBoard.ts",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/loginBender.ts",
+      "language": "typescript",
+      "loc": 106,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/challenges/bonusPayload.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hacking-instructor/helpers/helpers.ts",
+      "language": "typescript",
+      "loc": 261,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.component.html",
+      "language": "html",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.component.scss",
+      "language": "scss",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.component.spec.ts",
+      "language": "typescript",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.module.ts",
+      "language": "typescript",
+      "loc": 196,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.component.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.guard.spec.ts",
+      "language": "typescript",
+      "loc": 193,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.guard.ts",
+      "language": "typescript",
+      "loc": 88,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/roles.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/app.routing.ts",
+      "language": "typescript",
+      "loc": 298,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-select/address-select.component.html",
+      "language": "html",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-select/address-select.component.scss",
+      "language": "scss",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-select/address-select.component.spec.ts",
+      "language": "typescript",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-select/address-select.component.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength-info/password-strength-info.component.html",
+      "language": "html",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength-info/password-strength-info.component.scss",
+      "language": "scss",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength-info/password-strength-info.component.spec.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength-info/password-strength-info.component.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/accounting/accounting.component.spec.ts",
+      "language": "typescript",
+      "loc": 203,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/accounting/accounting.component.html",
+      "language": "html",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/accounting/accounting.component.ts",
+      "language": "typescript",
+      "loc": 160,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/accounting/accounting.component.scss",
+      "language": "scss",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/navbar/navbar.component.ts",
+      "language": "typescript",
+      "loc": 303,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/navbar/navbar.component.html",
+      "language": "html",
+      "loc": 247,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/navbar/navbar.component.scss",
+      "language": "scss",
+      "loc": 156,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/navbar/navbar.component.spec.ts",
+      "language": "typescript",
+      "loc": 282,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth-enter/two-factor-auth-enter.component.scss",
+      "language": "scss",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth-enter/two-factor-auth-enter.component.spec.ts",
+      "language": "typescript",
+      "loc": 126,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth-enter/two-factor-auth-enter.component.html",
+      "language": "html",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth-enter/two-factor-auth-enter.component.ts",
+      "language": "typescript",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/basket/basket.component.spec.ts",
+      "language": "typescript",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/basket/basket.component.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/basket/basket.component.html",
+      "language": "html",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/basket/basket.component.scss",
+      "language": "scss",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/data-export/data-export.component.spec.ts",
+      "language": "typescript",
+      "loc": 118,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/data-export/data-export.component.ts",
+      "language": "typescript",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/data-export/data-export.component.html",
+      "language": "html",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/data-export/data-export.component.scss",
+      "language": "scss",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/delivery-method/delivery-method.component.scss",
+      "language": "scss",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/delivery-method/delivery-method.component.html",
+      "language": "html",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/delivery-method/delivery-method.component.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/delivery-method/delivery-method.component.spec.ts",
+      "language": "typescript",
+      "loc": 122,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/sidenav/sidenav.component.scss",
+      "language": "scss",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/sidenav/sidenav.component.html",
+      "language": "html",
+      "loc": 317,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/sidenav/sidenav.component.spec.ts",
+      "language": "typescript",
+      "loc": 176,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/sidenav/sidenav.component.ts",
+      "language": "typescript",
+      "loc": 167,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/contact/contact.component.scss",
+      "language": "scss",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/contact/contact.component.spec.ts",
+      "language": "typescript",
+      "loc": 211,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/contact/contact.component.html",
+      "language": "html",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/contact/contact.component.ts",
+      "language": "typescript",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/oauth/oauth.component.spec.ts",
+      "language": "typescript",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/oauth/oauth.component.html",
+      "language": "html",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/oauth/oauth.component.ts",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/oauth/oauth.component.scss",
+      "language": "scss",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-create/address-create.component.spec.ts",
+      "language": "typescript",
+      "loc": 230,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-create/address-create.component.html",
+      "language": "html",
+      "loc": 122,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-create/address-create.component.scss",
+      "language": "scss",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address-create/address-create.component.ts",
+      "language": "typescript",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/last-login-ip/last-login-ip.component.spec.ts",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/last-login-ip/last-login-ip.component.html",
+      "language": "html",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/last-login-ip/last-login-ip.component.scss",
+      "language": "scss",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/last-login-ip/last-login-ip.component.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-completion/order-completion.component.scss",
+      "language": "scss",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-completion/order-completion.component.html",
+      "language": "html",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-completion/order-completion.component.ts",
+      "language": "typescript",
+      "loc": 106,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-completion/order-completion.component.spec.ts",
+      "language": "typescript",
+      "loc": 162,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/chatbot/chatbot.component.scss",
+      "language": "scss",
+      "loc": 197,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/chatbot/chatbot.component.ts",
+      "language": "typescript",
+      "loc": 131,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/chatbot/chatbot.component.html",
+      "language": "html",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/chatbot/chatbot.component.spec.ts",
+      "language": "typescript",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-policy/privacy-policy.component.scss",
+      "language": "scss",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-policy/privacy-policy.component.html",
+      "language": "html",
+      "loc": 174,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-policy/privacy-policy.component.spec.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-policy/privacy-policy.component.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength/password-strength.component.spec.ts",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength/password-strength.component.ts",
+      "language": "typescript",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength/password-strength.component.html",
+      "language": "html",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/password-strength/password-strength.component.scss",
+      "language": "scss",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-solved-notification/challenge-solved-notification.component.scss",
+      "language": "scss",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-solved-notification/challenge-solved-notification.component.ts",
+      "language": "typescript",
+      "loc": 146,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-solved-notification/challenge-solved-notification.component.html",
+      "language": "html",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-solved-notification/challenge-solved-notification.component.spec.ts",
+      "language": "typescript",
+      "loc": 187,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/score-board.component.spec.ts",
+      "language": "typescript",
+      "loc": 207,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/score-board.component.scss",
+      "language": "scss",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/score-board.component.html",
+      "language": "html",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/score-board.component.ts",
+      "language": "typescript",
+      "loc": 204,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/types/EnrichedChallenge.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/filter-settings/query-params-converters.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/filter-settings/query-params-coverter.spec.ts",
+      "language": "typescript",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/filter-settings/FilterSetting.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/filter-settings.component.html",
+      "language": "html",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/filter-settings.component.scss",
+      "language": "scss",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/filter-settings.component.spec.ts",
+      "language": "typescript",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/filter-settings.component.ts",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/pipes/difficulty-selection-summary.pipe.spec.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/pipes/difficulty-selection-summary.pipe.ts",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.scss",
+      "language": "scss",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.html",
+      "language": "html",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.ts",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/category-filter/category-filter.component.spec.ts",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/score-board-additional-settings-dialog/score-board-additional-settings-dialog.component.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/score-board-additional-settings-dialog/score-board-additional-settings-dialog.component.scss",
+      "language": "scss",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/score-board-additional-settings-dialog/score-board-additional-settings-dialog.component.html",
+      "language": "html",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/filter-settings/components/score-board-additional-settings-dialog/score-board-additional-settings-dialog.component.spec.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/difficulty-overview-score-card/difficulty-overview-score-card.component.ts",
+      "language": "typescript",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/difficulty-overview-score-card/difficulty-overview-score-card.component.spec.ts",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/difficulty-overview-score-card/difficulty-overview-score-card.component.scss",
+      "language": "scss",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/difficulty-overview-score-card/difficulty-overview-score-card.component.html",
+      "language": "html",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/warning-card/warning-card.component.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/warning-card/warning-card.component.scss",
+      "language": "scss",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/warning-card/warning-card.component.html",
+      "language": "html",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/hacking-challenge-progress-score-card/hacking-challenge-progress-score-card.component.scss",
+      "language": "scss",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/hacking-challenge-progress-score-card/hacking-challenge-progress-score-card.component.html",
+      "language": "html",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/hacking-challenge-progress-score-card/hacking-challenge-progress-score-card.component.spec.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/hacking-challenge-progress-score-card/hacking-challenge-progress-score-card.component.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenge-card/challenge-card.component.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenge-card/challenge-card.component.scss",
+      "language": "scss",
+      "loc": 203,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenge-card/challenge-card.component.html",
+      "language": "html",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenge-card/challenge-card.component.spec.ts",
+      "language": "typescript",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/difficulty-stars/difficulty-stars.component.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/difficulty-stars/difficulty-stars.component.html",
+      "language": "html",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/difficulty-stars/difficulty-stars.component.scss",
+      "language": "scss",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/tutorial-mode-warning/tutorial-mode-warning.component.html",
+      "language": "html",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/tutorial-mode-warning/tutorial-mode-warning.component.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/tutorial-mode-warning/tutorial-mode-warning.component.spec.ts",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenges-unavailable-warning/challenges-unavailable-warning.component.ts",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenges-unavailable-warning/challenges-unavailable-warning.component.spec.ts",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenges-unavailable-warning/challenges-unavailable-warning.component.html",
+      "language": "html",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/challenges-unavailable-warning/challenges-unavailable-warning.component.scss",
+      "language": "scss",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/coding-challenge-progress-score-card/coding-challenge-progress-score-card.component.scss",
+      "language": "scss",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/coding-challenge-progress-score-card/coding-challenge-progress-score-card.component.spec.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/coding-challenge-progress-score-card/coding-challenge-progress-score-card.component.html",
+      "language": "html",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/coding-challenge-progress-score-card/coding-challenge-progress-score-card.component.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/score-card/score-card.component.scss",
+      "language": "scss",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/score-card/score-card.component.spec.ts",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/score-card/score-card.component.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/components/score-card/score-card.component.html",
+      "language": "html",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/helpers/challenge-filtering.spec.ts",
+      "language": "typescript",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/helpers/challenge-filtering.ts",
+      "language": "typescript",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/helpers/challenge-sorting.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/score-board/helpers/challenge-sorting.spec.ts",
+      "language": "typescript",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment/payment.component.ts",
+      "language": "typescript",
+      "loc": 298,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment/payment.component.scss",
+      "language": "scss",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment/payment.component.html",
+      "language": "html",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment/payment.component.spec.ts",
+      "language": "typescript",
+      "loc": 327,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/recycle/recycle.component.ts",
+      "language": "typescript",
+      "loc": 151,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/recycle/recycle.component.html",
+      "language": "html",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/recycle/recycle.component.scss",
+      "language": "scss",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/recycle/recycle.component.spec.ts",
+      "language": "typescript",
+      "loc": 221,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/feedback-details/feedback-details.component.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/feedback-details/feedback-details.component.scss",
+      "language": "scss",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/feedback-details/feedback-details.component.spec.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/feedback-details/feedback-details.component.html",
+      "language": "html",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth/two-factor-auth.component.spec.ts",
+      "language": "typescript",
+      "loc": 158,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth/two-factor-auth.component.ts",
+      "language": "typescript",
+      "loc": 125,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth/two-factor-auth.component.scss",
+      "language": "scss",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/two-factor-auth/two-factor-auth.component.html",
+      "language": "html",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/deluxe-user/deluxe-user.component.html",
+      "language": "html",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/deluxe-user/deluxe-user.component.scss",
+      "language": "scss",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/deluxe-user/deluxe-user.component.spec.ts",
+      "language": "typescript",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/deluxe-user/deluxe-user.component.ts",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/user-details/user-details.component.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/user-details/user-details.component.spec.ts",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/user-details/user-details.component.scss",
+      "language": "scss",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/user-details/user-details.component.html",
+      "language": "html",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/mat-search-bar/mat-search-bar.component.scss",
+      "language": "scss",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/mat-search-bar/mat-search-bar.component.html",
+      "language": "html",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/mat-search-bar/mat-search-bar.component.ts",
+      "language": "typescript",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/mat-search-bar/abstract-value-accessor.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/photo-wall/photo-wall.component.ts",
+      "language": "typescript",
+      "loc": 118,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/photo-wall/mime-type.validator.ts",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/photo-wall/photo-wall.component.html",
+      "language": "html",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/photo-wall/photo-wall.component.scss",
+      "language": "scss",
+      "loc": 106,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/photo-wall/photo-wall.component.spec.ts",
+      "language": "typescript",
+      "loc": 156,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/about/about.component.scss",
+      "language": "scss",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/about/about.component.html",
+      "language": "html",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/about/about.component.spec.ts",
+      "language": "typescript",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/about/about.component.ts",
+      "language": "typescript",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/server-started-notification/server-started-notification.component.ts",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/server-started-notification/server-started-notification.component.spec.ts",
+      "language": "typescript",
+      "loc": 167,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/server-started-notification/server-started-notification.component.html",
+      "language": "html",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/server-started-notification/server-started-notification.component.scss",
+      "language": "scss",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Models/hint.model.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Models/challenge.model.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Models/backup.model.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Models/deliveryMethod.model.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Models/product.model.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Models/review.model.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Models/securityQuestion.model.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-payment-methods/saved-payment-methods.component.scss",
+      "language": "scss",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-payment-methods/saved-payment-methods.component.html",
+      "language": "html",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-payment-methods/saved-payment-methods.component.spec.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-payment-methods/saved-payment-methods.component.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome/welcome.component.scss",
+      "language": "scss",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome/welcome.component.html",
+      "language": "html",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome/welcome.component.spec.ts",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome/welcome.component.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/qr-code/qr-code.component.html",
+      "language": "html",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/qr-code/qr-code.component.spec.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/qr-code/qr-code.component.scss",
+      "language": "scss",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/qr-code/qr-code.component.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-area/code-area.component.spec.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-area/code-area.component.scss",
+      "language": "scss",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-area/code-area.component.ts",
+      "language": "typescript",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-area/code-area.component.html",
+      "language": "html",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/complaint/complaint.component.ts",
+      "language": "typescript",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/complaint/complaint.component.scss",
+      "language": "scss",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/complaint/complaint.component.spec.ts",
+      "language": "typescript",
+      "loc": 138,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/complaint/complaint.component.html",
+      "language": "html",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/error-page/error-page.component.html",
+      "language": "html",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/error-page/error-page.component.scss",
+      "language": "scss",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/error-page/error-page.component.spec.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/error-page/error-page.component.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/register/register.component.spec.ts",
+      "language": "typescript",
+      "loc": 189,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/register/register.component.html",
+      "language": "html",
+      "loc": 132,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/register/register.component.ts",
+      "language": "typescript",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/register/register.component.scss",
+      "language": "scss",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-snippet/code-snippet.component.ts",
+      "language": "typescript",
+      "loc": 240,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-snippet/code-snippet.component.scss",
+      "language": "scss",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-snippet/code-snippet.component.spec.ts",
+      "language": "typescript",
+      "loc": 211,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-snippet/code-snippet.component.html",
+      "language": "html",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/forgot-password/forgot-password.component.ts",
+      "language": "typescript",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/forgot-password/forgot-password.component.html",
+      "language": "html",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/forgot-password/forgot-password.component.scss",
+      "language": "scss",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/forgot-password/forgot-password.component.spec.ts",
+      "language": "typescript",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-summary/order-summary.component.scss",
+      "language": "scss",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-summary/order-summary.component.html",
+      "language": "html",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-summary/order-summary.component.ts",
+      "language": "typescript",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-summary/order-summary.component.spec.ts",
+      "language": "typescript",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address/address.component.scss",
+      "language": "scss",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address/address.component.ts",
+      "language": "typescript",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address/address.component.html",
+      "language": "html",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/address/address.component.spec.ts",
+      "language": "typescript",
+      "loc": 128,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-address/saved-address.component.spec.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-address/saved-address.component.scss",
+      "language": "scss",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-address/saved-address.component.html",
+      "language": "html",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/saved-address/saved-address.component.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-details/product-details.component.html",
+      "language": "html",
+      "loc": 111,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-details/product-details.component.scss",
+      "language": "scss",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-details/product-details.component.spec.ts",
+      "language": "typescript",
+      "loc": 176,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-details/product-details.component.ts",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/web3-sandbox/web3-sandbox.module.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/web3-sandbox/web3-sandbox.component.scss",
+      "language": "scss",
+      "loc": 138,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/web3-sandbox/web3-sandbox.component.html",
+      "language": "html",
+      "loc": 170,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/web3-sandbox/web3-sandbox.component.ts",
+      "language": "typescript",
+      "loc": 315,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/track-result/track-result.component.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/track-result/track-result.component.html",
+      "language": "html",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/track-result/track-result.component.scss",
+      "language": "scss",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/track-result/track-result.component.spec.ts",
+      "language": "typescript",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet/wallet.component.scss",
+      "language": "scss",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet/wallet.component.html",
+      "language": "html",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet/wallet.component.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet/wallet.component.spec.ts",
+      "language": "typescript",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet-web3/wallet-web3.module.ts",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet-web3/wallet-web3.component.scss",
+      "language": "scss",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet-web3/wallet-web3.component.html",
+      "language": "html",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/wallet-web3/wallet-web3.component.ts",
+      "language": "typescript",
+      "loc": 172,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/token-sale/token-sale.component.spec.ts",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/token-sale/token-sale.component.html",
+      "language": "html",
+      "loc": 103,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/token-sale/token-sale.component.scss",
+      "language": "scss",
+      "loc": 126,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/token-sale/token-sale.component.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/faucet/faucet.component.html",
+      "language": "html",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/faucet/faucet.component.scss",
+      "language": "scss",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/faucet/faucet.component.ts",
+      "language": "typescript",
+      "loc": 316,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/faucet/faucet.module.ts",
+      "language": "typescript",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/administration/administration.component.scss",
+      "language": "scss",
+      "loc": 111,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/administration/administration.component.html",
+      "language": "html",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/administration/administration.component.spec.ts",
+      "language": "typescript",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/administration/administration.component.ts",
+      "language": "typescript",
+      "loc": 128,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment-method/payment-method.component.ts",
+      "language": "typescript",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment-method/payment-method.component.spec.ts",
+      "language": "typescript",
+      "loc": 181,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment-method/payment-method.component.html",
+      "language": "html",
+      "loc": 110,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/payment-method/payment-method.component.scss",
+      "language": "scss",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/nft-unlock/nft-unlock.component.scss",
+      "language": "scss",
+      "loc": 110,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/nft-unlock/nft-unlock.component.html",
+      "language": "html",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/nft-unlock/nft-unlock.component.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-fixes/code-fixes.component.scss",
+      "language": "scss",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-fixes/code-fixes.component.spec.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-fixes/code-fixes.component.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/code-fixes/code-fixes.component.html",
+      "language": "html",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-security/privacy-security.component.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-security/privacy-security.component.scss",
+      "language": "scss",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-security/privacy-security.component.spec.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/privacy-security/privacy-security.component.html",
+      "language": "html",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/change-password/change-password.component.html",
+      "language": "html",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/change-password/change-password.component.scss",
+      "language": "scss",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/change-password/change-password.component.spec.ts",
+      "language": "typescript",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/change-password/change-password.component.ts",
+      "language": "typescript",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/login/login.component.spec.ts",
+      "language": "typescript",
+      "loc": 174,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/login/login.component.ts",
+      "language": "typescript",
+      "loc": 136,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/login/login.component.scss",
+      "language": "scss",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/login/login.component.html",
+      "language": "html",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-review-edit/product-review-edit.component.scss",
+      "language": "scss",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-review-edit/product-review-edit.component.ts",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-review-edit/product-review-edit.component.html",
+      "language": "html",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/product-review-edit/product-review-edit.component.spec.ts",
+      "language": "typescript",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/delivery.service.spec.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/code-fixes.service.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/administration.service.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/two-factor-auth-service.ts",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/country-mapping.service.spec.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/request.interceptor.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/languages.service.spec.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/challenge.service.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/order-history.service.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/window-ref.service.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/hints.service.spec.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/chatbot.service.spec.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/form-submit.service.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/quantity.service.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/socket-io.service.spec.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/address.service.spec.ts",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/track-order.service.spec.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/captcha.service.spec.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/vuln-lines.service.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/wallet.service.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/product-review.service.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/product-review.service.spec.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/quantity.service.spec.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/basket.service.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/languages.service.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/data-subject.service.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/chatbot.service.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/payment.service.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/track-order.service.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/local-backup.service.ts",
+      "language": "typescript",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/keys.service.ts",
+      "language": "typescript",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/configuration.service.ts",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/code-snippet.service.spec.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/window-ref.service.spec.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/user.service.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/complaint.service.spec.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/snack-bar-helper.service.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/feedback.service.spec.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/security-answer.service.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/delivery.service.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/configuration.service.spec.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/feedback.service.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/product.service.spec.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/challenge.service.spec.ts",
+      "language": "typescript",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/captcha.service.ts",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/payment.service.spec.ts",
+      "language": "typescript",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/user.service.spec.ts",
+      "language": "typescript",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/complaint.service.ts",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/two-factor-auth-service.spec.ts",
+      "language": "typescript",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/photo-wall.service.spec.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/form-submit.service.spec.ts",
+      "language": "typescript",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/image-captcha.service.spec.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/snack-bar-helper.service.spec.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/wallet.service.spec.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/country-mapping.service.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/local-backup.service.spec.ts",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/hint.service.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/code-fixes.service.spec.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/vuln-lines.service.spec.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/image-captcha.service.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/order-history.service.spec.ts",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/recycle.service.spec.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/basket.service.spec.ts",
+      "language": "typescript",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/security-question.service.spec.ts",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/socket-io.service.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/data-subject.service.spec.ts",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/security-question.service.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/product.service.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/security-answer.service.spec.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/code-snippet.service.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/address.service.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/recycle.service.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/photo-wall.service.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/Services/administration.service.spec.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome-banner/welcome-banner.component.scss",
+      "language": "scss",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome-banner/welcome-banner.component.html",
+      "language": "html",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome-banner/welcome-banner.component.spec.ts",
+      "language": "typescript",
+      "loc": 106,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/welcome-banner/welcome-banner.component.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-history/order-history.component.ts",
+      "language": "typescript",
+      "loc": 124,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-history/order-history.component.scss",
+      "language": "scss",
+      "loc": 152,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-history/order-history.component.html",
+      "language": "html",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/order-history/order-history.component.spec.ts",
+      "language": "typescript",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-status-badge/challenge-status-badge.component.html",
+      "language": "html",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-status-badge/challenge-status-badge.component.scss",
+      "language": "scss",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-status-badge/challenge-status-badge.component.ts",
+      "language": "typescript",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/challenge-status-badge/challenge-status-badge.component.spec.ts",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/purchase-basket/purchase-basket.component.spec.ts",
+      "language": "typescript",
+      "loc": 266,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/purchase-basket/purchase-basket.component.scss",
+      "language": "scss",
+      "loc": 180,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/purchase-basket/purchase-basket.component.html",
+      "language": "html",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/purchase-basket/purchase-basket.component.ts",
+      "language": "typescript",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/search-result/search-result.component.spec.ts",
+      "language": "typescript",
+      "loc": 352,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/search-result/search-result.component.html",
+      "language": "html",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/search-result/search-result.component.scss",
+      "language": "scss",
+      "loc": 167,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/app/search-result/search-result.component.ts",
+      "language": "typescript",
+      "loc": 299,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/environments/environment.prod.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/environments/environment.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/confetti/index.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/public/ContractABIs.ts",
+      "language": "typescript",
+      "loc": 1214,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/public/css/userProfile.css",
+      "language": "css",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/public/css/dataErasure.css",
+      "language": "css",
+      "loc": 140,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/stats.min.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/threejs-demo.html",
+      "language": "html",
+      "loc": 189,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/dat.gui.min.js",
+      "language": "javascript",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/three.js",
+      "language": "javascript",
+      "loc": 38491,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/MaskPass.js",
+      "language": "javascript",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/EffectComposer.js",
+      "language": "javascript",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/ShaderPass.js",
+      "language": "javascript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/OrbitControls.js",
+      "language": "javascript",
+      "loc": 583,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/CopyShader.js",
+      "language": "javascript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/private/RenderPass.js",
+      "language": "javascript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/id_ID.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ar_SA.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ga_IE.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/tr_TR.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/hu_HU.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/pt_PT.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/zh_HK.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/sv_SE.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/no_NO.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ko_KR.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/es_ES.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ja_JP.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/zh_CN.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/bg_BG.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/lv_LV.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/et_EE.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/el_GR.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/it_IT.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/th_TH.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/az_AZ.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/en.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/my_MM.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/fi_FI.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/de_CH.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ka_GE.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/hi_IN.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/tlh_AA.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ru_RU.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/si_LK.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/nl_NL.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/he_IL.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/da_DK.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ca_ES.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/de_DE.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/pt_BR.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/zh_TW.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/bn_BD.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/fr_FR.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/cs_CZ.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/uk_UA.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/ro_RO.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/assets/i18n/pl_PL.json",
+      "language": "json",
+      "loc": 483,
+      "purpose": ""
+    },
+    {
+      "path": "test/apiTestsTeardown.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "test/apiTestsSetupJest.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "test/apiTestsSetup.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "test/smoke/smoke-test.sh",
+      "language": "bash",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/tsconfig.json",
+      "language": "json",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/support/commands.ts",
+      "language": "typescript",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/support/setup.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/support/e2e.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/restApi.spec.ts",
+      "language": "typescript",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/profile.spec.ts",
+      "language": "typescript",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/forgedJwt.spec.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/scoreBoard.spec.ts",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/basket.spec.ts",
+      "language": "typescript",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/geoStalking.spec.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/tokenSale.spec.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/chatbot.spec.ts",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/complain.spec.ts",
+      "language": "typescript",
+      "loc": 167,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/forgotPassword.spec.ts",
+      "language": "typescript",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/login.spec.ts",
+      "language": "typescript",
+      "loc": 188,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/redirect.spec.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/metrics.spec.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/deluxe.spec.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/register.spec.ts",
+      "language": "typescript",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/privacyPolicy.spec.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/changePassword.spec.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/trackOrder.spec.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/totpSetup.spec.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/dataErasure.spec.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/b2bOrder.spec.ts",
+      "language": "typescript",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/search.spec.ts",
+      "language": "typescript",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/directAccess.spec.ts",
+      "language": "typescript",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/dataExport.spec.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/publicFtp.spec.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/administration.spec.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/contact.spec.ts",
+      "language": "typescript",
+      "loc": 261,
+      "purpose": ""
+    },
+    {
+      "path": "test/cypress/e2e/noSql.spec.ts",
+      "language": "typescript",
+      "loc": 164,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/continueCodeSpec.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/fileUploadSpec.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/countryMappingSpec.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/challengeTutorialSequenceSpec.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/fileServerSpec.ts",
+      "language": "typescript",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/blueprintSpec.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/codeSnippetSpec.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/currentUserSpec.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/challengeUtilsSpec.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/appConfigurationSpec.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/chatBotValidationSpec.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/appVersionSpec.ts",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/redirectSpec.ts",
+      "language": "typescript",
+      "loc": 88,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/angularSpec.ts",
+      "language": "typescript",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/configValidationSpec.ts",
+      "language": "typescript",
+      "loc": 487,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/webhookSpec.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/premiumRewardSpec.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/b2bOrderSpec.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/preconditionValidationSpec.ts",
+      "language": "typescript",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/codingChallengeFixesSpec.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/keyServerSpec.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/verifySpec.ts",
+      "language": "typescript",
+      "loc": 326,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/challengeCountryMappingSpec.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/easterEggSpec.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/botUtilsSpec.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/insecuritySpec.ts",
+      "language": "typescript",
+      "loc": 206,
+      "purpose": ""
+    },
+    {
+      "path": "test/server/utilsSpec.ts",
+      "language": "typescript",
+      "loc": 167,
+      "purpose": ""
+    },
+    {
+      "path": "test/files/encrypt.py",
+      "language": "python",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "test/files/outdatedLocalBackup.json",
+      "language": "json",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "test/files/validLocalBackup.json",
+      "language": "json",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "test/files/announcement.md",
+      "language": "markdown",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "test/files/yamlBomb.yml",
+      "language": "yaml",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "test/files/decrypt.py",
+      "language": "python",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "test/files/decrypt_bruteforce.py",
+      "language": "python",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/privacyRequestApiSpec.ts",
+      "language": "typescript",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/fileUploadSpec.ts",
+      "language": "typescript",
+      "loc": 192,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/recycleApiSpec.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/vulnCodeSnippetSpec.ts",
+      "language": "typescript",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/userProfileSpec.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/dataExportApiSpec.ts",
+      "language": "typescript",
+      "loc": 374,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/feedbackApiSpec.ts",
+      "language": "typescript",
+      "loc": 321,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/erasureRequestApiSpec.ts",
+      "language": "typescript",
+      "loc": 156,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/securityQuestionApiSpec.ts",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/vulnCodeFixesSpec.ts",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/internetResourcesSpec.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/passwordApiSpec.ts",
+      "language": "typescript",
+      "loc": 250,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/fileServingSpec.ts",
+      "language": "typescript",
+      "loc": 185,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/addressApiSpec.ts",
+      "language": "typescript",
+      "loc": 179,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/authenticatedUsersSpec.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/deliveryApiSpec.ts",
+      "language": "typescript",
+      "loc": 132,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/languagesSpec.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/walletApiSpec.ts",
+      "language": "typescript",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/socketSpec.ts",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/chatBotSpec.ts",
+      "language": "typescript",
+      "loc": 315,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/complaintApiSpec.ts",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/angularDistSpec.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/memoryApiSpec.ts",
+      "language": "typescript",
+      "loc": 174,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/profileImageUploadSpec.ts",
+      "language": "typescript",
+      "loc": 183,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/basketApiSpec.ts",
+      "language": "typescript",
+      "loc": 186,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/redirectSpec.ts",
+      "language": "typescript",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/orderHistoryApiSpec.ts",
+      "language": "typescript",
+      "loc": 163,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/ftpFolderSpec.ts",
+      "language": "typescript",
+      "loc": 163,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/b2bOrderSpec.ts",
+      "language": "typescript",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/metricsApiSpec.ts",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/basketItemApiSpec.ts",
+      "language": "typescript",
+      "loc": 269,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/apiSpec.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/promotionVideoSpec.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/web3Spec.ts",
+      "language": "typescript",
+      "loc": 152,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/deluxeApiSpec.ts",
+      "language": "typescript",
+      "loc": 206,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/httpSpec.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/productReviewApiSpec.ts",
+      "language": "typescript",
+      "loc": 164,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/searchApiSpec.ts",
+      "language": "typescript",
+      "loc": 200,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/2faSpec.ts",
+      "language": "typescript",
+      "loc": 469,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/productApiSpec.ts",
+      "language": "typescript",
+      "loc": 124,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/securityAnswerApiSpec.ts",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/countryMapppingSpec.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/quantityApiSpec.ts",
+      "language": "typescript",
+      "loc": 337,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/repeatNotificationSpec.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/userApiSpec.ts",
+      "language": "typescript",
+      "loc": 309,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/trackResultApiSpec.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/loginApiSpec.ts",
+      "language": "typescript",
+      "loc": 280,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/administrationApiSpec.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/paymentApiSpec.ts",
+      "language": "typescript",
+      "loc": 156,
+      "purpose": ""
+    },
+    {
+      "path": "test/api/challengeApiSpec.ts",
+      "language": "typescript",
+      "loc": 137,
+      "purpose": ""
+    },
+    {
+      "path": "config/bodgeit.yml",
+      "language": "yaml",
+      "loc": 187,
+      "purpose": ""
+    },
+    {
+      "path": "config/default.yml",
+      "language": "yaml",
+      "loc": 464,
+      "purpose": ""
+    },
+    {
+      "path": "config/juicebox.yml",
+      "language": "yaml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "config/test.yml",
+      "language": "yaml",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "config/unsafe.yml",
+      "language": "yaml",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "config/ctf.yml",
+      "language": "yaml",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "config/fbctf.yml",
+      "language": "yaml",
+      "loc": 347,
+      "purpose": ""
+    },
+    {
+      "path": "config/tutorial.yml",
+      "language": "yaml",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "config/addo.yml",
+      "language": "yaml",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "config/quiet.yml",
+      "language": "yaml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "config/7ms.yml",
+      "language": "yaml",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "config/oss.yml",
+      "language": "yaml",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "config/defcon33.yml",
+      "language": "yaml",
+      "loc": 166,
+      "purpose": ""
+    },
+    {
+      "path": "config/mozilla.yml",
+      "language": "yaml",
+      "loc": 188,
+      "purpose": ""
+    },
+    {
+      "path": "rsn/rsnUtil.ts",
+      "language": "typescript",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "rsn/cache.json",
+      "language": "json",
+      "loc": 861,
+      "purpose": ""
+    },
+    {
+      "path": "rsn/rsn-verbose.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "rsn/rsn.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "rsn/rsn-update.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "vagrant/bootstrap.sh",
+      "language": "bash",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "models/wallet.ts",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "models/recycle.ts",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "models/securityQuestion.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "models/challenge.ts",
+      "language": "typescript",
+      "loc": 181,
+      "purpose": ""
+    },
+    {
+      "path": "models/basketitem.ts",
+      "language": "typescript",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "models/complaint.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "models/quantity.ts",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "models/hint.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "models/product.ts",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "models/basket.ts",
+      "language": "typescript",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "models/captcha.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "models/card.ts",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "models/relations.ts",
+      "language": "typescript",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "models/privacyRequests.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "models/feedback.ts",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "models/imageCaptcha.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "models/memory.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "models/index.ts",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "models/securityAnswer.ts",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "models/user.ts",
+      "language": "typescript",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "models/delivery.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "models/address.ts",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "lib/is-windows.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "lib/accuracy.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "lib/config.types.ts",
+      "language": "typescript",
+      "loc": 138,
+      "purpose": ""
+    },
+    {
+      "path": "lib/antiCheat.ts",
+      "language": "typescript",
+      "loc": 166,
+      "purpose": ""
+    },
+    {
+      "path": "lib/is-heroku.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "lib/utils.ts",
+      "language": "typescript",
+      "loc": 234,
+      "purpose": ""
+    },
+    {
+      "path": "lib/insecurity.ts",
+      "language": "typescript",
+      "loc": 201,
+      "purpose": ""
+    },
+    {
+      "path": "lib/is-docker.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "lib/logger.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "lib/challengeUtils.ts",
+      "language": "typescript",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "lib/codingChallenges.ts",
+      "language": "typescript",
+      "loc": 112,
+      "purpose": ""
+    },
+    {
+      "path": "lib/webhook.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "lib/noUpdate.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "lib/botUtils.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/customizeApplication.ts",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/validatePreconditions.ts",
+      "language": "typescript",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/validateChatBot.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/validateDependencies.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/restoreOverwrittenFilesWithOriginals.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/customizeEasterEgg.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/validateDependenciesBasic.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/validateConfig.ts",
+      "language": "typescript",
+      "loc": 186,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/cleanupFtpFolder.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "lib/startup/registerWebsocketEvents.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "monitoring/grafana-dashboard.json",
+      "language": "json",
+      "loc": 2113,
+      "purpose": ""
+    },
+    {
+      "path": "data/staticData.ts",
+      "language": "typescript",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "data/datacreator.ts",
+      "language": "typescript",
+      "loc": 746,
+      "purpose": ""
+    },
+    {
+      "path": "data/datacache.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "data/types.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "data/mongodb.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/securityQuestions.yml",
+      "language": "yaml",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/locales.json",
+      "language": "json",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/users.yml",
+      "language": "yaml",
+      "loc": 272,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/botDefaultTrainingData.json",
+      "language": "json",
+      "loc": 235,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/legal.md",
+      "language": "markdown",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/deliveries.yml",
+      "language": "yaml",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/challenges.yml",
+      "language": "yaml",
+      "loc": 1535,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/contractABIs.ts",
+      "language": "typescript",
+      "loc": 569,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/restfulXssChallenge_2.ts",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/web3SandboxChallenge_3.ts",
+      "language": "typescript",
+      "loc": 192,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/changeProductChallenge_2.ts",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernOwaspChallenge_2_correct.yml",
+      "language": "yaml",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/exposedMetricsChallenge_1.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBenderChallenge_3.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/adminSectionChallenge.info.yml",
+      "language": "yaml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordUvoginChallenge.info.yml",
+      "language": "yaml",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBenderChallenge_1.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/xssBonusChallenge_4.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordMortyChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/directoryListingChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectChallenge_1.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginBenderChallenge_2_correct.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/adminSectionChallenge_4.ts",
+      "language": "typescript",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/localXssChallenge_3.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/registerAdminChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginJimChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/unionSqlInjectionChallenge_1.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/registerAdminChallenge_3_correct.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/directoryListingChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordUvoginChallenge_2.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectCryptoCurrencyChallenge_2.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/restfulXssChallenge_3.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/web3SandboxChallenge_2.ts",
+      "language": "typescript",
+      "loc": 192,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/web3SandboxChallenge.info.yml",
+      "language": "yaml",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/nftMintChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/directoryListingChallenge_4.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernChallenge_1_correct.yml",
+      "language": "yaml",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordUvoginChallenge_1.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/restfulXssChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/accessLogDisclosureChallenge_4.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/scoreBoardChallenge.info.yml",
+      "language": "yaml",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginAdminChallenge_1.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/web3WalletChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordMortyChallenge_1.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/weakPasswordChallenge_4.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordMortyChallenge_4_correct.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/tokenSaleChallenge_1.ts",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginAdminChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBenderChallenge.info.yml",
+      "language": "yaml",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/registerAdminChallenge_4.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginBenderChallenge_4.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/scoreBoardChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/noSqlReviewsChallenge_2.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/forgedReviewChallenge_1.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernOwaspChallenge.info.yml",
+      "language": "yaml",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/nftUnlockChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/noSqlReviewsChallenge_3_correct.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectChallenge_4_correct.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/dbSchemaChallenge_1.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginJimChallenge_4.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/xssBonusChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginBenderChallenge_1.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/unionSqlInjectionChallenge.info.yml",
+      "language": "yaml",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/registerAdminChallenge_1.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBenderChallenge_2_correct.yml",
+      "language": "yaml",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginAdminChallenge_4_correct.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginJimChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/forgedReviewChallenge.info.yml",
+      "language": "yaml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/dbSchemaChallenge_2_correct.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/unionSqlInjectionChallenge_2_correct.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/accessLogDisclosureChallenge_2.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/changeProductChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/localXssChallenge_2_correct.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/accessLogDisclosureChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernChallenge_2.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernOwaspChallenge_3.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernChallenge_3.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectCryptoCurrencyChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/forgedReviewChallenge_3.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordJimChallenge_2.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/weakPasswordChallenge_2.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/weakPasswordChallenge.info.yml",
+      "language": "yaml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/tokenSaleChallenge_3_correct.ts",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/web3SandboxChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 187,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginAdminChallenge_3.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/registerAdminChallenge_2.ts",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/xssBonusChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordUvoginChallenge_3_correct.yml",
+      "language": "yaml",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginJimChallenge_3.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernOwaspChallenge_1.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordMortyChallenge_3.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/weakPasswordChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordJimChallenge_1.yml",
+      "language": "yaml",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/accessLogDisclosureChallenge.info.yml",
+      "language": "yaml",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginBenderChallenge_3.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginAdminChallenge_2.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/forgedReviewChallenge_2_correct.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginJimChallenge_2.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordMortyChallenge_2.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/exposedMetricsChallenge_3_correct.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/tokenSaleChallenge_2.ts",
+      "language": "typescript",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/accessLogDisclosureChallenge_3.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/tokenSaleChallenge.info.yml",
+      "language": "yaml",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/adminSectionChallenge_1_correct.ts",
+      "language": "typescript",
+      "loc": 194,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/dbSchemaChallenge_3.ts",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordBjoernChallenge.info.yml",
+      "language": "yaml",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/noSqlReviewsChallenge_1.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/weakPasswordChallenge_3.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/restfulXssChallenge.info.yml",
+      "language": "yaml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectChallenge_3.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/exposedMetricsChallenge.info.yml",
+      "language": "yaml",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordJimChallenge.info.yml",
+      "language": "yaml",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/restfulXssChallenge_4.ts",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/changeProductChallenge_4.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectCryptoCurrencyChallenge_3_correct.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/directoryListingChallenge_3.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/scoreBoardChallenge_3.ts",
+      "language": "typescript",
+      "loc": 187,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/localXssChallenge_1.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectCryptoCurrencyChallenge_1.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/xssBonusChallenge_2.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/loginBenderChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/adminSectionChallenge_2.ts",
+      "language": "typescript",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/xssBonusChallenge_3.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/changeProductChallenge_1.ts",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/noSqlReviewsChallenge.info.yml",
+      "language": "yaml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/adminSectionChallenge_3.ts",
+      "language": "typescript",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/localXssChallenge_4.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectCryptoCurrencyChallenge_4.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/changeProductChallenge_3_correct.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/exposedMetricsChallenge_2.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/dbSchemaChallenge.info.yml",
+      "language": "yaml",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/redirectChallenge_2.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/resetPasswordJimChallenge_3_correct.yml",
+      "language": "yaml",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/unionSqlInjectionChallenge_3.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/directoryListingChallenge_2.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/scoreBoardChallenge_2.ts",
+      "language": "typescript",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/codefixes/localXssChallenge.info.yml",
+      "language": "yaml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/id_ID.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ar_SA.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ga_IE.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/tr_TR.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/hu_HU.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/pt_PT.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/zh_HK.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/sv_SE.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/no_NO.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ko_KR.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/es_ES.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ja_JP.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/zh_CN.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/bg_BG.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/lv_LV.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/et_EE.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/el_GR.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/it_IT.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/th_TH.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/az_AZ.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/en.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/my_MM.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/fi_FI.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/de_CH.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ka_GE.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/hi_IN.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/tlh_AA.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ru_RU.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/si_LK.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/nl_NL.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/he_IL.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/da_DK.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ca_ES.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/de_DE.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/pt_BR.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/zh_TW.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/bn_BD.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/fr_FR.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/cs_CZ.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/uk_UA.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/ro_RO.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "data/static/i18n/pl_PL.json",
+      "language": "json",
+      "loc": 562,
+      "purpose": ""
+    },
+    {
+      "path": "views/themes/themes.ts",
+      "language": "typescript",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "routes/wallet.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "routes/securityQuestion.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "routes/payment.ts",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "routes/languages.ts",
+      "language": "typescript",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "routes/dataErasure.ts",
+      "language": "typescript",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "routes/errorHandler.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "routes/premiumReward.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "routes/login.ts",
+      "language": "typescript",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "routes/verify.ts",
+      "language": "typescript",
+      "loc": 440,
+      "purpose": ""
+    },
+    {
+      "path": "routes/resetPassword.ts",
+      "language": "typescript",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "routes/nftMint.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "routes/chatbot.ts",
+      "language": "typescript",
+      "loc": 247,
+      "purpose": ""
+    },
+    {
+      "path": "routes/search.ts",
+      "language": "typescript",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "routes/easterEgg.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "routes/changePassword.ts",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "routes/profileImageUrlUpload.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "routes/saveLoginIp.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "routes/basket.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "routes/appConfiguration.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "routes/logfileServer.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "routes/2fa.ts",
+      "language": "typescript",
+      "loc": 176,
+      "purpose": ""
+    },
+    {
+      "path": "routes/keyServer.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "routes/web3Wallet.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "routes/captcha.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "routes/vulnCodeFixes.ts",
+      "language": "typescript",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "routes/fileUpload.ts",
+      "language": "typescript",
+      "loc": 146,
+      "purpose": ""
+    },
+    {
+      "path": "routes/basketItems.ts",
+      "language": "typescript",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "routes/trackOrder.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "routes/privacyPolicyProof.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "routes/createProductReviews.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "routes/currentUser.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "routes/deluxe.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "routes/order.ts",
+      "language": "typescript",
+      "loc": 208,
+      "purpose": ""
+    },
+    {
+      "path": "routes/profileImageFileUpload.ts",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "routes/coupon.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "routes/fileServer.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "routes/checkKeys.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "routes/authenticatedUsers.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "routes/imageCaptcha.ts",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "routes/redirect.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "routes/videoHandler.ts",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "routes/b2bOrder.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "routes/updateUserProfile.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "routes/memory.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "routes/repeatNotification.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "routes/quarantineServer.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "routes/updateProductReviews.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "routes/vulnCodeSnippet.ts",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "routes/angular.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "routes/userProfile.ts",
+      "language": "typescript",
+      "loc": 103,
+      "purpose": ""
+    },
+    {
+      "path": "routes/showProductReviews.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "routes/countryMapping.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "routes/metrics.ts",
+      "language": "typescript",
+      "loc": 233,
+      "purpose": ""
+    },
+    {
+      "path": "routes/dataExport.ts",
+      "language": "typescript",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "routes/continueCode.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "routes/delivery.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "routes/restoreProgress.ts",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "routes/likeProductReviews.ts",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "routes/address.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "routes/orderHistory.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "routes/recycles.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "routes/appVersion.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 158048,
+  "file_count": 943,
+  "primary_language": "typescript",
+  "languages": [
+    "bash",
+    "css",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "python",
+    "scss",
+    "typescript",
+    "yaml"
+  ],
+  "architecture_summary": "OWASP Juice Shop - A deliberately insecure full-stack web application for security training and CTF competitions. Built with Express.js backend, Angular frontend, and MongoDB. Contains intentionally vulnerable code patterns across multiple security challenge categories including SQL injection, XSS, authentication bypass, CSRF, and Web3 vulnerabilities. Designed to teach web application security through practical exploitation challenges.",
+  "key_patterns": [
+    "Express.js middleware pattern",
+    "JWT-based authentication with intentional bypass vulnerabilities",
+    "Mongoose ODM with NoSQL injection vectors",
+    "Angular service-based API communication",
+    "Web3/Ethereum smart contract interactions",
+    "Intentional XSS reflection points",
+    "SQL/NoSQL injection endpoints",
+    "Insecure direct object references (IDOR)",
+    "Challenge scoring system with flags",
+    "Hacking instructor tutorial system",
+    "i18n internationalization support",
+    "Rate limiting with configuration bypass"
+  ]
+}

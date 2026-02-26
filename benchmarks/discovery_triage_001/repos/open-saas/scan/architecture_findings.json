@@ -1,0 +1,298 @@
+{
+  "findings": [
+    {
+      "id": "F-3ec24e57",
+      "title": "God module: admin module exceeds 1800 LOC with mixed concerns",
+      "description": "The admin module contains 1800 LOC across 21 files with mixed responsibilities including layout components, dashboard pages, analytics, user management, and settings. This violates single responsibility principle and makes the module difficult to maintain and test. Components are tightly coupled through shared layout infrastructure.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "Admin module spans: layout/, dashboards/, elements/ with mixed concerns"
+        }
+      ],
+      "suggested_fix": "Split admin into domain-specific modules: admin-layout (shared UI infrastructure), admin-analytics (analytics dashboard + cards), admin-users (user management), admin-settings (settings management). Move analytics logic to dedicated analytics module.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9c81a20a",
+      "title": "God module: payment module exceeds 1200 LOC with multiple provider integrations",
+      "description": "The payment module contains 1200 LOC across 21 files with three separate payment provider implementations (Stripe, LemonSqueezy, Polar), each with duplicate webhook, checkout, and payment processor logic. While providers are separated into folders, there's substantial code duplication and the module orchestrates multiple payment flows.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/",
+          "line_start": 1,
+          "line_end": 1200,
+          "snippet": "Payment module contains: stripe/, lemonSqueezy/, polar/ with duplicated patterns"
+        }
+      ],
+      "suggested_fix": "Create a payment provider abstraction layer with unified interfaces: IPaymentProcessor, ICheckoutUtils, IWebhookHandler. Extract common webhook validation logic into shared utilities. Consider a factory pattern to instantiate providers based on configuration.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fa8ac3ca",
+      "title": "Missing abstraction layer between admin/payment pages and analytics operations",
+      "description": "Admin dashboard pages (AnalyticsDashboardPage, TotalRevenueCard, TotalSignupsCard) directly import analytics/operations.ts. Analytics operations contain business logic for fetching and aggregating user data. Changes to analytics logic require updating multiple dashboard components, creating tight coupling.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/analytics/",
+          "line_start": 1,
+          "line_end": 500,
+          "snippet": "TotalRevenueCard.tsx, TotalSignupsCard.tsx, AnalyticsDashboardPage.tsx directly call analytics/operations"
+        },
+        {
+          "file_path": "template/app/src/analytics/operations.ts",
+          "line_start": 1,
+          "line_end": 54,
+          "snippet": "Analytics operations expose business logic directly to UI layer"
+        }
+      ],
+      "suggested_fix": "Create an analytics service/facade layer that abstracts operation queries. Dashboard components should consume high-level analytics data contracts rather than calling operations directly. This allows analytics logic to evolve independently.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8ca79505",
+      "title": "Client module exhibits high internal cohesion with unclear responsibilities",
+      "description": "The client module contains 2500 LOC across 34 files including app shell (App.tsx), routing, theming (DarkModeSwitcher), UI component library (30+ Radix UI wrapper components), hooks (useColorMode, useIsLandingPage, use-toast, useLocalStorage, useDebounce), navbar, and cookie consent. This creates a monolithic module where unrelated concerns are bundled together.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/client/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Client module mixes: App.tsx (routing), hooks/, components/ui/, components/NavBar/, components/cookie-consent/"
+        }
+      ],
+      "suggested_fix": "Reorganize client module: (1) Extract UI component library to separate 'ui-components' module, (2) Move App.tsx and routing to dedicated 'app-shell' module, (3) Create 'hooks' as sibling module to client, (4) Move NavBar and cookie-consent to 'layout' module or separate feature modules.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0176dbc7",
+      "title": "Tight coupling between payment providers and checkout/PricingPage",
+      "description": "The PricingPage.tsx directly imports from payment/paymentProcessor.ts and specific provider implementations. Changes to payment provider selection logic or provider instantiation require modifying the UI component. No clear separation between payment UI orchestration and provider selection.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 1,
+          "line_end": 238,
+          "snippet": "PricingPage imports paymentProcessor and possibly provider-specific utils"
+        },
+        {
+          "file_path": "template/app/src/payment/paymentProcessor.ts",
+          "line_start": 1,
+          "line_end": 39,
+          "snippet": "Payment processor instantiation logic tightly coupled to page"
+        }
+      ],
+      "suggested_fix": "Create a payment configuration/factory service that handles provider selection based on environment variables. PricingPage should only import a generic PaymentCheckoutService interface, delegating provider instantiation to the factory.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-54e3a82f",
+      "title": "No clear service layer between UI components and database operations",
+      "description": "Multiple modules (user, file-upload, demo-ai-app) define operations.ts files that directly handle database queries and business logic. Components import these operations directly without an intermediate service abstraction. This creates tight coupling between UI and data access patterns.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/user/operations.ts",
+          "line_start": 1,
+          "line_end": 159,
+          "snippet": "User operations directly exposed to UI components"
+        },
+        {
+          "file_path": "template/app/src/file-upload/operations.ts",
+          "line_start": 1,
+          "line_end": 154,
+          "snippet": "File upload operations directly exposed to FileUploadPage"
+        },
+        {
+          "file_path": "template/app/src/demo-ai-app/operations.ts",
+          "line_start": 1,
+          "line_end": 342,
+          "snippet": "Demo app operations directly exposed to DemoAppPage (487 LOC)"
+        }
+      ],
+      "suggested_fix": "Create a consistent service/domain layer for each feature: UserService, FileUploadService, DemoAppService. These services should encapsulate operations.ts logic and expose clean interfaces. Components should depend on services, not operations.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3adf1d0d",
+      "title": "DemoAppPage exhibits god component pattern with 487 LOC",
+      "description": "The DemoAppPage.tsx contains 487 lines of code handling UI rendering, state management, scheduling logic, and potentially API integration. This file is substantially larger than typical React components and likely contains multiple responsibilities that should be decomposed.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/demo-ai-app/DemoAppPage.tsx",
+          "line_start": 1,
+          "line_end": 487,
+          "snippet": "Large monolithic component file"
+        }
+      ],
+      "suggested_fix": "Decompose DemoAppPage into smaller focused components: DemoAppLayout, ScheduleForm, ResultsDisplay, etc. Extract state management into a custom hook (useDemoAppState). Move scheduling logic to schedule.ts. Each sub-component should have single responsibility.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-14e67fb0",
+      "title": "Inconsistent error handling and validation patterns across modules",
+      "description": "Different modules handle validation and errors differently: payment/errors.ts, file-upload/validation.ts, server/validation.ts exist without clear cohesion. No unified validation or error handling framework across the application. Auth module uses userSignupFields.ts for form fields while other modules handle validation ad-hoc.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/errors.ts",
+          "line_start": 1,
+          "line_end": 6,
+          "snippet": "Payment error definitions"
+        },
+        {
+          "file_path": "template/app/src/file-upload/validation.ts",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "File upload validation"
+        },
+        {
+          "file_path": "template/app/src/server/validation.ts",
+          "line_start": 1,
+          "line_end": 17,
+          "snippet": "Server-side validation"
+        },
+        {
+          "file_path": "template/app/src/auth/userSignupFields.ts",
+          "line_start": 1,
+          "line_end": 142,
+          "snippet": "Auth field definitions mixed with validation"
+        }
+      ],
+      "suggested_fix": "Create a shared validation module with reusable validators and error types. Consolidate validation logic across auth, payment, file-upload modules. Define application-wide error handling contracts.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-39e8a166",
+      "title": "Landing page and blog modules lack clear separation from main app",
+      "description": "Landing page (1100 LOC) and blog (800 LOC) exist as separate modules but share UI components, styling, and potentially utilities with main client application. No clear boundary between marketing content and SaaS application. Blog is Astro-based while app is React, creating framework heterogeneity.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/landing-page/",
+          "line_start": 1,
+          "line_end": 1100,
+          "snippet": "Landing page contains 17 files with component duplication risk"
+        },
+        {
+          "file_path": "template/blog/",
+          "line_start": 1,
+          "line_end": 800,
+          "snippet": "Astro-based blog separate from React app"
+        }
+      ],
+      "suggested_fix": "Consider whether landing page should be served from main React app or remain static. If static, establish clear API contracts for data. For blog, document whether Astro is intentional for static generation. Create shared design token system if components are duplicated.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6e667422",
+      "title": "Analytics module tightly coupled to admin dashboard without provider abstraction",
+      "description": "Analytics module contains provider-specific implementations (googleAnalyticsUtils.ts, plausibleAnalyticsUtils.ts) but admin dashboard components directly depend on these specifics. No provider-agnostic analytics service interface. Provider switching requires changes to multiple dashboard components.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 1,
+          "line_end": 147,
+          "snippet": "Google Analytics provider implementation"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 1,
+          "line_end": 116,
+          "snippet": "Plausible Analytics provider implementation"
+        },
+        {
+          "file_path": "template/app/src/analytics/operations.ts",
+          "line_start": 1,
+          "line_end": 54,
+          "snippet": "Analytics operations potentially importing from specific providers"
+        }
+      ],
+      "suggested_fix": "Create a provider abstraction layer (IAnalyticsProvider interface) that both Google Analytics and Plausible implement. Analytics operations should depend on abstraction, not concrete implementations. Admin dashboard should only depend on operations.ts.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 58,
+  "coupling_assessment": "The codebase exhibits moderate to high coupling in several areas: (1) Admin and payment modules are large and contain mixed concerns, creating internal coupling; (2) UI components (PricingPage, AccountPage, FileUploadPage) tightly coupled to operations/business logic; (3) Analytics provider implementations exposed to consumers; (4) No clear service abstraction layer between presentation and data access; (5) Admin dashboard directly dependent on analytics operations without abstraction. These coupling issues make the codebase harder to test, modify, and extend.",
+  "layering_assessment": "The architecture shows incomplete layering: (1) Presentation layer is well-separated (pages, components) but contains business logic; (2) Missing service layer - operations.ts files serve as hybrid business logic/data access without clear contracts; (3) Database/Prisma ORM layer is implicit via Wasp but not explicitly modeled; (4) No clear domain model layer - business concepts are scattered across operations files; (5) Webhook handlers (payment providers) sit at wrong layer - should be routed through application layer, not directly updating database. Recommended: add explicit Service \u2192 Repository \u2192 ORM layering.",
+  "summary": "The codebase has 5 critical architectural issues and 5 moderate issues affecting maintainability. (1) **God modules**: admin (1800 LOC) and payment (1200 LOC) need decomposition into domain-specific sub-modules; (2) **Missing service layer**: operations.ts files expose business logic directly to UI without abstraction - should create UserService, FileUploadService, DemoAppService; (3) **Tight coupling**: components directly import provider implementations and operations - need abstraction layers for payment providers and analytics; (4) **God components**: DemoAppPage (487 LOC) and admin layout components exceed healthy sizes and need decomposition; (5) **Inconsistent patterns**: validation, error handling, and service organization differ across modules - need standardization. Despite these issues, the codebase is functional with clear module boundaries and consistent framework usage (Wasp, React, Prisma). Refactoring should focus on creating clear separation between UI, service, and data access layers, and decomposing large modules into smaller, focused units."
+}

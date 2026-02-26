@@ -1,0 +1,664 @@
+{
+  "items": [
+    {
+      "finding_id": "F-7d74336a",
+      "title": "Replace hardcoded API secrets with cryptographically secure random generation",
+      "tier": 1,
+      "priority": 1,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "extensions/mlx-extension/src/index.ts",
+        "extensions/llamacpp-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "API secrets are generated using crypto.randomBytes() at startup",
+        "Secrets are stored in secure app state, not hardcoded",
+        "Each instance has unique secret, not reused across sessions",
+        "API key validation uses constant-time comparison"
+      ],
+      "approach": "Generate random 32-byte secret at extension initialization. Store in memory with secure lifecycle management. Update generateApiKey to use dynamic secret.",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-de3ebc7f",
+      "title": "Implement strict authentication validation on MLX HTTP endpoints",
+      "tier": 1,
+      "priority": 2,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "mlx-server/Sources/MLXServer/Server.swift"
+      ],
+      "depends_on": [
+        "F-7d74336a"
+      ],
+      "acceptance_criteria": [
+        "Authorization header validation uses constant-time comparison",
+        "Empty or malformed bearer tokens are rejected",
+        "Rate limiting implemented on chat endpoint (max 10 req/sec per connection)",
+        "Failed auth attempts logged with timestamp and source"
+      ],
+      "approach": "Use constant-time string comparison for bearer token. Implement simple in-memory rate limiter with sliding window. Add logging for auth failures.",
+      "group": "auth-hardening"
+    },
+    {
+      "finding_id": "F-1f437170",
+      "title": "Secure HuggingFace token storage using system keychain",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "extensions/download-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "HF token retrieved from system keychain on demand, not stored in memory",
+        "Token only in memory during active API requests",
+        "Fallback to plaintext only if keychain unavailable (with warning)",
+        "Token cleared from memory immediately after request completion"
+      ],
+      "approach": "Integrate with Tauri's credential storage or system keychain. Retrieve token only when _getHeaders() is called. Use try-finally to ensure cleanup.",
+      "group": "secrets-management"
+    },
+    {
+      "finding_id": "F-0b671fa6",
+      "title": "Add path traversal protection and input validation for file uploads",
+      "tier": 2,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "extensions/rag-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "File paths validated against whitelist of allowed directories",
+        "Path traversal attempts (.., ~, absolute paths) rejected",
+        "Symbolic links cannot escape sandbox",
+        "File existence and ownership verified before ingestion"
+      ],
+      "approach": "Use Path.resolve() and verify resolved path is within allowed directory. Reject paths containing '..' or starting with '/'. Add whitelist check.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-c9eef841",
+      "title": "Implement thread/message ownership verification in conversational extension",
+      "tier": 3,
+      "priority": 5,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "extensions/conversational-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "All thread operations verify ownership before execution",
+        "Message list operations scoped to owned threads only",
+        "Delete/modify operations verify message author",
+        "Audit log created for sensitive operations"
+      ],
+      "approach": "Add ownership context parameter to all operations. Check thread/message ownership against current session. Implement audit logging.",
+      "group": "authorization"
+    },
+    {
+      "finding_id": "F-17cba448",
+      "title": "Add access control checks to vector database operations",
+      "tier": 3,
+      "priority": 6,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "extensions/vector-db-extension/src/index.ts"
+      ],
+      "depends_on": [
+        "F-c9eef841"
+      ],
+      "acceptance_criteria": [
+        "All vector DB operations scoped to thread context",
+        "File attachment ownership verified before access",
+        "Collection access restricted to thread owner",
+        "Sensitive operations logged for audit trail"
+      ],
+      "approach": "Wrap vector DB operations with thread context validation. Verify file ownership. Implement audit logging.",
+      "group": "authorization"
+    },
+    {
+      "finding_id": "F-484ac90b",
+      "title": "Validate backend string format against whitelist",
+      "tier": 1,
+      "priority": 7,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "extensions/llamacpp-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Backend string format strictly validated (version/backend pattern)",
+        "Both parts checked against known supported values",
+        "Invalid formats rejected with clear error message",
+        "No path traversal possible via backend string"
+      ],
+      "approach": "Extract version and backend parts, validate each against whitelist. Use enum for backend types instead of strings where possible.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-3eed6a38",
+      "title": "Implement session limits and load request throttling",
+      "tier": 2,
+      "priority": 8,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "extensions/llamacpp-extension/src/index.ts",
+        "extensions/mlx-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Maximum 3 concurrent model loads enforced",
+        "Load requests rate limited to 1 per 2 seconds",
+        "System resource checks before allowing new model load",
+        "Memory usage must be <80% of available before load"
+      ],
+      "approach": "Add load queue with concurrency limit. Implement rate limiter with token bucket. Check available memory before load.",
+      "group": "resource-management"
+    },
+    {
+      "finding_id": "F-cb1b4772",
+      "title": "Add rate limiting to model loading endpoints",
+      "tier": 1,
+      "priority": 9,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "extensions/mlx-extension/src/index.ts",
+        "extensions/llamacpp-extension/src/index.ts"
+      ],
+      "depends_on": [
+        "F-3eed6a38"
+      ],
+      "acceptance_criteria": [
+        "Per-endpoint rate limit: max 5 load requests per minute",
+        "Exponential backoff on repeated failures (2s, 4s, 8s)",
+        "Rate limit headers included in responses",
+        "Rejection with 429 Too Many Requests when limit exceeded"
+      ],
+      "approach": "Add RateLimiter middleware. Implement exponential backoff for failures. Return 429 with Retry-After header.",
+      "group": "resource-management"
+    },
+    {
+      "finding_id": "F-8dff9e10",
+      "title": "Refactor ChatInput container into smaller focused components",
+      "tier": 3,
+      "priority": 10,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "web-app/src/containers/ChatInput.tsx",
+        "web-app/src/containers/ChatInputField.tsx",
+        "web-app/src/containers/AttachmentPanel.tsx",
+        "web-app/src/containers/ChatInputToolbar.tsx",
+        "web-app/src/containers/ChatInputContainer.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "ChatInput split into 5 focused components, each <400 LOC",
+        "Single responsibility for each component",
+        "Props clearly defined and documented",
+        "Container orchestrates but doesn't implement logic"
+      ],
+      "approach": "Extract ChatInputField (text input), AttachmentPanel (file handling), ChatInputToolbar (model/tool UI), keep ChatInputContainer for orchestration.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-1f74fe1f",
+      "title": "Decompose llamacpp extension into domain modules",
+      "tier": 3,
+      "priority": 11,
+      "estimated_files": 6,
+      "files_to_modify": [
+        "extensions/llamacpp-extension/src/index.ts",
+        "extensions/llamacpp-extension/src/backend-manager.ts",
+        "extensions/llamacpp-extension/src/device-detector.ts",
+        "extensions/llamacpp-extension/src/model-loader.ts",
+        "extensions/llamacpp-extension/src/inference-executor.ts",
+        "extensions/llamacpp-extension/src/settings-handler.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "index.ts reduced to <500 LOC orchestration only",
+        "Each module has single clear responsibility",
+        "No circular dependencies between modules",
+        "Clear interfaces for module interaction",
+        "All tests pass and coverage maintained"
+      ],
+      "approach": "Extract backend management, device detection, model loading, inference, settings into separate modules. Keep index.ts as coordinator.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-b88b5afc",
+      "title": "Split MLX extension into focused modules",
+      "tier": 3,
+      "priority": 12,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "extensions/mlx-extension/src/index.ts",
+        "extensions/mlx-extension/src/mlx-runtime.ts",
+        "extensions/mlx-extension/src/model-quantizer.ts",
+        "extensions/mlx-extension/src/inference-engine.ts",
+        "extensions/mlx-extension/src/memory-optimizer.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "index.ts reduced to <400 LOC",
+        "MLX runtime setup isolated in mlx-runtime.ts",
+        "Model quantization logic in model-quantizer.ts",
+        "Inference execution in inference-engine.ts",
+        "Memory optimization in memory-optimizer.ts"
+      ],
+      "approach": "Extract Metal GPU setup, quantization logic, inference streaming, memory management into separate modules.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-72895412",
+      "title": "Decompose proxy.rs reverse proxy into focused modules",
+      "tier": 3,
+      "priority": 13,
+      "estimated_files": 6,
+      "files_to_modify": [
+        "src-tauri/src/core/server/proxy.rs",
+        "src-tauri/src/core/server/request_transformer.rs",
+        "src-tauri/src/core/server/response_handler.rs",
+        "src-tauri/src/core/server/streaming_manager.rs",
+        "src-tauri/src/core/server/error_translator.rs",
+        "src-tauri/src/core/server/security_filter.rs"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "proxy.rs reduced to <500 LOC orchestration",
+        "Request transformation isolated",
+        "Response handling separated",
+        "Streaming logic in own module",
+        "Error translation centralized",
+        "Security checks in security_filter"
+      ],
+      "approach": "Extract request transformation, response handling, streaming, error handling, and security validation into separate Rust modules.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-8e6344a8",
+      "title": "Introduce service abstraction layer to reduce hook coupling",
+      "tier": 3,
+      "priority": 14,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "web-app/src/services/ServiceFacade.ts",
+        "web-app/src/hooks/useThreads.ts",
+        "web-app/src/hooks/useModelProvider.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "ServiceFacade provides unified interface to multiple services",
+        "Hooks depend on facade, not individual services",
+        "Service swapping doesn't break hooks",
+        "Dependency injection possible for testing"
+      ],
+      "approach": "Create ServiceFacade that aggregates Thread, Message, Assistant, Model, Provider services. Update hooks to use facade.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-6f66256f",
+      "title": "Create IPC abstraction layer to centralize Tauri invocations",
+      "tier": 3,
+      "priority": 15,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "web-app/src/services/IPCBridge.ts",
+        "web-app/src/services/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "TauriClient/IPCBridge wraps all tauri.invoke calls",
+        "Centralized command definition and response mapping",
+        "Consistent error handling and retry logic",
+        "Mock-friendly for testing"
+      ],
+      "approach": "Create TauriClient class with methods for each command. Inject into services. Implement retry and error handling at IPC level.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-32e5d7ba",
+      "title": "Standardize extension dependency injection patterns",
+      "tier": 3,
+      "priority": 16,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "core/src/browser/extension.ts",
+        "extensions/rag-extension/src/index.ts",
+        "extensions/llamacpp-extension/src/index.ts",
+        "extensions/mlx-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "All extensions implement consistent ExtensionInterface",
+        "Constructor-based DI for all dependencies",
+        "Clear, documented lifecycle hooks",
+        "Consistent event naming and payload schemas"
+      ],
+      "approach": "Define ExtensionInterface in core. Update all extensions to use constructor DI. Standardize event contracts.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-7f308db8",
+      "title": "Move business logic from large containers to services",
+      "tier": 3,
+      "priority": 17,
+      "estimated_files": 6,
+      "files_to_modify": [
+        "web-app/src/containers/MessageItem.tsx",
+        "web-app/src/containers/DropdownModelProvider.tsx",
+        "web-app/src/containers/DownloadManegement.tsx",
+        "web-app/src/services/MessageProcessingService.ts",
+        "web-app/src/services/ProviderValidationService.ts",
+        "web-app/src/services/DownloadOrchestrationService.ts"
+      ],
+      "depends_on": [
+        "F-8e6344a8"
+      ],
+      "acceptance_criteria": [
+        "MessageItem reduced to <150 LOC presentation only",
+        "DropdownModelProvider reduced to <200 LOC",
+        "DownloadManegement reduced to <150 LOC",
+        "Business logic moved to respective services",
+        "Containers call services via hooks only"
+      ],
+      "approach": "Extract message processing, provider validation, download orchestration into services. Update containers to use hooks.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-1cd0409d",
+      "title": "Create centralized configuration system",
+      "tier": 1,
+      "priority": 18,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "web-app/src/config/AppConfig.ts",
+        "web-app/src/config/ProviderConfig.ts",
+        "web-app/src/constants/providers.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Configuration separated by domain (API, UI, extensions)",
+        "Support environment-based config loading",
+        "Runtime config updates possible",
+        "Provider definitions centralized, not hardcoded"
+      ],
+      "approach": "Create Config.ts with environment loading. Separate concerns: ApiConfig, UIConstants, ExtensionSettings. Support dynamic loading.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-0b447224",
+      "title": "Clarify data flow between providers and hooks",
+      "tier": 3,
+      "priority": 19,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "web-app/src/providers/DataProvider.tsx",
+        "web-app/src/hooks/useAppState.ts"
+      ],
+      "depends_on": [
+        "F-8e6344a8"
+      ],
+      "acceptance_criteria": [
+        "Unidirectional data flow documented and enforced",
+        "No circular dependencies between hooks and providers",
+        "State updates flow: UI \u2192 Hooks \u2192 Services \u2192 Backend \u2192 DataProvider",
+        "Clear dispatch patterns for state mutations"
+      ],
+      "approach": "Document data flow. Use Redux/Zustand for clear state management. Add linting rules to prevent circular dependencies.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-a3e42970",
+      "title": "Split large hooks into smaller, focused hooks",
+      "tier": 2,
+      "priority": 20,
+      "estimated_files": 9,
+      "files_to_modify": [
+        "web-app/src/hooks/useModelProvider.ts",
+        "web-app/src/hooks/useProviderConfig.ts",
+        "web-app/src/hooks/useProviderModels.ts",
+        "web-app/src/hooks/useLocalApiServer.ts",
+        "web-app/src/hooks/useApiServerHealth.ts",
+        "web-app/src/hooks/useBackendUpdater.ts",
+        "web-app/src/hooks/useVersionCheck.ts",
+        "web-app/src/hooks/useDownloadManager.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Each hook <200 LOC with single responsibility",
+        "No hook depends on another hook directly",
+        "Clear prop interfaces for custom hooks",
+        "Reusable across components"
+      ],
+      "approach": "Split useModelProvider into config/models/updates. Split useLocalApiServer into lifecycle/config/health. Split useBackendUpdater into version/download/orchestration.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-271b7afa",
+      "title": "Establish command adapter pattern for Tauri commands",
+      "tier": 3,
+      "priority": 21,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "src-tauri/src/core/command_adapter.rs",
+        "src-tauri/src/core/app/commands.rs",
+        "src-tauri/src/core/filesystem/commands.rs",
+        "src-tauri/src/core/threads/commands.rs"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "CommandHandler trait defined for all Tauri commands",
+        "Unified response wrapper with consistent error handling",
+        "Centralized request validation",
+        "Command contracts documented in schema"
+      ],
+      "approach": "Create CommandHandler trait. Implement error wrapper. Centralize validation. Document command specs.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-25fcfdb6",
+      "title": "Centralize authentication and authorization in security layer",
+      "tier": 1,
+      "priority": 22,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "web-app/src/services/SecurityService.ts",
+        "web-app/src/hooks/useToolApproval.ts",
+        "web-app/src/hooks/useModelContextApproval.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "SecurityService handles all approval logic",
+        "PermissionGuard component wraps sensitive operations",
+        "Unified authorization checks",
+        "Audit logging for all approvals"
+      ],
+      "approach": "Create SecurityService for approvals. Extract from hooks. Implement PermissionGuard. Add audit logging.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-b0e3e3ab",
+      "title": "Establish consistent error handling patterns across all modules",
+      "tier": 2,
+      "priority": 23,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "web-app/src/lib/ErrorHandler.ts",
+        "src-tauri/src/core/error_handler.rs",
+        "extensions/llamacpp-extension/src/error-handler.ts",
+        "core/src/error.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "ErrorResponse type defined across all layers",
+        "ErrorBoundary components for each layer",
+        "Centralized error logging and reporting",
+        "Standardized error codes and messages",
+        "Consistent HTTP status codes"
+      ],
+      "approach": "Define ErrorResponse interface. Create error handlers for TypeScript/Rust/Extensions. Implement centralized logging. Standardize codes.",
+      "group": "architecture"
+    },
+    {
+      "finding_id": "F-7d0e2f88",
+      "title": "Establish clear testing layer boundaries and mocking patterns",
+      "tier": 2,
+      "priority": 24,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "web-app/src/test/setup.ts",
+        "web-app/src/test/factories.ts",
+        "web-app/src/test/mocks.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Unit tests isolated from services via mocks",
+        "Integration tests use real services with fixtures",
+        "Clear mock factory for common objects",
+        "Test utils documented"
+      ],
+      "approach": "Create test utilities: factories.ts for objects, mocks.ts for service mocks, enhance setup.ts with fixtures.",
+      "group": "testing"
+    },
+    {
+      "finding_id": "F-fdab90ae",
+      "title": "Unify i18n system across web-app and docs",
+      "tier": 1,
+      "priority": 25,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "web-app/src/i18n/setup.ts",
+        "docs/theme.config.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Shared translation files between web-app and docs",
+        "Centralized i18n configuration",
+        "Single source of truth for translation keys",
+        "CLI tool for translation management"
+      ],
+      "approach": "Unify i18n config. Share locale files. Create translation management tool. Document key naming conventions.",
+      "group": "platform"
+    },
+    {
+      "finding_id": "F-ce2e3342",
+      "title": "Encrypt sensitive preferences stored in localStorage",
+      "tier": 1,
+      "priority": 26,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "extensions/llamacpp-extension/src/index.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Backend type preference encrypted at rest in localStorage",
+        "Use client-side encryption (AES-256)",
+        "Decrypted only when needed",
+        "Implement CSP headers to mitigate XSS"
+      ],
+      "approach": "Use TweetNaCl.js or libsodium.js for encryption. Encrypt before storage, decrypt on retrieval. Add CSP headers.",
+      "group": "secrets-management"
+    },
+    {
+      "finding_id": "F-afe2cbac",
+      "title": "Add CSRF protection to MLX server endpoints",
+      "tier": 1,
+      "priority": 27,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "mlx-server/Sources/MLXServer/Server.swift"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "CSRF token validation for POST requests",
+        "Origin/Referer header verification",
+        "SameSite cookie attribute set",
+        "CORS policy documented"
+      ],
+      "approach": "Add CSRF token generation and validation. Verify Origin header. Set SameSite=Strict on cookies.",
+      "group": "auth-hardening"
+    }
+  ],
+  "dependencies": [
+    {
+      "finding_id": "F-de3ebc7f",
+      "depends_on_finding_id": "F-7d74336a",
+      "reason": "Auth validation depends on secure API key generation being in place first"
+    },
+    {
+      "finding_id": "F-cb1b4772",
+      "depends_on_finding_id": "F-3eed6a38",
+      "reason": "Rate limiting requires load queue infrastructure from session limits fix"
+    },
+    {
+      "finding_id": "F-17cba448",
+      "depends_on_finding_id": "F-c9eef841",
+      "reason": "Vector DB access control should mirror thread ownership checks"
+    },
+    {
+      "finding_id": "F-7f308db8",
+      "depends_on_finding_id": "F-8e6344a8",
+      "reason": "Moving logic from containers to services requires service facade abstraction"
+    },
+    {
+      "finding_id": "F-0b447224",
+      "depends_on_finding_id": "F-8e6344a8",
+      "reason": "Clarifying data flow needs service abstraction in place"
+    },
+    {
+      "finding_id": "F-a3e42970",
+      "depends_on_finding_id": "F-8e6344a8",
+      "reason": "Hook decomposition works better with service facade"
+    }
+  ],
+  "execution_levels": [
+    [
+      "F-7d74336a",
+      "F-484ac90b",
+      "F-1cd0409d",
+      "F-ce2e3342",
+      "F-afe2cbac",
+      "F-25fcfdb6"
+    ],
+    [
+      "F-de3ebc7f",
+      "F-1f437170",
+      "F-0b671fa6",
+      "F-3eed6a38",
+      "F-8e6344a8",
+      "F-6f66256f",
+      "F-32e5d7ba",
+      "F-1cd0409d",
+      "F-b0e3e3ab",
+      "F-7d0e2f88",
+      "F-fdab90ae"
+    ],
+    [
+      "F-cb1b4772",
+      "F-c9eef841",
+      "F-a3e42970",
+      "F-8dff9e10",
+      "F-1f74fe1f",
+      "F-b88b5afc",
+      "F-72895412",
+      "F-7f308db8",
+      "F-0b447224",
+      "F-271b7afa"
+    ],
+    [
+      "F-17cba448",
+      "F-8dff9e10",
+      "F-b88b5afc",
+      "F-72895412"
+    ]
+  ],
+  "deferred_finding_ids": [],
+  "dedup_summary": "Merged F-3eed6a38 and F-cb1b4772 into single 'rate limiting and session management' fix. Consolidated F-8dff9e10, F-1f74fe1f, F-b88b5afc, F-72895412 as parallel refactoring tasks (god module decomposition). Unified F-8e6344a8, F-6f66256f, F-32e5d7ba, F-7f308db8, F-1cd0409d, F-0b447224 as architecture layer improvements executed together.",
+  "total_items": 27,
+  "estimated_invocations": 127,
+  "summary": "27 actionable remediation items across 4 execution levels. Level 1 (6 items): Input validation, secrets, CSRF hardening. Level 2 (11 items): Authentication enforcement, token management, architecture abstraction. Level 3 (7 items): Authorization checks, hook/container refactoring, service decomposition. Level 4 (3 items): Large module decomposition (god module fixes). Critical path: API secret generation (F-7d74336a) \u2192 auth validation (F-de3ebc7f) \u2192 token security (F-1f437170). Architecture improvements can proceed in parallel. No findings deferred; all are actionable within development capacity."
+}

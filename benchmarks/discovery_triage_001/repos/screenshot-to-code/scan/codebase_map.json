@@ -1,0 +1,1729 @@
+{
+  "modules": [
+    {
+      "name": "agent",
+      "path": "backend/agent/",
+      "purpose": "Core agent orchestration system with LLM provider abstraction, tool definitions, and execution runtime",
+      "files": [
+        "backend/agent/engine.py",
+        "backend/agent/runner.py",
+        "backend/agent/state.py",
+        "backend/agent/providers/__init__.py",
+        "backend/agent/providers/anthropic.py",
+        "backend/agent/providers/base.py",
+        "backend/agent/providers/factory.py",
+        "backend/agent/providers/gemini.py",
+        "backend/agent/providers/openai.py",
+        "backend/agent/providers/types.py",
+        "backend/agent/tools/__init__.py",
+        "backend/agent/tools/definitions.py",
+        "backend/agent/tools/parsing.py",
+        "backend/agent/tools/runtime.py",
+        "backend/agent/tools/summaries.py",
+        "backend/agent/tools/types.py"
+      ],
+      "loc": 2800,
+      "language": "python"
+    },
+    {
+      "name": "prompts",
+      "path": "backend/prompts/",
+      "purpose": "Prompt construction, message building, and request parsing for LLM interactions",
+      "files": [
+        "backend/prompts/__init__.py",
+        "backend/prompts/message_builder.py",
+        "backend/prompts/pipeline.py",
+        "backend/prompts/plan.py",
+        "backend/prompts/policies.py",
+        "backend/prompts/prompt_types.py",
+        "backend/prompts/request_parsing.py",
+        "backend/prompts/system_prompt.py",
+        "backend/prompts/create/__init__.py",
+        "backend/prompts/create/image.py",
+        "backend/prompts/create/text.py",
+        "backend/prompts/create/video.py",
+        "backend/prompts/update/__init__.py",
+        "backend/prompts/update/from_file_snapshot.py",
+        "backend/prompts/update/from_history.py"
+      ],
+      "loc": 1900,
+      "language": "python"
+    },
+    {
+      "name": "routes",
+      "path": "backend/routes/",
+      "purpose": "FastAPI REST endpoints for code generation, evals, screenshots, and model selection",
+      "files": [
+        "backend/routes/evals.py",
+        "backend/routes/generate_code.py",
+        "backend/routes/home.py",
+        "backend/routes/model_choice_sets.py",
+        "backend/routes/screenshot.py"
+      ],
+      "loc": 650,
+      "language": "python"
+    },
+    {
+      "name": "evals",
+      "path": "backend/evals/",
+      "purpose": ": Evaluation framework for comparing model outputs and running benchmark tests",
+      "files": [
+        "backend/evals/__init__.py",
+        "backend/evals/config.py",
+        "backend/evals/core.py",
+        "backend/evals/runner.py",
+        "backend/evals/utils.py"
+      ],
+      "loc": 800,
+      "language": "python"
+    },
+    {
+      "name": "image_generation",
+      "path": "backend/image_generation/",
+      "purpose": "Image generation integration with Replicate API for creating images from prompts",
+      "files": [
+        "backend/image_generation/__init__.py",
+        "backend/image_generation/core.py",
+        "backend/image_generation/generation.py",
+        "backend/image_generation/replicate.py"
+      ],
+      "loc": 450,
+      "language": "python"
+    },
+    {
+      "name": "video",
+      "path": "backend/video/",
+      "purpose": "Video processing utilities and cost estimation for video generation tasks",
+      "files": [
+        "backend/video/__init__.py",
+        "backend/video/cost_estimation.py",
+        "backend/video/utils.py"
+      ],
+      "loc": 200,
+      "language": "python"
+    },
+    {
+      "name": "codegen",
+      "path": "backend/codegen/",
+      "purpose": "Code generation utilities and test helpers for the agent system",
+      "files": [
+        "backend/codegen/__init__.py",
+        "backend/codegen/test_utils.py",
+        "backend/codegen/utils.py"
+      ],
+      "loc": 150,
+      "language": "python"
+    },
+    {
+      "name": "fs_logging",
+      "path": "backend/fs_logging/",
+      "purpose": "File system logging for tracking agent activities and debugging",
+      "files": [
+        "backend/fs_logging/__init__.py",
+        "backend/fs_logging/core.py"
+      ],
+      "loc": 100,
+      "language": "python"
+    },
+    {
+      "name": "debug",
+      "path": "backend/debug/",
+      "purpose": "Debug utilities for writing debug information during development",
+      "files": [
+        "backend/debug/__init__.py",
+        "backend/debug/DebugFileWriter.py"
+      ],
+      "loc": 80,
+      "language": "python"
+    },
+    {
+      "name": "ws",
+      "path": "backend/ws/",
+      "purpose": "WebSocket support for real-time communication between backend and frontend",
+      "files": [
+        "backend/ws/__init__.py",
+        "backend/ws/constants.py"
+      ],
+      "loc": 50,
+      "language": "python"
+    },
+    {
+      "name": "frontend-components",
+      "path": "frontend/src/components/",
+      "purpose": "React UI components for the application interface",
+      "files": [
+        "frontend/src/components/ImageLightbox.tsx",
+        "frontend/src/components/ImageUpload.tsx",
+        "frontend/src/components/ImportCodeSection.tsx",
+        "frontend/src/components/TermsOfServiceDialog.tsx",
+        "frontend/src/components/UpdateImageUpload.tsx",
+        "frontend/src/components/agent/AgentActivity.tsx",
+        "frontend/src/components/commits/types.ts",
+        "frontend/src/components/commits/utils.ts",
+        "frontend/src/components/core/KeyboardShortcutBadge.tsx",
+        "frontend/src/components/core/Spinner.tsx",
+        "frontend/src/components/core/StackLabel.tsx",
+        "frontend/src/components/core/WorkingPulse.tsx",
+        "frontend/src/components/evals/AllEvalsPage.tsx",
+        "frontend/src/components/evals/BestOfNEvalsPage.tsx",
+        "frontend/src/components/evals/EvalNavigation.tsx",
+        "frontend/src/components/evals/EvalsPage.tsx",
+        "frontend/src/components/evals/InputFileSelector.tsx",
+        "frontend/src/components/evals/PairwiseEvalsPage.tsx",
+        "frontend/src/components/evals/RatingPicker.tsx",
+        "frontend/src/components/evals/RunEvalsPage.tsx",
+        "frontend/src/components/generate-from-text/GenerateFromText.tsx",
+        "frontend/src/components/history/HistoryDisplay.tsx",
+        "frontend/src/components/history/utils.ts",
+        "frontend/src/components/messages/OnboardingNote.tsx",
+        "frontend/src/components/messages/PicoBadge.tsx",
+        "frontend/src/components/messages/TipLink.tsx",
+        "frontend/src/components/preview/CodeMirror.tsx",
+        "frontend/src/components/preview/CodePreview.tsx",
+        "frontend/src/components/preview/CodeTab.tsx",
+        "frontend/src/components/preview/PreviewComponent.tsx",
+        "frontend/src/components/preview/PreviewPane.tsx",
+        "frontend/src/components/preview/download.ts",
+        "frontend/src/components/preview/extractHtml.ts",
+        "frontend/src/components/preview/simpleHash.ts",
+        "frontend/src/components/recording/ScreenRecorder.tsx",
+        "frontend/src/components/recording/utils.ts",
+        "frontend/src/components/select-and-edit/utils.ts",
+        "frontend/src/components/settings/GenerationSettings.tsx",
+        "frontend/src/components/settings/OutputSettingsSection.tsx",
+        "frontend/src/components/settings/SettingsTab.tsx",
+        "frontend/src/components/sidebar/IconStrip.tsx",
+        "frontend/src/components/sidebar/Sidebar.tsx",
+        "frontend/src/components/start-pane/StartPane.tsx",
+        "frontend/src/components/thinking/ThinkingIndicator.tsx",
+        "frontend/src/components/ui/accordion.tsx",
+        "frontend/src/components/ui/alert-dialog.tsx",
+        "frontend/src/components/ui/badge.tsx",
+        "frontend/src/components/ui/button.tsx",
+        "frontend/src/components/ui/checkbox.tsx",
+        "frontend/src/components/ui/collapsible.tsx",
+        "frontend/src/components/ui/dialog.tsx",
+        "frontend/src/components/ui/hover-card.tsx",
+        "frontend/src/components/ui/input.tsx",
+        "frontend/src/components/ui/label.tsx",
+        "frontend/src/components/ui/popover.tsx",
+        "frontend/src/components/ui/progress.tsx",
+        "frontend/src/components/ui/scroll-area.tsx",
+        "frontend/src/components/ui/select.tsx",
+        "frontend/src/components/ui/separator.tsx",
+        "frontend/src/components/ui/switch.tsx",
+        "frontend/src/components/ui/tabs.tsx",
+        "frontend/src/components/ui/textarea.tsx",
+        "frontend/src/components/unified-input/UnifiedInputPane.tsx",
+        "frontend/src/components/unified-input/tabs/ImportTab.tsx",
+        "frontend/src/components/unified-input/tabs/TextTab.tsx",
+        "frontend/src/components/unified-input/tabs/UploadTab.tsx",
+        "frontend/src/components/unified-input/tabs/UrlTab.tsx",
+        "frontend/src/components/variants/Variants.tsx"
+      ],
+      "loc": 5200,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-lib",
+      "path": "frontend/src/lib/",
+      "purpose": "Utility libraries for prompts, models, screenshots, and general helpers",
+      "files": [
+        "frontend/src/lib/models.ts",
+        "frontend/src/lib/prompt-history.ts",
+        "frontend/src/lib/stacks.ts",
+        "frontend/src/lib/takeScreenshot.ts",
+        "frontend/src/lib/utils.ts"
+      ],
+      "loc": 450,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-hooks",
+      "path": "frontend/src/hooks/",
+      "purpose": "Custom React hooks for state persistence, throttling, and browser indicators",
+      "files": [
+        "frontend/src/hooks/useBrowserTabIndicator.ts",
+        "frontend/src/hooks/usePersistedState.ts",
+        "frontend/src/hooks/useThrottle.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "frontend-store",
+      "path": "frontend/src/store/",
+      "purpose": "State management stores for application and project state",
+      "files": [
+        "frontend/src/store/app-store.ts",
+        "frontend/src/store/project-store.ts"
+      ],
+      "loc": 200,
+      "language": "typescript"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "fastapi",
+      "version": "0.109.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "uvicorn",
+      "version": "0.27.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "python-multipart",
+      "version": "0.0.6",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "sse-starlette",
+      "version": "2.0.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "anthropic",
+      "version": "0.18.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "openai",
+      "version": "1.12.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "google-generativeai",
+      "version": "0.4.1",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "replicate",
+      "version": "0.25.0",
+      "ecosystem": "pip",
+      "dev_only": false
+    },
+    {
+      "name": "pytest",
+      "version": "8.0.0",
+      "ecosystem": "pip",
+      "dev_only": true
+    },
+    {
+      "name": "react",
+      "version": "18.2.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-dom",
+      "version": "18.2.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "vite",
+      "version": "5.1.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "typescript",
+      "version": "5.3.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "tailwindcss",
+      "version": "3.4.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "version": "1.0.5",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-popover",
+      "version": "1.0.7",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "version": "2.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-tabs",
+      "version": "1.0.4",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "zustand",
+      "version": "4.5.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    }
+  ],
+  "data_flows": [
+    {
+      "source": "Frontend UnifiedInputPane",
+      "destination": "Backend /generate_code endpoint",
+      "data_type": "image upload / text prompt / URL",
+      "is_authenticated": false
+    },
+    {
+      "source": "Backend /generate_code endpoint",
+      "destination": "LLM Provider (OpenAI/Anthropic/Gemini)",
+      "data_type": "Constructed prompts with image context",
+      "is_authenticated": true
+    },
+    {
+      "source": "LLM Provider Response",
+      "destination": "Agent Engine",
+      "data_type": "LLM response with tool calls",
+      "is_authenticated": true
+    },
+    {
+      "source": "Agent Engine",
+      "destination": "Tool Runtime (Write/Read/Bash/Terminal)",
+      "data_type": "Tool execution requests",
+      "is_authenticated": true
+    },
+    {
+      "source": "Agent Tools",
+      "destination": "File System",
+      "data_type": "Code files, project structure",
+      "is_authenticated": true
+    },
+    {
+      "source": "Backend WebSocket",
+      "destination": "Frontend Preview Pane",
+      "data_type": "Streaming code updates, status messages",
+      "is_authenticated": false
+    },
+    {
+      "source": "Frontend",
+      "destination": "Replicate API",
+      "data_type": "Image generation requests",
+      "is_authenticated": true
+    }
+  ],
+  "auth_boundaries": [
+    {
+      "path": "/generate_code",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/screenshot",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/evals/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/model_choice_sets",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/ws/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "LLM Provider APIs",
+      "auth_type": "api_key",
+      "is_protected": true
+    }
+  ],
+  "entry_points": [
+    {
+      "path": "backend/main.py",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "backend/start.py",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "type": "web",
+      "is_public": true
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "type": "web",
+      "is_public": true
+    },
+    {
+      "path": "backend/run_evals.py",
+      "type": "cli",
+      "is_public": true
+    },
+    {
+      "path": "backend/run_image_generation_evals.py",
+      "type": "cli",
+      "is_public": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite",
+    "backend": "FastAPI (Python)",
+    "database": "None (stateless)",
+    "hosting": "Docker",
+    "packages": [
+      "fastapi",
+      "uvicorn",
+      "anthropic",
+      "openai",
+      "google-generativeai",
+      "replicate",
+      "react",
+      "tailwindcss",
+      "zustand"
+    ]
+  },
+  "files": [
+    {
+      "path": "Troubleshooting.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "TESTING.md",
+      "language": "markdown",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "package-lock.json",
+      "language": "json",
+      "loc": 11768,
+      "purpose": ""
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "plan.md",
+      "language": "markdown",
+      "loc": 152,
+      "purpose": ""
+    },
+    {
+      "path": "docker-compose.yml",
+      "language": "yaml",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "Evaluation.md",
+      "language": "markdown",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "design-docs/general.md",
+      "language": "markdown",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "design-docs/commits-and-variants.md",
+      "language": "markdown",
+      "loc": 241,
+      "purpose": ""
+    },
+    {
+      "path": "design-docs/agentic-runner-refactor.md",
+      "language": "markdown",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "design-docs/variant-system.md",
+      "language": "markdown",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "design-docs/images-in-update-history.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "design-docs/agent-tool-calling-flow.md",
+      "language": "markdown",
+      "loc": 186,
+      "purpose": ""
+    },
+    {
+      "path": "design-docs/prompt-history-refactor.md",
+      "language": "markdown",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tsconfig.node.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/index.html",
+      "language": "html",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tailwind.config.js",
+      "language": "javascript",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/jest.config.js",
+      "language": "javascript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/package.json",
+      "language": "json",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/components.json",
+      "language": "json",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "language": "json",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/postcss.config.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/App.tsx",
+      "language": "typescript",
+      "loc": 797,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/urls.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/index.css",
+      "language": "css",
+      "loc": 217,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/setupTests.ts",
+      "language": "typescript",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/types.ts",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/vite-env.d.ts",
+      "language": "typescript",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/constants.ts",
+      "language": "typescript",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/config.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/generateCode.ts",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/tests/qa.test.ts",
+      "language": "typescript",
+      "loc": 501,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/tests/fixtures/simple_page.html",
+      "language": "html",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ImportCodeSection.tsx",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/TermsOfServiceDialog.tsx",
+      "language": "typescript",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ImageUpload.tsx",
+      "language": "typescript",
+      "loc": 324,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ImageLightbox.tsx",
+      "language": "typescript",
+      "loc": 253,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/UpdateImageUpload.tsx",
+      "language": "typescript",
+      "loc": 136,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/commits/utils.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/commits/types.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/sidebar/IconStrip.tsx",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/sidebar/Sidebar.tsx",
+      "language": "typescript",
+      "loc": 583,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/alert-dialog.tsx",
+      "language": "typescript",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/tabs.tsx",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/popover.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/progress.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/hover-card.tsx",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/scroll-area.tsx",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/label.tsx",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/accordion.tsx",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/switch.tsx",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/dialog.tsx",
+      "language": "typescript",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/badge.tsx",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/separator.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/button.tsx",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/checkbox.tsx",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/collapsible.tsx",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/select.tsx",
+      "language": "typescript",
+      "loc": 162,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/textarea.tsx",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/ui/input.tsx",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/settings/GenerationSettings.tsx",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/settings/SettingsTab.tsx",
+      "language": "typescript",
+      "loc": 248,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/settings/OutputSettingsSection.tsx",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/InputFileSelector.tsx",
+      "language": "typescript",
+      "loc": 148,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/BestOfNEvalsPage.tsx",
+      "language": "typescript",
+      "loc": 933,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/AllEvalsPage.tsx",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/EvalsPage.tsx",
+      "language": "typescript",
+      "loc": 266,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/EvalNavigation.tsx",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/RunEvalsPage.tsx",
+      "language": "typescript",
+      "loc": 526,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/PairwiseEvalsPage.tsx",
+      "language": "typescript",
+      "loc": 227,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/evals/RatingPicker.tsx",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/select-and-edit/utils.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/start-pane/StartPane.tsx",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/variants/Variants.tsx",
+      "language": "typescript",
+      "loc": 161,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/messages/PicoBadge.tsx",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/messages/OnboardingNote.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/messages/TipLink.tsx",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/generate-from-text/GenerateFromText.tsx",
+      "language": "typescript",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/core/WorkingPulse.tsx",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/core/StackLabel.tsx",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/core/KeyboardShortcutBadge.tsx",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/core/Spinner.tsx",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/recording/ScreenRecorder.tsx",
+      "language": "typescript",
+      "loc": 158,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/recording/utils.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/agent/AgentActivity.tsx",
+      "language": "typescript",
+      "loc": 577,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/unified-input/UnifiedInputPane.tsx",
+      "language": "typescript",
+      "loc": 193,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/unified-input/tabs/ImportTab.tsx",
+      "language": "typescript",
+      "loc": 137,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/unified-input/tabs/UploadTab.tsx",
+      "language": "typescript",
+      "loc": 508,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/unified-input/tabs/TextTab.tsx",
+      "language": "typescript",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/unified-input/tabs/UrlTab.tsx",
+      "language": "typescript",
+      "loc": 161,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/thinking/ThinkingIndicator.tsx",
+      "language": "typescript",
+      "loc": 160,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/history/utils.test.ts",
+      "language": "typescript",
+      "loc": 170,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/history/utils.ts",
+      "language": "typescript",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/history/HistoryDisplay.tsx",
+      "language": "typescript",
+      "loc": 257,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/CodeMirror.tsx",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/CodePreview.tsx",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/PreviewPane.tsx",
+      "language": "typescript",
+      "loc": 241,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/PreviewComponent.tsx",
+      "language": "typescript",
+      "loc": 190,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/simpleHash.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/download.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/extractHtml.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/components/preview/CodeTab.tsx",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hooks/useBrowserTabIndicator.ts",
+      "language": "typescript",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hooks/useThrottle.ts",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/hooks/usePersistedState.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/lib/prompt-history.test.ts",
+      "language": "typescript",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/lib/stacks.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/lib/utils.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/lib/takeScreenshot.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/lib/prompt-history.ts",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/lib/models.ts",
+      "language": "typescript",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/store/app-store.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "frontend/src/store/project-store.ts",
+      "language": "typescript",
+      "loc": 458,
+      "purpose": ""
+    },
+    {
+      "path": "backend/config.py",
+      "language": "python",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "backend/pyrightconfig.json",
+      "language": "json",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "backend/.pre-commit-config.yaml",
+      "language": "yaml",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "backend/pyproject.toml",
+      "language": "toml",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "backend/llm.py",
+      "language": "python",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "backend/start.py",
+      "language": "python",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "backend/README.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "backend/run_evals.py",
+      "language": "python",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "backend/utils.py",
+      "language": "python",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "backend/custom_types.py",
+      "language": "python",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "backend/main.py",
+      "language": "python",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "backend/run_image_generation_evals.py",
+      "language": "python",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "backend/video/__init__.py",
+      "language": "python",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "backend/video/cost_estimation.py",
+      "language": "python",
+      "loc": 214,
+      "purpose": ""
+    },
+    {
+      "path": "backend/video/utils.py",
+      "language": "python",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "backend/evals/runner.py",
+      "language": "python",
+      "loc": 342,
+      "purpose": ""
+    },
+    {
+      "path": "backend/evals/config.py",
+      "language": "python",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "backend/evals/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/evals/core.py",
+      "language": "python",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "backend/evals/utils.py",
+      "language": "python",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "backend/image_generation/generation.py",
+      "language": "python",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "backend/image_generation/replicate.py",
+      "language": "python",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "backend/image_generation/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/image_generation/core.py",
+      "language": "python",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_status_broadcast.py",
+      "language": "python",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_screenshot.py",
+      "language": "python",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_request_parsing.py",
+      "language": "python",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_batching.py",
+      "language": "python",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_prompts.py",
+      "language": "python",
+      "loc": 748,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_image_generation_replicate.py",
+      "language": "python",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_openai_reasoning_parser.py",
+      "language": "python",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_agent_tools.py",
+      "language": "python",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_prompt_summary.py",
+      "language": "python",
+      "loc": 175,
+      "purpose": ""
+    },
+    {
+      "path": "backend/tests/test_model_selection.py",
+      "language": "python",
+      "loc": 205,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/runner.py",
+      "language": "python",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/engine.py",
+      "language": "python",
+      "loc": 254,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/state.py",
+      "language": "python",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/tools/definitions.py",
+      "language": "python",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/tools/parsing.py",
+      "language": "python",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/tools/__init__.py",
+      "language": "python",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/tools/types.py",
+      "language": "python",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/tools/runtime.py",
+      "language": "python",
+      "loc": 362,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/tools/summaries.py",
+      "language": "python",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/providers/__init__.py",
+      "language": "python",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/providers/gemini.py",
+      "language": "python",
+      "loc": 312,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/providers/types.py",
+      "language": "python",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/providers/factory.py",
+      "language": "python",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/providers/openai.py",
+      "language": "python",
+      "loc": 430,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/providers/anthropic.py",
+      "language": "python",
+      "loc": 317,
+      "purpose": ""
+    },
+    {
+      "path": "backend/agent/providers/base.py",
+      "language": "python",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "backend/codegen/test_utils.py",
+      "language": "python",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "backend/codegen/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/codegen/utils.py",
+      "language": "python",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "backend/fs_logging/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/fs_logging/core.py",
+      "language": "python",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/plan.py",
+      "language": "python",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/system_prompt.py",
+      "language": "python",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/prompt_types.py",
+      "language": "python",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/__init__.py",
+      "language": "python",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/pipeline.py",
+      "language": "python",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/message_builder.py",
+      "language": "python",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/policies.py",
+      "language": "python",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/request_parsing.py",
+      "language": "python",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/update/__init__.py",
+      "language": "python",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/update/from_history.py",
+      "language": "python",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/update/from_file_snapshot.py",
+      "language": "python",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/create/__init__.py",
+      "language": "python",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/create/text.py",
+      "language": "python",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/create/video.py",
+      "language": "python",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "backend/prompts/create/image.py",
+      "language": "python",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "backend/routes/generate_code.py",
+      "language": "python",
+      "loc": 824,
+      "purpose": ""
+    },
+    {
+      "path": "backend/routes/home.py",
+      "language": "python",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "backend/routes/evals.py",
+      "language": "python",
+      "loc": 445,
+      "purpose": ""
+    },
+    {
+      "path": "backend/routes/model_choice_sets.py",
+      "language": "python",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "backend/routes/screenshot.py",
+      "language": "python",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "backend/ws/constants.py",
+      "language": "python",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "backend/ws/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/debug/__init__.py",
+      "language": "python",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "backend/debug/DebugFileWriter.py",
+      "language": "python",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "blog/evaluating-claude.md",
+      "language": "markdown",
+      "loc": 59,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 32745,
+  "file_count": 199,
+  "primary_language": "json",
+  "languages": [
+    "css",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "python",
+    "toml",
+    "typescript",
+    "yaml"
+  ],
+  "architecture_summary": "A screenshot-to-code application using a monorepo structure. The frontend is a React 18 + TypeScript application with Vite for bundling, using Tailwind CSS for styling and Radix UI for accessible components. The backend is a FastAPI Python application that provides REST endpoints and WebSocket support. The core functionality involves uploading screenshots/images or providing text descriptions, which are processed by an AI agent that uses LLM providers (OpenAI, Anthropic, Google Gemini) to generate code. The agent can execute tools to write files, run commands, and modify project structure in real-time, streaming updates back to the frontend via WebSockets. The system also supports image generation via Replicate API and includes an evaluation framework for benchmarking model outputs.",
+  "key_patterns": [
+    "FastAPI REST API with WebSocket streaming",
+    "LLM Provider abstraction with factory pattern",
+    "Agent tool-calling execution loop",
+    "Prompt pipeline with message builders",
+    "SSE (Server-Sent Events) for streaming responses",
+    "React Zustand for state management",
+    "Radix UI primitive components",
+    "Docker containerization for full-stack deployment",
+    "Evaluation framework with pairwise comparisons",
+    "Image generation via Replicate integration"
+  ]
+}
