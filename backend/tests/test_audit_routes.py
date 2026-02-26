@@ -106,8 +106,8 @@ class AuditRouteTests(unittest.TestCase):
         ), patch(
             "api.routes.audit.db.get_active_project_count", new=AsyncMock(return_value=0)
         ), patch(
-            "api.routes.audit.db.get_or_create_free_usage_month",
-            new=AsyncMock(return_value={"reports_generated": 0}),
+            "api.routes.audit.db.increment_reports_if_under_cap",
+            new=AsyncMock(return_value=1),
         ), patch(
             "api.routes.audit.parse_repo_url", new=AsyncMock(return_value=("octocat", "Hello-World"))
         ), patch("api.routes.audit.get_repo_info", new=AsyncMock(return_value=repo_info)), patch(
@@ -128,6 +128,9 @@ class AuditRouteTests(unittest.TestCase):
             "api.routes.audit.db.get_project_by_repo_url", new=AsyncMock(return_value=None)
         ), patch(
             "api.routes.audit.db.get_active_project_count", new=AsyncMock(return_value=0)
+        ), patch(
+            "api.routes.audit.db.increment_reports_if_under_cap",
+            new=AsyncMock(return_value=None),
         ), patch(
             "api.routes.audit.db.get_or_create_free_usage_month",
             new=AsyncMock(return_value={"reports_generated": audit.settings.tier1_monthly_report_cap}),
@@ -235,8 +238,8 @@ class AuditRouteTests(unittest.TestCase):
         ), patch(
             "api.routes.audit.db.get_active_project_count", new=AsyncMock(return_value=1)
         ), patch(
-            "api.routes.audit.db.get_or_create_free_usage_month",
-            new=AsyncMock(return_value={"reports_generated": 2}),
+            "api.routes.audit.db.increment_reports_if_under_cap",
+            new=AsyncMock(return_value=3),
         ), patch(
             "api.routes.audit.parse_repo_url", new=AsyncMock(return_value=("octocat", "Hello-World"))
         ), patch("api.routes.audit.get_repo_info", new=AsyncMock(return_value=repo_info)), patch(
@@ -252,7 +255,7 @@ class AuditRouteTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         body = resp.json()
         self.assertEqual(body["tier"], "free")
-        self.assertEqual(body["quota_remaining"], 8)
+        self.assertEqual(body["quota_remaining"], 7)
 
 
 if __name__ == "__main__":
