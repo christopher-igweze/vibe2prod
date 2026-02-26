@@ -101,6 +101,7 @@ class FixRouteTests(unittest.TestCase):
         }
         project = {
             "id": str(project_id),
+            "user_id": "user_test",
             "repo_url": "https://github.com/octocat/Hello-World",
         }
         scan_report = {
@@ -139,6 +140,7 @@ class FixRouteTests(unittest.TestCase):
         }
         project = {
             "id": str(project_id),
+            "user_id": "user_test",
             "repo_url": "https://github.com/octocat/Hello-World",
         }
 
