@@ -88,8 +88,8 @@ async def _run_tier1_audit(
 
     try:
         await db.update_scan_status(scan_id, ScanStatus.scanning)
-        usage_before = await db.get_or_create_free_usage_month(user_id, month_key)
-        reports_generated_before = int(usage_before.get("reports_generated") or 0)
+        usage_current = await db.get_or_create_free_usage_month(user_id, month_key)
+        reports_generated_current = int(usage_current.get("reports_generated") or 0)
         user_preferences = await db.get_user_onboarding_preferences(user_id)
 
         emit(
@@ -112,7 +112,7 @@ async def _run_tier1_audit(
             github_token=github_token,
             user_preferences=user_preferences,
             run_context={
-                "reports_generated_before": reports_generated_before,
+                "reports_generated_before": reports_generated_current,
                 "report_limit": settings.tier1_monthly_report_cap,
             },
         )
@@ -166,8 +166,11 @@ async def _run_tier1_audit(
                 expires_at=artifact.expires_at,
             )
 
-        reports_generated = await db.increment_free_reports_generated(user_id, month_key)
-        quota_remaining = max(0, settings.tier1_monthly_report_cap - reports_generated)
+        # Quota slot was already claimed atomically in preflight
+        usage = await db.get_or_create_free_usage_month(user_id, month_key)
+        quota_remaining = max(
+            0, settings.tier1_monthly_report_cap - int(usage.get("reports_generated") or 0)
+        )
 
         emit(
             AgentLogEntry(
@@ -223,9 +226,12 @@ async def _tier1_preflight(
         )
 
     month_key = utc_month_key()
-    usage_row = await db.get_or_create_free_usage_month(user_id, month_key)
-    reports_generated = int(usage_row.get("reports_generated") or 0)
-    if reports_generated >= settings.tier1_monthly_report_cap:
+    reports_after = await db.increment_reports_if_under_cap(
+        user_id, month_key, settings.tier1_monthly_report_cap
+    )
+    if reports_after is None:
+        usage_row = await db.get_or_create_free_usage_month(user_id, month_key)
+        reports_generated = int(usage_row.get("reports_generated") or 0)
         raise _limit_exception(
             "limit_reports_exceeded",
             "Free tier monthly report limit reached.",
@@ -267,7 +273,7 @@ async def _tier1_preflight(
         "repo_sha": repo_sha,
         "loc_total": loc_total,
         "file_count": int(index_payload.get("file_count") or 0),
-        "reports_remaining": settings.tier1_monthly_report_cap - reports_generated,
+        "reports_remaining": max(0, settings.tier1_monthly_report_cap - reports_after),
     }
 
 
