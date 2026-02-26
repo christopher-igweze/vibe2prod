@@ -15,6 +15,7 @@ from uuid import UUID
 from fastapi import APIRouter, Request, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
+from api.middleware.rate_limit import limiter, rate_limit_string
 from models.agent_log import SSEEventType
 from api.routes._sse import event_buses
 from services import supabase_client as db
@@ -75,6 +76,7 @@ async def _event_generator(scan_id: UUID):
 
 
 @router.get("/status/{scan_id}")
+@limiter.limit(rate_limit_string())
 async def stream_status(scan_id: UUID, request: Request):
     """Stream audit events for a given scan via SSE."""
     if scan_id not in event_buses:
