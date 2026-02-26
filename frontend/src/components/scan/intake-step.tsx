@@ -184,9 +184,27 @@ export function IntakeStep({
               const isChecked = sensitiveData.includes(option.value);
               const isExclusive = option.value === "none" || option.value === "not_sure";
 
+              const toggle = () => {
+                if (!isChecked) {
+                  if (isExclusive) {
+                    setSensitiveData([option.value]);
+                  } else {
+                    setSensitiveData(
+                      [...sensitiveData.filter((d) => d !== "none" && d !== "not_sure"), option.value]
+                    );
+                  }
+                } else {
+                  setSensitiveData(sensitiveData.filter((d) => d !== option.value));
+                }
+              };
+
               return (
-                <label
+                <div
                   key={option.value}
+                  role="button"
+                  tabIndex={0}
+                  onClick={toggle}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
                   className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                     isChecked
                       ? "border-emerald-500/30 bg-emerald-500/5"
@@ -195,26 +213,14 @@ export function IntakeStep({
                 >
                   <Checkbox
                     checked={isChecked}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        if (isExclusive) {
-                          setSensitiveData([option.value]);
-                        } else {
-                          setSensitiveData(
-                            [...sensitiveData.filter((d) => d !== "none" && d !== "not_sure"), option.value]
-                          );
-                        }
-                      } else {
-                        setSensitiveData(sensitiveData.filter((d) => d !== option.value));
-                      }
-                    }}
-                    className="mt-0.5"
+                    onCheckedChange={() => toggle()}
+                    className="mt-0.5 pointer-events-none"
                   />
                   <div>
                     <p className="text-sm text-neutral-200">{option.label}</p>
                     <p className="text-xs text-neutral-500">{option.description}</p>
                   </div>
-                </label>
+                </div>
               );
             })}
           </div>
