@@ -54,7 +54,11 @@ def _repo_name_from_url(url: str) -> str:
     return match.group(1) if match else "repo"
 
 
-async def run(repo_input: str, name: str | None = None) -> None:
+async def run(
+    repo_input: str,
+    name: str | None = None,
+    swarm: bool = False,
+) -> None:
     from forge.standalone import run_standalone
 
     # Determine repo_url vs repo_path
@@ -67,9 +71,12 @@ async def run(repo_input: str, name: str | None = None) -> None:
     output_dir = os.path.join(benchmark_dir, repo_name)
     os.makedirs(output_dir, exist_ok=True)
 
+    discovery_mode = "swarm" if swarm else "classic"
+
     print(f"{'=' * 60}")
     print(f"  FORGE Discovery Benchmark")
     print(f"  Repo: {repo_input}")
+    print(f"  Mode: {discovery_mode}")
     print(f"  Output: {output_dir}")
     print(f"{'=' * 60}")
     print()
@@ -79,7 +86,11 @@ async def run(repo_input: str, name: str | None = None) -> None:
     result = await run_standalone(
         repo_url=repo_input if is_url else "",
         repo_path="" if is_url else repo_input,
-        config={"mode": "discovery", "dry_run": True},
+        config={
+            "mode": "discovery",
+            "dry_run": True,
+            "discovery_mode": discovery_mode,
+        },
     )
 
     elapsed = time.time() - start
@@ -106,7 +117,7 @@ async def run(repo_input: str, name: str | None = None) -> None:
     artifacts_src = os.path.join(workspace, ".artifacts")
 
     # Copy artifacts to benchmark output
-    for subdir in ("report", "scan", "telemetry"):
+    for subdir in ("report", "scan", "telemetry", "hive"):
         src = os.path.join(artifacts_src, subdir)
         dst = os.path.join(output_dir, subdir)
         if os.path.isdir(src):
@@ -148,13 +159,17 @@ def main():
     parser.add_argument(
         "--name", help="Override the output directory name (default: derived from URL/path)"
     )
+    parser.add_argument(
+        "--swarm", action="store_true",
+        help="Use swarm/hive discovery mode (generates dependency graph visualization)"
+    )
     args = parser.parse_args()
 
     if not os.environ.get("OPENROUTER_API_KEY"):
         print("ERROR: OPENROUTER_API_KEY not set. Add to env or backend/.env")
         sys.exit(1)
 
-    asyncio.run(run(args.repo, args.name))
+    asyncio.run(run(args.repo, args.name, swarm=args.swarm))
 
 
 if __name__ == "__main__":
