@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        h3 { font-size: 1rem; color: #334155; margin: 1rem 0 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .arch-summary { color: #475569; line-height: 1.6; margin-bottom: 1rem; white-space: pre-line; }
+        .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .arch-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; }
+        .arch-card h4 { font-size: 0.85rem; color: #0f172a; margin-bottom: 0.5rem; }
+        .arch-card .mono { font-family: monospace; font-size: 0.8rem; color: #475569; }
+        .flow-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .flow-arrow { color: #94a3b8; flex-shrink: 0; }
+        .flow-src, .flow-dst { font-family: monospace; font-size: 0.78rem; color: #334155; }
+        .flow-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .flow-auth { font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; }
+        .flow-auth.yes { background: #f0fdf4; color: #166534; }
+        .flow-auth.no { background: #fef2f2; color: #991b1b; }
+        .auth-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .auth-path { font-family: monospace; font-size: 0.78rem; color: #334155; flex: 1; }
+        .auth-badge { font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+        .auth-badge.protected { background: #f0fdf4; color: #166534; }
+        .auth-badge.unprotected { background: #fef2f2; color: #991b1b; }
+        .auth-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .impact { margin-top: 0.25rem; }
+        .flow-tag { display: inline-block; font-size: 0.7rem; color: #6366f1; background: #eef2ff; padding: 1px 6px; border-radius: 3px; margin-right: 4px; font-family: monospace; }
+        .pattern-tag { display: inline-block; font-size: 0.75rem; color: #475569; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; margin: 2px 4px 2px 0; }
+        .dep-tag { display: inline-block; font-size: 0.7rem; padding: 2px 7px; border-radius: 3px; margin: 2px 3px 2px 0; font-family: monospace; }
+        .dep-tag.imports { background: #eef2ff; color: #4f46e5; }
+        .dep-tag.imported-by { background: #fef3c7; color: #92400e; }
+        .dep-tag.direct { background: #fef2f2; color: #991b1b; }
+        .dep-tag.downstream { background: #fff7ed; color: #9a3412; }
+        .finding-badge { display: inline-block; font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; background: #fef2f2; color: #991b1b; font-weight: 600; margin-left: 4px; }
+        .chain-list { margin-bottom: 1rem; }
+        .chain-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; padding: 0.4rem 0.6rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.8rem; }
+        .chain-src, .chain-dst { font-family: monospace; font-weight: 600; color: #334155; }
+        .chain-arrow { color: #94a3b8; }
+        .chain-count { font-size: 0.7rem; background: #6366f1; color: #fff; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+        .chain-files { flex-basis: 100%; margin-top: 0.2rem; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: 0d0deb067baf &bull; Generated: 2026-02-26 04:04 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>25 findings</span>
+        
+        
+        <span>582s runtime</span>
+        <span>$0.6551 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box critical"><div class="num">1</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">6</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">13</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">5</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>Architecture Context</h2>
+<div class="arch-summary">Python FastAPI monolith with 7 modules. The API layer exposes REST and SSE endpoints protected by JWT middleware. Business logic lives in tier1 (orchestrator, indexer, scanner, reporter). External integrations (GitHub, OpenRouter/LLM, Supabase) are in services. Sandbox execution isolates repository analysis. Global in-memory state is used for SSE event buses and webhook replay detection, creating scalability and reliability risks. The architecture lacks a clean service abstraction layer — routes directly import database clients and domain objects from tier1.</div>
+<div class="arch-grid"><div class="arch-card"><h4>Modules (7)</h4><div class="mono">api/ &mdash; FastAPI application layer: routes, middleware, SSE event bus (1355 LOC)</div>
+<div class="mono">models/ &mdash; Pydantic domain models, API contracts, and event models (804 LOC)</div>
+<div class="mono">./ &mdash; Application entry point and configuration management (193 LOC)</div>
+<div class="mono">sandbox/ &mdash; Sandbox execution environment for repository analysis (289 LOC)</div>
+<div class="mono">services/ &mdash; External service integrations: Supabase, GitHub, OpenRouter, Forge (1172 LOC)</div>
+<div class="mono">tests/ &mdash; Test suite covering routes, services, and tier1 components (1212 LOC)</div>
+<div class="mono">tier1/ &mdash; Core audit business logic: indexer, orchestrator, scanner, reporter, quota (2565 LOC)</div>
+</div><div class="arch-card"><h4>Entry Points (8)</h4><div class="mono">main.py <span class="flow-type">FastAPI ASGI application</span> (public)</div>
+<div class="mono">api/routes/audit.py <span class="flow-type">POST /api/audit</span> (public)</div>
+<div class="mono">api/routes/fix.py <span class="flow-type">POST /api/fix</span> (public)</div>
+<div class="mono">api/routes/status.py <span class="flow-type">GET /api/status/{scan_id} (SSE)</span> (public)</div>
+<div class="mono">api/routes/primer.py <span class="flow-type">POST /api/primer</span> (public)</div>
+<div class="mono">api/routes/github_oauth.py <span class="flow-type">POST /api/github-oauth</span> (public)</div>
+<div class="mono">api/routes/onboarding.py <span class="flow-type">POST /api/onboarding/org</span> (public)</div>
+<div class="mono">api/routes/webhook.py <span class="flow-type">POST /api/webhook</span> (public)</div>
+</div></div>
+<h3>Key Patterns</h3><div style="margin-bottom:1rem"><span class="pattern-tag">FastAPI dependency injection for request handling</span> <span class="pattern-tag">Pydantic v2 models for request/response validation</span> <span class="pattern-tag">JWT-based authentication via middleware</span> <span class="pattern-tag">SSE (Server-Sent Events) for real-time scan progress</span> <span class="pattern-tag">Background tasks for async scan execution</span> <span class="pattern-tag">Global in-memory dictionaries for shared state (anti-pattern)</span> <span class="pattern-tag">Direct database access in route handlers (no repository pattern)</span> <span class="pattern-tag">Tier1 business logic imported directly into route handlers</span></div>
+<h3>Data Flows (10)</h3>
+<div class="flow-row"><span class="flow-src">HTTP Client</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">api/middleware/auth.py</span> <span class="flow-type">JWT Bearer Token</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">api/middleware/auth.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">api/routes/*</span> <span class="flow-type">Authenticated Request (user_id)</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">api/routes/audit.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">tier1/orchestrator.py</span> <span class="flow-type">Scan Request + GitHub Token</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">api/routes/audit.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">api/routes/_sse.py</span> <span class="flow-type">Scan Events (AgentLogEntry)</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">api/routes/status.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">HTTP Client (SSE)</span> <span class="flow-type">Real-time Scan Events</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">api/routes/primer.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">sandbox/manager.py</span> <span class="flow-type">Repository URL + Commands</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">api/routes/primer.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">services/openrouter.py</span> <span class="flow-type">Repository Context (prompt)</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">api/routes/github_oauth.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">services/github.py</span> <span class="flow-type">OAuth Code/Token</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">api/routes/webhook.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">services/supabase_client.py</span> <span class="flow-type">GitHub Webhook Payload</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">services/supabase_client.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Supabase DB</span> <span class="flow-type">All Application Data</span> <span class="flow-auth yes">auth</span></div>
+
+<h3>Auth Boundaries (4)</h3>
+<div class="auth-row"><span class="auth-path">api/middleware/auth.py</span><span class="auth-badge protected">protected</span> <span class="auth-type">JWT (HS256, Supabase)</span></div>
+<div class="auth-row"><span class="auth-path">api/routes/webhook.py</span><span class="auth-badge protected">protected</span> <span class="auth-type">HMAC-SHA256 Webhook Signature</span></div>
+<div class="auth-row"><span class="auth-path">api/routes/status.py</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">JWT (no ownership check)</span></div>
+<div class="auth-row"><span class="auth-path">api/routes/fix.py</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">JWT + partial ownership check</span></div>
+
+<h3>Finding Hotspots by Module</h3>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">api</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">33</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">models</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">17</span></div>
+
+
+    <h2>Dependency Graph</h2>
+<p class="arch-summary">Module relationships and downstream connections extracted from the code graph. Use these to trace the blast radius of any fix.</p>
+<h3>Segment Dependency Network</h3>
+<div style="overflow-x:auto;margin-bottom:1rem">
+<svg width="600" height="440" viewBox="0 0 600 440"
+     style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <path d="M300,40 Q400,88 441,108" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M300,40 Q402,168 475,260" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M300,40 Q341,219 378,382" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M300,40 Q263,203 222,382" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M300,40 Q259,60 159,108" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M475,260 Q402,168 300,40" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M378,382 Q407,346 475,260" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M222,382 Q326,251 441,108" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M222,382 Q328,331 475,260" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M125,260 Q226,132 300,40" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M125,260 Q153,296 222,382" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M125,260 Q149,152 159,108" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M159,108 Q322,108 441,108" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M159,108 Q325,187 475,260" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/><path d="M159,108 Q186,223 222,382" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <circle cx="300" cy="40" r="24" fill="rgb(249,52,61)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="300" y="78" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">api</text><text x="300" y="44" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">60</text><circle cx="441" cy="108" r="22" fill="rgb(204,67,115)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="441" y="144" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">models</text><text x="441" y="112" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">42</text><circle cx="475" cy="260" r="18" fill="rgb(206,66,112)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="475" y="292" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">root</text><text x="475" y="264" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">43</text><circle cx="378" cy="382" r="19" fill="rgb(174,77,151)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="378" y="415" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">sandbox</text><text x="378" y="386" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">30</text><circle cx="222" cy="382" r="23" fill="rgb(189,72,133)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="222" y="419" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">services</text><text x="222" y="386" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">36</text><circle cx="125" cy="260" r="24" fill="rgb(161,81,166)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="125" y="298" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">tests</text><text x="125" y="264" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">25</text><circle cx="159" cy="108" r="30" fill="rgb(199,68,121)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="159" y="152" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">tier1</text><text x="159" y="112" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">40</text>
+  <text x="590" y="430" text-anchor="end"
+        font-size="9" fill="#94a3b8">Node size = LOC, color = finding density, arrows = depends_on</text>
+</svg>
+</div>
+<h3>Module Interconnections</h3>
+<p class="desc">Each row shows a segment and which other segments it depends on (imports from) and which depend on it (imported by).</p>
+<table>
+        <thead><tr>
+            <th>Segment</th>
+            <th>Imports From</th>
+            <th>Imported By</th>
+        </tr></thead>
+        <tbody><tr>
+            <td><strong>api</strong> <span class="finding-badge">60</span><br>
+                <span class="desc">1,355 LOC &middot; 13 files</span></td>
+            <td><span class="dep-tag imports">models</span> <span class="dep-tag imports">root</span> <span class="dep-tag imports">sandbox</span> <span class="dep-tag imports">services</span> <span class="dep-tag imports">tier1</span></td>
+            <td><span class="dep-tag imported-by">root</span> <span class="dep-tag imported-by">tests</span></td>
+        </tr><tr>
+            <td><strong>models</strong> <span class="finding-badge">42</span><br>
+                <span class="desc">804 LOC &middot; 9 files</span></td>
+            <td><span class="desc">none</span></td>
+            <td><span class="dep-tag imported-by">api</span> <span class="dep-tag imported-by">services</span> <span class="dep-tag imported-by">tier1</span></td>
+        </tr><tr>
+            <td><strong>root</strong> <span class="finding-badge">43</span><br>
+                <span class="desc">193 LOC &middot; 2 files</span></td>
+            <td><span class="dep-tag imports">api</span></td>
+            <td><span class="dep-tag imported-by">api</span> <span class="dep-tag imported-by">sandbox</span> <span class="dep-tag imported-by">services</span> <span class="dep-tag imported-by">tier1</span></td>
+        </tr><tr>
+            <td><strong>sandbox</strong> <span class="finding-badge">30</span><br>
+                <span class="desc">289 LOC &middot; 4 files</span></td>
+            <td><span class="dep-tag imports">root</span></td>
+            <td><span class="dep-tag imported-by">api</span></td>
+        </tr><tr>
+            <td><strong>services</strong> <span class="finding-badge">36</span><br>
+                <span class="desc">1,172 LOC &middot; 6 files</span></td>
+            <td><span class="dep-tag imports">models</span> <span class="dep-tag imports">root</span></td>
+            <td><span class="dep-tag imported-by">api</span> <span class="dep-tag imported-by">tests</span> <span class="dep-tag imported-by">tier1</span></td>
+        </tr><tr>
+            <td><strong>tests</strong> <span class="finding-badge">25</span><br>
+                <span class="desc">1,212 LOC &middot; 9 files</span></td>
+            <td><span class="dep-tag imports">api</span> <span class="dep-tag imports">services</span> <span class="dep-tag imports">tier1</span></td>
+            <td><span class="desc">none</span></td>
+        </tr><tr>
+            <td><strong>tier1</strong> <span class="finding-badge">40</span><br>
+                <span class="desc">2,565 LOC &middot; 7 files</span></td>
+            <td><span class="dep-tag imports">models</span> <span class="dep-tag imports">root</span> <span class="dep-tag imports">services</span></td>
+            <td><span class="dep-tag imported-by">api</span> <span class="dep-tag imported-by">tests</span></td>
+        </tr></tbody>
+    </table>
+<h3>Finding Blast Radius</h3>
+<p class="desc">For each high/critical finding, the downstream modules that could be affected if the finding's code changes.</p>
+<table>
+        <thead><tr>
+            <th>Sev</th>
+            <th>Finding</th>
+            <th>Direct Modules</th>
+            <th>Downstream Modules</th>
+            <th>Files Affected</th>
+        </tr></thead>
+        <tbody><tr>
+            <td><span class="severity critical">critical</span></td>
+            <td><strong>Unbounded In-Memory SSE Event Bus Causes Memory Leak and Hor</strong></td>
+            <td><span class="dep-tag direct">api</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Missing Authorization Check on SSE Status Endpoint — Any Use</strong></td>
+            <td><span class="dep-tag direct">api</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>OAuth State Secret Falls Back to JWT Secret — Cryptographic </strong></td>
+            <td><span class="dep-tag direct">api</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Broken Access Control — IDOR on Fix Endpoint Allows Cross-Us</strong></td>
+            <td><span class="dep-tag direct">api</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Rate Limiting Bypass via IP Spoofing</strong></td>
+            <td><span class="dep-tag direct">api</span></td>
+            <td><span class="dep-tag downstream">root</span></td>
+            <td class="loc">4</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Direct Database Access in Route Handlers — No Repository Abs</strong></td>
+            <td><span class="dep-tag direct">api</span></td>
+            <td><span class="dep-tag downstream">tests</span></td>
+            <td class="loc">1</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Route Handlers Directly Instantiate Tier1 Domain Objects — L</strong></td>
+            <td><span class="dep-tag direct">api</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr></tbody>
+    </table>
+<h3>Import Chains</h3>
+<p class="desc">File-level dependency flows showing how imports propagate across segments.</p>
+<div class="chain-list"><div class="chain-row">
+            <span class="chain-src">api</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">root</span>
+            <span class="chain-count">7</span>
+            <div class="chain-files"><span class="flow-tag">auth.py &rarr; config.py</span> <span class="flow-tag">rate_limit.py &rarr; config.py</span> <span class="flow-tag">audit.py &rarr; config.py</span> <span class="desc">+4 more</span></div>
+        </div><div class="chain-row">
+            <span class="chain-src">api</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">models</span>
+            <span class="chain-count">7</span>
+            <div class="chain-files"><span class="flow-tag">_sse.py &rarr; agent_log.py</span> <span class="flow-tag">audit.py &rarr; agent_log.py</span> <span class="flow-tag">audit.py &rarr; scan.py</span> <span class="desc">+4 more</span></div>
+        </div><div class="chain-row">
+            <span class="chain-src">api</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">services</span>
+            <span class="chain-count">7</span>
+            <div class="chain-files"><span class="flow-tag">audit.py &rarr; __init__.py</span> <span class="flow-tag">audit.py &rarr; github.py</span> <span class="flow-tag">fix.py &rarr; __init__.py</span> <span class="desc">+4 more</span></div>
+        </div><div class="chain-row">
+            <span class="chain-src">tests</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">api</span>
+            <span class="chain-count">5</span>
+            <div class="chain-files"><span class="flow-tag">test_audit_routes.py &rarr; __init__.py</span> <span class="flow-tag">test_fix_routes.py &rarr; __init__.py</span> <span class="flow-tag">test_github_oauth_routes.py &rarr; __init__.py</span> <span class="desc">+2 more</span></div>
+        </div><div class="chain-row">
+            <span class="chain-src">tests</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">tier1</span>
+            <span class="chain-count">5</span>
+            <div class="chain-files"><span class="flow-tag">test_audit_routes.py &rarr; contracts.py</span> <span class="flow-tag">test_tier1_indexer_cache.py &rarr; indexer.py</span> <span class="flow-tag">test_tier1_reporter.py &rarr; contracts.py</span> <span class="desc">+2 more</span></div>
+        </div><div class="chain-row">
+            <span class="chain-src">api</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">tier1</span>
+            <span class="chain-count">3</span>
+            <div class="chain-files"><span class="flow-tag">audit.py &rarr; indexer.py</span> <span class="flow-tag">audit.py &rarr; orchestrator.py</span> <span class="flow-tag">audit.py &rarr; quota.py</span> </div>
+        </div><div class="chain-row">
+            <span class="chain-src">root</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">api</span>
+            <span class="chain-count">3</span>
+            <div class="chain-files"><span class="flow-tag">main.py &rarr; auth.py</span> <span class="flow-tag">main.py &rarr; rate_limit.py</span> <span class="flow-tag">main.py &rarr; __init__.py</span> </div>
+        </div><div class="chain-row">
+            <span class="chain-src">services</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">root</span>
+            <span class="chain-count">3</span>
+            <div class="chain-files"><span class="flow-tag">forge_bridge.py &rarr; config.py</span> <span class="flow-tag">openrouter.py &rarr; config.py</span> <span class="flow-tag">supabase_client.py &rarr; config.py</span> </div>
+        </div><div class="chain-row">
+            <span class="chain-src">tier1</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">root</span>
+            <span class="chain-count">3</span>
+            <div class="chain-files"><span class="flow-tag">indexer.py &rarr; config.py</span> <span class="flow-tag">quota.py &rarr; config.py</span> <span class="flow-tag">reporter.py &rarr; config.py</span> </div>
+        </div><div class="chain-row">
+            <span class="chain-src">tier1</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">services</span>
+            <span class="chain-count">3</span>
+            <div class="chain-files"><span class="flow-tag">indexer.py &rarr; __init__.py</span> <span class="flow-tag">orchestrator.py &rarr; github.py</span> <span class="flow-tag">quota.py &rarr; __init__.py</span> </div>
+        </div><div class="chain-row">
+            <span class="chain-src">tier1</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">models</span>
+            <span class="chain-count">3</span>
+            <div class="chain-files"><span class="flow-tag">orchestrator.py &rarr; agent_log.py</span> <span class="flow-tag">orchestrator.py &rarr; findings.py</span> <span class="flow-tag">orchestrator.py &rarr; scan.py</span> </div>
+        </div><div class="chain-row">
+            <span class="chain-src">services</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">models</span>
+            <span class="chain-count">2</span>
+            <div class="chain-files"><span class="flow-tag">supabase_client.py &rarr; findings.py</span> <span class="flow-tag">supabase_client.py &rarr; scan.py</span> </div>
+        </div></div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>reliability</td>
+            <td>
+                <strong>Unbounded In-Memory SSE Event Bus Causes Memory Leak and Horizontal Scaling Failure</strong>
+                <div class="desc">The global `event_buses` dictionary in api/routes/_sse.py stores scan events indefinitely. Entries are added when a scan starts (audit.py) but never removed after the SSE stream completes or the scan finishes. This causes unbounded memory growth under sustained load. Additionally, in horizontally scaled deployments, clients connected to different instances will miss events since each instance maintains its own in-memory store. Multiple workers (security, quality, architecture across both waves) independently flagged this as critical/high severity with high confidence.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span> <span class="flow-tag">api/routes/status.py &rarr; HTTP Client (SSE)</span></div>
+            </td>
+            <td class="loc">api/routes/_sse.py:11</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing Authorization Check on SSE Status Endpoint — Any User Can Monitor Any Scan</strong>
+                <div class="desc">The GET /status/{scan_id} SSE endpoint in api/routes/status.py only checks if the scan_id exists in event_buses but does not verify that the requesting user owns or has access to that scan. Any authenticated user can monitor real-time progress, findings, and agent logs of any other user's scan by guessing or obtaining a UUID. The request.state.user_id is available from middleware but unused for authorization. Flagged by two independent security workers with high confidence.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/status.py &rarr; HTTP Client (SSE)</span></div>
+            </td>
+            <td class="loc">api/routes/status.py:44</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>OAuth State Secret Falls Back to JWT Secret — Cryptographic Key Confusion</strong>
+                <div class="desc">In api/routes/github_oauth.py, the _state_secret() function returns settings.supabase_jwt_secret as a fallback when github_oauth_state_secret is not set. Reusing the JWT secret for OAuth state HMAC means: (1) compromising the JWT secret also compromises OAuth flows, (2) the secrets may have different rotation schedules, and (3) if neither is configured, the system may fail unsafely. Flagged by two independent security workers.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/github_oauth.py &rarr; services/github.py</span></div>
+            </td>
+            <td class="loc">api/routes/github_oauth.py:46</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Broken Access Control — IDOR on Fix Endpoint Allows Cross-User Remediation Trigger</strong>
+                <div class="desc">The POST /api/fix endpoint in api/routes/fix.py fetches an action_item using user_id for ownership, but then fetches the associated project and scan_report without verifying they belong to the same user. An attacker could potentially trigger FORGE remediation on resources belonging to other users by manipulating action_item_id relationships. The scan_report is fetched with user_id but project is fetched without ownership verification. Two workers flagged this independently.</div>
+                
+            </td>
+            <td class="loc">api/routes/fix.py:72</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Rate Limiting Bypass via IP Spoofing</strong>
+                <div class="desc">The rate limiter in api/middleware/rate_limit.py uses slowapi's get_remote_address which extracts the client IP from request.client.host. When deployed behind a reverse proxy, attackers can spoof X-Forwarded-For or X-Real-IP headers to bypass per-IP rate limits. This affects all rate-limited endpoints. Flagged by two independent security workers.</div>
+                
+            </td>
+            <td class="loc">api/middleware/rate_limit.py:11</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Direct Database Access in Route Handlers — No Repository Abstraction</strong>
+                <div class="desc">All route handlers (audit.py, fix.py, onboarding.py, primer.py, github_oauth.py) directly import services.supabase_client as db and call methods on it. This creates tight coupling between the presentation layer and persistence layer. Routes cannot be tested without a Supabase connection, and switching database implementations requires modifying all route files. Flagged by multiple architecture workers across both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span> <span class="flow-tag">api/routes/primer.py &rarr; sandbox/manager.py</span></div>
+            </td>
+            <td class="loc">api/routes/audit.py:17</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Route Handlers Directly Instantiate Tier1 Domain Objects — Layering Violation</strong>
+                <div class="desc">api/routes/audit.py directly imports and instantiates DeterministicIndexer, Tier1Orchestrator, and quota functions from the tier1 module. This violates clean architecture: the API presentation layer should not contain or know about internal business logic implementation details. It makes routes untestable in isolation and creates tight coupling. Flagged by two architecture workers across both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span></div>
+            </td>
+            <td class="loc">api/routes/audit.py:20</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Non-Atomic Quota Check Creates Race Condition — Users Can Exceed Monthly Report Cap</strong>
+                <div class="desc">In api/routes/audit.py, the quota check (reports_generated &gt;= tier1_monthly_report_cap) and the increment (db.increment_free_reports_generated) are non-atomic. Under concurrent requests, multiple users could pass the check simultaneously and all increment past the cap. This allows users to exceed their monthly report quota. Combined with the thread-unsafe global _scan_start_counter, concurrent behavior is unpredictable.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span></div>
+            </td>
+            <td class="loc">api/routes/audit.py:108</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Webhook Replay Detection Uses In-Memory Storage — Ineffective in Multi-Instance Deployments</strong>
+                <div class="desc">The _seen_deliveries dictionary in api/routes/webhook.py stores delivery IDs in process memory. In multi-instance deployments, each instance tracks deliveries independently, so replay attacks succeed against any instance that hasn't seen the delivery. The dictionary also grows unbounded during the replay window. Flagged by architecture and security workers across both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/webhook.py &rarr; services/supabase_client.py</span></div>
+            </td>
+            <td class="loc">api/routes/webhook.py:24</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Rate Limiting on Onboarding and SSE Status Endpoints</strong>
+                <div class="desc">The POST /api/onboarding/org endpoint has no @limiter.limit decorator unlike other sensitive endpoints. The GET /api/status/{scan_id} SSE endpoint also lacks rate limiting, allowing unlimited concurrent SSE connections which could exhaust server file descriptors and memory. Both gaps were identified by security workers.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/status.py &rarr; HTTP Client (SSE)</span></div>
+            </td>
+            <td class="loc">api/routes/onboarding.py:24</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>DRY Violation — utc_now() Duplicated Across Three Model Files</strong>
+                <div class="desc">The utc_now() function is defined identically in models/builds.py, models/program.py, and models/runtime.py. models/agent_log.py uses an inline lambda for the same logic. Any change to timestamp handling requires updating 3-4 locations. This was independently flagged by architecture and quality workers across both waves with very high confidence.</div>
+                
+            </td>
+            <td class="loc">models/builds.py:14</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing Input Length Constraints on Critical Model Fields — DoS and Data Integrity Risk</strong>
+                <div class="desc">Multiple Pydantic models accept unbounded string fields: AgentLogEntry.message, Finding.description/code_snippet, ActionItem.fix_steps, ProbeResult.stdout/stderr, SecretCreateRequest.value. Without length constraints, malicious clients can send arbitrarily large payloads causing memory exhaustion, storage bloat, or downstream processing failures. Multiple workers flagged this across models and API segments.</div>
+                
+            </td>
+            <td class="loc">models/agent_log.py:47</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Inconsistent Status Representation — String Literals vs Enums in Models</strong>
+                <div class="desc">RuntimeSession uses Literal string types for status ('bootstrapped', 'running', 'completed', 'errored') while similar models like BuildStatus use Enum. ActionItem.effort is a plain string with comment '# quick | moderate | significant' but no enforcement. DebtItem.severity is a plain string defaulting to 'medium' while Finding.severity uses the Severity enum. This inconsistency increases risk of invalid data and typos.</div>
+                
+            </td>
+            <td class="loc">models/runtime.py:20</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>reliability</td>
+            <td>
+                <strong>Thread-Unsafe Global Counter for Cleanup Scheduling</strong>
+                <div class="desc">_scan_start_counter in api/routes/audit.py is a global mutable variable incremented without locks in an async context. Under concurrent requests this can cause race conditions, missed cleanups, and non-deterministic behavior. The counter also doesn't survive process restarts and doesn't work in multi-process deployments. Flagged by architecture and quality workers across both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span></div>
+            </td>
+            <td class="loc">api/routes/audit.py:28</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Missing URL Validation on BuildRun.repo_url in Models</strong>
+                <div class="desc">BuildRun.repo_url in models/builds.py is a plain str with no URL format validation, inconsistent with AuditRequest.repo_url which uses Pydantic's HttpUrl. This inconsistency allows malformed URLs to be stored in build records and passed to downstream services. Multiple workers flagged this across both waves.</div>
+                
+            </td>
+            <td class="loc">models/builds.py:118</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Prompt Injection Risk — Repository Data Interpolated Directly into LLM Prompt</strong>
+                <div class="desc">In api/routes/primer.py, repository data (file_tree_sample, dependency_sample, npm_scripts) from user-controlled repositories is interpolated directly into the LLM prompt string. A malicious repository could contain content designed to override the system prompt instructions (prompt injection), potentially causing the LLM to return harmful or misleading analysis. The 15000-character truncation does not prevent injection.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/primer.py &rarr; sandbox/manager.py</span> <span class="flow-tag">api/routes/primer.py &rarr; services/openrouter.py</span></div>
+            </td>
+            <td class="loc">api/routes/primer.py:156</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>High Cyclomatic Complexity in _tier1_preflight Function</strong>
+                <div class="desc">The _tier1_preflight function in api/routes/audit.py contains excessive nested branching with multiple conditions for onboarding, project count, report quota, and LOC cap validation. This makes the function difficult to test comprehensively and maintain. A single function handles too many distinct validation concerns.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span></div>
+            </td>
+            <td class="loc">api/routes/audit.py:112</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Broad Exception Handling Masks Error Details</strong>
+                <div class="desc">Multiple routes use broad `except Exception:` clauses that log the error but provide generic responses to callers. This prevents differentiated error handling and makes debugging harder. In audit.py, the background task catch-all converts all errors to the same 'scan failed' message. Inconsistent patterns also exist: some routes re-raise HTTPException explicitly (redundant), while others catch all exceptions including HTTPException.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span> <span class="flow-tag">api/routes/primer.py &rarr; sandbox/manager.py</span></div>
+            </td>
+            <td class="loc">api/routes/audit.py:84</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Sandbox Command Execution Without Repo URL Allowlist Validation</strong>
+                <div class="desc">The primer endpoint passes user-supplied repo_url directly to SandboxManager.provision() and executes shell commands (find, ls, git) on the cloned repository. There is no validation that the URL is from an allowed domain (e.g., github.com). A malicious actor could supply URLs pointing to attacker-controlled repositories containing scripts or symlinks designed to exploit the sandbox environment.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/primer.py &rarr; sandbox/manager.py</span> <span class="flow-tag">api/routes/primer.py &rarr; services/openrouter.py</span></div>
+            </td>
+            <td class="loc">api/routes/primer.py:52</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>reliability</td>
+            <td>
+                <strong>LLM Prompt Character Truncation May Cause Silent Context Loss</strong>
+                <div class="desc">In api/routes/primer.py, primer_json is truncated to 15000 characters before being sent to the LLM. This character-based truncation can cut in the middle of JSON structures, causing malformed context. Many LLM APIs count tokens (not characters), and 15000 characters may exceed token limits for some models while being over-conservative for others.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/primer.py &rarr; sandbox/manager.py</span> <span class="flow-tag">api/routes/primer.py &rarr; services/openrouter.py</span></div>
+            </td>
+            <td class="loc">api/routes/primer.py:147</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Dynamic Import Inside Background Task Function</strong>
+                <div class="desc">In api/routes/fix.py, trigger_forge_remediate is imported inside the _run_forge_fix function rather than at module level. This delays import errors until runtime execution, adds overhead on every invocation, and hides the dependency from static analysis tools. Flagged by architecture and quality workers.</div>
+                
+            </td>
+            <td class="loc">api/routes/fix.py:27</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing Onboarding Check in Primer Endpoint</strong>
+                <div class="desc">The POST /api/primer endpoint does not verify that the user has completed onboarding before proceeding, unlike the audit endpoint which enforces this in _tier1_preflight. This allows users to access primer functionality without completing required setup steps, bypassing a business rule that should be consistently enforced.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/primer.py &rarr; sandbox/manager.py</span> <span class="flow-tag">api/routes/primer.py &rarr; services/openrouter.py</span></div>
+            </td>
+            <td class="loc">api/routes/primer.py:34</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Hardcoded Magic Numbers Scattered Across Multiple Files</strong>
+                <div class="desc">Multiple hardcoded numeric values throughout the codebase lack documentation or configuration: max_idle=600 in status.py, _CLEANUP_EVERY_N_SCANS=5 in audit.py, file tree limits (350, 200, 40), timeout values (30, 15), prompt character limit (15000), and LLM max_tokens (280) in primer.py. These reduce configurability and maintainability.</div>
+                <div class="impact">Ripple: <span class="flow-tag">api/routes/audit.py &rarr; tier1/orchestrator.py</span> <span class="flow-tag">api/routes/audit.py &rarr; api/routes/_sse.py</span> <span class="flow-tag">api/routes/status.py &rarr; HTTP Client (SSE)</span></div>
+            </td>
+            <td class="loc">api/routes/status.py:28</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Inconsistent Enum Naming Conventions Across Models</strong>
+                <div class="desc">Enum value naming is inconsistent: BuildStatus uses lowercase ('pending', 'completed'), GateType uses SCREAMING_SNAKE_CASE ('MERGE_GATE', 'TEST_GATE'), LogLevel includes 'success' (not a standard log level). This makes the API contract unpredictable for consumers and increases the risk of incorrect comparisons.</div>
+                
+            </td>
+            <td class="loc">models/builds.py:20</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Models Lack Clear __init__.py Public API Surface</strong>
+                <div class="desc">The models directory either lacks or has a minimal __init__.py that does not declare __all__. External code must know internal file structure to import models (e.g., from models.builds import BuildRun). This exposes internal organization and makes refactoring — such as moving models between files — a breaking change for all importers.</div>
+                
+            </td>
+            <td class="loc">models/__init__.py:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr></tbody>
+    </table>
+
+    
+        <h2>Remediation Plan (25 items across 6 levels)</h2>
+        <p class="plan-summary">25 findings across 4 severity levels. Execution is organized in 6 levels. Level 1 addresses quick deterministic fixes (DRY violation, missing rate limits, OAuth secret, module-level imports, onboarding guard). Level 2 addresses model-layer improvements (URL validation, magic numbers, enum naming, access control fixes, rate limiting bypass, atomic quota, webhook replay). Level 3 addresses the critical memory leak, global state, input validation constraints, and exception handling. Level 4 handles dependent improvements (SSE auth check, prompt injection, LLM truncation, enum enforcement). Levels 5-6 are architectural refactors (repository abstraction, service layer) that significantly improve testability but are lower immediate risk. The three highest-severity security issues (F-001 memory leak, F-002 SSE auth bypass, F-004 IDOR in fix endpoint) are prioritized and unblocked. The architectural refactors (F-012, F-013) are significant efforts best scheduled after the security and quality fixes stabilize the codebase.</p>
+        <table>
+            <thead><tr><th>Priority</th><th>Tier</th><th>Fix</th><th>Files</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Create shared utc_now utility and eliminate duplication</strong></td>
+                <td>models/_utils.py, models/builds.py, models/program.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Require explicit OAuth state secret — remove JWT secret fallback</strong></td>
+                <td>api/routes/github_oauth.py, config.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T1</td>
+                <td><strong>Add rate limiting to onboarding and SSE status endpoints</strong></td>
+                <td>api/routes/onboarding.py, api/routes/status.py</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T1</td>
+                <td><strong>Move forge_bridge import to module level in fix.py</strong></td>
+                <td>api/routes/fix.py</td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T1</td>
+                <td><strong>Use HttpUrl type for BuildRun.repo_url</strong></td>
+                <td>models/builds.py</td>
+            </tr>
+            <tr>
+                <td>P6</td>
+                <td>T1</td>
+                <td><strong>Add onboarding check to primer endpoint</strong></td>
+                <td>api/routes/primer.py</td>
+            </tr>
+            <tr>
+                <td>P7</td>
+                <td>T1</td>
+                <td><strong>Move magic numbers to configuration</strong></td>
+                <td>config.py, api/routes/status.py, api/routes/audit.py</td>
+            </tr>
+            <tr>
+                <td>P8</td>
+                <td>T1</td>
+                <td><strong>Standardize enum naming conventions</strong></td>
+                <td>models/builds.py, models/agent_log.py, models/findings.py</td>
+            </tr>
+            <tr>
+                <td>P9</td>
+                <td>T1</td>
+                <td><strong>Add models/__init__.py with explicit public API exports</strong></td>
+                <td>models/__init__.py</td>
+            </tr>
+            <tr>
+                <td>P10</td>
+                <td>T2</td>
+                <td><strong>Fix SSE event bus memory leak with cleanup mechanism</strong></td>
+                <td>api/routes/_sse.py, api/routes/audit.py, api/routes/status.py</td>
+            </tr>
+            <tr>
+                <td>P11</td>
+                <td>T2</td>
+                <td><strong>Add ownership authorization check to SSE status endpoint</strong></td>
+                <td>api/routes/status.py</td>
+            </tr>
+            <tr>
+                <td>P12</td>
+                <td>T2</td>
+                <td><strong>Fix IDOR in fix endpoint — verify project and scan ownership</strong></td>
+                <td>api/routes/fix.py</td>
+            </tr>
+            <tr>
+                <td>P13</td>
+                <td>T2</td>
+                <td><strong>Replace IP-based rate limiting with user-ID-based limiting</strong></td>
+                <td>api/middleware/rate_limit.py</td>
+            </tr>
+            <tr>
+                <td>P14</td>
+                <td>T2</td>
+                <td><strong>Make quota check atomic using database-level operations</strong></td>
+                <td>api/routes/audit.py, services/supabase_client.py</td>
+            </tr>
+            <tr>
+                <td>P15</td>
+                <td>T2</td>
+                <td><strong>Make webhook replay detection distributed-safe</strong></td>
+                <td>api/routes/webhook.py</td>
+            </tr>
+            <tr>
+                <td>P16</td>
+                <td>T2</td>
+                <td><strong>Add input length constraints to critical model fields</strong></td>
+                <td>models/agent_log.py, models/findings.py, models/program.py</td>
+            </tr>
+            <tr>
+                <td>P17</td>
+                <td>T2</td>
+                <td><strong>Standardize status and enum fields using proper Enum types</strong></td>
+                <td>models/findings.py, models/builds.py, models/runtime.py</td>
+            </tr>
+            <tr>
+                <td>P18</td>
+                <td>T2</td>
+                <td><strong>Replace global counter cleanup with time-based background task</strong></td>
+                <td>api/routes/audit.py, main.py</td>
+            </tr>
+            <tr>
+                <td>P19</td>
+                <td>T2</td>
+                <td><strong>Mitigate prompt injection in LLM prompt construction</strong></td>
+                <td>api/routes/primer.py</td>
+            </tr>
+            <tr>
+                <td>P20</td>
+                <td>T2</td>
+                <td><strong>Refactor _tier1_preflight to reduce cyclomatic complexity</strong></td>
+                <td>api/routes/audit.py</td>
+            </tr>
+            <tr>
+                <td>P21</td>
+                <td>T2</td>
+                <td><strong>Standardize exception handling patterns across routes</strong></td>
+                <td>api/routes/audit.py, api/routes/primer.py, api/routes/github_oauth.py</td>
+            </tr>
+            <tr>
+                <td>P22</td>
+                <td>T2</td>
+                <td><strong>Add repository URL allowlist validation before sandbox provisioning</strong></td>
+                <td>api/routes/primer.py</td>
+            </tr>
+            <tr>
+                <td>P23</td>
+                <td>T2</td>
+                <td><strong>Fix LLM prompt context truncation to avoid malformed JSON</strong></td>
+                <td>api/routes/primer.py</td>
+            </tr>
+            <tr>
+                <td>P24</td>
+                <td>T3</td>
+                <td><strong>Introduce repository/service abstraction layer for database access</strong></td>
+                <td>services/supabase_client.py, api/routes/audit.py, api/routes/fix.py</td>
+            </tr>
+            <tr>
+                <td>P25</td>
+                <td>T3</td>
+                <td><strong>Extract AuditService to decouple route layer from tier1 business logic</strong></td>
+                <td>services/audit_service.py, api/routes/audit.py, api/dependencies.py</td>
+            </tr></tbody>
+        </table>
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "run_id": "0d0deb067baf",
+  "total_cost_usd": 0.6551,
+  "total_tokens": 498479,
+  "total_invocations": 43,
+  "successful_invocations": 43,
+  "failed_invocations": 0,
+  "elapsed_ms": 582120,
+  "cost_by_agent": {
+    "hive_synthesizer": 0.406,
+    "hive_worker/architecture": 0.08,
+    "hive_worker/quality": 0.0849,
+    "hive_worker/security": 0.0841
+  },
+  "cost_by_model": {
+    "anthropic/claude-sonnet-4.6": 0.406,
+    "minimax/minimax-m2.5": 0.2491
+  },
+  "training_pairs_logged": 0
+}

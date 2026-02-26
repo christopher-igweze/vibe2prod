@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        h3 { font-size: 1rem; color: #334155; margin: 1rem 0 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .arch-summary { color: #475569; line-height: 1.6; margin-bottom: 1rem; white-space: pre-line; }
+        .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .arch-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; }
+        .arch-card h4 { font-size: 0.85rem; color: #0f172a; margin-bottom: 0.5rem; }
+        .arch-card .mono { font-family: monospace; font-size: 0.8rem; color: #475569; }
+        .flow-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .flow-arrow { color: #94a3b8; flex-shrink: 0; }
+        .flow-src, .flow-dst { font-family: monospace; font-size: 0.78rem; color: #334155; }
+        .flow-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .flow-auth { font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; }
+        .flow-auth.yes { background: #f0fdf4; color: #166534; }
+        .flow-auth.no { background: #fef2f2; color: #991b1b; }
+        .auth-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .auth-path { font-family: monospace; font-size: 0.78rem; color: #334155; flex: 1; }
+        .auth-badge { font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+        .auth-badge.protected { background: #f0fdf4; color: #166534; }
+        .auth-badge.unprotected { background: #fef2f2; color: #991b1b; }
+        .auth-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .impact { margin-top: 0.25rem; }
+        .flow-tag { display: inline-block; font-size: 0.7rem; color: #6366f1; background: #eef2ff; padding: 1px 6px; border-radius: 3px; margin-right: 4px; font-family: monospace; }
+        .pattern-tag { display: inline-block; font-size: 0.75rem; color: #475569; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; margin: 2px 4px 2px 0; }
+        .dep-tag { display: inline-block; font-size: 0.7rem; padding: 2px 7px; border-radius: 3px; margin: 2px 3px 2px 0; font-family: monospace; }
+        .dep-tag.imports { background: #eef2ff; color: #4f46e5; }
+        .dep-tag.imported-by { background: #fef3c7; color: #92400e; }
+        .dep-tag.direct { background: #fef2f2; color: #991b1b; }
+        .dep-tag.downstream { background: #fff7ed; color: #9a3412; }
+        .finding-badge { display: inline-block; font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; background: #fef2f2; color: #991b1b; font-weight: 600; margin-left: 4px; }
+        .chain-list { margin-bottom: 1rem; }
+        .chain-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; padding: 0.4rem 0.6rem; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 0.8rem; }
+        .chain-src, .chain-dst { font-family: monospace; font-weight: 600; color: #334155; }
+        .chain-arrow { color: #94a3b8; }
+        .chain-count { font-size: 0.7rem; background: #6366f1; color: #fff; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+        .chain-files { flex-basis: 100%; margin-top: 0.2rem; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: 51a9188d9e77 &bull; Generated: 2026-02-26 04:02 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>30 findings</span>
+        
+        
+        <span>490s runtime</span>
+        <span>$0.5453 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box critical"><div class="num">2</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">6</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">13</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">9</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>Architecture Context</h2>
+<div class="arch-summary">FORGE is a Python-based LLM orchestration framework for automated code remediation. It follows a pipeline pattern: Discovery -&gt; Triage -&gt; Remediation -&gt; Validation. The main entry points are a CLI (typer-based) and an AgentField agent. The execution engine uses checkpointing for resume capability, git worktrees for isolated fixes, and multiple specialized LLM agents for different roles. Configuration is partially centralized in ForgeConfig (Pydantic model) but scattered with magic numbers elsewhere. The codebase has a monolithic app.py orchestrator that needs decomposition. Tests include golden codebases with intentional vulnerabilities for detection testing.</div>
+<div class="arch-grid"><div class="arch-card"><h4>Modules (7)</h4><div class="mono">forge/ &mdash; Main FORGE orchestration framework for automated code remediation (1500 LOC)</div>
+<div class="mono">forge/execution/ &mdash; Execution engine: checkpointing, context building, LLM execution, reporting, telemetry, worktree management (6000 LOC)</div>
+<div class="mono">forge/graph/ &mdash; Code graph builder and models for codebase structure analysis (1500 LOC)</div>
+<div class="mono">forge/prompts/ &mdash; LLM prompt templates for architecture and code review agents (2000 LOC)</div>
+<div class="mono">tests/golden/ &mdash; Golden test suite with intentionally vulnerable codebases for testing detection capabilities (4000 LOC)</div>
+<div class="mono">tests/integration/ &mdash; Integration tests for forge execution pipeline with mocked LLM agents (2000 LOC)</div>
+<div class="mono">tests/ &mdash; Shared test fixtures, conftest, and schema factories (1500 LOC)</div>
+</div><div class="arch-card"><h4>Entry Points (3)</h4><div class="mono">forge/__main__.py <span class="flow-type">cli_entrypoint</span> (public)</div>
+<div class="mono">forge/cli.py <span class="flow-type">typer_cli</span> (public)</div>
+<div class="mono">forge/app.py <span class="flow-type">agentfield_agent</span> (public)</div>
+</div></div>
+<h3>Key Patterns</h3><div style="margin-bottom:1rem"><span class="pattern-tag">Pipeline pattern with 4 phases: Discovery, Triage, Remediation, Validation</span> <span class="pattern-tag">Checkpoint/resume pattern for long-running operations</span> <span class="pattern-tag">Git worktree isolation for concurrent fix application</span> <span class="pattern-tag">Role-based LLM routing via FORGE_ROLE_TO_MODEL_FIELD</span> <span class="pattern-tag">Conditional AgentField import with fallback to standalone mode</span> <span class="pattern-tag">Pydantic models for schema validation throughout</span> <span class="pattern-tag">Token budget management for LLM context windows</span> <span class="pattern-tag">Async/await throughout execution engine</span></div>
+<h3>Data Flows (8)</h3>
+<div class="flow-row"><span class="flow-src">forge/cli.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">forge/app.py</span> <span class="flow-type">repo_url/repo_path/config</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">forge/app.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">forge/execution/checkpoint.py</span> <span class="flow-type">ForgeExecutionState</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">forge/app.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">forge/execution/context_builder.py</span> <span class="flow-type">CodebaseMap/file_paths</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">forge/app.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">forge/execution/forge_executor.py</span> <span class="flow-type">RemediationItem/AuditFinding</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">forge/execution/context_builder.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">filesystem</span> <span class="flow-type">file_content</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">forge/execution/checkpoint.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">filesystem</span> <span class="flow-type">JSON checkpoint files</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">forge/execution/telemetry.py</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">filesystem</span> <span class="flow-type">training pairs/benchmark logs</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">external/git_repo</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">forge/app.py</span> <span class="flow-type">repository URL</span> <span class="flow-auth no">no auth</span></div>
+
+<h3>Auth Boundaries (4)</h3>
+<div class="auth-row"><span class="auth-path">forge/cli.py</span><span class="auth-badge protected">protected</span> <span class="auth-type">api_key (OPENROUTER_API_KEY)</span></div>
+<div class="auth-row"><span class="auth-path">forge/app.py</span><span class="auth-badge protected">protected</span> <span class="auth-type">api_key (AGENTFIELD_API_KEY)</span></div>
+<div class="auth-row"><span class="auth-path">forge/execution/checkpoint.py</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+<div class="auth-row"><span class="auth-path">forge/execution/context_builder.py</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+
+<h3>Finding Hotspots by Module</h3>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">forge.core</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">30</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">tests.integration</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:90%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">6</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">tests.golden</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:45%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">3</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">tests.fixtures</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:15%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">1</span></div>
+
+
+    <h2>Dependency Graph</h2>
+<p class="arch-summary">Module relationships and downstream connections extracted from the code graph. Use these to trace the blast radius of any fix.</p>
+<h3>Segment Dependency Network</h3>
+<div style="overflow-x:auto;margin-bottom:1rem">
+<svg width="600" height="440" viewBox="0 0 600 440"
+     style="background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+  <defs>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <path d="M300,300 Q300,220 300,140" fill="none" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+  <circle cx="300" cy="140" r="35" fill="rgb(249,52,61)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="300" y="189" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">forge</text><text x="300" y="144" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">50</text><circle cx="300" cy="300" r="35" fill="rgb(243,54,68)" stroke="#fff" stroke-width="2" opacity="0.9"/><text x="300" y="349" text-anchor="middle" font-size="11" fill="#334155" font-family="monospace">tests</text><text x="300" y="304" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">48</text>
+  <text x="590" y="430" text-anchor="end"
+        font-size="9" fill="#94a3b8">Node size = LOC, color = finding density, arrows = depends_on</text>
+</svg>
+</div>
+<h3>Module Interconnections</h3>
+<p class="desc">Each row shows a segment and which other segments it depends on (imports from) and which depend on it (imported by).</p>
+<table>
+        <thead><tr>
+            <th>Segment</th>
+            <th>Imports From</th>
+            <th>Imported By</th>
+        </tr></thead>
+        <tbody><tr>
+            <td><strong>forge</strong> <span class="finding-badge">50</span><br>
+                <span class="desc">11,007 LOC &middot; 42 files</span></td>
+            <td><span class="desc">none</span></td>
+            <td><span class="dep-tag imported-by">tests</span></td>
+        </tr><tr>
+            <td><strong>tests</strong> <span class="finding-badge">48</span><br>
+                <span class="desc">9,993 LOC &middot; 45 files</span></td>
+            <td><span class="dep-tag imports">forge</span></td>
+            <td><span class="desc">none</span></td>
+        </tr></tbody>
+    </table>
+<h3>Finding Blast Radius</h3>
+<p class="desc">For each high/critical finding, the downstream modules that could be affected if the finding's code changes.</p>
+<table>
+        <thead><tr>
+            <th>Sev</th>
+            <th>Finding</th>
+            <th>Direct Modules</th>
+            <th>Downstream Modules</th>
+            <th>Files Affected</th>
+        </tr></thead>
+        <tbody><tr>
+            <td><span class="severity critical">critical</span></td>
+            <td><strong>Command Injection via Unsanitized repo_url in Git Clone</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr><tr>
+            <td><span class="severity critical">critical</span></td>
+            <td><strong>Path Traversal in Context Builder File Operations</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="dep-tag downstream">tests</span></td>
+            <td class="loc">3</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Path Traversal in Checkpoint File Operations</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="dep-tag downstream">tests</span></td>
+            <td class="loc">1</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Insecure Checkpoint Deserialization Without Integrity Verifi</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="dep-tag downstream">tests</span></td>
+            <td class="loc">1</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>God Module: forge/app.py Violates Single Responsibility</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Unhandled CalledProcessError from Git Clone Subprocess</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Silent Checkpoint Failures Risk Data Loss</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="dep-tag downstream">tests</span></td>
+            <td class="loc">1</td>
+        </tr><tr>
+            <td><span class="severity high">high</span></td>
+            <td><strong>Conditional Import Pattern Creates Fragile Platform Detectio</strong></td>
+            <td><span class="dep-tag direct">forge</span></td>
+            <td><span class="desc">none</span></td>
+            <td class="loc">0</td>
+        </tr></tbody>
+    </table>
+<h3>Import Chains</h3>
+<p class="desc">File-level dependency flows showing how imports propagate across segments.</p>
+<div class="chain-list"><div class="chain-row">
+            <span class="chain-src">tests</span>
+            <span class="chain-arrow">&rarr;</span>
+            <span class="chain-dst">forge</span>
+            <span class="chain-count">48</span>
+            <div class="chain-files"><span class="flow-tag">conftest.py &rarr; config.py</span> <span class="flow-tag">conftest.py &rarr; schemas.py</span> <span class="flow-tag">test_golden_suite.py &rarr; context_builder.py</span> <span class="desc">+45 more</span></div>
+        </div></div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Command Injection via Unsanitized repo_url in Git Clone</strong>
+                <div class="desc">In forge/app.py, the _resolve_repo_path function passes the user-supplied repo_url directly to subprocess.run for git clone without validating the URL scheme, format, or content. While shell=False prevents direct shell injection, git itself can interpret certain URL formats (e.g., git://host/repo, file:///etc/passwd, ext::command) in dangerous ways. The workspace name derived from the URL via regex is also used unsanitized as a directory path component. Multiple workers flagged this with high agreement.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/app.py:60</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>Path Traversal in Context Builder File Operations</strong>
+                <div class="desc">forge/execution/context_builder.py reads arbitrary file paths from the codebase_map without validating that they resolve within the repository root. An attacker who can influence codebase_map content (e.g., via a malicious checkpoint or crafted repo) could inject paths like ../../etc/passwd to read arbitrary files. Two waves of security workers independently flagged this with consistent severity assessment.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span> <span class="flow-tag">forge/execution/context_builder.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/context_builder.py:49</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Path Traversal in Checkpoint File Operations</strong>
+                <div class="desc">forge/execution/checkpoint.py constructs checkpoint file paths using os.path.join(repo_path, CHECKPOINT_DIR) without validating that repo_path doesn't contain traversal sequences. A malicious repo_path like /real/repo/../../etc could write checkpoint files outside the intended directory. Additionally, clear_checkpoints uses shutil.rmtree without validating the target is within expected bounds, potentially enabling symlink attacks.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/execution/checkpoint.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/checkpoint.py:67</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Insecure Checkpoint Deserialization Without Integrity Verification</strong>
+                <div class="desc">Checkpoint files in .forge-checkpoints/ are loaded and deserialized without any integrity verification (no HMAC, no signature). An attacker with write access to the checkpoint directory can tamper with files to inject malicious data that gets reconstructed into CodebaseMap, AuditFinding, and other Pydantic models. While Pydantic validates types, it doesn't prevent injection of semantically malicious values (e.g., crafted file paths, finding IDs). Multiple workers flagged this consistently.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/execution/checkpoint.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/checkpoint.py:88</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God Module: forge/app.py Violates Single Responsibility</strong>
+                <div class="desc">forge/app.py is a monolithic orchestrator (~245 lines) handling: platform detection, conditional AgentField import, repo cloning, workspace management, telemetry lifecycle, checkpoint recovery, pipeline phase orchestration (discovery/triage/remediation/validation), worktree cleanup, and result construction. This was flagged by both architecture and quality workers in both waves with very high confidence. It makes the module untestable, unmaintainable, and a merge conflict hotspot.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/app.py:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Unhandled CalledProcessError from Git Clone Subprocess</strong>
+                <div class="desc">forge/app.py calls subprocess.run with check=True for git clone but has no try/except around it. A network failure, invalid URL, or authentication error causes an unhandled CalledProcessError to propagate up through remediate(), bypassing telemetry cleanup and worktree cleanup in the finally block (since the exception occurs before try). Two quality workers flagged this in both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/app.py:70</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>reliability</td>
+            <td>
+                <strong>Silent Checkpoint Failures Risk Data Loss</strong>
+                <div class="desc">Both save_checkpoint and load_checkpoint catch all exceptions and log them without propagating. A checkpoint save failure during a long remediation run results in silent data loss—the user sees no error and believes progress is saved, but resume will restart from the beginning. Multiple workers flagged this in both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/execution/checkpoint.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/checkpoint.py:67</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Conditional Import Pattern Creates Fragile Platform Detection</strong>
+                <div class="desc">forge/app.py uses try/except ImportError to conditionally import AgentField and sets app=None if unavailable. This implicit mode switching makes it hard to reason about which features are active, and function-level imports scattered through remediate() further obscure dependencies. Flagged by architecture workers in both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/app.py:18</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>File Descriptor Leak in build_codebase_inventory</strong>
+                <div class="desc">forge/execution/context_builder.py opens files with fpath.open() inside a loop without using a context manager. While CPython's reference counting typically closes files promptly, this is not guaranteed and can cause file descriptor exhaustion on large repositories or with alternative Python implementations. Two quality workers flagged this in both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span> <span class="flow-tag">forge/execution/context_builder.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/context_builder.py:280</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Duplicated File Selection Logic in context_builder.py</strong>
+                <div class="desc">select_files_for_pass and select_files_for_quality_pass in context_builder.py contain nearly identical logic for file reading, token budget management, and content assembly. Only the scoring keyword sets differ. This violates DRY and means bug fixes or improvements must be applied twice.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span> <span class="flow-tag">forge/execution/context_builder.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/context_builder.py:150</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Telemetry Context Manager Misuse — Manual __enter__/__exit__ Calls</strong>
+                <div class="desc">forge/app.py manually calls _telemetry_ctx.__enter__() and later _telemetry_ctx.__exit__(None, None, None) instead of using async with or contextlib. The None arguments to __exit__ don't propagate exception information correctly. If an exception occurs before the try block but after __enter__, cleanup is skipped. Two quality workers flagged this in both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/app.py:117</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Unvalidated FORGE_PORT Environment Variable Causes Crash</strong>
+                <div class="desc">forge/__main__.py calls int(os.getenv('FORGE_PORT', '8004')) without try/except. A misconfigured environment (e.g., FORGE_PORT=disabled) raises an unhandled ValueError at startup. Flagged by both security and quality workers.</div>
+                
+            </td>
+            <td class="loc">forge/__main__.py:15</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Missing JSON Error Handling in CLI Report Command</strong>
+                <div class="desc">forge/cli.py reads and parses a report JSON file with json.loads() without catching JSONDecodeError. A corrupted or partially written report file causes an unhandled crash instead of a user-friendly error message.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span></div>
+            </td>
+            <td class="loc">forge/cli.py:195</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Circular Import Risk via Function-Level Lazy Imports</strong>
+                <div class="desc">forge/execution/checkpoint.py imports forge.schemas inside restore_state() at function call time. This hides a potential circular dependency—if schemas ever imports from checkpoint (directly or transitively), the code breaks at runtime. ARCH-004 and ARCH-009 both flagged this pattern across modules.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/execution/checkpoint.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/checkpoint.py:114</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Configuration Scattered Across Multiple Modules</strong>
+                <div class="desc">Magic numbers and configuration values are defined in multiple places: CHARS_PER_TOKEN=4 and DEFAULT_TOKEN_BUDGET=80_000 in context_builder.py, WORKSPACES_DIR in app.py, max retries hardcoded in forge_executor.py. There is no single authoritative configuration surface. Flagged by multiple architecture workers.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/execution/context_builder.py:20</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Inconsistent Error Handling in asyncio.gather Calls</strong>
+                <div class="desc">forge/execution/forge_executor.py uses asyncio.gather with return_exceptions=True and substitutes default empty results for agent failures. This means a test generator or code reviewer failure silently produces an empty/default result rather than clearly failing the fix attempt. The behavior is intentional but undocumented and potentially masks real failures.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/forge_executor.py</span></div>
+            </td>
+            <td class="loc">forge/execution/forge_executor.py:130</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Checkpoint Resume Validation Missing Repo Path Check</strong>
+                <div class="desc">forge/app.py resumes from checkpoint based only on forge_run_id without validating that the checkpoint's repo_path matches the current run's repo_path. Running FORGE on repo B after a failed run on repo A in the same workspace could result in applying repo A's state to repo B.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/app.py:157</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>reliability</td>
+            <td>
+                <strong>No Rate Limiting on LLM API Calls</strong>
+                <div class="desc">The FORGE system invokes multiple LLM agents concurrently (enabled by enable_parallel_audit=True) without any rate limiting, backoff, or circuit breaker. This can cause API quota exhaustion, unexpected cost spikes, or provider-side throttling that manifests as opaque errors. Flagged by both security workers in both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/forge_executor.py</span></div>
+            </td>
+            <td class="loc">forge/config.py:59</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Sensitive Data Potentially Exposed in Logs and Telemetry</strong>
+                <div class="desc">The telemetry system logs full finding descriptions, summaries, and file changes (which may contain extracted secrets or sensitive code) via log_training_pair. Additionally, AGENTFIELD_API_KEY is passed to the Agent constructor and could be captured by debug loggers. Flagged by security workers in both waves.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/cli.py &rarr; forge/app.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/app.py &rarr; forge/execution/context_builder.py</span></div>
+            </td>
+            <td class="loc">forge/app.py:38</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>sys.modules Manipulation in Integration Test Conftest is Fragile</strong>
+                <div class="desc">tests/integration/conftest.py directly manipulates sys.modules to inject a mock agentfield module. This is a global side effect that couples test execution order to import order, can cause intermittent failures, and makes it impossible to run individual integration tests in isolation. Flagged by both architecture and quality workers in both waves.</div>
+                
+            </td>
+            <td class="loc">tests/integration/conftest.py:28</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Parallel Test File Writes to Shared Benchmark Log Without Locking</strong>
+                <div class="desc">tests/integration/conftest.py appends to .forge-benchmarks/cost_log.jsonl from multiple test processes without file locking. Parallel test runs (e.g., pytest-xdist) can corrupt this file.</div>
+                
+            </td>
+            <td class="loc">tests/integration/conftest.py:102</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Missing Type Annotation on restore_state Return Value</strong>
+                <div class="desc">forge/execution/checkpoint.py declares restore_state() -&gt; Any despite always returning ForgeExecutionState. This loses static type safety for all callers and makes the API contract unclear.</div>
+                <div class="impact">Ripple: <span class="flow-tag">forge/app.py &rarr; forge/execution/checkpoint.py</span> <span class="flow-tag">forge/execution/checkpoint.py &rarr; filesystem</span></div>
+            </td>
+            <td class="loc">forge/execution/checkpoint.py:126</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Hardcoded Role Strings Duplicated Across Config Dicts</strong>
+                <div class="desc">Role name strings like 'codebase_analyst', 'security_auditor', etc. appear in FORGE_ROLE_TO_MODEL_FIELD, FORGE_DEFAULT_MODELS, and ROLE_TO_PROVIDER dictionaries in config.py, plus referenced in other files. A role rename requires updating multiple locations.</div>
+                
+            </td>
+            <td class="loc">forge/config.py:17</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Test Helper Functions Duplicated Across Test Files</strong>
+                <div class="desc">_copy_golden in test_golden_suite.py and _copy_golden_codebase in test_hive_live_e2e.py serve the same purpose with slightly different signatures. Mock response builders (_coder_ok, _test_ok, _review_ok) could leverage conftest factories. DRY violation increases maintenance burden.</div>
+                
+            </td>
+            <td class="loc">tests/golden/test_golden_suite.py:34</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Hardcoded /tmp Paths in Test State Helpers</strong>
+                <div class="desc">tests/integration/test_execute_remediation.py hardcodes /tmp/test-repo and /tmp/test-artifacts as paths in ForgeExecutionState. These can conflict between parallel test runs and may not be writable on all systems.</div>
+                
+            </td>
+            <td class="loc">tests/integration/test_execute_remediation.py:26</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Fragile String-Based Reasoner Dispatch in Tests</strong>
+                <div class="desc">tests/integration/test_execute_remediation.py uses substring matching ('run_coder' in reasoner) to route mock responses. If production reasoner names change, tests silently return empty dicts rather than failing loudly.</div>
+                
+            </td>
+            <td class="loc">tests/integration/test_execute_remediation.py:88</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Golden Codebases Contain Real Vulnerabilities — Risk of Misuse</strong>
+                <div class="desc">tests/golden/codebases/ contains SQL injection, hardcoded secrets, and missing auth — intentionally for testing but without clear documentation. These could be accidentally packaged into distributions or used as templates. Multiple workers flagged this (as info/low in tests context).</div>
+                
+            </td>
+            <td class="loc">tests/golden/codebases/express_api_nosec/src/config.js:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>quality</td>
+            <td>
+                <strong>Inconsistent Async Test Marker Usage</strong>
+                <div class="desc">Some async tests explicitly use @pytest.mark.asyncio while others rely on auto-detection. This can cause tests to be silently skipped in strict mode configurations.</div>
+                
+            </td>
+            <td class="loc">tests/integration/test_hive_discovery.py:176</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>resolved_models() Dict Created on Every Call — Performance</strong>
+                <div class="desc">forge/config.py ForgeConfig.resolved_models() creates a new dictionary on every call by copying FORGE_DEFAULT_MODELS and applying overrides. model_for_role() calls resolved_models() internally. This is called in tight executor loops.</div>
+                
+            </td>
+            <td class="loc">forge/config.py:119</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Test conftest.py Combines Too Many Responsibilities</strong>
+                <div class="desc">tests/conftest.py (~200 lines) combines schema factories, pytest hooks (pytest_addoption, pytest_configure, pytest_collection_modifyitems), and fixtures. This makes it hard to navigate and maintain.</div>
+                
+            </td>
+            <td class="loc">tests/conftest.py:1</td>
+            <td><span class="tier">T2</span></td>
+        </tr></tbody>
+    </table>
+
+    
+        <h2>Remediation Plan (30 items across 7 levels)</h2>
+        <p class="plan-summary">30 findings across security, quality, architecture, reliability, and performance categories. Execution is ordered in 7 levels: Level 1 applies 7 trivial deterministic fixes (Tier 1). Level 2 addresses the two critical security vulnerabilities (path traversal, command injection) plus related quality improvements in parallel. Level 3 applies dependent security fixes (integrity verification, error handling) and code deduplication. Levels 4-7 tackle architectural refactors that are interdependent: app.py decomposition (F-005) is the keystone enabling platform mode refactor (F-013) and config consolidation (F-016), which in turn enables rate limiting (F-020). Critical security findings F-001 through F-004 are highest priority as they represent exploitable attack surface. The golden codebase vulnerabilities (SEC-001 through SEC-011 in tests/) are intentional test fixtures and treated as documentation tasks rather than security remediations.</p>
+        <table>
+            <thead><tr><th>Priority</th><th>Tier</th><th>Fix</th><th>Files</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Fix FORGE_PORT environment variable parsing</strong></td>
+                <td>forge/__main__.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Add JSON error handling in CLI report command</strong></td>
+                <td>forge/cli.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Fix file descriptor leak in build_codebase_inventory</strong></td>
+                <td>forge/execution/context_builder.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Fix return type annotation on restore_state</strong></td>
+                <td>forge/execution/checkpoint.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Consolidate duplicate test helper functions</strong></td>
+                <td>tests/conftest.py, tests/golden/test_golden_suite.py, tests/integration/test_hive_live_e2e.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Replace hardcoded /tmp paths with pytest tmp_path fixture</strong></td>
+                <td>tests/integration/test_execute_remediation.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Document intentionally vulnerable golden codebases</strong></td>
+                <td>tests/golden/codebases/express_api_nosec/src/config.js, tests/golden/codebases/fastapi_monolith/main.py, tests/golden/codebases/flask_exposed_secrets/app.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Normalize async test marker configuration</strong></td>
+                <td>pyproject.toml, tests/integration/test_hive_discovery.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T1</td>
+                <td><strong>Cache resolved_models() result in ForgeConfig</strong></td>
+                <td>forge/config.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T2</td>
+                <td><strong>Validate and sanitize repo_url before git clone</strong></td>
+                <td>forge/app.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T2</td>
+                <td><strong>Add error handling for git clone subprocess failure</strong></td>
+                <td>forge/app.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T2</td>
+                <td><strong>Add path boundary validation in context_builder file operations</strong></td>
+                <td>forge/execution/context_builder.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T2</td>
+                <td><strong>Add path validation in checkpoint file operations</strong></td>
+                <td>forge/execution/checkpoint.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Add checkpoint integrity verification</strong></td>
+                <td>forge/execution/checkpoint.py, forge/config.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Improve checkpoint failure handling</strong></td>
+                <td>forge/execution/checkpoint.py, forge/config.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Deduplicate file selection logic in context_builder</strong></td>
+                <td>forge/execution/context_builder.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Move lazy imports to module level in checkpoint.py</strong></td>
+                <td>forge/execution/checkpoint.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Refactor telemetry context manager usage in app.py</strong></td>
+                <td>forge/app.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Add repo_path validation to checkpoint resume logic</strong></td>
+                <td>forge/app.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Document and improve async.gather failure handling in forge_executor</strong></td>
+                <td>forge/execution/forge_executor.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Add sensitive data redaction in logging and telemetry</strong></td>
+                <td>forge/app.py, forge/execution/telemetry.py, forge/execution/context_builder.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Create AgentRole enum for role name constants</strong></td>
+                <td>forge/config.py, forge/execution/forge_executor.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T2</td>
+                <td><strong>Refactor sys.modules manipulation in integration conftest</strong></td>
+                <td>tests/integration/conftest.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Add file locking to benchmark log writer</strong></td>
+                <td>tests/integration/conftest.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Replace magic strings in test reasoner dispatch</strong></td>
+                <td>tests/integration/test_execute_remediation.py, forge/config.py</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T2</td>
+                <td><strong>Split tests/conftest.py by responsibility</strong></td>
+                <td>tests/conftest.py, tests/fixtures/factories.py, tests/fixtures/hooks.py</td>
+            </tr>
+            <tr>
+                <td>P1</td>
+                <td>T3</td>
+                <td><strong>Decompose god module forge/app.py into focused modules</strong></td>
+                <td>forge/app.py, forge/execution/repo_resolver.py, forge/execution/pipeline.py</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T3</td>
+                <td><strong>Replace conditional import pattern with explicit platform mode</strong></td>
+                <td>forge/app.py, forge/standalone.py, forge/platform_app.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T3</td>
+                <td><strong>Consolidate scattered configuration into ForgeConfig</strong></td>
+                <td>forge/config.py, forge/execution/context_builder.py, forge/execution/forge_executor.py</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T3</td>
+                <td><strong>Implement rate limiting for LLM API calls</strong></td>
+                <td>forge/config.py, forge/execution/forge_executor.py, forge/execution/rate_limiter.py</td>
+            </tr></tbody>
+        </table>
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>
