@@ -9,8 +9,8 @@ from tier1.contracts import Tier1Evidence, Tier1Finding
 from tier1.reporter import Tier1Reporter
 
 
-def _warn_finding() -> Tier1Finding:
-    return Tier1Finding(
+def _warn_finding(**kwargs) -> Tier1Finding:
+    defaults = dict(
         check_id="REL_002",
         status="warn",
         category="reliability",
@@ -28,7 +28,10 @@ def _warn_finding() -> Tier1Finding:
             )
         ],
         suggested_fix_stub="Add CI workflow to run lint/test/build.",
+        actionability="should_fix",
     )
+    defaults.update(kwargs)
+    return Tier1Finding(**defaults)
 
 
 class Tier1ReporterTests(unittest.IsolatedAsyncioTestCase):
@@ -97,6 +100,7 @@ class Tier1ReporterTests(unittest.IsolatedAsyncioTestCase):
         markdown = artifact.markdown
         self.assertIn("## What You're Doing Well", markdown)
         self.assertIn("## Top Findings", markdown)
+        self.assertIn("Should Fix", markdown)  # actionability tier heading
         self.assertIn("## Educational Guidance", markdown)
         self.assertIn("## Coding Agent Execution Plan", markdown)
         self.assertIn("Coding agent prompt:", markdown)
@@ -109,12 +113,17 @@ class Tier1ReporterTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("```text", artifact.agent_markdown)
         self.assertIn("Target provider: anthropic", artifact.agent_markdown)
         self.assertIn("Target model: anthropic/claude-sonnet-4.5", artifact.agent_markdown)
+        self.assertIn("(should_fix)", artifact.agent_markdown)  # actionability in agent packet
         self.assertIn("Do not ask follow-up questions.", artifact.agent_markdown)
         self.assertIn("docs/agent-implementation-note.md", artifact.agent_markdown)
         self.assertIn("\"asked_follow_up_questions\": false", artifact.agent_markdown)
         self.assertIn("\"branch_name\": \"actual branch name\"", artifact.agent_markdown)
         self.assertIsNotNone(artifact.pdf_base64)
         self.assertTrue(str(artifact.pdf_base64).startswith("JVBER"))
+        # summary_json includes by_actionability counts
+        counts = artifact.summary_json["counts"]
+        self.assertIn("by_actionability", counts)
+        self.assertEqual(counts["by_actionability"].get("should_fix"), 1)
 
         run_details = artifact.summary_json["run_details"]
         self.assertGreater(run_details["total_ms"], run_details["scan_ms"])
