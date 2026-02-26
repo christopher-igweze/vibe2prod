@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     tier1_index_ttl_days: int = 30
     tier1_report_ttl_days: int = 7
 
+    # --- Clerk Auth ---
+    clerk_jwks_url: str = ""  # e.g. https://your-app.clerk.accounts.dev/.well-known/jwks.json
+    clerk_webhook_secret: str = ""
+
     # --- Rate Limiting ---
     rate_limit_per_minute: int = 10
 
