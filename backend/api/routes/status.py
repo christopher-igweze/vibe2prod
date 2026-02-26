@@ -36,36 +36,41 @@ async def _event_generator(scan_id: UUID):
     idle_ticks = 0
     max_idle = 600  # 10 minutes with no new events → close
 
-    while True:
-        if cursor < len(bus):
-            # New events available
-            for entry in bus[cursor:]:
-                yield {
-                    "event": entry.event_type.value,
-                    "data": json.dumps(
-                        entry.model_dump(mode="json"), default=str
-                    ),
-                }
+    try:
+        while True:
+            if cursor < len(bus):
+                # New events available
+                for entry in bus[cursor:]:
+                    yield {
+                        "event": entry.event_type.value,
+                        "data": json.dumps(
+                            entry.model_dump(mode="json"), default=str
+                        ),
+                    }
 
-                # If scan is done or errored, close the stream
-                if entry.event_type in (
-                    SSEEventType.scan_complete,
-                    SSEEventType.scan_error,
-                ):
+                    # If scan is done or errored, close the stream
+                    if entry.event_type in (
+                        SSEEventType.scan_complete,
+                        SSEEventType.scan_error,
+                    ):
+                        return
+
+                cursor = len(bus)
+                idle_ticks = 0
+            else:
+                idle_ticks += 1
+                if idle_ticks >= max_idle:
+                    yield {
+                        "event": "timeout",
+                        "data": json.dumps({"message": "Stream timed out"}),
+                    }
                     return
 
-            cursor = len(bus)
-            idle_ticks = 0
-        else:
-            idle_ticks += 1
-            if idle_ticks >= max_idle:
-                yield {
-                    "event": "timeout",
-                    "data": json.dumps({"message": "Stream timed out"}),
-                }
-                return
-
-        await asyncio.sleep(1)
+            await asyncio.sleep(1)
+    finally:
+        # Clean up the event bus entry to prevent unbounded memory growth
+        event_buses.pop(scan_id, None)
+        logger.debug("Cleaned up event bus for scan %s", scan_id)
 
 
 @router.get("/status/{scan_id}")
