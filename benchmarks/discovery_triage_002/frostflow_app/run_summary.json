@@ -1,14 +1,14 @@
 {
   "repo": "https://github.com/CUTolu2021/frostflow_app",
   "repo_name": "frostflow_app",
-  "forge_run_id": "368f1db82d2f",
+  "forge_run_id": "480a1994d6e8",
   "success": true,
   "mode": "discovery",
-  "total_findings": 36,
+  "total_findings": 59,
   "findings_fixed": 0,
   "findings_deferred": 0,
   "agent_invocations": 6,
-  "cost_usd": 0.7295,
-  "duration_seconds": 246.1,
-  "summary": "FORGE run 368f1db82d2f. Found 36 issues. (8 high, 8 low, 20 medium). Remediation plan: 0 items across 0 levels."
+  "cost_usd": 0.7606,
+  "duration_seconds": 446.4,
+  "summary": "FORGE run 480a1994d6e8. Found 59 issues. (1 critical, 17 high, 8 low, 33 medium). Remediation plan: 0 items across 0 levels."
 }

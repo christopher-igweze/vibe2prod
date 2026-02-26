@@ -1,26 +1,26 @@
 {
-  "run_id": "368f1db82d2f",
-  "total_cost_usd": 0.7295,
-  "total_tokens": 444376,
+  "run_id": "480a1994d6e8",
+  "total_cost_usd": 0.7606,
+  "total_tokens": 468232,
   "total_invocations": 10,
   "successful_invocations": 10,
   "failed_invocations": 0,
-  "elapsed_ms": 245752,
+  "elapsed_ms": 446098,
   "cost_by_agent": {
-    "architecture_reviewer": 0.0367,
-    "codebase_analyst": 0.0038,
-    "fix_strategist": 0.088,
-    "quality_auditor/code_patterns": 0.0275,
-    "quality_auditor/error_handling": 0.0289,
-    "quality_auditor/performance": 0.0266,
-    "security_auditor/auth_flow": 0.1903,
-    "security_auditor/data_handling": 0.1411,
-    "security_auditor/infrastructure": 0.1445,
-    "triage_classifier": 0.0422
+    "architecture_reviewer": 0.0338,
+    "codebase_analyst": 0.0037,
+    "fix_strategist": 0.1274,
+    "quality_auditor/code_patterns": 0.0356,
+    "quality_auditor/error_handling": 0.0281,
+    "quality_auditor/performance": 0.0268,
+    "security_auditor/auth_flow": 0.1479,
+    "security_auditor/data_handling": 0.1464,
+    "security_auditor/infrastructure": 0.1429,
+    "triage_classifier": 0.0681
   },
   "cost_by_model": {
-    "anthropic/claude-haiku-4.5": 0.6427,
-    "minimax/minimax-m2.5": 0.0868
+    "anthropic/claude-haiku-4.5": 0.6664,
+    "minimax/minimax-m2.5": 0.0942
   },
   "training_pairs_logged": 0
 }
