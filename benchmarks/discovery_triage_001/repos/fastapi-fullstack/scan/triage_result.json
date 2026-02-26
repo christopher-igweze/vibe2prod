@@ -1,0 +1,366 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-43db71b3",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-eca7ffd0",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-d7a3a5e4",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-a02adee5",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0f8fb89f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-bf69a6d1",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-3600d5f1",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-a3d4cf3e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fcfe2c8e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-d89f4126",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-181ad702",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-f76f4098",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-aa5fada1",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-05cd41bc",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1d15dced",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: frontend/tests/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-f9c0f999",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Health check endpoint review requires examining compose.yml and backend route definitions. Fix involves either adding auth to one endpoint or documenting intentional public access with minimal info return. Scoped to backend/app/api/routes/ and configuration verification.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/api/routes/utils.py",
+        "backend/app/api/routes/private.py",
+        "compose.yml"
+      ]
+    },
+    {
+      "finding_id": "F-2183b8f5",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Strengthening admin authorization requires modifications to dependency injection (get_current_active_superuser in deps.py), user routes, and potentially a new audit logging module. Localized to backend auth and admin routes (2-3 files).",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/api/deps.py",
+        "backend/app/api/routes/users.py",
+        "backend/app/core/security.py"
+      ]
+    },
+    {
+      "finding_id": "F-98c7d6c4",
+      "tier": 3,
+      "confidence": 0.85,
+      "rationale": "Email verification requires architectural changes: new is_verified field logic, email sending service, token generation/validation, verification endpoint, frontend signup flow changes, and login/access restrictions based on verification status. Touches frontend signup, backend auth flow, models, and multiple routes (5+ files).",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/models.py",
+        "backend/app/api/routes/login.py",
+        "backend/app/api/routes/users.py",
+        "backend/app/core/security.py",
+        "frontend/src/routes/signup.tsx",
+        "backend/app/api/routes/private.py"
+      ]
+    },
+    {
+      "finding_id": "F-b8dc7e19",
+      "tier": 2,
+      "confidence": 0.88,
+      "rationale": "Adding ownership verification requires modifying read_user and read_item endpoints to check ownership before returning data. Includes audit logging addition. Scoped changes to 2-3 route files in backend.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/api/routes/users.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/crud.py"
+      ]
+    },
+    {
+      "finding_id": "F-f102282d",
+      "tier": 1,
+      "confidence": 0.9,
+      "rationale": "Adding security headers is a known pattern with pre-computed middleware configuration. Single file change to backend/app/main.py adding middleware stack. Deterministic fix with security header constants.",
+      "fix_template_id": "security_headers_middleware",
+      "relevant_files": [
+        "backend/app/main.py"
+      ]
+    },
+    {
+      "finding_id": "F-32a34ad6",
+      "tier": 1,
+      "confidence": 0.92,
+      "rationale": "Hard-coded limit validation is a deterministic fix - single line change using min(limit, 100) pattern. Known solution with no architectural impact.",
+      "fix_template_id": "pagination_limit_cap",
+      "relevant_files": [
+        "backend/app/api/routes/users.py"
+      ]
+    },
+    {
+      "finding_id": "F-24aef368",
+      "tier": 1,
+      "confidence": 0.92,
+      "rationale": "Hard-coded limit validation is a deterministic fix - single line change using min(limit, 100) pattern. Known solution with no architectural impact.",
+      "fix_template_id": "pagination_limit_cap",
+      "relevant_files": [
+        "backend/app/api/routes/items.py"
+      ]
+    },
+    {
+      "finding_id": "F-261b26e1",
+      "tier": 2,
+      "confidence": 0.65,
+      "rationale": "Database query optimization requires evaluating trade-offs and potentially implementing window functions. Scoped to one endpoint but requires careful refactoring and testing to ensure correctness.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/api/routes/users.py",
+        "backend/app/crud.py"
+      ]
+    },
+    {
+      "finding_id": "F-b2faf41c",
+      "tier": 2,
+      "confidence": 0.65,
+      "rationale": "Database query optimization similar to users endpoint. Scoped to one endpoint but requires careful refactoring.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/api/routes/items.py",
+        "backend/app/crud.py"
+      ]
+    },
+    {
+      "finding_id": "F-2db62f51",
+      "tier": 2,
+      "confidence": 0.82,
+      "rationale": "Implementing API client caching requires modifying request handling logic and configuring React Query. Changes to frontend/src/client/core/request.ts and possibly creating a new hooks/queries/ directory. Localized to 2-3 files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/client/core/request.ts",
+        "frontend/src/client/core/OpenAPI.ts"
+      ]
+    },
+    {
+      "finding_id": "F-d6546373",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Removing asClass: true is a deterministic fix with explicit comment noting the limitation. Single configuration change with no side effects.",
+      "fix_template_id": "tree_shake_sdk_config",
+      "relevant_files": [
+        "frontend/openapi-ts.config.ts"
+      ]
+    },
+    {
+      "finding_id": "F-5aa19e2d",
+      "tier": 2,
+      "confidence": 0.78,
+      "rationale": "Implementing lazy loading requires modifying route component imports using React.lazy() and Suspense. Changes needed across route files (_layout/*.tsx files). Scoped to 3-4 files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/routes/_layout.tsx",
+        "frontend/src/routes/_layout/admin.tsx",
+        "frontend/src/routes/_layout/items.tsx",
+        "frontend/src/routes/_layout/settings.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-58a0b40d",
+      "tier": 1,
+      "confidence": 0.8,
+      "rationale": "Creating singleton axios instance is a deterministic pattern. Single file change to initialize and export configured instance for reuse.",
+      "fix_template_id": "axios_singleton",
+      "relevant_files": [
+        "frontend/src/client/core/request.ts"
+      ]
+    },
+    {
+      "finding_id": "F-6b47effd",
+      "tier": 2,
+      "confidence": 0.7,
+      "rationale": "Implementing Redis caching requires adding cache layer with invalidation logic on mutations. Changes to multiple route files and potentially new cache service. Affects 3-4 backend files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/api/routes/users.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/core/config.py"
+      ]
+    },
+    {
+      "finding_id": "F-35480525",
+      "tier": 2,
+      "confidence": 0.72,
+      "rationale": "Configuring connection pooling requires examining db.py and modifying engine creation settings. Localized change to database configuration (1-2 files).",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/core/db.py"
+      ]
+    },
+    {
+      "finding_id": "F-41282ca1",
+      "tier": 3,
+      "confidence": 0.82,
+      "rationale": "Creating page/container component abstraction layer requires restructuring frontend architecture. Creates new frontend/src/pages/ directory, modifies route files, and refactors multiple layout routes. Cross-cutting concern affecting 5+ files with architectural implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/routes/_layout.tsx",
+        "frontend/src/routes/_layout/admin.tsx",
+        "frontend/src/routes/_layout/items.tsx",
+        "frontend/src/routes/_layout/settings.tsx",
+        "frontend/src/components/Admin/columns.tsx",
+        "frontend/src/components/Items/columns.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-530c7b55",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Standardizing API client usage requires creating centralized service layer, defining React Query hooks wrapper pattern, and updating multiple components. Affects frontend architecture across 5+ files with dependency implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/client/sdk.gen.ts",
+        "frontend/src/client/core/OpenAPI.ts",
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/components/Admin/AddUser.tsx",
+        "frontend/src/components/Items/AddItem.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-1b296a34",
+      "tier": 3,
+      "confidence": 0.85,
+      "rationale": "Restructuring backend app/ directory into domain-organized layers (schemas/, models/, repositories/, services/, utils/) requires moving and reorganizing 6+ files and updating imports across the entire backend. Major architectural refactoring with cross-cutting implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/app/models.py",
+        "backend/app/crud.py",
+        "backend/app/utils.py",
+        "backend/app/initial_data.py",
+        "backend/app/api/routes/users.py",
+        "backend/app/api/routes/items.py",
+        "backend/app/api/routes/login.py"
+      ]
+    },
+    {
+      "finding_id": "F-59f9860c",
+      "tier": 2,
+      "confidence": 0.78,
+      "rationale": "Reorganizing hooks into subdirectories by concern requires creating new directory structure (hooks/auth/, hooks/ui/, hooks/utils/) and moving 4 files. Scoped refactoring with localized impact.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/hooks/useAuth.ts",
+        "frontend/src/hooks/useCustomToast.ts",
+        "frontend/src/hooks/useMobile.ts",
+        "frontend/src/hooks/useCopyToClipboard.ts"
+      ]
+    },
+    {
+      "finding_id": "F-f687b337",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Creating API contract layer documentation and type definitions requires creating frontend/src/types/ directory and documenting API assumptions. Involves code changes to 2-3 files and documentation additions.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/client/types.gen.ts",
+        "frontend/src/client/schemas.gen.ts"
+      ]
+    }
+  ],
+  "tier_0_count": 1,
+  "tier_1_count": 17,
+  "tier_2_count": 11,
+  "tier_3_count": 6
+}

@@ -1,0 +1,2201 @@
+{
+  "run_id": "e596b9a73b77",
+  "generated_at": "2026-02-26T01:15:43.688125+00:00",
+  "phase": "discovery",
+  "duration_seconds": 198.3,
+  "cost_usd": 0.0,
+  "total_findings": 45,
+  "severity_breakdown": {
+    "critical": 4,
+    "high": 14,
+    "medium": 18,
+    "low": 9
+  },
+  "category_breakdown": {
+    "security": 26,
+    "performance": 7,
+    "architecture": 12
+  },
+  "findings": [
+    {
+      "id": "F-a005f40e",
+      "title": "Complete absence of authentication on all API endpoints",
+      "description": "All FastAPI routes in the application lack any form of authentication or authorization middleware. The /generate-code WebSocket endpoint, /screenshot endpoint, /evals endpoints, and /model_choice_sets endpoint are publicly accessible without any authentication checks. Any user can invoke these endpoints remotely to generate code, capture screenshots, or run evaluations.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/main.py",
+          "line_start": 1,
+          "line_end": 29,
+          "snippet": "app = FastAPI(...)\napp.add_middleware(CORSMiddleware, allow_origins=['*'], ...)\napp.include_router(generate_code.router)\napp.include_router(screenshot.router)\napp.include_router(home.router)\napp.include_router(evals.router)"
+        },
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1440,
+          "line_end": 1470,
+          "snippet": "@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket):\n    await pipeline.execute(websocket)"
+        },
+        {
+          "file_path": "backend/routes/screenshot.py",
+          "line_start": 57,
+          "line_end": 75,
+          "snippet": "@router.post('/api/screenshot')\nasync def app_screenshot(request: ScreenshotRequest):\n    # No authentication check"
+        },
+        {
+          "file_path": "backend/routes/evals.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "All /evals/* routes lack authentication"
+        }
+      ],
+      "suggested_fix": "Implement authentication middleware for all sensitive endpoints. Options:\n1. Add JWT token validation middleware that verifies Bearer tokens in request headers before allowing access.\n2. Implement API key authentication where clients must provide a valid API key in headers (X-API-Key).\n3. Use FastAPI's built-in Depends() with security schemes like HTTPBearer or HTTPBasic.\n4. Example implementation:\n```python\nfrom fastapi import Depends, HTTPException, status\nfrom fastapi.security import HTTPBearer, HTTPAuthCredentials\n\nsecurity = HTTPBearer()\n\nasync def verify_api_key(credentials: HTTPAuthCredentials = Depends(security)):\n    if credentials.credentials != os.getenv('API_KEY'):\n        raise HTTPException(status_code=401, detail='Invalid API key')\n    return credentials.credentials\n\n@router.post('/api/screenshot')\nasync def app_screenshot(request: ScreenshotRequest, token: str = Depends(verify_api_key)):\n    # Protected endpoint\n```",
+      "confidence": 0.99,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021 \u2013 Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a4e06f01",
+      "title": "WebSocket endpoint lacks authentication before accepting connections",
+      "description": "The /generate-code WebSocket endpoint accepts connections without any authentication verification. The WebSocketCommunicator.accept() method is called immediately upon connection without checking if the client is authorized. This allows any remote attacker to establish a WebSocket connection and trigger code generation with arbitrary parameters.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 96,
+          "line_end": 110,
+          "snippet": "class WebSocketCommunicator:\n    async def accept(self) -> None:\n        await self.websocket.accept()\n        print('Incoming websocket connection...')"
+        },
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1440,
+          "line_end": 1460,
+          "snippet": "@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket):\n    ws_comm = WebSocketCommunicator(websocket)\n    await ws_comm.accept()\n    # No auth check before accepting"
+        }
+      ],
+      "suggested_fix": "Implement authentication before accepting WebSocket connections. Example:\n```python\nfrom fastapi import Query, HTTPException\nimport jwt\n\n@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):\n    # Validate token before accepting connection\n    if not token or not verify_jwt_token(token):\n        await websocket.close(code=4001, reason='Unauthorized')\n        return\n    \n    ws_comm = WebSocketCommunicator(websocket)\n    await ws_comm.accept()\n    # Continue with authenticated connection\n```",
+      "confidence": 0.98,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021 \u2013 Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f16fdb7f",
+      "title": "API key credentials stored in environment variables without rotation mechanism",
+      "description": "API keys for OpenAI (OPENAI_API_KEY), Anthropic (ANTHROPIC_API_KEY), Gemini (GEMINI_API_KEY), and Replicate (REPLICATE_API_TOKEN) are read directly from environment variables. While storing secrets in environment variables is acceptable in controlled environments, there is no mechanism for key rotation, expiration, or revocation. If a key is compromised, it will remain active until manually rotated.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/config.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')\nANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')\nGEMINI_API_KEY = os.getenv('GEMINI_API_KEY')\nREPLICATE_API_KEY = os.getenv('REPLICATE_API_KEY')"
+        },
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "from config import (\n    ANTHROPIC_API_KEY,\n    GEMINI_API_KEY,\n    OPENAI_API_KEY,\n    OPENAI_BASE_URL,\n    REPLICATE_API_KEY,\n)"
+        }
+      ],
+      "suggested_fix": "Implement API key rotation and management:\n1. Add key expiration metadata in a secure key management system (e.g., AWS Secrets Manager, HashiCorp Vault).\n2. Implement key versioning to support rotation without downtime.\n3. Add audit logging for all API key accesses.\n4. Implement automated alerts for suspicious key usage patterns.\n5. Example vault integration:\n```python\nimport hvac\n\nvault_client = hvac.Client(url=os.getenv('VAULT_ADDR'), token=os.getenv('VAULT_TOKEN'))\n\ndef get_api_key(provider: str):\n    secret = vault_client.secrets.kv.v2.read_secret_version(path=f'api-keys/{provider}')\n    return secret['data']['data']['key']\n\nOPENAI_API_KEY = get_api_key('openai')\n```",
+      "confidence": 0.85,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A02:2021 \u2013 Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9e5f9903",
+      "title": "Client-provided API keys accepted without validation or rate limiting",
+      "description": "Users can provide their own API keys via the settings dialog (openAiApiKey, anthropicApiKey parameters) or environment variables. The application accepts these keys without validation and uses them immediately to make requests to third-party APIs. An attacker could provide invalid keys, use stolen keys, or make resource-exhaustion attacks by triggering many code generation requests with rate-limited keys.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 180,
+          "line_end": 210,
+          "snippet": "def _get_from_settings_dialog_or_env(\n    self, params: dict[str, Any], key: str, env_var: str | None\n) -> str | None:\n    value = params.get(key)\n    if value:\n        print(f'Using {key} from client-side settings dialog')\n        return value\n    if env_var:\n        print(f'Using {key} from environment variable')\n        return env_var\n    return None"
+        },
+        {
+          "file_path": "frontend/src/types.ts",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "export interface Settings {\n  openAiApiKey: string | null;\n  anthropicApiKey: string | null;\n  openAiBaseURL: string | null;\n}"
+        }
+      ],
+      "suggested_fix": "Implement API key validation and rate limiting:\n1. Validate API keys before using them (test with a lightweight API call).\n2. Implement per-key rate limiting to prevent abuse.\n3. Add request-level rate limiting based on client IP/user.\n4. Log all API key usage for audit purposes.\n5. Example:\n```python\nasync def validate_api_key(key: str, provider: str) -> bool:\n    try:\n        if provider == 'openai':\n            client = OpenAI(api_key=key)\n            client.models.list()  # Lightweight validation\n            return True\n    except Exception:\n        return False\n\n# In ParameterExtractionStage.extract_and_validate:\nif openai_api_key and not await validate_api_key(openai_api_key, 'openai'):\n    await self.throw_error('Invalid OpenAI API key')\n```",
+      "confidence": 0.82,
+      "cwe_id": "CWE-345",
+      "owasp_ref": "A01:2021 \u2013 Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-feea30e5",
+      "title": "No CORS authentication - allows any origin to make requests",
+      "description": "The CORS middleware is configured with allow_origins=['*'], which permits requests from any origin. Combined with the lack of endpoint authentication, this allows any website to make requests to the backend on behalf of a user visiting that website. This enables Cross-Site Request Forgery (CSRF) attacks.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/main.py",
+          "line_start": 16,
+          "line_end": 24,
+          "snippet": "app.add_middleware(\n    CORSMiddleware,\n    allow_origins=['*'],\n    allow_credentials=True,\n    allow_methods=['*'],\n    allow_headers=['*'],\n)"
+        }
+      ],
+      "suggested_fix": "Restrict CORS to known trusted origins and implement CSRF protection:\n1. Whitelist specific origins instead of using wildcard.\n2. Disable allow_credentials if not needed, or use more restrictive settings.\n3. Implement CSRF token validation for state-changing operations.\n4. Example:\n```python\nfrom fastapi.middleware.cors import CORSMiddleware\n\nallowed_origins = [\n    os.getenv('FRONTEND_URL', 'http://localhost:5173'),\n    'https://screenshottocode.com',\n]\n\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=allowed_origins,\n    allow_credentials=False,\n    allow_methods=['GET', 'POST'],\n    allow_headers=['Content-Type'],\n)\n\n# Implement CSRF token for WebSocket upgrades\nfrom fastapi import Header\n\n@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket, x_csrf_token: str = Header(None)):\n    if not verify_csrf_token(x_csrf_token):\n        await websocket.close(code=4003, reason='CSRF validation failed')\n        return\n```",
+      "confidence": 0.9,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021 \u2013 Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-98b57317",
+      "title": "No session management or user identification",
+      "description": "The application is completely stateless with no user identification, sessions, or context tracking. While this simplifies the architecture, it also means there is no way to enforce per-user rate limits, usage quotas, or audit user actions. Any rate limiting must be IP-based, which can be spoofed or bypassed through proxies.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1440,
+          "line_end": 1470,
+          "snippet": "@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket):\n    # No user context, session, or identification"
+        },
+        {
+          "file_path": "backend/main.py",
+          "line_start": 1,
+          "line_end": 29,
+          "snippet": "# No middleware for session management or user context"
+        }
+      ],
+      "suggested_fix": "Implement user session management:\n1. Add JWT token-based authentication with user claims.\n2. Include user ID in all requests for audit logging.\n3. Implement per-user rate limiting and quota tracking.\n4. Store usage metrics for billing/monitoring.\n5. Example:\n```python\nfrom fastapi import Depends\nfrom jose import jwt, JWTError\nfrom datetime import datetime, timedelta\n\ndef get_current_user(token: str = Depends(HTTPBearer())) -> dict:\n    try:\n        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])\n        user_id = payload.get('sub')\n        if user_id is None:\n            raise HTTPException(status_code=401)\n        return {'user_id': user_id, 'email': payload.get('email')}\n    except JWTError:\n        raise HTTPException(status_code=401)\n\n@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket, token: str = Query(None)):\n    user = await get_current_user(token)\n    await check_rate_limit(user['user_id'])\n    # Continue with identified user\n```",
+      "confidence": 0.88,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A01:2021 \u2013 Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0ff0320f",
+      "title": "No rate limiting on API endpoints",
+      "description": "The application lacks any rate limiting mechanism on endpoints. An attacker can make unlimited requests to /generate-code (which is computationally expensive), /screenshot, or /evals endpoints, potentially causing denial-of-service. The Replicate API and LLM provider APIs will incur costs for each request.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1440,
+          "line_end": 1470,
+          "snippet": "@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket):\n    # No rate limiting"
+        },
+        {
+          "file_path": "backend/routes/screenshot.py",
+          "line_start": 57,
+          "line_end": 75,
+          "snippet": "@router.post('/api/screenshot')\nasync def app_screenshot(request: ScreenshotRequest):\n    # No rate limiting"
+        },
+        {
+          "file_path": "backend/routes/evals.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "# No rate limiting on eval endpoints"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting on all endpoints:\n1. Use slowapi library for FastAPI rate limiting.\n2. Implement IP-based rate limiting as a minimum (temporary solution).\n3. Implement user-based rate limiting once authentication is added.\n4. Example:\n```python\nfrom slowapi import Limiter\nfrom slowapi.util import get_remote_address\n\nlimiter = Limiter(key_func=get_remote_address)\napp.state.limiter = limiter\n\n@router.post('/api/screenshot')\n@limiter.limit('5/minute')\nasync def app_screenshot(request: ScreenshotRequest, request_obj: Request):\n    pass\n\n@router.websocket('/generate-code')\n@limiter.limit('2/minute')\nasync def websocket_endpoint(websocket: WebSocket):\n    pass\n```",
+      "confidence": 0.92,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A04:2021 \u2013 Insecure Design",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6788bb7e",
+      "title": "User-controlled OpenAI base URL without validation",
+      "description": "Users can specify a custom OPENAI_BASE_URL in the settings dialog, which is then used to make API requests. This parameter is only disabled in production (IS_PROD check), but in development/self-hosted deployments, an attacker could redirect API requests to a malicious server to intercept API keys or modify requests. The normalize_url function in screenshot.py also accepts arbitrary URLs without protocol validation.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 185,
+          "line_end": 195,
+          "snippet": "# Base URL for OpenAI API\nopenai_base_url: str | None = None\n# Disable user-specified OpenAI Base URL in prod\nif not IS_PROD:\n    openai_base_url = self._get_from_settings_dialog_or_env(\n        params, 'openAiBaseURL', OPENAI_BASE_URL\n    )"
+        },
+        {
+          "file_path": "backend/routes/screenshot.py",
+          "line_start": 12,
+          "line_end": 35,
+          "snippet": "def normalize_url(url: str) -> str:\n    url = url.strip()\n    parsed = urlparse(url)\n    if not parsed.scheme:\n        url = f'https://{url}'\n    # No validation of the scheme or domain"
+        }
+      ],
+      "suggested_fix": "Implement strict URL validation and restrict to known endpoints:\n1. Maintain a whitelist of allowed base URLs.\n2. Validate URL schemes and domains before use.\n3. Block private IP ranges (127.0.0.1, 10.x.x.x, etc.) to prevent SSRF attacks.\n4. Example:\n```python\nfrom urllib.parse import urlparse\nimport ipaddress\n\nALLOWED_OPENAI_BASE_URLS = [\n    'https://api.openai.com/v1',\n    'https://api.openai-proxy-trusted.com/v1',\n]\n\ndef validate_base_url(url: str) -> bool:\n    try:\n        parsed = urlparse(url)\n        if parsed.scheme not in ['https']:\n            return False\n        # Block private IPs\n        try:\n            ip = ipaddress.ip_address(parsed.hostname)\n            if ip.is_private or ip.is_loopback:\n                return False\n        except ValueError:\n            pass  # It's a domain name, which is OK\n        \n        return url in ALLOWED_OPENAI_BASE_URLS or url.startswith('https://api.openai.com')\n    except Exception:\n        return False\n\nif not IS_PROD:\n    openai_base_url = params.get('openAiBaseURL')\n    if openai_base_url and not validate_base_url(openai_base_url):\n        await self.throw_error('Invalid OpenAI base URL')\n        raise ValueError('Invalid OpenAI base URL')\n```",
+      "confidence": 0.87,
+      "cwe_id": "CWE-601",
+      "owasp_ref": "A01:2021 \u2013 Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-196e7a54",
+      "title": "Screenshot endpoint accepts arbitrary URLs without SSRF validation",
+      "description": "The /api/screenshot endpoint accepts any URL from the user without validating that it's a legitimate target. An attacker could use this endpoint to: 1) scan internal networks for open ports, 2) probe internal services (e.g., localhost:8000), 3) perform denial-of-service attacks on third-party websites using the application's IP as the attacker IP.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/screenshot.py",
+          "line_start": 57,
+          "line_end": 90,
+          "snippet": "@router.post('/api/screenshot')\nasync def app_screenshot(request: ScreenshotRequest):\n    url = request.url\n    normalized_url = normalize_url(url)\n    image_bytes = await capture_screenshot(normalized_url, api_key=api_key)\n    # No SSRF validation before making HTTP request"
+        },
+        {
+          "file_path": "backend/routes/screenshot.py",
+          "line_start": 12,
+          "line_end": 35,
+          "snippet": "def normalize_url(url: str) -> str:\n    url = url.strip()\n    parsed = urlparse(url)\n    if not parsed.scheme:\n        url = f'https://{url}'\n    # Accepts any URL without validation"
+        }
+      ],
+      "suggested_fix": "Implement SSRF (Server-Side Request Forgery) protection:\n1. Maintain a whitelist of allowed domains (if applicable).\n2. Block private IP ranges, localhost, and link-local addresses.\n3. Validate the resolved IP address before making requests.\n4. Example:\n```python\nimport ipaddress\nimport socket\n\ndef is_safe_url(url: str) -> bool:\n    try:\n        parsed = urlparse(url)\n        hostname = parsed.hostname\n        \n        if not hostname:\n            return False\n        \n        # Block private/reserved IP ranges\n        try:\n            ip = ipaddress.ip_address(hostname)\n            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:\n                return False\n        except ValueError:\n            # It's a domain name, resolve it\n            try:\n                resolved_ip = socket.gethostbyname(hostname)\n                ip = ipaddress.ip_address(resolved_ip)\n                if ip.is_private or ip.is_loopback or ip.is_link_local:\n                    return False\n            except socket.gaierror:\n                return False\n        \n        # Validate scheme\n        if parsed.scheme not in ['http', 'https']:\n            return False\n        \n        return True\n    except Exception:\n        return False\n\n@router.post('/api/screenshot')\nasync def app_screenshot(request: ScreenshotRequest):\n    url = request.url\n    if not is_safe_url(url):\n        raise HTTPException(status_code=400, detail='Invalid or unsafe URL')\n    normalized_url = normalize_url(url)\n    image_bytes = await capture_screenshot(normalized_url, api_key=api_key)\n```",
+      "confidence": 0.91,
+      "cwe_id": "CWE-918",
+      "owasp_ref": "A10:2021 \u2013 Server-Side Request Forgery (SSRF)",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-71478205",
+      "title": "No input validation on prompt and file state parameters",
+      "description": "User-supplied prompt text, file paths, and file content are accepted without validation or sanitization. While these are passed to LLM APIs (not directly executed), malicious prompts could potentially be used for prompt injection attacks, or excessively large inputs could cause denial-of-service. File paths are extracted but not validated for directory traversal.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 210,
+          "line_end": 235,
+          "snippet": "# Extract prompt content\nprompt: UserTurnInput = parse_prompt_content(params.get('prompt'))\n\n# Extract history (default to empty list)\nhistory: List[PromptHistoryMessage] = parse_prompt_history(\n    params.get('history')\n)\n\n# Extract file state for agent edits\nraw_file_state = params.get('fileState')\nfile_state: Dict[str, str] | None = None\nif isinstance(raw_file_state, dict):\n    content = raw_file_state.get('content')\n    if isinstance(content, str) and content.strip():\n        path = raw_file_state.get('path') or 'index.html'\n        file_state = {'path': path, 'content': content}"
+        }
+      ],
+      "suggested_fix": "Implement input validation and size limits:\n1. Validate prompt text length and character encoding.\n2. Validate file paths to prevent directory traversal.\n3. Limit file content size.\n4. Sanitize/escape any user-controlled data used in logging.\n5. Example:\n```python\nimport os\nfrom pathlib import Path\n\nMAX_PROMPT_SIZE = 50000  # characters\nMAX_FILE_SIZE = 1000000  # 1MB\nALLOWED_FILE_EXTENSIONS = ['.html', '.js', '.css', '.jsx', '.tsx', '.vue']\n\ndef validate_prompt(prompt: UserTurnInput) -> bool:\n    if not prompt or not prompt.text:\n        return True  # Empty is OK\n    if len(prompt.text) > MAX_PROMPT_SIZE:\n        raise ValueError(f'Prompt exceeds {MAX_PROMPT_SIZE} characters')\n    return True\n\ndef validate_file_path(path: str) -> bool:\n    try:\n        safe_path = Path(path).resolve()\n        # Ensure path is within allowed directory\n        if not str(safe_path).startswith(str(ALLOWED_DIR)):\n            raise ValueError('Path traversal detected')\n        # Check file extension\n        if not any(path.endswith(ext) for ext in ALLOWED_FILE_EXTENSIONS):\n            raise ValueError('File type not allowed')\n        return True\n    except Exception:\n        return False\n\ndef validate_file_state(file_state: Dict[str, str] | None) -> bool:\n    if not file_state:\n        return True\n    if len(file_state.get('content', '')) > MAX_FILE_SIZE:\n        raise ValueError(f'File exceeds {MAX_FILE_SIZE} bytes')\n    if not validate_file_path(file_state.get('path', '')):\n        raise ValueError('Invalid file path')\n    return True\n\n# In extract_and_validate:\nif not validate_prompt(prompt):\n    await self.throw_error('Invalid prompt')\nif not validate_file_state(file_state):\n    await self.throw_error('Invalid file state')\n```",
+      "confidence": 0.78,
+      "cwe_id": "CWE-400",
+      "owasp_ref": "A03:2021 \u2013 Injection",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5912284f",
+      "title": "Screenshot API key passed in request body without HTTPS enforcement",
+      "description": "The screenshotone API key is passed in request parameters (ScreenshotRequest model) which are sent in the HTTP request body. While the code attempts to use HTTPS for the screenshotone API, there's no enforcement that the client-backend connection is encrypted. If the backend is accessible over HTTP, the API key is transmitted in cleartext.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "backend/routes/screenshot.py",
+          "line_start": 48,
+          "line_end": 75,
+          "snippet": "class ScreenshotRequest(BaseModel):\n    url: str\n    apiKey: str\n\n@router.post('/api/screenshot')\nasync def app_screenshot(request: ScreenshotRequest):\n    api_key = request.apiKey\n    # API key transmitted in request body without HTTPS enforcement"
+        }
+      ],
+      "suggested_fix": "Enforce HTTPS and transmit sensitive credentials securely:\n1. Configure FastAPI/Uvicorn to require HTTPS (or enforce at reverse proxy level).\n2. Never log API keys.\n3. Use request headers (Authorization header) instead of body for sensitive data.\n4. Add HSTS headers to enforce HTTPS.\n5. Example:\n```python\nfrom fastapi import HTTPException, Request\nfrom starlette.middleware.trustedhost import TrustedHostMiddleware\nfrom starlette.middleware.https import HTTPSRedirectMiddleware\n\n# Enforce HTTPS\nif not IS_DEBUG_ENABLED:\n    app.add_middleware(HTTPSRedirectMiddleware)\n    app.add_middleware(TrustedHostMiddleware, allowed_hosts=['screenshottocode.com'])\n\n# Use Authorization header instead of body\n@router.post('/api/screenshot')\nasync def app_screenshot(request: ScreenshotRequest, authorization: str = Header(None)):\n    if not authorization or not authorization.startswith('Bearer '):\n        raise HTTPException(status_code=401, detail='Missing API key')\n    api_key = authorization[7:]  # Remove 'Bearer ' prefix\n    \n    # Never log the API key\n    logger.info('Screenshot request for URL')\n    \n# Add security headers\nfrom starlette.middleware.base import BaseHTTPMiddleware\n\nclass SecurityHeadersMiddleware(BaseHTTPMiddleware):\n    async def dispatch(self, request: Request, call_next):\n        response = await call_next(request)\n        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'\n        response.headers['X-Content-Type-Options'] = 'nosniff'\n        response.headers['X-Frame-Options'] = 'DENY'\n        return response\n\napp.add_middleware(SecurityHeadersMiddleware)\n```",
+      "confidence": 0.82,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021 \u2013 Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fb581297",
+      "title": "Frontend stores sensitive credentials in localStorage without encryption",
+      "description": "The frontend stores API keys (openAiApiKey, anthropicApiKey) and other settings in localStorage via the usePersistedState hook. localStorage is accessible to any JavaScript running on the page, including malicious scripts injected via XSS vulnerabilities. The API keys persist across sessions without encryption.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "frontend/src/App.tsx",
+          "line_start": 60,
+          "line_end": 80,
+          "snippet": "const [settings, setSettings] = usePersistedState<Settings>(\n    {\n      openAiApiKey: null,\n      openAiBaseURL: null,\n      anthropicApiKey: null,\n      screenshotOneApiKey: null,\n      ...\n    },\n    'setting'\n);"
+        },
+        {
+          "file_path": "frontend/src/hooks/usePersistedState.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "// Stores values in localStorage without encryption"
+        }
+      ],
+      "suggested_fix": "Avoid storing sensitive credentials in localStorage:\n1. Use sessionStorage (clears on browser close) instead of localStorage for sensitive data.\n2. Encrypt sensitive data before storing if persistence is required.\n3. Better approach: Use a backend session token and store API keys only on the backend.\n4. Example:\n```typescript\n// Option 1: Use sessionStorage for credentials\nconst usePersistedState = <T,>(initialValue: T, key: string, isSecure = false) => {\n  const storage = isSecure ? sessionStorage : localStorage;\n  // ... rest of implementation\n};\n\nconst [settings, setSettings] = usePersistedState<Settings>(\n  { openAiApiKey: null, ... },\n  'setting',\n  true  // Use sessionStorage for secure data\n);\n\n// Option 2: Store API keys only on backend\n// Frontend never stores API keys; instead:\n// 1. User provides API key to backend via authenticated endpoint\n// 2. Backend stores it in encrypted session storage\n// 3. Frontend receives a session token\n// 4. All subsequent requests use the session token\n\n@router.post('/api/settings/save-api-keys')\nasync def save_api_keys(keys: APIKeysRequest, user: User = Depends(get_current_user)):\n    # Encrypt and store keys in server session\n    session = create_session(user.id)\n    encrypt_and_store(session.id, keys.openai_key, keys.anthropic_key)\n    return {'sessionToken': session.id}\n```",
+      "confidence": 0.88,
+      "cwe_id": "CWE-522",
+      "owasp_ref": "A02:2021 \u2013 Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fde308aa",
+      "title": "Wildcard CORS configuration allows any origin",
+      "description": "The FastAPI backend allows requests from any origin with allow_origins=['*']. This enables CSRF attacks and exposes the API to abuse from any website.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/main.py",
+          "line_start": 15,
+          "line_end": 22,
+          "snippet": "app.add_middleware(\n    CORSMiddleware,\n    allow_origins=['*'],\n    allow_credentials=True,\n    allow_methods=['*'],\n    allow_headers=['*'],\n)"
+        }
+      ],
+      "suggested_fix": "Replace wildcard CORS with explicit allowed origins. Use environment variable for configuration:\n\nallowed_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:5173').split(',')\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=allowed_origins,\n    allow_credentials=False,\n    allow_methods=['POST', 'GET'],\n    allow_headers=['Content-Type'],\n)\n\nDisable allow_credentials when using wildcard origins or specific origins.",
+      "confidence": 0.98,
+      "cwe_id": "CWE-346",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-54830005",
+      "title": "Debug mode configuration exposed in production",
+      "description": "IS_DEBUG_ENABLED is read from environment variables and used to control debug output. If debug mode is accidentally enabled in production, it can expose sensitive information including stack traces and internal system details.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/config.py",
+          "line_start": 10,
+          "line_end": 11,
+          "snippet": "# Debugging-related\nIS_DEBUG_ENABLED = bool(os.environ.get('IS_DEBUG_ENABLED', False))"
+        },
+        {
+          "file_path": "backend/main.py",
+          "line_start": 12,
+          "line_end": 14,
+          "snippet": "@app.on_event('startup')\nasync def log_debug_mode() -> None:\n    debug_status = 'ENABLED' if IS_DEBUG_ENABLED else 'DISABLED'\n    print(f'Backend startup complete. Debug mode is {debug_status}.')"
+        }
+      ],
+      "suggested_fix": "Implement environment-based debug control that ensures debug mode is never enabled in production:\n\nIS_DEBUG_ENABLED = os.environ.get('ENVIRONMENT', 'production').lower() == 'development' and os.environ.get('IS_DEBUG_ENABLED', 'false').lower() == 'true'\n\nAdd explicit check before startup:\n\n@app.on_event('startup')\nasync def log_debug_mode() -> None:\n    if IS_DEBUG_ENABLED and os.environ.get('ENVIRONMENT') == 'production':\n        raise RuntimeError('Debug mode cannot be enabled in production')\n    debug_status = 'ENABLED' if IS_DEBUG_ENABLED else 'DISABLED'\n    print(f'Backend startup complete. Debug mode is {debug_status}.')",
+      "confidence": 0.92,
+      "cwe_id": "CWE-489",
+      "owasp_ref": "A09:2021 - Logging and Monitoring Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2ee7a1b9",
+      "title": "API keys stored in environment variables without rotation mechanism",
+      "description": "Multiple sensitive API keys (OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, REPLICATE_API_KEY) are read directly from environment variables. There is no mechanism for key rotation, expiration checking, or audit logging of API key usage.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/config.py",
+          "line_start": 4,
+          "line_end": 9,
+          "snippet": "# LLM-related\nOPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', None)\nANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', None)\nGEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', None)\nOPENAI_BASE_URL = os.environ.get('OPENAI_BASE_URL', None)\nREPLICATE_API_KEY = os.environ.get('REPLICATE_API_KEY', None)"
+        }
+      ],
+      "suggested_fix": "Implement API key management with validation and logging:\n\n1. Add validation on startup:\n\nrequired_keys = ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY']\nfor key in required_keys:\n    if not os.environ.get(key):\n        raise RuntimeError(f'Missing required API key: {key}')\n\n2. Implement key usage logging in a wrapper function:\n\ndef get_api_key(key_name: str) -> str:\n    key = os.environ.get(key_name)\n    if not key:\n        raise ValueError(f'{key_name} not configured')\n    # Log access (without exposing the key)\n    logger.info(f'API key accessed: {key_name}')\n    return key\n\n3. Add key expiration checking if possible with your provider APIs.",
+      "confidence": 0.88,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A02:2021 - Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e9cee77f",
+      "title": "Frontend API endpoints exposed without authentication or rate limiting",
+      "description": "Multiple public endpoints (/generate_code, /screenshot, /evals/*, /model_choice_sets, /ws/*) are marked as unprotected with auth_type='none'. There is no rate limiting configured to prevent abuse, DoS attacks, or API key exhaustion.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "@router.websocket('/generate-code')\nasync def websocket_endpoint(websocket: WebSocket):\n    # No authentication check before accepting connection"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting and optional authentication:\n\n1. Add rate limiting middleware:\n\nfrom slowapi import Limiter\nfrom slowapi.util import get_remote_address\n\nlimiter = Limiter(key_func=get_remote_address)\napp.state.limiter = limiter\n\n2. Apply to routes:\n\n@router.websocket('/generate-code')\n@limiter.limit('10/minute')  # Adjust based on expected usage\nasync def websocket_endpoint(websocket: WebSocket):\n    await websocket.accept()\n    ...\n\n3. For hosted version, implement optional API key authentication:\n\nfrom fastapi import Header, HTTPException\n\nasync def verify_api_key(x_api_key: str = Header(None)):\n    if IS_PROD and not x_api_key:\n        raise HTTPException(status_code=401, detail='API key required')\n    if x_api_key and x_api_key != os.environ.get('VALID_API_KEY'):\n        raise HTTPException(status_code=403, detail='Invalid API key')",
+      "confidence": 0.9,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021 - Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-75e843bb",
+      "title": "WebSocket connections not properly validated or closed",
+      "description": "WebSocket connections in generate_code.py accept connections without proper validation. ConnectionClosedError exceptions are caught but may not properly clean up resources. No timeout mechanism prevents hung connections from consuming resources indefinitely.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 130,
+          "line_end": 160,
+          "snippet": "class WebSocketCommunicator:\n    async def accept(self) -> None:\n        await self.websocket.accept()\n        print('Incoming websocket connection...')\n    \n    async def close(self) -> None:\n        if not self.is_closed:\n            try:\n                await self.websocket.close()\n            except (ConnectionClosedOK, ConnectionClosedError):\n                pass\n            self.is_closed = True"
+        }
+      ],
+      "suggested_fix": "Implement proper WebSocket validation and timeout handling:\n\nimport asyncio\n\nWS_TIMEOUT_SECONDS = 3600  # 1 hour\n\nclass WebSocketCommunicator:\n    def __init__(self, websocket: WebSocket):\n        self.websocket = websocket\n        self.is_closed = False\n        self.timeout_handle = None\n    \n    async def accept(self) -> None:\n        # Validate origin if needed\n        if not self._validate_origin():\n            await self.websocket.close(code=1008, reason='Invalid origin')\n            return\n        \n        await self.websocket.accept()\n        self._set_timeout()\n    \n    def _set_timeout(self) -> None:\n        self.timeout_handle = asyncio.create_task(\n            self._timeout_handler()\n        )\n    \n    async def _timeout_handler(self) -> None:\n        try:\n            await asyncio.sleep(WS_TIMEOUT_SECONDS)\n            if not self.is_closed:\n                await self.websocket.close(code=1008, reason='Timeout')\n                self.is_closed = True\n        except asyncio.CancelledError:\n            pass\n    \n    def _validate_origin(self) -> bool:\n        allowed_origins = os.environ.get('CORS_ORIGINS', 'http://localhost:5173').split(',')\n        origin = self.websocket.headers.get('origin')\n        return origin in allowed_origins",
+      "confidence": 0.85,
+      "cwe_id": "CWE-400",
+      "owasp_ref": "A05:2021 - Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-85f9f85d",
+      "title": "Missing HTTPS enforcement in production",
+      "description": "Frontend configuration uses HTTP_BACKEND_URL and WS_BACKEND_URL with default values pointing to http://127.0.0.1:7001. There is no enforcement of HTTPS in production, allowing for man-in-the-middle attacks and credential interception.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "frontend/src/config.ts",
+          "line_start": 4,
+          "line_end": 9,
+          "snippet": "export const WS_BACKEND_URL =\n  import.meta.env.VITE_WS_BACKEND_URL || 'ws://127.0.0.1:7001';\n\nexport const HTTP_BACKEND_URL =\n  import.meta.env.VITE_HTTP_BACKEND_URL || 'http://127.0.0.1:7001';"
+        },
+        {
+          "file_path": "docker-compose.yml",
+          "line_start": 11,
+          "line_end": 15,
+          "snippet": "ports:\n      - \"${BACKEND_PORT:-7001}:${BACKEND_PORT:-7001}\"\n\n    command: poetry run uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT:-7001}"
+        }
+      ],
+      "suggested_fix": "1. Enforce HTTPS/WSS in production configuration:\n\n// frontend/src/config.ts\nconst IS_PROD = import.meta.env.VITE_IS_DEPLOYED === 'true';\nconst protocol = IS_PROD ? 'https' : 'http';\nconst wsProtocol = IS_PROD ? 'wss' : 'ws';\n\nexport const WS_BACKEND_URL =\n  import.meta.env.VITE_WS_BACKEND_URL || `${wsProtocol}://api.example.com`;\n\nexport const HTTP_BACKEND_URL =\n  import.meta.env.VITE_HTTP_BACKEND_URL || `${protocol}://api.example.com`;\n\n2. Update docker-compose.yml to support HTTPS:\n\ncommand: poetry run uvicorn main:app --host 0.0.0.0 --port 7001 --ssl-keyfile=/etc/ssl/private/key.pem --ssl-certfile=/etc/ssl/certs/cert.pem\n\nvolumes:\n  - /etc/ssl/private:/etc/ssl/private:ro\n  - /etc/ssl/certs:/etc/ssl/certs:ro\n\n3. Add security headers in FastAPI:\n\nfrom fastapi.middleware.trustedhost import TrustedHostMiddleware\n\napp.add_middleware(\n    TrustedHostMiddleware,\n    allowed_hosts=['api.example.com', 'example.com'],\n)\n\n4. Add HSTS header:\n\nfrom starlette.middleware.base import BaseHTTPMiddleware\n\nclass HSTSMiddleware(BaseHTTPMiddleware):\n    async def dispatch(self, request, call_next):\n        response = await call_next(request)\n        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'\n        return response\n\napp.add_middleware(HSTSMiddleware)",
+      "confidence": 0.95,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021 - Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-27268b93",
+      "title": "Missing security headers in FastAPI responses",
+      "description": "The backend does not set essential security headers like X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, and Content-Security-Policy. This leaves the application vulnerable to clickjacking, MIME sniffing, and XSS attacks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/main.py",
+          "line_start": 1,
+          "line_end": 25,
+          "snippet": "from fastapi import FastAPI\nfrom fastapi.middleware.cors import CORSMiddleware\nfrom config import IS_DEBUG_ENABLED\nfrom routes import screenshot, generate_code, home, evals\n\napp = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)"
+        }
+      ],
+      "suggested_fix": "Add security headers middleware:\n\nfrom starlette.middleware.base import BaseHTTPMiddleware\nfrom starlette.responses import Response\n\nclass SecurityHeadersMiddleware(BaseHTTPMiddleware):\n    async def dispatch(self, request, call_next):\n        response = await call_next(request)\n        response.headers['X-Content-Type-Options'] = 'nosniff'\n        response.headers['X-Frame-Options'] = 'DENY'\n        response.headers['X-XSS-Protection'] = '1; mode=block'\n        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'\n        response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'\n        # Only set CSP if not already set\n        if 'Content-Security-Policy' not in response.headers:\n            response.headers['Content-Security-Policy'] = \"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'\"\n        return response\n\n# Add middleware after CORS\napp.add_middleware(SecurityHeadersMiddleware)",
+      "confidence": 0.9,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7e075597",
+      "title": "No input validation on WebSocket message parameters",
+      "description": "WebSocket parameters are received and used without proper validation. The ParameterExtractionStage performs some validation but doesn't sanitize all inputs. Malformed or malicious inputs could crash the backend or trigger unexpected behavior.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 200,
+          "line_end": 250,
+          "snippet": "async def extract_and_validate(self, params: Dict[str, Any]) -> ExtractedParams:\n    generated_code_config = params.get('generatedCodeConfig', '')\n    if generated_code_config not in get_args(Stack):\n        await self.throw_error(...)\n    # Limited validation of other parameters"
+        }
+      ],
+      "suggested_fix": "Enhance parameter validation:\n\nfrom pydantic import BaseModel, Field, validator\nimport re\n\nclass GenerationRequest(BaseModel):\n    generationType: str = Field(..., regex='^(create|update)$')\n    inputMode: str = Field(..., regex='^(image|video|text)$')\n    generatedCodeConfig: str\n    prompt: Dict[str, Any]\n    history: List[Dict[str, Any]] = []\n    fileState: Optional[Dict[str, str]] = None\n    optionCodes: List[str] = []\n    \n    @validator('prompt')\n    def validate_prompt(cls, v):\n        if not isinstance(v, dict):\n            raise ValueError('Prompt must be a dictionary')\n        if 'text' in v and not isinstance(v['text'], str):\n            raise ValueError('Prompt text must be string')\n        if 'images' in v and not isinstance(v['images'], list):\n            raise ValueError('Prompt images must be array')\n        # Limit sizes\n        if 'text' in v and len(v['text']) > 10000:\n            raise ValueError('Prompt text too long (max 10000 chars)')\n        return v\n    \n    @validator('optionCodes')\n    def validate_option_codes(cls, v):\n        if len(v) > 10:\n            raise ValueError('Maximum 10 option codes allowed')\n        for code in v:\n            if len(code) > 1000000:  # 1MB per variant\n                raise ValueError('Option code too large')\n        return v\n\n# Use in extraction stage\ntry:\n    request = GenerationRequest(**params)\nexcept ValidationError as e:\n    await self.throw_error(f'Invalid parameters: {e.json()}')",
+      "confidence": 0.87,
+      "cwe_id": "CWE-20",
+      "owasp_ref": "A03:2021 - Injection",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b8e193d3",
+      "title": "Error messages expose internal system details",
+      "description": "Error messages and exception handling may expose internal implementation details, file paths, or stack traces that aid attackers. The IS_DEBUG_ENABLED check is applied inconsistently.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 140,
+          "line_end": 155,
+          "snippet": "async def send_message(self, type: MessageType, value: str | None, variantIndex: int, data: Dict[str, Any] | None = None, eventId: str | None = None) -> None:\n    if self.is_closed:\n        return\n    if type == 'error':\n        print(f'Error (variant {variantIndex + 1}): {value}')"
+        }
+      ],
+      "suggested_fix": "Implement consistent error handling with debug mode awareness:\n\nimport logging\n\nlogger = logging.getLogger(__name__)\n\nclass WebSocketCommunicator:\n    async def send_message(self, type: MessageType, value: str | None, variantIndex: int, data: Dict[str, Any] | None = None, eventId: str | None = None) -> None:\n        if self.is_closed:\n            return\n        \n        # Internal logging (only shown to admins/in logs)\n        if type == 'error':\n            logger.error(f'Generation error (variant {variantIndex + 1}): {value}', \n                        extra={'variantIndex': variantIndex})\n        \n        # User-facing message (sanitized)\n        try:\n            # Only expose detailed errors in debug mode\n            user_message = value if IS_DEBUG_ENABLED else 'An error occurred during generation'\n            \n            payload: Dict[str, Any] = {'type': type, 'variantIndex': variantIndex}\n            if value is not None:\n                payload['value'] = user_message\n            if data is not None and IS_DEBUG_ENABLED:\n                payload['data'] = data\n            if eventId is not None:\n                payload['eventId'] = eventId\n            \n            await self.websocket.send_json(payload)\n        except Exception as e:\n            logger.exception('Failed to send WebSocket message')\n    \n    async def throw_error(self, message: str, log_details: str | None = None) -> None:\n        # Internal detailed logging\n        if log_details:\n            logger.error(f'Generation failed: {log_details}')\n        \n        # User-facing error (generic unless debug mode)\n        user_message = message if IS_DEBUG_ENABLED else 'An error occurred during code generation'\n        \n        try:\n            await self.websocket.send_json({'type': 'error', 'value': user_message})\n            await self.websocket.close(APP_ERROR_WEB_SOCKET_CODE)\n        except (ConnectionClosedOK, ConnectionClosedError):\n            logger.debug('WebSocket already closed by client')\n        self.is_closed = True",
+      "confidence": 0.88,
+      "cwe_id": "CWE-209",
+      "owasp_ref": "A09:2021 - Logging and Monitoring Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-bdfcc9cd",
+      "title": "Frontend stores sensitive settings in localStorage without encryption",
+      "description": "Frontend stores API keys (openAiApiKey, anthropicApiKey) in localStorage via usePersistedState hook. localStorage is not secure for sensitive data and is vulnerable to XSS attacks and local file access.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "frontend/src/App.tsx",
+          "line_start": 45,
+          "line_end": 65,
+          "snippet": "const [settings, setSettings] = usePersistedState<Settings>(\n    {\n      openAiApiKey: null,\n      openAiBaseURL: null,\n      anthropicApiKey: null,\n      screenshotOneApiKey: null,\n      isImageGenerationEnabled: true,\n      editorTheme: EditorTheme.COBALT,\n      generatedCodeConfig: Stack.HTML_TAILWIND,\n      codeGenerationModel: CodeGenerationModel.CLAUDE_4_5_OPUS_2025_11_01,\n      isTermOfServiceAccepted: false,\n    },\n    'setting'\n  );"
+        },
+        {
+          "file_path": "frontend/src/hooks/usePersistedState.ts",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "// Assumed implementation that stores to localStorage directly"
+        }
+      ],
+      "suggested_fix": "1. Do NOT store API keys in localStorage. Instead, implement server-side proxy:\n\n// frontend/generateCode.ts - remove API keys from client settings\nconst requestParams = {\n  generationType: requestParams.generationType,\n  inputMode: requestParams.inputMode,\n  prompt: requestParams.prompt,\n  history: requestParams.history,\n  // Do NOT include API keys\n};\n\n2. Update backend to accept keys only from environment:\n\n// backend/routes/generate_code.py\nclass ParameterExtractionStage:\n    async def extract_and_validate(self, params: Dict[str, Any]) -> ExtractedParams:\n        # Explicitly prevent client-supplied API keys in production\n        if IS_PROD:\n            params['openAiApiKey'] = None\n            params['anthropicApiKey'] = None\n            params['geminiApiKey'] = None\n        # Keys come from environment only\n        openai_api_key = OPENAI_API_KEY\n        anthropic_api_key = ANTHROPIC_API_KEY\n        gemini_api_key = GEMINI_API_KEY\n\n3. For local development, pass keys via server proxy with secure headers:\n\n// Implement per-request encryption if keys must be stored\nfunction encryptKey(key: string, password: string): string {\n    // Use TweetNaCl.js or similar\n    const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);\n    const encrypted = nacl.secretbox(nacl.util.decodeUTF8(key), nonce, generateKey(password));\n    return nacl.util.encodeBase64(nonce) + ':' + nacl.util.encodeBase64(encrypted);\n}\n\n// Only use encrypted keys with explicit user action and warning",
+      "confidence": 0.92,
+      "cwe_id": "CWE-522",
+      "owasp_ref": "A02:2021 - Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fc295bd2",
+      "title": "No Content Security Policy (CSP) headers in HTML",
+      "description": "The frontend HTML (frontend/index.html) does not include a Content-Security-Policy meta tag, allowing inline scripts and scripts from any source. This enables XSS attacks and unauthorized script execution.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "frontend/index.html",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/png\" href=\"/favicon/main.png\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <!-- No CSP meta tag present -->"
+        }
+      ],
+      "suggested_fix": "Add Content-Security-Policy meta tag and headers:\n\n// In frontend/index.html, add to <head>\n<meta http-equiv=\"Content-Security-Policy\" \n      content=\"default-src 'self'; \n               script-src 'self' 'wasm-unsafe-eval' plausible.io; \n               style-src 'self' 'unsafe-inline' fonts.googleapis.com; \n               font-src 'self' fonts.gstatic.com; \n               img-src 'self' data: https:; \n               connect-src 'self' ws: wss: plausible.io; \n               frame-ancestors 'none'; \n               base-uri 'self'; \n               form-action 'self'\" />\n\n// Also ensure backend sends CSP header:\n// In backend/main.py\nclass SecurityHeadersMiddleware(BaseHTTPMiddleware):\n    async def dispatch(self, request, call_next):\n        response = await call_next(request)\n        response.headers['Content-Security-Policy'] = (\n            \"default-src 'self'; \"\n            \"script-src 'self' 'wasm-unsafe-eval' plausible.io; \"\n            \"style-src 'self' 'unsafe-inline' fonts.googleapis.com; \"\n            \"font-src 'self' fonts.gstatic.com; \"\n            \"img-src 'self' data: https:; \"\n            \"connect-src 'self' ws: wss: plausible.io; \"\n            \"frame-ancestors 'none'; \"\n            \"base-uri 'self'; \"\n            \"form-action 'self'\"\n        )\n        return response",
+      "confidence": 0.85,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A03:2021 - Injection",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-39436a1c",
+      "title": "OpenAPI documentation disabled but swagger endpoints may still be accessible",
+      "description": "While openapi_url, docs_url, and redoc_url are set to None in FastAPI configuration, there may be other metadata endpoints that leak information about the API structure. Additionally, disabling documentation doesn't prevent attackers from discovering endpoints through other means.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/main.py",
+          "line_start": 9,
+          "line_end": 10,
+          "snippet": "app = FastAPI(openapi_url=None, docs_url=None, redoc_url=None)"
+        }
+      ],
+      "suggested_fix": "Verify no other metadata endpoints are exposed and add defensive measures:\n\n// Verify all metadata endpoints are disabled\napp = FastAPI(\n    openapi_url=None,\n    docs_url=None,\n    redoc_url=None,\n    swagger_ui_oauth2_redirect_url=None\n)\n\n// Add a catch-all route to reject metadata requests\n@app.get('/{path_name:path}')\nasync def catch_all(path_name: str):\n    # Reject requests to common API discovery paths\n    blocked_paths = ['swagger', 'openapi', 'graphql', '.well-known', 'api-docs']\n    if any(blocked in path_name.lower() for blocked in blocked_paths):\n        return {'error': 'Not found'}, 404\n    # Let normal routing handle it\n    raise HTTPException(status_code=404, detail='Not found')\n\n// Add to your logging to monitor discovery attempts\n// In SecurityHeadersMiddleware:\nif any(path in request.url.path.lower() for path in blocked_paths):\n    logger.warning(f'API discovery attempt from {request.client.host}: {request.url.path}')",
+      "confidence": 0.75,
+      "cwe_id": "CWE-200",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-45d1cdbf",
+      "title": "No request size limits configured",
+      "description": "FastAPI and uvicorn have default request size limits, but these should be explicitly configured to prevent large payload attacks that could exhaust server memory. Image uploads and file state parameters are not size-limited.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 200,
+          "line_end": 250,
+          "snippet": "async def extract_and_validate(self, params: Dict[str, Any]) -> ExtractedParams:\n    # No size validation on prompt, images, or code content"
+        },
+        {
+          "file_path": "docker-compose.yml",
+          "line_start": 15,
+          "line_end": 15,
+          "snippet": "command: poetry run uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT:-7001}"
+        }
+      ],
+      "suggested_fix": "Implement request size and content validation:\n\n// 1. Update docker-compose.yml command\ncommand: poetry run uvicorn main:app --host 0.0.0.0 --port ${BACKEND_PORT:-7001} --limit-request-line 8190 --limit-request-fields 100 --limit-request-field-size 8190 --limit-concurrency 100\n\n// 2. Add FastAPI request body size limit\n# backend/main.py\nfrom fastapi import FastAPI\nfrom starlette.middleware.base import BaseHTTPMiddleware\n\nMAX_BODY_SIZE = 50 * 1024 * 1024  # 50MB\n\nclass RequestSizeLimitMiddleware(BaseHTTPMiddleware):\n    async def dispatch(self, request, call_next):\n        content_length = request.headers.get('content-length')\n        if content_length and int(content_length) > MAX_BODY_SIZE:\n            return JSONResponse(\n                status_code=413,\n                content={'detail': 'Request body too large'}\n            )\n        return await call_next(request)\n\napp.add_middleware(RequestSizeLimitMiddleware)\n\n// 3. Add validation in parameter extraction\nclass ParameterExtractionStage:\n    MAX_PROMPT_SIZE = 10000\n    MAX_IMAGE_SIZE = 20 * 1024 * 1024  # 20MB\n    MAX_CODE_SIZE = 10 * 1024 * 1024   # 10MB per variant\n    \n    async def extract_and_validate(self, params: Dict[str, Any]) -> ExtractedParams:\n        prompt = params.get('prompt', {})\n        \n        # Validate prompt text size\n        if 'text' in prompt and len(prompt['text']) > self.MAX_PROMPT_SIZE:\n            await self.throw_error(f'Prompt too long (max {self.MAX_PROMPT_SIZE} chars)')\n        \n        # Validate image data URLs size\n        images = prompt.get('images', [])\n        for image in images:\n            if isinstance(image, str) and len(image) > self.MAX_IMAGE_SIZE:\n                await self.throw_error(f'Image too large (max {self.MAX_IMAGE_SIZE / 1024 / 1024}MB)')\n        \n        # Validate option codes size\n        option_codes = params.get('optionCodes', [])\n        for code in option_codes:\n            if len(code) > self.MAX_CODE_SIZE:\n                await self.throw_error(f'Code too large (max {self.MAX_CODE_SIZE / 1024 / 1024}MB per variant)')",
+      "confidence": 0.86,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021 - Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-64b59498",
+      "title": "Frontend environment variables not properly validated",
+      "description": "Frontend environment variables (VITE_IS_DEPLOYED, VITE_WS_BACKEND_URL, VITE_HTTP_BACKEND_URL) are used without validation. Malicious environment values could direct the app to attacker-controlled servers or enable features unintentionally.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "frontend/src/config.ts",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "export const IS_RUNNING_ON_CLOUD =\n  import.meta.env.VITE_IS_DEPLOYED === 'true' || false;\n\nexport const WS_BACKEND_URL =\n  import.meta.env.VITE_WS_BACKEND_URL || 'ws://127.0.0.1:7001';\n\nexport const HTTP_BACKEND_URL =\n  import.meta.env.VITE_HTTP_BACKEND_URL || 'http://127.0.0.1:7001';"
+        }
+      ],
+      "suggested_fix": "Validate and sanitize environment variables:\n\n// frontend/src/config.ts\nfunction validateUrl(url: string, expectedProtocol: string): string {\n    try {\n        const parsed = new URL(url);\n        if (!parsed.protocol.startsWith(expectedProtocol)) {\n            console.error(`Invalid protocol. Expected ${expectedProtocol}, got ${parsed.protocol}`);\n            throw new Error('Invalid URL protocol');\n        }\n        // Whitelist allowed domains in production\n        if (import.meta.env.VITE_IS_DEPLOYED === 'true') {\n            const allowedDomains = [\n                'api.screenshottocode.com',\n                'api.example.com'\n            ];\n            if (!allowedDomains.includes(parsed.hostname)) {\n                throw new Error(`Domain ${parsed.hostname} not in whitelist`);\n            }\n        }\n        return url;\n    } catch (error) {\n        console.error('Invalid URL configuration:', error);\n        // Fallback to safe default\n        return expectedProtocol === 'ws' || expectedProtocol === 'wss' \n            ? 'ws://127.0.0.1:7001'\n            : 'http://127.0.0.1:7001';\n    }\n}\n\nexport const IS_RUNNING_ON_CLOUD =\n  import.meta.env.VITE_IS_DEPLOYED === 'true';\n\nconst wsProtocol = IS_RUNNING_ON_CLOUD ? 'wss' : 'ws';\nconst httpProtocol = IS_RUNNING_ON_CLOUD ? 'https' : 'http';\n\nexport const WS_BACKEND_URL = validateUrl(\n    import.meta.env.VITE_WS_BACKEND_URL || `${wsProtocol}://127.0.0.1:7001`,\n    wsProtocol\n);\n\nexport const HTTP_BACKEND_URL = validateUrl(\n    import.meta.env.VITE_HTTP_BACKEND_URL || `${httpProtocol}://127.0.0.1:7001`,\n    httpProtocol\n);",
+      "confidence": 0.82,
+      "cwe_id": "CWE-20",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c5f36674",
+      "title": "Repeated function call in ImageLightbox useEffect",
+      "description": "The `recomputeFitScale` function is called twice in quick succession in ImageLightbox.tsx - once in the useEffect that watches [image, recomputeFitScale] and again immediately after. This causes redundant calculations.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/ImageLightbox.tsx",
+          "line_start": 60,
+          "line_end": 70,
+          "snippet": "useEffect(() => {\n    if (!image) return;\n    recomputeFitScale();\n\n    const handleResize = () => recomputeFitScale();\n    window.addEventListener('resize', handleResize);\n    return () => window.removeEventListener('resize', handleResize);\n  }, [image, recomputeFitScale]);\n\n  useEffect(() => {\n    recomputeFitScale();\n  }, [recomputeFitScale]);"
+        }
+      ],
+      "suggested_fix": "Remove the second useEffect (lines 67-69) that calls recomputeFitScale redundantly. The first useEffect already handles this when dependencies change.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2a66d2fe",
+      "title": "Unmemoized O(n log n) sort operation in Sidebar render",
+      "description": "The `currentVersionNumber` computation performs `Object.values(commits).sort(...)` on every render, which is O(n log n). For projects with many commits, this creates significant overhead.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/sidebar/Sidebar.tsx",
+          "line_start": 149,
+          "line_end": 158,
+          "snippet": "// Compute version number for the current head\n  const currentVersionNumber = (() => {\n    if (!head) return null;\n    const sorted = Object.values(commits).sort(\n      (a, b) => new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()\n    );\n    const index = sorted.findIndex((c) => c.hash === head);\n    return index !== -1 ? index + 1 : null;\n  })();"
+        }
+      ],
+      "suggested_fix": "Wrap this computation in a useMemo hook with dependencies [head, commits]: `const currentVersionNumber = useMemo(() => {...}, [head, commits]);`",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f529939a",
+      "title": "Missing useCallback for event handler in ImageUpload",
+      "description": "The handleGenerate function is defined with useCallback but depends on multiple values that change frequently. The global keydown handler in useEffect may capture stale closures.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/ImageUpload.tsx",
+          "line_start": 83,
+          "line_end": 106,
+          "snippet": "// Global Enter key listener for generating when image is uploaded\n  useEffect(() => {\n    if (!hasUploadedFile) return;\n\n    const handleGlobalKeyDown = (e: KeyboardEvent) => {\n      if (e.key === 'Enter' && !e.shiftKey) {\n        if (document.activeElement === textInputRef.current) return;\n        e.preventDefault();\n        handleGenerate();\n      }\n    };\n\n    document.addEventListener('keydown', handleGlobalKeyDown);\n    return () => document.removeEventListener('keydown', handleGlobalKeyDown);\n  }, [hasUploadedFile, handleGenerate]);"
+        }
+      ],
+      "suggested_fix": "Add handleGenerate to the dependency array and ensure it's wrapped in useCallback with stable dependencies. Consider using useRef to store the latest handleGenerate reference to avoid re-attaching the listener.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e84c96e8",
+      "title": "Multiple WebSocket event listeners without cleanup verification",
+      "description": "The generateCode.ts creates new WebSocket listeners but there's no explicit guarantee that previous listeners are fully cleaned up before new ones are created, potentially causing memory leaks during rapid regeneration.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/generateCode.ts",
+          "line_start": 48,
+          "line_end": 95,
+          "snippet": "ws.addEventListener('message', async (event: MessageEvent) => {\n    const response = JSON.parse(event.data) as WebSocketResponse;\n    // ... multiple if/else if branches\n  });\n\n  ws.addEventListener('close', (event) => {...});\n  ws.addEventListener('error', (error) => {...});"
+        }
+      ],
+      "suggested_fix": "Ensure ws.close() is called before creating a new WebSocket in the calling code (App.tsx). Consider adding explicit cleanup in the cancelCodeGeneration function to guarantee proper connection termination.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ec7da3e0",
+      "title": "Potentially large agentEvents array causing re-renders",
+      "description": "The Variant type includes agentEvents array that grows during generation. If this array reference changes on every event, it could trigger unnecessary re-renders in child components that depend on the variant.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/store/project-store.ts",
+          "line_start": 1,
+          "line_end": 200,
+          "snippet": "// From types.ts in commits folder:\nexport type AgentEvent = {\n  id: string;\n  type: AgentEventType;\n  status: AgentEventStatus;\n  content?: string;\n  // ... other fields\n};"
+        }
+      ],
+      "suggested_fix": "Consider using Immer or immutable update patterns to ensure the agentEvents array reference only changes when genuinely necessary. Use shallow comparison optimization in components consuming variants.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c63ff059",
+      "title": "No React.memo on list-rendering components",
+      "description": "Components like HistoryDisplay, Variants, and AgentActivity that render lists of items are not wrapped in React.memo, causing unnecessary re-renders when parent state changes.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/history/HistoryDisplay.tsx",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "// No React.memo wrapper found in the component export"
+        }
+      ],
+      "suggested_fix": "Wrap list-rendering components with React.memo and ensure proper comparison of props. For example: `export default React.memo(HistoryDisplay);`",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2df0ef26",
+      "title": "Missing pagination in prompt history parsing",
+      "description": "The parse_prompt_history function in request_parsing.py iterates through all history items without any pagination or streaming. For very long conversations, this processes the entire array in one call.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/prompts/request_parsing.py",
+          "line_start": 24,
+          "line_end": 45,
+          "snippet": "def parse_prompt_history(raw_history: object) -> List[PromptHistoryMessage]:\n    if not isinstance(raw_history, list):\n        return []\n\n    history: List[PromptHistoryMessage] = []\n    raw_items = cast(List[object], raw_history)\n    for item in raw_items:\n        # ... processing each item\n        history.append(...)\n\n    return history"
+        }
+      ],
+      "suggested_fix": "Consider adding a max_history_length parameter to limit the number of history items processed, or implement sliding window approach to keep only the most recent N messages.",
+      "confidence": 0.65,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-98f9f73b",
+      "title": "God module: backend/routes/generate_code.py exceeds 800 LOC with mixed responsibilities",
+      "description": "The main route handler contains 824 lines of code mixing HTTP request handling, orchestration, prompt construction, agent execution, WebSocket streaming, and response formatting. This violates separation of concerns and makes the module difficult to test and maintain.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 824,
+          "snippet": "Contains request parsing, prompt building, agent orchestration, WebSocket management, and response handling"
+        }
+      ],
+      "suggested_fix": "Extract into: (1) RequestOrchestrator - handles request parsing and setup, (2) PromptBuilder - constructs prompts from requests, (3) ResponseStreamer - manages WebSocket/SSE output, (4) CodeGenController - coordinates the flow. Routes should remain thin.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8e2e47bf",
+      "title": "Missing service layer between routes and agent/prompts modules",
+      "description": "Routes directly instantiate and call agent.engine, prompts modules, and tools. There is no service abstraction layer, creating tight coupling and making it hard to swap implementations or add cross-cutting concerns like caching, retry logic, or metrics.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Direct imports and instantiation of agent engine and prompt builders"
+        },
+        {
+          "file_path": "backend/routes/evals.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Direct calls to evals.runner and agent modules"
+        }
+      ],
+      "suggested_fix": "Create backend/services/ layer with CodeGenerationService, EvaluationService. Routes should only call services. Services handle agent/prompt orchestration, error handling, and business logic.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-da861edf",
+      "title": "Tight coupling between routes and WebSocket/streaming infrastructure",
+      "description": "Routes directly manage WebSocket connections, message formatting, and streaming logic. Changes to streaming requirements (SSE to WebSocket, message format) require modifying route handlers. No abstraction for output streaming.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 200,
+          "line_end": 400,
+          "snippet": "Direct WebSocket manager calls and message streaming logic mixed with business logic"
+        }
+      ],
+      "suggested_fix": "Create OutputStreamer abstraction with implementations: WebSocketStreamer, SSEStreamer, ConsoleStreamer. Routes accept injected streamer, decouple transport from business logic.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-11f6269d",
+      "title": "Circular-like dependency risk: prompts module imports from agent.tools",
+      "description": "backend/prompts/ modules may import from backend/agent/tools/ for tool definitions and parsing, while agent engine imports from prompts. This creates implicit coupling and risk of circular imports if dependencies grow.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/prompts/",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Review prompts/__init__.py and message_builder.py for agent.tools imports"
+        },
+        {
+          "file_path": "backend/agent/engine.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Review agent engine imports from prompts module"
+        }
+      ],
+      "suggested_fix": "Create backend/core/ or backend/shared/ module for shared types (ToolDefinition, MessageFormat, etc.). Both prompts and agent import from shared layer only. Break circular dependency chain.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9a0d7dd3",
+      "title": "Inconsistent patterns: backend/routes/evals.py (445 LOC) mixes endpoint handlers with business logic",
+      "description": "The evals route handler contains 445 lines with request handling, eval execution, file I/O, and result processing. Similar god module problem as generate_code.py but smaller scale. Evals core logic should be in service or dedicated module.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/evals.py",
+          "line_start": 1,
+          "line_end": 445,
+          "snippet": "Mixed endpoint handlers, evaluation orchestration, file operations, and result compilation"
+        }
+      ],
+      "suggested_fix": "Move eval orchestration to backend/evals/service.py. Routes delegate to service for eval execution, keep routes thin. Maintain evals/runner.py for execution logic separate from HTTP concerns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-404e2046",
+      "title": "Frontend components layer lacks clear separation between page components, feature components, and UI primitives",
+      "description": "frontend/src/components/ contains 5200 LOC across 68 files with mixed concerns: page-level containers (EvalsPage, RunEvalsPage), feature components (UnifiedInputPane, Sidebar), UI primitives (all ui/ folder), and utility components. No clear layering makes refactoring and reuse difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/components/",
+          "line_start": 1,
+          "line_end": 68,
+          "snippet": "68 components with mixed responsibilities across pages, features, and primitives"
+        }
+      ],
+      "suggested_fix": "Restructure: (1) components/pages/ - full page containers, (2) components/features/ - feature-specific component clusters, (3) components/ui/ - primitive UI building blocks. Create feature folders with index.ts exports.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-654fa269",
+      "title": "Configuration scatter: hardcoded values and API endpoints spread across frontend and backend files",
+      "description": "API endpoints, model choices, prompt policies, and generation settings are defined in multiple places: backend/config.py (minimal), backend/prompts/policies.py, frontend/src/lib/models.ts, frontend/src/config.ts, routes handlers. No centralized configuration or env-based management.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/config.py",
+          "line_start": 1,
+          "line_end": 21,
+          "snippet": "Minimal config file"
+        },
+        {
+          "file_path": "frontend/src/lib/models.ts",
+          "line_start": 1,
+          "line_end": 93,
+          "snippet": "Hardcoded model choices and configurations"
+        },
+        {
+          "file_path": "backend/prompts/policies.py",
+          "line_start": 1,
+          "line_end": 18,
+          "snippet": "Hardcoded prompt policies"
+        }
+      ],
+      "suggested_fix": "Create backend/config/ directory with: models.py, prompts.py, endpoints.py. Create frontend/src/config/ with constants.ts. Load from environment variables or JSON. Export shared config schema.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-655cc290",
+      "title": "High coupling between agent tool execution and file system operations",
+      "description": "backend/agent/tools/runtime.py (362 LOC) directly executes bash commands, writes files, and manages project state. No abstraction for file operations or command execution. Changes to tool behavior require modifying runtime.py directly.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/agent/tools/runtime.py",
+          "line_start": 1,
+          "line_end": 362,
+          "snippet": "Direct file system and bash command execution"
+        }
+      ],
+      "suggested_fix": "Create FileSystemAdapter and CommandExecutor abstractions. Inject into runtime. Enables testing, stubbing, logging, and alternate implementations (remote execution, transaction logs).",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e5ccfb84",
+      "title": "Missing abstraction for LLM provider interactions creates tight coupling to specific provider APIs",
+      "description": "While there is a factory pattern for providers, routes and services directly instantiate providers and call their methods. No unified service interface for LLM operations. Provider-specific error handling scattered across route handlers.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/agent/providers/factory.py",
+          "line_start": 1,
+          "line_end": 65,
+          "snippet": "Factory pattern exists but route handlers still interact directly with provider instances"
+        }
+      ],
+      "suggested_fix": "Create backend/services/llm_service.py wrapping provider factory. Route handlers call LLMService.generate() only. Service handles provider selection, error translation, retry logic, rate limiting.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e22eabb2",
+      "title": "Frontend state management coupling: app-store and project-store have unclear separation of concerns",
+      "description": "frontend/src/store/ has app-store.ts (48 LOC) and project-store.ts (458 LOC) with unclear boundary between what should be app-level vs project-level state. Project store is significantly larger, suggesting mixed concerns.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/store/app-store.ts",
+          "line_start": 1,
+          "line_end": 48,
+          "snippet": "Minimal app state store"
+        },
+        {
+          "file_path": "frontend/src/store/project-store.ts",
+          "line_start": 1,
+          "line_end": 458,
+          "snippet": "Large project state store with 458 LOC"
+        }
+      ],
+      "suggested_fix": "Document and enforce store boundaries. Consider splitting project-store into: ProjectStore (code/files), GenerationStore (current generation state), HistoryStore (commit/variant history). Use store composition.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-dcc31d3b",
+      "title": "Inconsistent error handling patterns across backend modules",
+      "description": "Routes, agent engine, prompts, and tools use different error handling approaches. No centralized error handling middleware or custom exception hierarchy. Makes debugging and client error messages inconsistent.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/routes/generate_code.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Route-level try/catch blocks"
+        },
+        {
+          "file_path": "backend/agent/engine.py",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Engine-level error handling"
+        }
+      ],
+      "suggested_fix": "Create backend/exceptions.py with custom exception hierarchy (CodeGenException, ToolExecutionException, ProviderException, etc.). Add FastAPI exception handlers in main.py. Use consistently across modules.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1481cee9",
+      "title": "Testing infrastructure fragmented: test utilities in codegen module but used across backend",
+      "description": "backend/codegen/test_utils.py contains shared test utilities (57 LOC) but is colocated with codegen logic. Test utilities should be in dedicated test fixtures module. Makes test dependency unclear.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/codegen/test_utils.py",
+          "line_start": 1,
+          "line_end": 57,
+          "snippet": "Shared test utilities mixed with codegen module"
+        },
+        {
+          "file_path": "backend/tests/",
+          "line_start": 1,
+          "line_end": 748,
+          "snippet": "Multiple test files that likely import from codegen/test_utils.py"
+        }
+      ],
+      "suggested_fix": "Move test utilities to backend/tests/fixtures.py or backend/tests/conftest.py. Make test infrastructure explicit and separate from production code. Import test utils from tests module only.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "remediation_plan": {
+    "items": [
+      {
+        "finding_id": "F-a005f40e",
+        "title": "Implement authentication middleware for all API endpoints",
+        "tier": 3,
+        "priority": 1,
+        "estimated_files": 5,
+        "files_to_modify": [
+          "backend/main.py",
+          "backend/config.py",
+          "backend/routes/generate_code.py",
+          "backend/routes/screenshot.py",
+          "backend/routes/evals.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "All endpoints require valid authentication (JWT or API key)",
+          "Unauthenticated requests return 401/403",
+          "WebSocket connections validate auth before accept()",
+          "Auth can be bypassed in development mode only with explicit flag"
+        ],
+        "approach": "Implement HTTPBearer security scheme with FastAPI Depends(). Add auth_required dependency that validates JWT tokens or API keys from headers. Apply to all route handlers except /health.",
+        "group": "auth-foundation"
+      },
+      {
+        "finding_id": "F-a4e06f01",
+        "title": "Secure WebSocket endpoint with authentication before accept",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/routes/generate_code.py",
+          "backend/main.py"
+        ],
+        "depends_on": [
+          "F-a005f40e"
+        ],
+        "acceptance_criteria": [
+          "WebSocket validates token in query param or header before calling accept()",
+          "Unauthorized connections close with code 4001",
+          "Connection timeout implemented (1 hour default)"
+        ],
+        "approach": "Extract auth check into async function. Call verify_ws_token() before ws_comm.accept(). Add timeout handler using asyncio.create_task().",
+        "group": "auth-foundation"
+      },
+      {
+        "finding_id": "F-0ff0320f",
+        "title": "Implement rate limiting on all endpoints",
+        "tier": 2,
+        "priority": 3,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/main.py",
+          "backend/config.py"
+        ],
+        "depends_on": [
+          "F-a005f40e"
+        ],
+        "acceptance_criteria": [
+          "IP-based rate limiting configured (10 requests/min for /screenshot, 5/min for /generate-code)",
+          "Per-user rate limiting once auth is in place",
+          "Rate limit headers returned in responses",
+          "Excess requests return 429 with Retry-After header"
+        ],
+        "approach": "Install slowapi. Add limiter to app.state. Decorate routes with @limiter.limit(). Consider Redis backend for distributed rate limiting.",
+        "group": "api-protection"
+      },
+      {
+        "finding_id": "F-feea30e5",
+        "title": "Restrict CORS to specific trusted origins",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/main.py",
+          "backend/config.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "CORS origins loaded from CORS_ORIGINS env var",
+          "Wildcard origins removed",
+          "allow_credentials set to false",
+          "allow_methods restricted to POST, GET, OPTIONS"
+        ],
+        "approach": "Replace allow_origins=['*'] with environment-based list. Parse comma-separated CORS_ORIGINS. Set allow_credentials=False unless explicitly needed.",
+        "group": "api-protection"
+      },
+      {
+        "finding_id": "F-fde308aa",
+        "title": "Replace wildcard CORS with explicit allowed origins",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/main.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Wildcard CORS removed",
+          "Explicit origins list configured",
+          "Different origins for dev/prod via env vars"
+        ],
+        "approach": "Consolidate with F-feea30e5 - same fix",
+        "group": "api-protection"
+      },
+      {
+        "finding_id": "F-196e7a54",
+        "title": "Add SSRF protection to screenshot endpoint",
+        "tier": 2,
+        "priority": 5,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/routes/screenshot.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Private IP ranges (127.0.0.1, 10.x.x.x, 172.16.x.x, 192.168.x.x) blocked",
+          "Localhost and link-local addresses rejected",
+          "Domain resolution validates IP is public",
+          "Invalid URLs return 400 with clear error"
+        ],
+        "approach": "Create is_safe_url() function using ipaddress module. Validate resolved IP before making screenshot request. Block private ranges per IANA specifications.",
+        "group": "input-validation"
+      },
+      {
+        "finding_id": "F-6788bb7e",
+        "title": "Validate user-controlled OpenAI base URL",
+        "tier": 2,
+        "priority": 6,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/routes/generate_code.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Only https:// URLs accepted",
+          "Private IP ranges blocked",
+          "Whitelist of allowed domains in production",
+          "Validation happens before provider instantiation"
+        ],
+        "approach": "Create validate_openai_url() function. Check scheme, resolve hostname, verify against whitelist in prod. Disable custom URL in production.",
+        "group": "input-validation"
+      },
+      {
+        "finding_id": "F-71478205",
+        "title": "Add input validation and size limits for prompts and file state",
+        "tier": 2,
+        "priority": 7,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/routes/generate_code.py",
+          "backend/prompts/request_parsing.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Prompt text limited to 50KB",
+          "File content limited to 1MB per file",
+          "File paths validated against directory traversal",
+          "Unsupported file extensions rejected",
+          "Invalid inputs return 400 with validation error details"
+        ],
+        "approach": "Create ValidationSchema using Pydantic BaseModel. Validate in ParameterExtractionStage.extract_and_validate(). Use pathlib.Path.resolve() for path traversal checks.",
+        "group": "input-validation"
+      },
+      {
+        "finding_id": "F-45d1cdbf",
+        "title": "Implement request size limits",
+        "tier": 1,
+        "priority": 8,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/main.py",
+          "docker-compose.yml"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Max body size set to 50MB",
+          "Max request line size configured in uvicorn",
+          "Content-Length header validated",
+          "Oversized requests return 413"
+        ],
+        "approach": "Add RequestSizeLimitMiddleware to FastAPI. Update uvicorn command with --limit-request-line and --limit-request-fields. Enforce in parameter validation.",
+        "group": "input-validation"
+      },
+      {
+        "finding_id": "F-85f9f85d",
+        "title": "Enforce HTTPS/WSS in production",
+        "tier": 1,
+        "priority": 1,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "frontend/src/config.ts",
+          "backend/main.py",
+          "docker-compose.yml"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Frontend uses wss:// and https:// in production",
+          "Backend redirects HTTP to HTTPS (or enforced at proxy)",
+          "HSTS header set to max-age=31536000",
+          "WSS connections enforced for WebSocket in prod"
+        ],
+        "approach": "Update config.ts to use wss:// and https:// when IS_PROD=true. Add HTTPSRedirectMiddleware to backend. Set Strict-Transport-Security header.",
+        "group": "tls-enforcement"
+      },
+      {
+        "finding_id": "F-27268b93",
+        "title": "Add security headers (X-Content-Type-Options, X-Frame-Options, CSP)",
+        "tier": 2,
+        "priority": 9,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/main.py",
+          "frontend/index.html"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "X-Content-Type-Options: nosniff set",
+          "X-Frame-Options: DENY set",
+          "X-XSS-Protection: 1; mode=block set",
+          "Content-Security-Policy header configured",
+          "Referrer-Policy: strict-origin-when-cross-origin set"
+        ],
+        "approach": "Create SecurityHeadersMiddleware. Add meta tags to index.html. Define CSP inline-safe for Vite-built React app.",
+        "group": "security-headers"
+      },
+      {
+        "finding_id": "F-fc295bd2",
+        "title": "Add Content-Security-Policy headers and meta tags",
+        "tier": 1,
+        "priority": 10,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "frontend/index.html",
+          "backend/main.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "CSP meta tag in HTML head",
+          "CSP response header from backend",
+          "default-src 'self' configured",
+          "Inline scripts allowed only for critical path"
+        ],
+        "approach": "Add CSP meta tag to index.html. Configure backend to send CSP header. Allow 'wasm-unsafe-eval' for wasm modules if needed.",
+        "group": "security-headers"
+      },
+      {
+        "finding_id": "F-bdfcc9cd",
+        "title": "Stop storing API keys in frontend localStorage",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/usePersistedState.ts",
+          "backend/routes/generate_code.py"
+        ],
+        "depends_on": [
+          "F-a005f40e"
+        ],
+        "acceptance_criteria": [
+          "API keys never stored in localStorage",
+          "API keys never sent from frontend",
+          "Backend accepts keys only from environment variables in production",
+          "Development mode can accept keys from settings but warns user",
+          "Settings UI doesn't expose API key fields in production"
+        ],
+        "approach": "Remove API key fields from persistent settings in production. Update frontend to not send keys. Backend rejects client-provided keys in production (check IS_PROD).",
+        "group": "auth-foundation"
+      },
+      {
+        "finding_id": "F-fb581297",
+        "title": "Prevent sensitive credential storage in localStorage",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "frontend/src/hooks/usePersistedState.ts",
+          "frontend/src/App.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Sensitive fields use sessionStorage instead of localStorage",
+          "API keys never persisted",
+          "Session tokens stored with secure flag recommendation"
+        ],
+        "approach": "Enhance usePersistedState to accept isSecure param. Use sessionStorage for sensitive data. Set flags in localStorage to indicate session-only storage.",
+        "group": "auth-foundation"
+      },
+      {
+        "finding_id": "F-5912284f",
+        "title": "Enforce HTTPS for API key transmission and never log keys",
+        "tier": 2,
+        "priority": 11,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/routes/screenshot.py",
+          "backend/main.py"
+        ],
+        "depends_on": [
+          "F-85f9f85d"
+        ],
+        "acceptance_criteria": [
+          "API keys transmitted in Authorization header, not request body",
+          "API keys never logged (sanitize log output)",
+          "Secrets masked in debug output",
+          "HTTPS enforced (or at reverse proxy layer)"
+        ],
+        "approach": "Move apiKey from request body to Authorization header. Add request/response logging that masks secrets. Use logging filters to prevent key exposure.",
+        "group": "auth-foundation"
+      },
+      {
+        "finding_id": "F-98b57317",
+        "title": "Implement per-user rate limiting and session management",
+        "tier": 3,
+        "priority": 12,
+        "estimated_files": 4,
+        "files_to_modify": [
+          "backend/main.py",
+          "backend/routes/generate_code.py",
+          "backend/routes/screenshot.py",
+          "backend/config.py"
+        ],
+        "depends_on": [
+          "F-a005f40e",
+          "F-0ff0320f"
+        ],
+        "acceptance_criteria": [
+          "User context extracted from JWT token",
+          "Per-user rate limits enforced (vs global)",
+          "Usage metrics tracked per user",
+          "Quota enforcement implemented",
+          "Audit log includes user ID for all actions"
+        ],
+        "approach": "Extract user_id from JWT in auth dependency. Create RateLimitService that tracks per-user usage. Store in Redis or in-memory with periodic sync. Add user context to logging.",
+        "group": "auth-foundation"
+      },
+      {
+        "finding_id": "F-9e5f9903",
+        "title": "Validate and rate-limit client-provided API keys",
+        "tier": 1,
+        "priority": 13,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/routes/generate_code.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Client-provided API keys validated before use",
+          "Invalid keys rejected with 400",
+          "Rate limiting applied per unique key",
+          "Key validation doesn't expose key validity to attacker"
+        ],
+        "approach": "Create validate_api_key() that makes test call to provider. Cache results. Fail fast on invalid key. Apply rate limiter keyed by user+provider.",
+        "group": "input-validation"
+      },
+      {
+        "finding_id": "F-f16fdb7f",
+        "title": "Implement API key rotation and secure management",
+        "tier": 1,
+        "priority": 14,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/config.py",
+          "backend/llm.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "API key access logged (without exposing key)",
+          "Key validation on startup",
+          "Rotation mechanism documented",
+          "Required keys checked before app startup"
+        ],
+        "approach": "Add validation in main.py startup that checks all required API keys are set. Add logging wrapper around key access. Document rotation procedure in README.",
+        "group": "secrets-management"
+      },
+      {
+        "finding_id": "F-2ee7a1b9",
+        "title": "Validate API keys exist and log access patterns",
+        "tier": 1,
+        "priority": 14,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/config.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Required API keys validated on startup",
+          "Missing keys cause startup failure",
+          "Key access logged for audit"
+        ],
+        "approach": "Consolidate with F-f16fdb7f - add startup validation and access logging.",
+        "group": "secrets-management"
+      },
+      {
+        "finding_id": "F-54830005",
+        "title": "Enforce debug mode cannot be enabled in production",
+        "tier": 2,
+        "priority": 15,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/config.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Debug mode forced to False in production",
+          "Startup fails if debug enabled with ENVIRONMENT=production",
+          "Warning logged if debug enabled in development"
+        ],
+        "approach": "Update IS_DEBUG_ENABLED logic to require explicit dev environment. Add assertion in startup event.",
+        "group": "security-headers"
+      },
+      {
+        "finding_id": "F-b8e193d3",
+        "title": "Sanitize error messages to not expose internal details",
+        "tier": 2,
+        "priority": 16,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/routes/generate_code.py",
+          "backend/main.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "User-facing errors are generic unless debug mode",
+          "Stack traces logged internally only",
+          "File paths not exposed in error messages",
+          "Exception details available in logs for admins"
+        ],
+        "approach": "Create error formatter that checks IS_DEBUG_ENABLED. Add FastAPI exception handlers that return generic 500 in production. Log details separately.",
+        "group": "security-headers"
+      },
+      {
+        "finding_id": "F-7e075597",
+        "title": "Validate WebSocket message parameters with schema",
+        "tier": 2,
+        "priority": 17,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/routes/generate_code.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "GenerationRequest Pydantic model validates all params",
+          "Invalid messages rejected before processing",
+          "Prompt text size validated (max 50KB)",
+          "Option codes size validated (max 10 per request)"
+        ],
+        "approach": "Create Pydantic models for WebSocket message types. Validate in ParameterExtractionStage using model_validate().",
+        "group": "input-validation"
+      },
+      {
+        "finding_id": "F-64b59498",
+        "title": "Validate frontend environment variables",
+        "tier": 2,
+        "priority": 18,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "frontend/src/config.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Backend URLs validated as proper HTTPS/WSS URLs",
+          "Whitelist of allowed domains in production",
+          "Invalid URLs cause app startup to fail",
+          "Fallback to safe defaults on validation error"
+        ],
+        "approach": "Create validateUrl() function. Check protocol, domain whitelist. Throw error or fallback based on strictness needed.",
+        "group": "input-validation"
+      },
+      {
+        "finding_id": "F-39436a1c",
+        "title": "Verify OpenAPI endpoints are fully disabled",
+        "tier": 1,
+        "priority": 19,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/main.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "All OpenAPI endpoints return 404",
+          "No metadata about routes exposed",
+          "API discovery attempts logged"
+        ],
+        "approach": "Verify FastAPI config is correct. Add catch-all route for common discovery paths (swagger, openapi, graphql). Log attempts.",
+        "group": "security-headers"
+      },
+      {
+        "finding_id": "F-75e843bb",
+        "title": "Implement WebSocket timeout and connection cleanup",
+        "tier": 2,
+        "priority": 20,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/routes/generate_code.py"
+        ],
+        "depends_on": [
+          "F-a4e06f01"
+        ],
+        "acceptance_criteria": [
+          "WebSocket connections timeout after 1 hour",
+          "Hung connections detected and closed",
+          "Connection cleanup guaranteed on error",
+          "Resource cleanup verified in tests"
+        ],
+        "approach": "Add timeout_handler() to WebSocketCommunicator. Use asyncio.create_task() for timeout. Call close() in finally block.",
+        "group": "api-protection"
+      },
+      {
+        "finding_id": "F-98f9f73b",
+        "title": "Refactor generate_code.py route handler to extract orchestration logic",
+        "tier": 3,
+        "priority": 21,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "backend/routes/generate_code.py",
+          "backend/services/__init__.py",
+          "backend/services/code_generation.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Route handler <100 LOC, only orchestrates service calls",
+          "ParameterExtractionStage extracted to separate module/service",
+          "Prompt building and agent execution in dedicated services",
+          "Response streaming in separate abstraction"
+        ],
+        "approach": "Create backend/services/ with CodeGenerationService. Move stages into service. Routes call service.generate(). Maintain backwards-compatible WebSocket interface.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-8e2e47bf",
+        "title": "Create service layer between routes and agent/prompts",
+        "tier": 3,
+        "priority": 22,
+        "estimated_files": 4,
+        "files_to_modify": [
+          "backend/services/__init__.py",
+          "backend/services/code_generation.py",
+          "backend/services/evaluation.py",
+          "backend/routes/evals.py"
+        ],
+        "depends_on": [
+          "F-98f9f73b"
+        ],
+        "acceptance_criteria": [
+          "CodeGenerationService and EvaluationService created",
+          "Routes delegate to services",
+          "Service layer handles retry logic, error translation, caching",
+          "Services testable in isolation"
+        ],
+        "approach": "Create backend/services/ package with dedicated service classes. Routes become thin orchestrators. Services manage agent/prompt complexity.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-da861edf",
+        "title": "Abstract WebSocket/streaming concerns from route logic",
+        "tier": 3,
+        "priority": 23,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "backend/streaming/__init__.py",
+          "backend/streaming/base.py",
+          "backend/routes/generate_code.py"
+        ],
+        "depends_on": [
+          "F-98f9f73b"
+        ],
+        "acceptance_criteria": [
+          "OutputStreamer abstraction created (WebSocketStreamer, SSEStreamer)",
+          "Route handlers accept streamer as dependency",
+          "Streaming logic decoupled from business logic"
+        ],
+        "approach": "Create backend/streaming/ with abstract OutputStreamer class. Implement WebSocketStreamer. Inject into services.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-11f6269d",
+        "title": "Create shared types module to break circular dependencies",
+        "tier": 3,
+        "priority": 24,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/core/__init__.py",
+          "backend/core/types.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Shared types in backend/core/types.py",
+          "Prompts and agent import from core only",
+          "No circular imports in dependency graph",
+          "Type definitions centralized"
+        ],
+        "approach": "Create backend/core/ with shared type definitions. Move ToolDefinition, MessageFormat, etc. here. Update imports.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-9a0d7dd3",
+        "title": "Extract eval orchestration from routes into service",
+        "tier": 3,
+        "priority": 25,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/routes/evals.py",
+          "backend/services/evaluation.py"
+        ],
+        "depends_on": [
+          "F-8e2e47bf"
+        ],
+        "acceptance_criteria": [
+          "Evals route handler <100 LOC",
+          "EvaluationService handles orchestration",
+          "File I/O and result compilation in service"
+        ],
+        "approach": "Move eval orchestration logic to EvaluationService. Routes call service methods.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-655cc290",
+        "title": "Create abstraction for file system and command execution",
+        "tier": 3,
+        "priority": 26,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "backend/core/file_system.py",
+          "backend/core/command_executor.py",
+          "backend/agent/tools/runtime.py"
+        ],
+        "depends_on": [
+          "F-11f6269d"
+        ],
+        "acceptance_criteria": [
+          "FileSystemAdapter interface created",
+          "CommandExecutor interface created",
+          "Tool runtime uses injected adapters",
+          "Enables testing and alternate implementations"
+        ],
+        "approach": "Create backend/core/ adapters. Tool runtime receives injected implementations. Enables stubbing for tests.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-e5ccfb84",
+        "title": "Create LLM service wrapper for provider abstraction",
+        "tier": 3,
+        "priority": 27,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/services/llm_service.py"
+        ],
+        "depends_on": [
+          "F-8e2e47bf"
+        ],
+        "acceptance_criteria": [
+          "LLMService wraps provider factory",
+          "Route handlers call LLMService only",
+          "Provider-specific error handling in service",
+          "Rate limiting and retry logic centralized"
+        ],
+        "approach": "Create LLMService that wraps factory. Routes call service.generate(). Service handles error translation.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-654fa269",
+        "title": "Centralize configuration management",
+        "tier": 2,
+        "priority": 28,
+        "estimated_files": 5,
+        "files_to_modify": [
+          "backend/config/__init__.py",
+          "backend/config/models.py",
+          "frontend/src/config/index.ts",
+          "frontend/src/config/constants.ts",
+          "frontend/src/config/models.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Centralized config directory in backend/config/",
+          "Models, endpoints, prompts configured in one place",
+          "Frontend config centralized",
+          "All hardcoded values moved to config"
+        ],
+        "approach": "Create backend/config/ and frontend/src/config/ directories. Move all configuration there. Use environment variables for env-specific values.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-dcc31d3b",
+        "title": "Create centralized exception hierarchy and error handling",
+        "tier": 3,
+        "priority": 29,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/exceptions.py",
+          "backend/main.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Custom exception classes defined",
+          "FastAPI exception handlers for all exception types",
+          "Consistent error response format",
+          "Debug vs production error details handled"
+        ],
+        "approach": "Create exceptions.py with custom hierarchy. Add exception handlers in main.py. Use consistently across modules.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-1481cee9",
+        "title": "Move test utilities to dedicated fixtures module",
+        "tier": 2,
+        "priority": 30,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "backend/tests/fixtures.py",
+          "backend/codegen/test_utils.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Test utilities in backend/tests/fixtures.py",
+          "Codegen module contains production code only",
+          "All test files import from tests module"
+        ],
+        "approach": "Move backend/codegen/test_utils.py to backend/tests/fixtures.py. Update imports. Keep codegen pure.",
+        "group": "refactoring"
+      },
+      {
+        "finding_id": "F-404e2046",
+        "title": "Restructure frontend components with clear layering",
+        "tier": 0,
+        "priority": 100,
+        "estimated_files": 0,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - large refactoring with minimal security impact. Can be done in future iteration.",
+        "group": "deferred"
+      },
+      {
+        "finding_id": "F-c5f36674",
+        "title": "Remove duplicate recomputeFitScale call in ImageLightbox",
+        "tier": 1,
+        "priority": 31,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "frontend/src/components/ImageLightbox.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Second useEffect removed",
+          "recomputeFitScale called only once per dependency change"
+        ],
+        "approach": "Delete lines 67-69 that contain the redundant useEffect.",
+        "group": "performance"
+      },
+      {
+        "finding_id": "F-2a66d2fe",
+        "title": "Memoize currentVersionNumber computation in Sidebar",
+        "tier": 1,
+        "priority": 32,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "frontend/src/components/sidebar/Sidebar.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "currentVersionNumber wrapped in useMemo",
+          "Dependencies: [head, commits]",
+          "Sort operation only runs on dependency change"
+        ],
+        "approach": "Wrap the currentVersionNumber computation in useMemo hook.",
+        "group": "performance"
+      },
+      {
+        "finding_id": "F-f529939a",
+        "title": "Fix closure capture in ImageUpload keydown handler",
+        "tier": 1,
+        "priority": 33,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "frontend/src/components/ImageUpload.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Global keydown handler captures latest handleGenerate",
+          "Handler doesn't get stale closure",
+          "handleGenerate in dependency array"
+        ],
+        "approach": "Add handleGenerate to useEffect dependency array. Or use useRef to store latest function reference.",
+        "group": "performance"
+      },
+      {
+        "finding_id": "F-e84c96e8",
+        "title": "Verify WebSocket cleanup on new connections",
+        "tier": 1,
+        "priority": 34,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "frontend/src/generateCode.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Old WebSocket closed before new one created",
+          "No event listeners leak",
+          "Cleanup called in all code paths"
+        ],
+        "approach": "Ensure ws.close() called before creating new WebSocket. Add abort signal for listener cleanup.",
+        "group": "performance"
+      },
+      {
+        "finding_id": "F-ec7da3e0",
+        "title": "Optimize agentEvents array re-renders using Immer",
+        "tier": 2,
+        "priority": 35,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "frontend/src/store/project-store.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "agentEvents array reference only changes when needed",
+          "Shallow comparison optimization enabled",
+          "No unnecessary re-renders of variant consumers"
+        ],
+        "approach": "Use Immer for immutable updates or implement selective reference updates.",
+        "group": "performance"
+      },
+      {
+        "finding_id": "F-c63ff059",
+        "title": "Wrap list-rendering components with React.memo",
+        "tier": 1,
+        "priority": 36,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "frontend/src/components/history/HistoryDisplay.tsx",
+          "frontend/src/components/variants/Variants.tsx",
+          "frontend/src/components/agent/AgentActivity.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Components wrapped with React.memo",
+          "Proper prop comparison for memoization",
+          "No unnecessary re-renders"
+        ],
+        "approach": "Export components as `export default React.memo(ComponentName);`",
+        "group": "performance"
+      },
+      {
+        "finding_id": "F-2df0ef26",
+        "title": "Add pagination to prompt history parsing",
+        "tier": 2,
+        "priority": 37,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "backend/prompts/request_parsing.py"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "max_history_items parameter limits processing",
+          "History truncated to recent N messages",
+          "Large conversations handled efficiently"
+        ],
+        "approach": "Add max_history_length parameter. Slice array to keep only recent messages.",
+        "group": "performance"
+      },
+      {
+        "finding_id": "F-e22eabb2",
+        "title": "Document and restructure frontend store boundaries",
+        "tier": 2,
+        "priority": 38,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "frontend/src/store/project-store.ts",
+          "frontend/src/store/app-store.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Clear boundary between app-level and project-level state",
+          "Store split if needed (ProjectStore, GenerationStore, HistoryStore)",
+          "Store composition pattern implemented"
+        ],
+        "approach": "Document store boundaries. Consider splitting project-store if >250 LOC. Use composition over single monolithic store.",
+        "group": "refactoring"
+      }
+    ],
+    "dependencies": [
+      {
+        "finding_id": "F-a4e06f01",
+        "depends_on_finding_id": "F-a005f40e",
+        "reason": "WebSocket auth validation depends on auth infrastructure being in place"
+      },
+      {
+        "finding_id": "F-0ff0320f",
+        "depends_on_finding_id": "F-a005f40e",
+        "reason": "Per-user rate limiting requires authenticated user context"
+      },
+      {
+        "finding_id": "F-bdfcc9cd",
+        "depends_on_finding_id": "F-a005f40e",
+        "reason": "Removing frontend API keys requires backend auth to handle requests without them"
+      },
+      {
+        "finding_id": "F-98b57317",
+        "depends_on_finding_id": "F-a005f40e",
+        "reason": "Per-user rate limiting and quota enforcement requires authentication"
+      },
+      {
+        "finding_id": "F-98b57317",
+        "depends_on_finding_id": "F-0ff0320f",
+        "reason": "Per-user limits build on top of global rate limiting infrastructure"
+      },
+      {
+        "finding_id": "F-75e843bb",
+        "depends_on_finding_id": "F-a4e06f01",
+        "reason": "Timeout implementation uses same WebSocketCommunicator modified for auth"
+      },
+      {
+        "finding_id": "F-98f9f73b",
+        "depends_on_finding_id": "F-8e2e47bf",
+        "reason": "Service layer extraction follows route refactoring"
+      },
+      {
+        "finding_id": "F-8e2e47bf",
+        "depends_on_finding_id": "F-98f9f73b",
+        "reason": "Services are created to hold orchestration logic extracted from routes"
+      },
+      {
+        "finding_id": "F-da861edf",
+        "depends_on_finding_id": "F-98f9f73b",
+        "reason": "Output streaming abstraction assumes refactored route structure"
+      },
+      {
+        "finding_id": "F-9a0d7dd3",
+        "depends_on_finding_id": "F-8e2e47bf",
+        "reason": "Eval service extraction uses same service layer pattern as code generation"
+      },
+      {
+        "finding_id": "F-655cc290",
+        "depends_on_finding_id": "F-11f6269d",
+        "reason": "File system adapter goes in shared core module"
+      },
+      {
+        "finding_id": "F-e5ccfb84",
+        "depends_on_finding_id": "F-8e2e47bf",
+        "reason": "LLM service is part of broader service layer architecture"
+      }
+    ],
+    "execution_levels": [
+      [
+        "F-a005f40e",
+        "F-85f9f85d",
+        "F-feea30e5",
+        "F-27268b93",
+        "F-fc295bd2",
+        "F-196e7a54",
+        "F-6788bb7e",
+        "F-45d1cdbf",
+        "F-54830005"
+      ],
+      [
+        "F-a4e06f01",
+        "F-0ff0320f",
+        "F-bdfcc9cd",
+        "F-fb581297",
+        "F-5912284f",
+        "F-7e075597",
+        "F-64b59498",
+        "F-39436a1c",
+        "F-71478205",
+        "F-9e5f9903",
+        "F-b8e193d3",
+        "F-c5f36674"
+      ],
+      [
+        "F-98b57317",
+        "F-75e843bb",
+        "F-f16fdb7f",
+        "F-2ee7a1b9",
+        "F-2a66d2fe",
+        "F-f529939a",
+        "F-e84c96e8",
+        "F-ec7da3e0",
+        "F-c63ff059",
+        "F-2df0ef26",
+        "F-e22eabb2"
+      ],
+      [
+        "F-98f9f73b",
+        "F-11f6269d",
+        "F-654fa269",
+        "F-dcc31d3b"
+      ],
+      [
+        "F-8e2e47bf",
+        "F-da861edf",
+        "F-9a0d7dd3",
+        "F-655cc290",
+        "F-e5ccfb84",
+        "F-1481cee9"
+      ]
+    ],
+    "deferred_finding_ids": [
+      "F-404e2046"
+    ],
+    "dedup_summary": "Merged F-feea30e5 and F-fde308aa (both about CORS wildcard). Merged F-f16fdb7f and F-2ee7a1b9 (both about API key validation/rotation). Merged F-fb581297 with F-bdfcc9cd (both about storing credentials in localStorage). Merged F-fc295bd2 with F-27268b93 (both about CSP headers). Total 36 unique actionable items.",
+    "total_items": 44,
+    "estimated_invocations": 120,
+    "summary": "36 actionable remediation items across 5 execution levels. Priority: Implement authentication (F-a005f40e) as foundation (Level 1). Build security hardening (HTTPS, headers, CORS, rate limiting) in parallel (Levels 1-2). Implement input validation and refactor routes/services in parallel (Levels 2-4). Optimize frontend performance (Level 2-3). 1 finding deferred (F-404e2046: frontend component restructuring - low security impact, can be future refactoring). Estimated 120 LLM invocations for implementation and testing."
+  }
+}

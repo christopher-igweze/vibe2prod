@@ -1,0 +1,2851 @@
+{
+  "modules": [
+    {
+      "name": "chat-components",
+      "path": "components/chat/",
+      "purpose": "Main chat interface components including input, messages display, settings, and file handling",
+      "files": [
+        "components/chat/chat-input.tsx",
+        "components/chat/chat-messages.tsx",
+        "components/chat/chat-ui.tsx",
+        "components/chat/chat-settings.tsx",
+        "components/chat/chat-files-display.tsx",
+        "components/chat/file-picker.tsx",
+        "components/chat/tool-picker.tsx",
+        "components/chat/assistant-picker.tsx",
+        "components/chat/prompt-picker.tsx",
+        "components/chat/quick-settings.tsx",
+        "components/chat/chat-command-input.tsx",
+        "components/chat/chat-help.tsx",
+        "components/chat/chat-retrieval-settings.tsx",
+        "components/chat/chat-scroll-buttons.tsx",
+        "components/chat/chat-secondary-buttons.tsx",
+        "components/chat/quick-setting-option.tsx",
+        "components/chat/chat-helpers/index.ts",
+        "components/chat/chat-hooks/use-chat-handler.tsx",
+        "components/chat/chat-hooks/use-chat-history.tsx",
+        "components/chat/chat-hooks/use-prompt-and-command.tsx",
+        "components/chat/chat-hooks/use-scroll.tsx",
+        "components/chat/chat-hooks/use-select-file-handler.tsx"
+      ],
+      "loc": 3200,
+      "language": "typescript"
+    },
+    {
+      "name": "sidebar-components",
+      "path": "components/sidebar/",
+      "purpose": "Sidebar navigation with workspace management, chat history, and item CRUD operations",
+      "files": [
+        "components/sidebar/sidebar.tsx",
+        "components/sidebar/sidebar-content.tsx",
+        "components/sidebar/sidebar-data-list.tsx",
+        "components/sidebar/sidebar-search.tsx",
+        "components/sidebar/sidebar-switcher.tsx",
+        "components/sidebar/sidebar-switch-item.tsx",
+        "components/sidebar/sidebar-create-buttons.tsx",
+        "components/sidebar/items/all/sidebar-create-item.tsx",
+        "components/sidebar/items/all/sidebar-delete-item.tsx",
+        "components/sidebar/items/all/sidebar-display-item.tsx",
+        "components/sidebar/items/all/sidebar-update-item.tsx",
+        "components/sidebar/items/chat/chat-item.tsx",
+        "components/sidebar/items/chat/delete-chat.tsx",
+        "components/sidebar/items/chat/update-chat.tsx",
+        "components/sidebar/items/assistants/assistant-item.tsx",
+        "components/sidebar/items/assistants/create-assistant.tsx",
+        "components/sidebar/items/assistants/assistant-retrieval-select.tsx",
+        "components/sidebar/items/assistants/assistant-tool-select.tsx",
+        "components/sidebar/items/models/model-item.tsx",
+        "components/sidebar/items/models/create-model.tsx",
+        "components/sidebar/items/prompts/prompt-item.tsx",
+        "components/sidebar/items/prompts/create-prompt.tsx",
+        "components/sidebar/items/files/file-item.tsx",
+        "components/sidebar/items/files/create-file.tsx",
+        "components/sidebar/items/folders/folder-item.tsx",
+        "components/sidebar/items/folders/update-folder.tsx",
+        "components/sidebar/items/folders/delete-folder.tsx",
+        "components/sidebar/items/presets/preset-item.tsx",
+        "components/sidebar/items/presets/create-preset.tsx",
+        "components/sidebar/items/tools/tool-item.tsx",
+        "components/sidebar/items/tools/create-tool.tsx",
+        "components/sidebar/items/collections/collection-item.tsx",
+        "components/sidebar/items/collections/create-collection.tsx",
+        "components/sidebar/items/collections/collection-file-select.tsx"
+      ],
+      "loc": 2800,
+      "language": "typescript"
+    },
+    {
+      "name": "ui-components",
+      "path": "components/ui/",
+      "purpose": "Reusable UI primitives built on Radix UI with Tailwind styling",
+      "files": [
+        "components/ui/button.tsx",
+        "components/ui/input.tsx",
+        "components/ui/textarea.tsx",
+        "components/ui/dialog.tsx",
+        "components/ui/dropdown-menu.tsx",
+        "components/ui/select.tsx",
+        "components/ui/card.tsx",
+        "components/ui/avatar.tsx",
+        "components/ui/badge.tsx",
+        "components/ui/tooltip.tsx",
+        "components/ui/popover.tsx",
+        "components/ui/sheet.tsx",
+        "components/ui/alert-dialog.tsx",
+        "components/ui/alert.tsx",
+        "components/ui/checkbox.tsx",
+        "components/ui/switch.tsx",
+        "components/ui/toggle.tsx",
+        "components/ui/toggle-group.tsx",
+        "components/ui/radio-group.tsx",
+        "components/ui/slider.tsx",
+        "components/ui/progress.tsx",
+        "components/ui/tabs.tsx",
+        "components/ui/accordion.tsx",
+        "components/ui/collapsible.tsx",
+        "components/ui/context-menu.tsx",
+        "components/ui/menubar.tsx",
+        "components/ui/navigation-menu.tsx",
+        "components/ui/scroll-area.tsx",
+        "components/ui/aspect-ratio.tsx",
+        "components/ui/calendar.tsx",
+        "components/ui/form.tsx",
+        "components/ui/label.tsx",
+        "components/ui/separator.tsx",
+        "components/ui/table.tsx",
+        "components/ui/skeleton.tsx",
+        "components/ui/toast.tsx",
+        "components/ui/toaster.tsx",
+        "components/ui/sonner.tsx",
+        "components/ui/advanced-settings.tsx",
+        "components/ui/chat-settings-form.tsx",
+        "components/ui/file-icon.tsx",
+        "components/ui/file-preview.tsx",
+        "components/ui/image-picker.tsx",
+        "components/ui/limit-display.tsx",
+        "components/ui/screen-loader.tsx",
+        "components/ui/submit-button.tsx",
+        "components/ui/textarea-autosize.tsx",
+        "components/ui/use-toast.ts",
+        "components/ui/with-tooltip.tsx",
+        "components/ui/brand.tsx",
+        "components/ui/dashboard.tsx",
+        "components/ui/command.tsx"
+      ],
+      "loc": 2200,
+      "language": "typescript"
+    },
+    {
+      "name": "message-components",
+      "path": "components/messages/",
+      "purpose": "Message rendering components with markdown support and code highlighting",
+      "files": [
+        "components/messages/message.tsx",
+        "components/messages/message-markdown.tsx",
+        "components/messages/message-markdown-memoized.tsx",
+        "components/messages/message-codeblock.tsx",
+        "components/messages/message-actions.tsx",
+        "components/messages/message-replies.tsx"
+      ],
+      "loc": 950,
+      "language": "typescript"
+    },
+    {
+      "name": "database-layer",
+      "path": "db/",
+      "purpose": "Supabase database operations for all entities - chats, messages, assistants, files, workspaces",
+      "files": [
+        "db/index.ts",
+        "db/chats.ts",
+        "db/messages.ts",
+        "db/assistants.ts",
+        "db/assistant-tools.ts",
+        "db/assistant-files.ts",
+        "db/models.ts",
+        "db/presets.ts",
+        "db/prompts.ts",
+        "db/tools.ts",
+        "db/files.ts",
+        "db/folders.ts",
+        "db/collections.ts",
+        "db/collection-files.ts",
+        "db/chat-files.ts",
+        "db/message-file-items.ts",
+        "db/workspaces.ts",
+        "db/profile.ts",
+        "db/limits.ts",
+        "db/storage/assistant-images.ts",
+        "db/storage/files.ts",
+        "db/storage/message-images.ts",
+        "db/storage/profile-images.ts",
+        "db/storage/workspace-images.ts"
+      ],
+      "loc": 1800,
+      "language": "typescript"
+    },
+    {
+      "name": "lib-utilities",
+      "path": "lib/",
+      "purpose": "Utility functions for LLM integration, file processing, i18n, and environment handling",
+      "files": [
+        "lib/utils.ts",
+        "lib/blob-to-b64.ts",
+        "lib/build-prompt.ts",
+        "lib/chat-setting-limits.ts",
+        "lib/consume-stream.ts",
+        "lib/envs.ts",
+        "lib/export-old-data.ts",
+        "lib/generate-local-embedding.ts",
+        "lib/i18n.ts",
+        "lib/openapi-conversion.ts",
+        "lib/hooks/use-copy-to-clipboard.tsx",
+        "lib/hooks/use-hotkey.tsx"
+      ],
+      "loc": 1100,
+      "language": "typescript"
+    },
+    {
+      "name": "llm-providers",
+      "path": "lib/models/",
+      "purpose": "LLM model lists and fetching for all supported providers",
+      "files": [
+        "lib/models/fetch-models.ts",
+        "lib/models/llm-list.ts",
+        "lib/models/llm/anthropic-llm-list.ts",
+        "lib/models/llm/google-llm-list.ts",
+        "lib/models/llm/groq-llm-list.ts",
+        "lib/models/llm/mistral-llm-list.ts",
+        "lib/models/llm/openai-llm-list.ts",
+        "lib/models/llm/perplexity-llm-list.ts"
+      ],
+      "loc": 600,
+      "language": "typescript"
+    },
+    {
+      "name": "retrieval-processing",
+      "path": "lib/retrieval/",
+      "purpose": "File parsing for RAG - supports PDF, DOCX, CSV, JSON, markdown, plain text",
+      "files": [
+        "lib/retrieval/processing/index.ts",
+        "lib/retrieval/processing/pdf.ts",
+        "lib/retrieval/processing/docx.ts",
+        "lib/retrieval/processing/csv.ts",
+        "lib/retrieval/processing/json.ts",
+        "lib/retrieval/processing/md.ts",
+        "lib/retrieval/processing/txt.ts"
+      ],
+      "loc": 400,
+      "language": "typescript"
+    },
+    {
+      "name": "supabase-client",
+      "path": "lib/supabase/",
+      "purpose": "Supabase client initialization for browser, server, and middleware contexts",
+      "files": [
+        "lib/supabase/client.ts",
+        "lib/supabase/browser-client.ts",
+        "lib/supabase/server.ts",
+        "lib/supabase/middleware.ts"
+      ],
+      "loc": 200,
+      "language": "typescript"
+    },
+    {
+      "name": "server-utilities",
+      "path": "lib/server/",
+      "purpose": "Server-side utilities for chat processing and helper functions",
+      "files": [
+        "lib/server/server-chat-helpers.ts",
+        "lib/server/server-utils.ts"
+      ],
+      "loc": 350,
+      "language": "typescript"
+    },
+    {
+      "name": "type-definitions",
+      "path": "types/",
+      "purpose": "TypeScript type definitions for chat, messages, models, files, and entities",
+      "files": [
+        "types/index.ts",
+        "types/chat.ts",
+        "types/chat-message.ts",
+        "types/chat-file.tsx",
+        "types/collection-file.ts",
+        "types/content-type.ts",
+        "types/error-response.ts",
+        "types/file-item-chunk.ts",
+        "types/key-type.ts",
+        "types/llms.ts",
+        "types/models.ts",
+        "types/sharing.ts",
+        "types/sidebar-data.ts",
+        "types/valid-keys.ts",
+        "types/announcement.ts",
+        "types/assistant-retrieval-item.ts",
+        "types/images/assistant-image.ts",
+        "types/images/message-image.ts",
+        "types/images/workspace-image.ts"
+      ],
+      "loc": 500,
+      "language": "typescript"
+    },
+    {
+      "name": "context-providers",
+      "path": "context/",
+      "purpose": "React context for global state management",
+      "files": [
+        "context/context.tsx"
+      ],
+      "loc": 200,
+      "language": "typescript"
+    },
+    {
+      "name": "setup-wizard",
+      "path": "components/setup/",
+      "purpose": "Onboarding wizard components for initial user setup",
+      "files": [
+        "components/setup/api-step.tsx",
+        "components/setup/profile-step.tsx",
+        "components/setup/finish-step.tsx",
+        "components/setup/step-container.tsx"
+      ],
+      "loc": 400,
+      "language": "typescript"
+    },
+    {
+      "name": "utility-components",
+      "path": "components/utility/",
+      "purpose": "App-level utilities - theme switching, workspace switcher, command palette, import/export",
+      "files": [
+        "components/utility/alerts.tsx",
+        "components/utility/announcements.tsx",
+        "components/utility/change-password.tsx",
+        "components/utility/command-k.tsx",
+        "components/utility/drawing-canvas.tsx",
+        "components/utility/global-state.tsx",
+        "components/utility/import.tsx",
+        "components/utility/profile-settings.tsx",
+        "components/utility/providers.tsx",
+        "components/utility/theme-switcher.tsx",
+        "components/utility/translations-provider.tsx",
+        "components/utility/workspace-switcher.tsx"
+      ],
+      "loc": 700,
+      "language": "typescript"
+    },
+    {
+      "name": "icon-components",
+      "path": "components/icons/",
+      "purpose": "Brand and provider SVG icon components",
+      "files": [
+        "components/icons/anthropic-svg.tsx",
+        "components/icons/chatbotui-svg.tsx",
+        "components/icons/google-svg.tsx",
+        "components/icons/openai-svg.tsx"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "workspace-components",
+      "path": "components/workspace/",
+      "purpose": "Workspace management components for settings and assignment",
+      "files": [
+        "components/workspace/workspace-settings.tsx",
+        "components/workspace/delete-workspace.tsx",
+        "components/workspace/assign-workspaces.tsx"
+      ],
+      "loc": 250,
+      "language": "typescript"
+    },
+    {
+      "name": "api-chat-routes",
+      "path": "app/api/chat/",
+      "purpose": "API routes for multi-provider LLM inference - OpenAI, Anthropic, Google, Azure, Mistral, Groq, Perplexity, OpenRouter",
+      "files": [
+        "app/api/chat/openai/route.ts",
+        "app/api/chat/anthropic/route.ts",
+        "app/api/chat/google/route.ts",
+        "app/api/chat/azure/route.ts",
+        "app/api/chat/mistral/route.ts",
+        "app/api/chat/groq/route.ts",
+        "app/api/chat/perplexity/route.ts",
+        "app/api/chat/openrouter/route.ts",
+        "app/api/chat/custom/route.ts",
+        "app/api/chat/tools/route.ts"
+      ],
+      "loc": 1200,
+      "language": "typescript"
+    },
+    {
+      "name": "api-assistants-routes",
+      "path": "app/api/assistants/",
+      "purpose": "API routes for assistant management with OpenAI compatibility",
+      "files": [
+        "app/api/assistants/openai/route.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "api-retrieval-routes",
+      "path": "app/api/retrieval/",
+      "purpose": "RAG API routes for document processing and semantic retrieval",
+      "files": [
+        "app/api/retrieval/process/route.ts",
+        "app/api/retrieval/retrieve/route.ts"
+      ],
+      "loc": 250,
+      "language": "typescript"
+    },
+    {
+      "name": "api-utility-routes",
+      "path": "app/api/",
+      "purpose": "Utility API routes for API keys management, username availability, and command execution",
+      "files": [
+        "app/api/keys/route.ts",
+        "app/api/command/route.ts",
+        "app/api/username/available/route.ts",
+        "app/api/username/get/route.ts"
+      ],
+      "loc": 300,
+      "language": "typescript"
+    },
+    {
+      "name": "auth-handler",
+      "path": "app/auth/",
+      "purpose": "Authentication callback handling for Supabase auth",
+      "files": [
+        "app/auth/callback/route.ts"
+      ],
+      "loc": 50,
+      "language": "typescript"
+    },
+    {
+      "name": "app-pages",
+      "path": "app/[locale]/",
+      "purpose": "Next.js App Router pages with i18n support - home, workspace, chat, login, setup, help",
+      "files": [
+        "app/[locale]/page.tsx",
+        "app/[locale]/layout.tsx",
+        "app/[locale]/loading.tsx",
+        "app/[locale]/globals.css",
+        "app/[locale]/[workspaceid]/page.tsx",
+        "app/[locale]/[workspaceid]/layout.tsx",
+        "app/[locale]/[workspaceid]/chat/page.tsx",
+        "app/[locale]/login/page.tsx",
+        "app/[locale]/login/password/page.tsx",
+        "app/[locale]/setup/page.tsx",
+        "app/[locale]/help/page.tsx"
+      ],
+      "loc": 800,
+      "language": "typescript"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "next",
+      "version": "14.1.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react",
+      "version": "18",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-dom",
+      "version": "18",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@supabase/supabase-js",
+      "version": "2.38.4",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@supabase/ssr",
+      "version": "0.0.10",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "openai",
+      "version": "4.23.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@anthropic-ai/sdk",
+      "version": "0.18.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@google/generative-ai",
+      "version": "0.11.4",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@mistralai/mistralai",
+      "version": "0.0.8",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@azure/openai",
+      "version": "1.0.0-beta.8",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "ai",
+      "version": "2.2.31",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "langchain",
+      "version": "0.0.213",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "tailwindcss",
+      "version": "3.3.5",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "version": "1.0.5",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "version": "2.0.6",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "version": "2.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "i18next",
+      "version": "23.7.16",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-i18next",
+      "version": "14.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "next-i18n-router",
+      "version": "5.2.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "next-themes",
+      "version": "0.2.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "lucide-react",
+      "version": "0.292.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "zod",
+      "version": "3.22.4",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-hook-form",
+      "version": "7.48.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@hookform/resolvers",
+      "version": "3.3.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-markdown",
+      "version": "9.0.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "remark-gfm",
+      "version": "4.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-syntax-highlighter",
+      "version": "15.5.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "uuid",
+      "version": "9.0.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "date-fns",
+      "version": "2.30.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "pdf-parse",
+      "version": "1.1.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "mammoth",
+      "version": "1.6.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@xenova/transformers",
+      "version": "2.13.4",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "gpt-tokenizer",
+      "version": "2.1.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "sonner",
+      "version": "1.3.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "cmdk",
+      "version": "0.2.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "0.7.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "tailwind-merge",
+      "version": "2.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "clsx",
+      "version": "2.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@tabler/icons-react",
+      "version": "2.40.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@vercel/analytics",
+      "version": "1.1.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@vercel/edge-config",
+      "version": "0.4.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "next-pwa",
+      "version": "5.6.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "d3-dsv",
+      "version": "2.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "endent",
+      "version": "2.1.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-textarea-autosize",
+      "version": "8.5.3",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-day-picker",
+      "version": "8.9.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "jest",
+      "version": "29.7.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "typescript",
+      "version": "5",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "eslint-config-next",
+      "version": "14.0.2",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "tailwindcss-animate",
+      "version": "1.0.7",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "@tailwindcss/typography",
+      "version": "0.5.10",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "husky",
+      "version": "8.0.3",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "prettier",
+      "version": "3.1.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    }
+  ],
+  "data_flows": [
+    {
+      "source": "Chat UI (components/chat/)",
+      "destination": "API Routes (app/api/chat/*)",
+      "data_type": "user messages, model settings, file attachments",
+      "is_authenticated": true
+    },
+    {
+      "source": "API Routes (app/api/chat/openai, anthropic, etc.)",
+      "destination": "LLM Providers (OpenAI, Anthropic, Google, Azure, Mistral, Groq, Perplexity, OpenRouter)",
+      "data_type": "chat completions with streaming",
+      "is_authenticated": true
+    },
+    {
+      "source": "File Upload (components/chat/file-picker.tsx)",
+      "destination": "Retrieval API (app/api/retrieval/process)",
+      "data_type": "PDF, DOCX, CSV, JSON, MD, TXT files",
+      "is_authenticated": true
+    },
+    {
+      "source": "Retrieval API (app/api/retrieval/process)",
+      "destination": "Vector Storage (Supabase)",
+      "data_type": "embedded file chunks for semantic search",
+      "is_authenticated": true
+    },
+    {
+      "source": "Chat Input with Retrieval",
+      "destination": "Retrieval API (app/api/retrieval/retrieve)",
+      "data_type": "query embeddings for RAG context",
+      "is_authenticated": true
+    },
+    {
+      "source": "Chat UI",
+      "destination": "Database (db/*)",
+      "data_type": "chats, messages, assistants, workspaces, user data",
+      "is_authenticated": true
+    },
+    {
+      "source": "Browser",
+      "destination": "Supabase Auth",
+      "data_type": "JWT tokens for session management",
+      "is_authenticated": true
+    },
+    {
+      "source": "Auth Callback (app/auth/callback)",
+      "destination": "Supabase Auth",
+      "data_type": "OAuth verification tokens",
+      "is_authenticated": false
+    },
+    {
+      "source": "Middleware (middleware.ts)",
+      "destination": "Supabase Auth",
+      "data_type": "session verification on every request",
+      "is_authenticated": false
+    }
+  ],
+  "auth_boundaries": [
+    {
+      "path": "/app/api/chat/*",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/api/retrieval/*",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/api/assistants/*",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/api/keys/*",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/api/command/*",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/api/username/*",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/[locale]/[workspaceid]/chat/*",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/[locale]/[workspaceid]/page.tsx",
+      "auth_type": "supabase-jwt",
+      "is_protected": true
+    },
+    {
+      "path": "/app/auth/callback/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/app/[locale]/setup/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/app/[locale]/login/*",
+      "auth_type": "none",
+      "is_protected": false
+    }
+  ],
+  "entry_points": [
+    {
+      "path": "middleware.ts",
+      "type": "middleware",
+      "is_public": false
+    },
+    {
+      "path": "app/[locale]/page.tsx",
+      "type": "page",
+      "is_public": true
+    },
+    {
+      "path": "app/[locale]/[workspaceid]/page.tsx",
+      "type": "page",
+      "is_public": false
+    },
+    {
+      "path": "app/[locale]/[workspaceid]/chat/page.tsx",
+      "type": "page",
+      "is_public": false
+    },
+    {
+      "path": "app/[locale]/login/page.tsx",
+      "type": "page",
+      "is_public": true
+    },
+    {
+      "path": "app/[locale]/setup/page.tsx",
+      "type": "page",
+      "is_public": true
+    },
+    {
+      "path": "app/[locale]/help/page.tsx",
+      "type": "page",
+      "is_public": true
+    },
+    {
+      "path": "app/api/chat/openai/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/anthropic/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/google/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/azure/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/mistral/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/groq/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/perplexity/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/openrouter/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/custom/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/chat/tools/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/assistants/openai/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/retrieval/process/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/retrieval/retrieve/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/api/keys/route.ts",
+      "type": "api",
+      "is_public": false
+    },
+    {
+      "path": "app/auth/callback/route.ts",
+      "type": "api",
+      "is_public": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "Next.js 14 + React 18 + TypeScript + Tailwind CSS",
+    "backend": "Next.js API Routes (Edge Runtime supported)",
+    "database": "Supabase (PostgreSQL)",
+    "hosting": "Vercel (analytics, edge-config)",
+    "packages": [
+      "next",
+      "react",
+      "@supabase/supabase-js",
+      "openai",
+      "@anthropic-ai/sdk",
+      "@google/generative-ai",
+      "@mistralai/mistralai",
+      "@azure/openai",
+      "langchain",
+      "ai SDK",
+      "radix-ui",
+      "tailwindcss",
+      "i18next",
+      "react-hook-form",
+      "zod",
+      "react-markdown",
+      "pdf-parse",
+      "mammoth",
+      "@xenova/transformers",
+      "gpt-tokenizer",
+      "lucide-react",
+      "cmdk",
+      "sonner"
+    ]
+  },
+  "files": [
+    {
+      "path": "middleware.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "i18nConfig.js",
+      "language": "javascript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "next.config.js",
+      "language": "javascript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 292,
+      "purpose": ""
+    },
+    {
+      "path": "tailwind.config.ts",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "package-lock.json",
+      "language": "json",
+      "loc": 18893,
+      "purpose": ""
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "components.json",
+      "language": "json",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "postcss.config.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": ".eslintrc.json",
+      "language": "json",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "jest.config.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "types/announcement.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "types/valid-keys.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "types/llms.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "types/chat.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "types/collection-file.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "types/chat-message.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "types/chat-file.tsx",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "types/content-type.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "types/index.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "types/models.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "types/file-item-chunk.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "types/sidebar-data.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "types/error-response.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "types/sharing.ts",
+      "language": "typescript",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "types/key-type.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "types/assistant-retrieval-item.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "types/images/message-image.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "types/images/assistant-image.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "types/images/workspace-image.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "context/context.tsx",
+      "language": "typescript",
+      "loc": 265,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/layout.tsx",
+      "language": "typescript",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/loading.tsx",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/page.tsx",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/globals.css",
+      "language": "css",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/setup/page.tsx",
+      "language": "typescript",
+      "loc": 256,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/[workspaceid]/layout.tsx",
+      "language": "typescript",
+      "loc": 183,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/[workspaceid]/page.tsx",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/[workspaceid]/chat/page.tsx",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/[workspaceid]/chat/[chatid]/page.tsx",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/login/page.tsx",
+      "language": "typescript",
+      "loc": 221,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/login/password/page.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "app/[locale]/help/page.tsx",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "app/auth/callback/route.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/tools/route.ts",
+      "language": "typescript",
+      "loc": 218,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/openrouter/route.ts",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/azure/route.ts",
+      "language": "typescript",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/google/route.ts",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/groq/route.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/perplexity/route.ts",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/anthropic/route.ts",
+      "language": "typescript",
+      "loc": 111,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/custom/route.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/mistral/route.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/chat/openai/route.ts",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/assistants/openai/route.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/retrieval/retrieve/route.ts",
+      "language": "typescript",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/retrieval/process/route.ts",
+      "language": "typescript",
+      "loc": 175,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/retrieval/process/docx/route.ts",
+      "language": "typescript",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/keys/route.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/command/route.ts",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/username/available/route.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "app/api/username/get/route.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/seed.sql",
+      "language": "sql",
+      "loc": 150,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/types.ts",
+      "language": "typescript",
+      "loc": 1823,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/config.toml",
+      "language": "toml",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234540_setup.sql",
+      "language": "sql",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240124234424_tool_improvements.sql",
+      "language": "sql",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234542_add_workspaces.sql",
+      "language": "sql",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240213040255_remove_request_in_body_from_tools.sql",
+      "language": "sql",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234549_add_messages.sql",
+      "language": "sql",
+      "loc": 173,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234550_add_prompts.sql",
+      "language": "sql",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240125192042_upgrade_openai_models.sql",
+      "language": "sql",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234548_add_chats.sql",
+      "language": "sql",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240118224049_add_azure_embeddings.sql",
+      "language": "sql",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240115171510_add_assistant_files.sql",
+      "language": "sql",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240115135033_add_openrouter.sql",
+      "language": "sql",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234545_add_file_items.sql",
+      "language": "sql",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240115172125_add_assistant_tools.sql",
+      "language": "sql",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234547_add_assistants.sql",
+      "language": "sql",
+      "loc": 161,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240125194719_add_custom_models.sql",
+      "language": "sql",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240212063532_add_at_assistants.sql",
+      "language": "sql",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234544_add_files.sql",
+      "language": "sql",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240213085646_add_context_length_to_custom_models.sql",
+      "language": "sql",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234546_add_presets.sql",
+      "language": "sql",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240115171524_add_tools.sql",
+      "language": "sql",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234551_add_collections.sql",
+      "language": "sql",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234541_add_profiles.sql",
+      "language": "sql",
+      "loc": 171,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240302004845_add_groq.sql",
+      "language": "sql",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240108234543_add_folders.sql",
+      "language": "sql",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "supabase/migrations/20240129232644_add_workspace_images.sql",
+      "language": "sql",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/sidebar-search.tsx",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/sidebar-data-list.tsx",
+      "language": "typescript",
+      "loc": 344,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/sidebar-switcher.tsx",
+      "language": "typescript",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/sidebar.tsx",
+      "language": "typescript",
+      "loc": 111,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/sidebar-switch-item.tsx",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/sidebar-create-buttons.tsx",
+      "language": "typescript",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/sidebar-content.tsx",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/tools/tool-item.tsx",
+      "language": "typescript",
+      "loc": 166,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/tools/create-tool.tsx",
+      "language": "typescript",
+      "loc": 172,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/chat/delete-chat.tsx",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/chat/update-chat.tsx",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/chat/chat-item.tsx",
+      "language": "typescript",
+      "loc": 110,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/assistants/assistant-retrieval-select.tsx",
+      "language": "typescript",
+      "loc": 197,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/assistants/assistant-item.tsx",
+      "language": "typescript",
+      "loc": 303,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/assistants/assistant-tool-select.tsx",
+      "language": "typescript",
+      "loc": 161,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/assistants/create-assistant.tsx",
+      "language": "typescript",
+      "loc": 211,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/all/sidebar-update-item.tsx",
+      "language": "typescript",
+      "loc": 680,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/all/sidebar-display-item.tsx",
+      "language": "typescript",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/all/sidebar-create-item.tsx",
+      "language": "typescript",
+      "loc": 254,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/all/sidebar-delete-item.tsx",
+      "language": "typescript",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/models/model-item.tsx",
+      "language": "typescript",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/models/create-model.tsx",
+      "language": "typescript",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/prompts/create-prompt.tsx",
+      "language": "typescript",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/prompts/prompt-item.tsx",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/files/file-item.tsx",
+      "language": "typescript",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/files/create-file.tsx",
+      "language": "typescript",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/folders/folder-item.tsx",
+      "language": "typescript",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/folders/update-folder.tsx",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/folders/delete-folder.tsx",
+      "language": "typescript",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/presets/create-preset.tsx",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/presets/preset-item.tsx",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/collections/create-collection.tsx",
+      "language": "typescript",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/collections/collection-file-select.tsx",
+      "language": "typescript",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "components/sidebar/items/collections/collection-item.tsx",
+      "language": "typescript",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/aspect-ratio.tsx",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/alert-dialog.tsx",
+      "language": "typescript",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/file-preview.tsx",
+      "language": "typescript",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/tabs.tsx",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/card.tsx",
+      "language": "typescript",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/slider.tsx",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/popover.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/progress.tsx",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/dashboard.tsx",
+      "language": "typescript",
+      "loc": 133,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/toaster.tsx",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/image-picker.tsx",
+      "language": "typescript",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/with-tooltip.tsx",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/hover-card.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/sheet.tsx",
+      "language": "typescript",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/scroll-area.tsx",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/label.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/sonner.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/navigation-menu.tsx",
+      "language": "typescript",
+      "loc": 128,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/accordion.tsx",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/limit-display.tsx",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/tooltip.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/alert.tsx",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/screen-loader.tsx",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/use-toast.ts",
+      "language": "typescript",
+      "loc": 189,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/switch.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/calendar.tsx",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/advanced-settings.tsx",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/file-icon.tsx",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/radio-group.tsx",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/command.tsx",
+      "language": "typescript",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/toggle-group.tsx",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/avatar.tsx",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/menubar.tsx",
+      "language": "typescript",
+      "loc": 236,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/dialog.tsx",
+      "language": "typescript",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/badge.tsx",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/table.tsx",
+      "language": "typescript",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/separator.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/submit-button.tsx",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/button.tsx",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/toggle.tsx",
+      "language": "typescript",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/brand.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/toast.tsx",
+      "language": "typescript",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/textarea-autosize.tsx",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/checkbox.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/collapsible.tsx",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/dropdown-menu.tsx",
+      "language": "typescript",
+      "loc": 200,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/chat-settings-form.tsx",
+      "language": "typescript",
+      "loc": 253,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/select.tsx",
+      "language": "typescript",
+      "loc": 160,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/textarea.tsx",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/input.tsx",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/skeleton.tsx",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/context-menu.tsx",
+      "language": "typescript",
+      "loc": 200,
+      "purpose": ""
+    },
+    {
+      "path": "components/ui/form.tsx",
+      "language": "typescript",
+      "loc": 176,
+      "purpose": ""
+    },
+    {
+      "path": "components/messages/message-markdown.tsx",
+      "language": "typescript",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "components/messages/message-replies.tsx",
+      "language": "typescript",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "components/messages/message-actions.tsx",
+      "language": "typescript",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "components/messages/message-markdown-memoized.tsx",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "components/messages/message-codeblock.tsx",
+      "language": "typescript",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "components/messages/message.tsx",
+      "language": "typescript",
+      "loc": 445,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-files-display.tsx",
+      "language": "typescript",
+      "loc": 283,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/prompt-picker.tsx",
+      "language": "typescript",
+      "loc": 215,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/quick-settings.tsx",
+      "language": "typescript",
+      "loc": 308,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-messages.tsx",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/assistant-picker.tsx",
+      "language": "typescript",
+      "loc": 128,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-secondary-buttons.tsx",
+      "language": "typescript",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-ui.tsx",
+      "language": "typescript",
+      "loc": 230,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-scroll-buttons.tsx",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-command-input.tsx",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/quick-setting-option.tsx",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/tool-picker.tsx",
+      "language": "typescript",
+      "loc": 110,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-help.tsx",
+      "language": "typescript",
+      "loc": 208,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-retrieval-settings.tsx",
+      "language": "typescript",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/file-picker.tsx",
+      "language": "typescript",
+      "loc": 158,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-input.tsx",
+      "language": "typescript",
+      "loc": 281,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-settings.tsx",
+      "language": "typescript",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-helpers/index.ts",
+      "language": "typescript",
+      "loc": 511,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-hooks/use-scroll.tsx",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-hooks/use-chat-handler.tsx",
+      "language": "typescript",
+      "loc": 422,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-hooks/use-select-file-handler.tsx",
+      "language": "typescript",
+      "loc": 204,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-hooks/use-chat-history.tsx",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "components/chat/chat-hooks/use-prompt-and-command.tsx",
+      "language": "typescript",
+      "loc": 190,
+      "purpose": ""
+    },
+    {
+      "path": "components/workspace/assign-workspaces.tsx",
+      "language": "typescript",
+      "loc": 160,
+      "purpose": ""
+    },
+    {
+      "path": "components/workspace/delete-workspace.tsx",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "components/workspace/workspace-settings.tsx",
+      "language": "typescript",
+      "loc": 300,
+      "purpose": ""
+    },
+    {
+      "path": "components/setup/step-container.tsx",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "components/setup/finish-step.tsx",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "components/setup/api-step.tsx",
+      "language": "typescript",
+      "loc": 243,
+      "purpose": ""
+    },
+    {
+      "path": "components/setup/profile-step.tsx",
+      "language": "typescript",
+      "loc": 149,
+      "purpose": ""
+    },
+    {
+      "path": "components/models/model-icon.tsx",
+      "language": "typescript",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "components/models/model-select.tsx",
+      "language": "typescript",
+      "loc": 203,
+      "purpose": ""
+    },
+    {
+      "path": "components/models/model-option.tsx",
+      "language": "typescript",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "components/icons/anthropic-svg.tsx",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "components/icons/chatbotui-svg.tsx",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "components/icons/openai-svg.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "components/icons/google-svg.tsx",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/command-k.tsx",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/import.tsx",
+      "language": "typescript",
+      "loc": 292,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/translations-provider.tsx",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/workspace-switcher.tsx",
+      "language": "typescript",
+      "loc": 229,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/profile-settings.tsx",
+      "language": "typescript",
+      "loc": 763,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/change-password.tsx",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/alerts.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/theme-switcher.tsx",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/drawing-canvas.tsx",
+      "language": "typescript",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/announcements.tsx",
+      "language": "typescript",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/global-state.tsx",
+      "language": "typescript",
+      "loc": 331,
+      "purpose": ""
+    },
+    {
+      "path": "components/utility/providers.tsx",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "public/manifest.json",
+      "language": "json",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "public/worker-development.js",
+      "language": "javascript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "public/locales/de/translation.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "public/locales/en/translation.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "__tests__/playwright-test/package-lock.json",
+      "language": "json",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "__tests__/playwright-test/package.json",
+      "language": "json",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "__tests__/playwright-test/playwright.config.ts",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "__tests__/playwright-test/tests/login.spec.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "__tests__/lib/openapi-conversion.test.ts",
+      "language": "typescript",
+      "loc": 369,
+      "purpose": ""
+    },
+    {
+      "path": "lib/openapi-conversion.ts",
+      "language": "typescript",
+      "loc": 170,
+      "purpose": ""
+    },
+    {
+      "path": "lib/blob-to-b64.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "lib/chat-setting-limits.ts",
+      "language": "typescript",
+      "loc": 240,
+      "purpose": ""
+    },
+    {
+      "path": "lib/i18n.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "lib/utils.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "lib/build-prompt.ts",
+      "language": "typescript",
+      "loc": 260,
+      "purpose": ""
+    },
+    {
+      "path": "lib/consume-stream.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "lib/generate-local-embedding.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "lib/export-old-data.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "lib/envs.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "lib/server/server-chat-helpers.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "lib/server/server-utils.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/fetch-models.ts",
+      "language": "typescript",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/llm/openai-llm-list.ts",
+      "language": "typescript",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/llm/groq-llm-list.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/llm/anthropic-llm-list.ts",
+      "language": "typescript",
+      "loc": 111,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/llm/llm-list.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/llm/google-llm-list.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/llm/perplexity-llm-list.ts",
+      "language": "typescript",
+      "loc": 88,
+      "purpose": ""
+    },
+    {
+      "path": "lib/models/llm/mistral-llm-list.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "lib/supabase/middleware.ts",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "lib/supabase/client.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "lib/supabase/browser-client.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "lib/supabase/server.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "lib/retrieval/processing/json.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "lib/retrieval/processing/csv.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "lib/retrieval/processing/pdf.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "lib/retrieval/processing/txt.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "lib/retrieval/processing/index.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "lib/retrieval/processing/docx.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "lib/retrieval/processing/md.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "lib/hooks/use-copy-to-clipboard.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "lib/hooks/use-hotkey.tsx",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "db/workspaces.ts",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "db/chat-files.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "db/folders.ts",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "db/chats.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "db/messages.ts",
+      "language": "typescript",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "db/assistant-collections.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "db/collections.ts",
+      "language": "typescript",
+      "loc": 184,
+      "purpose": ""
+    },
+    {
+      "path": "db/prompts.ts",
+      "language": "typescript",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "db/message-file-items.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "db/assistant-tools.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "db/profile.ts",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "db/tools.ts",
+      "language": "typescript",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "db/presets.ts",
+      "language": "typescript",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "db/limits.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "db/index.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "db/models.ts",
+      "language": "typescript",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "db/assistants.ts",
+      "language": "typescript",
+      "loc": 184,
+      "purpose": ""
+    },
+    {
+      "path": "db/collection-files.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "db/assistant-files.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "db/files.ts",
+      "language": "typescript",
+      "loc": 316,
+      "purpose": ""
+    },
+    {
+      "path": "db/storage/workspace-images.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "db/storage/assistant-images.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "db/storage/message-images.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "db/storage/profile-images.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "db/storage/files.ts",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "worker/index.js",
+      "language": "javascript",
+      "loc": 1,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 48728,
+  "file_count": 300,
+  "primary_language": "typescript",
+  "languages": [
+    "css",
+    "javascript",
+    "json",
+    "markdown",
+    "sql",
+    "toml",
+    "typescript"
+  ],
+  "architecture_summary": "A full-stack Next.js 14 chatbot application with multi-provider LLM support (OpenAI, Anthropic, Google, Azure, Mistral, Groq, Perplexity, OpenRouter). Features include workspace-based multi-tenancy, RAG with file embedding and semantic retrieval, assistant management with tools and retrieval, i18n support via next-i18n-router, Supabase Auth with JWT middleware protection, and a comprehensive UI component library built on Radix UI with Tailwind CSS styling.",
+  "key_patterns": [
+    "Middleware-based JWT auth with Supabase",
+    "Multi-provider LLM API routes with streaming support",
+    "Workspace-scoped data isolation",
+    "RAG pipeline with file processing (PDF, DOCX, CSV, JSON, MD, TXT)",
+    "Local embeddings with @xenova/transformers",
+    "i18n routing with dynamic locale segments",
+    "Radix UI + Tailwind component composition",
+    "Server Actions and App Router patterns",
+    "React Context for global state",
+    "Chat streaming with consume-stream utility",
+    "API key management per workspace",
+    "Custom model support with context length limits",
+    "Assistant tools with custom function calling"
+  ]
+}

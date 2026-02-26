@@ -1,0 +1,496 @@
+{
+  "findings": [
+    {
+      "id": "F-8dff9e10",
+      "title": "God module: web-app/src/containers/ChatInput.tsx exceeds 1800 LOC",
+      "description": "The ChatInput container component has grown to 1888 LOC, combining chat input handling, attachment processing, model selection, tool approval, and message submission. This violates single responsibility principle and makes testing/maintenance difficult.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/containers/ChatInput.tsx",
+          "line_start": 1,
+          "line_end": 1888,
+          "snippet": "Large container component mixing multiple concerns: text input, file attachments, model selection, tool approval flow, and message submission"
+        }
+      ],
+      "suggested_fix": "Split ChatInput into smaller, focused components: (1) ChatInputField - text input only, (2) AttachmentPanel - file handling, (3) ModelSelector - model selection, (4) ToolApprovalFlow - tool approval, (5) ChatInputContainer - orchestration",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1f74fe1f",
+      "title": "God module: extensions/llamacpp-extension/src/index.ts exceeds 2200 LOC",
+      "description": "The llama.cpp extension's main file contains 2294 LOC with mixed responsibilities: model loading, backend management, inference execution, device handling, and settings management all in a single file.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "extensions/llamacpp-extension/src/index.ts",
+          "line_start": 1,
+          "line_end": 2294,
+          "snippet": "Monolithic extension file handling: backend initialization, model lifecycle, inference requests, device discovery, GPU detection, cache management, and parameter validation"
+        }
+      ],
+      "suggested_fix": "Decompose into domain modules: (1) backend-manager.ts - backend lifecycle, (2) device-detector.ts - GPU/CPU detection, (3) model-loader.ts - model loading/validation, (4) inference-executor.ts - inference requests, (5) settings-handler.ts - configuration, (6) cache-manager.ts - KV cache management",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b88b5afc",
+      "title": "God module: extensions/mlx-extension/src/index.ts exceeds 1000 LOC",
+      "description": "MLX extension main file contains 1013 LOC covering model loading, inference, device detection, and Apple Silicon-specific optimizations without clear separation of concerns.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "extensions/mlx-extension/src/index.ts",
+          "line_start": 1,
+          "line_end": 1013,
+          "snippet": "Single file handles: Metal GPU initialization, model quantization, inference streaming, memory optimization, and device capability detection"
+        }
+      ],
+      "suggested_fix": "Split into: (1) mlx-runtime.ts - Metal/GPU setup, (2) model-quantizer.ts - quantization logic, (3) inference-engine.ts - inference execution, (4) memory-optimizer.ts - memory management, (5) device-capability.ts - device detection",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-72895412",
+      "title": "God module: src-tauri/src/core/server/proxy.rs exceeds 2000 LOC",
+      "description": "The proxy module contains 2016 LOC implementing reverse proxy logic, request routing, response handling, streaming, and error handling all in one file. This is a critical bottleneck for maintainability.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src-tauri/src/core/server/proxy.rs",
+          "line_start": 1,
+          "line_end": 2016,
+          "snippet": "Monolithic proxy implementation: HTTP request transformation, streaming response handling, error translation, header manipulation, timeout management, and security checks"
+        }
+      ],
+      "suggested_fix": "Decompose into: (1) request-transformer.ts - request building, (2) response-handler.ts - response processing, (3) streaming-manager.ts - stream handling, (4) error-translator.ts - error mapping, (5) security-filter.ts - validation/security, (6) proxy-core.ts - orchestration",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8e6344a8",
+      "title": "High coupling: web-app hooks depend on multiple service layers",
+      "description": "Web-app hooks (useThreads, useModelProvider, useHardware, etc.) directly depend on service implementations, creating tight coupling. Changes to service interfaces force hook updates across the application.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/hooks/useThreads.ts",
+          "line_start": 1,
+          "line_end": 474,
+          "snippet": "Hook directly imports and uses: ThreadService, MessageService, AssistantService - tight service coupling"
+        },
+        {
+          "file_path": "web-app/src/hooks/useModelProvider.ts",
+          "line_start": 1,
+          "line_end": 509,
+          "snippet": "Hook depends on ModelService, ProviderService, UpdaterService - multiple service dependencies"
+        },
+        {
+          "file_path": "web-app/src/hooks/useHardware.ts",
+          "line_start": 1,
+          "line_end": 215,
+          "snippet": "Hook couples to HardwareService, LlamacppService - direct service dependency injection"
+        }
+      ],
+      "suggested_fix": "Introduce abstraction layer: (1) Create service facades that aggregate multiple services, (2) Use dependency injection pattern in hooks, (3) Define clear service interfaces (contracts) separate from implementations, (4) Consider state management layer (Redux/Zustand) to decouple hooks from services",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6f66256f",
+      "title": "Missing abstraction layer: Direct Tauri IPC calls scattered across web-app",
+      "description": "Web-app services directly invoke Tauri IPC commands throughout (tauri.invoke) without a consistent abstraction. This couples frontend to Tauri implementation details.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/services/index.ts",
+          "line_start": 1,
+          "line_end": 332,
+          "snippet": "Service implementations use raw tauri.invoke calls scattered across 332 LOC without unified IPC abstraction"
+        },
+        {
+          "file_path": "web-app/src/services/models/default.ts",
+          "line_start": 1,
+          "line_end": 672,
+          "snippet": "ModelService contains 672 LOC with repeated tauri.invoke patterns - no DRY principle for IPC communication"
+        }
+      ],
+      "suggested_fix": "Create IPC abstraction layer: (1) TauriClient or IPCBridge class that wraps all tauri.invoke calls, (2) Centralize command definitions and response mapping, (3) Implement retry/error handling at IPC level, (4) Allow for easy mock/testing by injecting IPC layer into services",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-32e5d7ba",
+      "title": "Inconsistent dependency injection patterns across extensions",
+      "description": "Extension modules use inconsistent patterns for dependency management. Some use direct imports, others use event listeners, creating unpredictable coupling patterns.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "extensions/rag-extension/src/index.ts",
+          "line_start": 1,
+          "line_end": 539,
+          "snippet": "RAG extension uses event-driven pattern with EventBus for dependencies"
+        },
+        {
+          "file_path": "extensions/llamacpp-extension/src/index.ts",
+          "line_start": 1,
+          "line_end": 2294,
+          "snippet": "Llama.cpp extension uses direct service references and module-level state"
+        },
+        {
+          "file_path": "extensions/mlx-extension/src/index.ts",
+          "line_start": 1,
+          "line_end": 1013,
+          "snippet": "MLX extension mixes direct imports with event listeners for state management"
+        }
+      ],
+      "suggested_fix": "Standardize extension API: (1) Define ExtensionInterface with clear contract, (2) Use constructor-based dependency injection for all extensions, (3) Establish consistent event naming and payload schemas, (4) Document extension lifecycle hooks clearly",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7f308db8",
+      "title": "Unclear responsibility boundaries: services vs containers in web-app",
+      "description": "The distinction between service responsibilities and container component responsibilities is blurred. Containers like MessageItem (442 LOC) and DropdownModelProvider (697 LOC) contain business logic that should be in services.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/containers/MessageItem.tsx",
+          "line_start": 1,
+          "line_end": 442,
+          "snippet": "Container handles message formatting, tool execution approval, reasoning display - concerns mixing presentation with business logic"
+        },
+        {
+          "file_path": "web-app/src/containers/DropdownModelProvider.tsx",
+          "line_start": 1,
+          "line_end": 697,
+          "snippet": "Container implements model validation, provider configuration logic - business logic in presentation layer"
+        },
+        {
+          "file_path": "web-app/src/containers/DownloadManegement.tsx",
+          "line_start": 1,
+          "line_end": 491,
+          "snippet": "Container orchestrates download lifecycle, progress tracking - should be service responsibility"
+        }
+      ],
+      "suggested_fix": "Establish clear separation: (1) Move business logic from containers to services, (2) Containers should only handle presentation and events, (3) Create domain services: MessageProcessingService, ProviderValidationService, DownloadOrchestrationService, (4) Containers call services via hooks",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1cd0409d",
+      "title": "Missing configuration abstraction: hardcoded values and constants scattered",
+      "description": "Configuration values are spread across constants files and hardcoded in implementation files. Constants are defined separately (providers.ts, routes.ts, chat.ts) without a unified configuration system.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/constants/providers.ts",
+          "line_start": 1,
+          "line_end": 354,
+          "snippet": "Provider configurations mixed with UI constants - 354 LOC of hardcoded provider definitions"
+        },
+        {
+          "file_path": "web-app/src/constants/chat.ts",
+          "line_start": 1,
+          "line_end": 17,
+          "snippet": "Chat-related constants scattered - no central config management"
+        },
+        {
+          "file_path": "extensions/llamacpp-extension/settings.json",
+          "line_start": 1,
+          "line_end": 390,
+          "snippet": "Extension settings defined in 390-line JSON - should support dynamic configuration loading"
+        }
+      ],
+      "suggested_fix": "Create configuration system: (1) Config.ts with environment-based loading, (2) Separate concerns: API configs, UI constants, extension settings, (3) Support runtime config updates, (4) Centralize provider definitions in config, not hardcoded constants",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0b447224",
+      "title": "Circular dependency risk: providers and hooks interdependency",
+      "description": "Web-app providers (DataProvider, ExtensionProvider, etc.) and hooks share tight interdependencies. DataProvider manages global state while hooks read from it, but hooks also update state through services that feed back to DataProvider.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/providers/DataProvider.tsx",
+          "line_start": 1,
+          "line_end": 258,
+          "snippet": "DataProvider manages 258 LOC of state, consumed by hooks which call services that update DataProvider"
+        },
+        {
+          "file_path": "web-app/src/hooks/useAppState.ts",
+          "line_start": 1,
+          "line_end": 187,
+          "snippet": "Hook consumes DataProvider state and calls services that trigger DataProvider updates - potential circular dependency"
+        }
+      ],
+      "suggested_fix": "Clarify data flow: (1) Establish unidirectional flow: UI \u2192 Hooks \u2192 Services \u2192 Backend/IPC \u2192 DataProvider updates, (2) Use Redux/Zustand to manage state flow clearly, (3) Document provider hierarchy and update paths, (4) Avoid hooks directly updating context they consume from",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a3e42970",
+      "title": "Large hook files with multiple responsibilities",
+      "description": "Several hook files exceed 300+ LOC and combine multiple concerns. useLocalApiServer (352 LOC), useBackendUpdater (352 LOC), useTokensCount (270 LOC), and useModelProvider (509 LOC) should be split.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/hooks/useModelProvider.ts",
+          "line_start": 1,
+          "line_end": 509,
+          "snippet": "Hook handles model provider management, configuration, updates - should split into smaller hooks"
+        },
+        {
+          "file_path": "web-app/src/hooks/useLocalApiServer.ts",
+          "line_start": 1,
+          "line_end": 352,
+          "snippet": "Hook manages local API server lifecycle, configuration, health checks - too many responsibilities"
+        },
+        {
+          "file_path": "web-app/src/hooks/useBackendUpdater.ts",
+          "line_start": 1,
+          "line_end": 352,
+          "snippet": "Hook orchestrates backend updates, downloads, version checks - should decompose"
+        }
+      ],
+      "suggested_fix": "Split large hooks: (1) useModelProvider \u2192 useProviderConfig + useProviderModels + useProviderUpdates, (2) useLocalApiServer \u2192 useApiServerLifecycle + useApiServerConfig + useApiServerHealth, (3) useBackendUpdater \u2192 useVersionCheck + useDownloadManager + useUpdateOrchestration",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-271b7afa",
+      "title": "Missing adapter/bridge pattern between core and Tauri",
+      "description": "src-tauri acts as bridge between TypeScript core and native backend, but lacks clear adapter pattern. Commands are scattered across multiple files without unified request/response contracts.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src-tauri/src/core/app/commands.rs",
+          "line_start": 1,
+          "line_end": 211,
+          "snippet": "App commands mixed with app logic - no clear adapter separation"
+        },
+        {
+          "file_path": "src-tauri/src/core/filesystem/commands.rs",
+          "line_start": 1,
+          "line_end": 332,
+          "snippet": "File system commands lack unified error handling and response contracts"
+        },
+        {
+          "file_path": "src-tauri/src/core/threads/commands.rs",
+          "line_start": 1,
+          "line_end": 375,
+          "snippet": "Thread commands don't follow consistent command pattern"
+        }
+      ],
+      "suggested_fix": "Establish command adapter pattern: (1) Create CommandHandler trait for all Tauri commands, (2) Unified response wrapper with consistent error handling, (3) Centralize request validation, (4) Document command contracts in schema file",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-25fcfdb6",
+      "title": "Cross-cutting concern: authentication/authorization scattered across codebase",
+      "description": "Tool approval, API key validation, and permission checks are implemented inconsistently across hooks, services, and containers without a unified security layer.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/hooks/useToolApproval.ts",
+          "line_start": 1,
+          "line_end": 123,
+          "snippet": "Tool approval logic in hook - should be centralized"
+        },
+        {
+          "file_path": "web-app/src/hooks/useModelContextApproval.ts",
+          "line_start": 1,
+          "line_end": 53,
+          "snippet": "Model context approval scattered in separate hook"
+        },
+        {
+          "file_path": "web-app/src/containers/dialogs/ToolApproval.tsx",
+          "line_start": 1,
+          "line_end": 114,
+          "snippet": "Tool approval UI mixed with approval logic"
+        }
+      ],
+      "suggested_fix": "Create unified security layer: (1) ApprovalService for tool/context approvals, (2) PermissionGuard component wrapper, (3) Centralized authorization checks before sensitive operations, (4) Audit logging for all approvals",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b0e3e3ab",
+      "title": "Inconsistent error handling patterns across modules",
+      "description": "Error handling varies significantly: some modules use Result types, others use exceptions, some use error callbacks. No consistent error boundary or logging strategy.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "src-tauri/src/core/server/proxy.rs",
+          "line_start": 1,
+          "line_end": 2016,
+          "snippet": "Rust error handling using custom error types - inconsistent with TypeScript patterns"
+        },
+        {
+          "file_path": "web-app/src/containers/GlobalError.tsx",
+          "line_start": 1,
+          "line_end": 89,
+          "snippet": "UI error boundary component exists but error handling varies in services"
+        },
+        {
+          "file_path": "extensions/llamacpp-extension/src/index.ts",
+          "line_start": 1,
+          "line_end": 2294,
+          "snippet": "Extension error handling not standardized with core error types"
+        }
+      ],
+      "suggested_fix": "Establish error handling strategy: (1) Define ErrorResponse type across all layers, (2) Create ErrorBoundary for each layer (service, component, extension), (3) Implement centralized error logging/reporting, (4) Standardize error codes and messages",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7d0e2f88",
+      "title": "Lack of clear testing layer boundaries",
+      "description": "Tests are co-located with source files but don't follow consistent mocking/stubbing patterns. Integration tests vs unit tests boundaries are unclear.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/hooks/__tests__/",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Hook tests directly import services without clear mocking boundaries"
+        },
+        {
+          "file_path": "core/src/browser/extension.test.ts",
+          "line_start": 1,
+          "line_end": 202,
+          "snippet": "Core tests mix unit and integration test patterns"
+        }
+      ],
+      "suggested_fix": "Establish testing architecture: (1) Create test utilities and mocking factories, (2) Separate unit tests (isolated) from integration tests (with services), (3) Document mock strategy for each layer, (4) Create test fixtures for common test data",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fdab90ae",
+      "title": "Incoherent localization system: i18n scattered across layers",
+      "description": "i18n is implemented at multiple levels (web-app, docs) with different strategies. Translation keys and loading mechanisms are not unified across the platform.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "web-app/src/i18n/setup.ts",
+          "line_start": 1,
+          "line_end": 156,
+          "snippet": "i18next configuration with dynamic namespace loading"
+        },
+        {
+          "file_path": "docs/theme.config.tsx",
+          "line_start": 1,
+          "line_end": 142,
+          "snippet": "Docs have separate i18n configuration not aligned with web-app"
+        }
+      ],
+      "suggested_fix": "Unify i18n: (1) Share translation files between web-app and docs, (2) Centralize i18n configuration, (3) Create translation management CLI tool, (4) Document translation key naming conventions",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 52,
+  "coupling_assessment": "The codebase exhibits significant coupling issues across multiple dimensions: (1) Web-app hooks create tight dependencies on service implementations without abstraction, (2) Services directly invoke Tauri IPC without unified abstraction layer, (3) Extensions use inconsistent dependency patterns, (4) Container components mix business logic with presentation, (5) Large monolithic files (ChatInput 1888 LOC, llamacpp 2294 LOC, mlx 1013 LOC, proxy 2016 LOC) create internal coupling and reduce modularity. The main data flow path (React UI \u2192 Hooks \u2192 Services \u2192 IPC \u2192 Tauri \u2192 Backend) has clear conceptual layers but lacks abstraction barriers, making changes propagate across layers easily.",
+  "layering_assessment": "The architecture has recognizable layers but with unclear boundaries and leaky abstractions: (1) Presentation Layer (React components, containers) - sometimes contains business logic that should be in services, (2) Hook/State Management Layer - too tightly coupled to service implementations, lacking abstraction, (3) Service Layer (web-app/src/services) - properly isolated but hooks bypass it sometimes, (4) IPC Bridge Layer - missing unified abstraction, using raw tauri.invoke scattered throughout, (5) Tauri Backend Layer (src-tauri) - well-structured but proxy.rs is a monolith, (6) Extension Layer - inconsistent patterns across different extensions. Missing abstraction layers: no Data Access Layer abstraction in frontend, no unified Command/Query interface for Tauri IPC, no centralized configuration management, no security/permission layer, no error handling boundary.",
+  "summary": "The Jan codebase has a fundamentally sound architecture with clear high-level design (desktop app with plugin extensions), but suffers from 13 significant structural issues reducing coherence to 52/100. The primary problems are: (1) Four god modules exceeding 1000+ LOC without separation of concerns (ChatInput, llamacpp, mlx, proxy), (2) Tight coupling between web-app hooks and services lacking abstraction, (3) Missing unified IPC abstraction layer allowing scattered tauri.invoke calls, (4) Inconsistent extension dependency injection patterns, (5) Blurred responsibility boundaries between services and containers, (6) No centralized configuration system, (7) Risk of circular dependencies in provider/hook relationships. These issues don't prevent functionality but significantly impact maintainability, testing, and future extensibility. Recommended priority fixes: (1) Extract IPC abstraction layer immediately (medium effort, high impact), (2) Decompose god modules into focused units (high effort, high impact), (3) Standardize extension patterns (medium effort, medium impact), (4) Clarify service vs container responsibilities (medium effort, medium impact)."
+}

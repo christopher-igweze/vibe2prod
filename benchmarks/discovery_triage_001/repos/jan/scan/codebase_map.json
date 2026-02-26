@@ -1,0 +1,7125 @@
+{
+  "modules": [
+    {
+      "name": "core",
+      "path": "core/src/",
+      "purpose": "Core inference engine providing the underlying AI runtime, event system, and extension interfaces for model management and execution",
+      "files": [
+        "core/src/index.ts",
+        "core/src/browser/core.ts",
+        "core/src/browser/events.ts",
+        "core/src/browser/extension.ts",
+        "core/src/browser/fs.ts",
+        "core/src/browser/index.ts",
+        "core/src/browser/extensions/assistant.ts",
+        "core/src/browser/extensions/conversational.ts",
+        "core/src/browser/extensions/index.ts",
+        "core/src/browser/extensions/inference.ts",
+        "core/src/browser/extensions/mcp.ts",
+        "core/src/browser/extensions/rag.ts",
+        "core/src/browser/extensions/vector-db.ts",
+        "core/src/browser/models/manager.ts",
+        "core/src/types/index.ts",
+        "core/src/types/api/index.ts",
+        "core/src/types/assistant/assistantEntity.ts",
+        "core/src/types/assistant/assistantEvent.ts",
+        "core/src/types/assistant/assistantInterface.ts",
+        "core/src/types/config/appConfigEntity.ts",
+        "core/src/types/config/appConfigEvent.ts",
+        "core/src/types/engine/index.ts",
+        "core/src/types/file/index.ts",
+        "core/src/types/hardware/index.ts",
+        "core/src/types/inference/inferenceEntity.ts",
+        "core/src/types/inference/inferenceEvent.ts",
+        "core/src/types/inference/inferenceInterface.ts",
+        "core/src/types/mcp/mcpEntity.ts",
+        "core/src/types/mcp/mcpInterface.ts",
+        "core/src/types/message/messageEntity.ts",
+        "core/src/types/message/messageEvent.ts",
+        "core/src/types/message/messageInterface.ts",
+        "core/src/types/message/messageRequestType.ts",
+        "core/src/types/miscellaneous/systemResourceInfo.ts",
+        "core/src/types/model/modelEntity.ts",
+        "core/src/types/model/modelEvent.ts",
+        "core/src/types/model/modelImport.ts",
+        "core/src/types/model/modelInterface.ts",
+        "core/src/types/model/modelSource.ts",
+        "core/src/types/setting/settingComponent.ts",
+        "core/src/types/thread/threadEntity.ts",
+        "core/src/types/thread/threadInterface.ts"
+      ],
+      "loc": 12000,
+      "language": "typescript"
+    },
+    {
+      "name": "web-app",
+      "path": "web-app/src/",
+      "purpose": "React 18 frontend application providing the user interface for chat, model management, settings, and system monitoring",
+      "files": [
+        "web-app/src/main.tsx",
+        "web-app/src/index.css",
+        "web-app/src/i18n.ts",
+        "web-app/src/routeTree.gen.ts"
+      ],
+      "loc": 25000,
+      "language": "typescript"
+    },
+    {
+      "name": "llamacpp-extension",
+      "path": "extensions/llamacpp-extension/src/",
+      "purpose": "Llama.cpp inference backend extension providing local LLM inference using GGML/GGUF models",
+      "files": [
+        "extensions/llamacpp-extension/src/index.ts",
+        "extensions/llamacpp-extension/src/backend.ts",
+        "extensions/llamacpp-extension/src/util.ts"
+      ],
+      "loc": 800,
+      "language": "typescript"
+    },
+    {
+      "name": "mlx-extension",
+      "path": "extensions/mlx-extension/src/",
+      "purpose": "Apple MLX framework extension for Metal-accelerated inference on Apple Silicon Macs",
+      "files": [
+        "extensions/mlx-extension/src/index.ts"
+      ],
+      "loc": 200,
+      "language": "typescript"
+    },
+    {
+      "name": "rag-extension",
+      "path": "extensions/rag-extension/src/",
+      "purpose": "Retrieval-Augmented Generation extension providing document chunking, embedding, and retrieval capabilities",
+      "files": [
+        "extensions/rag-extension/src/index.ts",
+        "extensions/rag-extension/src/tools.ts"
+      ],
+      "loc": 300,
+      "language": "typescript"
+    },
+    {
+      "name": "vector-db-extension",
+      "path": "extensions/vector-db-extension/src/",
+      "purpose": "Vector database extension for storing and querying embeddings using local storage",
+      "files": [
+        "extensions/vector-db-extension/src/index.ts"
+      ],
+      "loc": 200,
+      "language": "typescript"
+    },
+    {
+      "name": "assistant-extension",
+      "path": "extensions/assistant-extension/src/",
+      "purpose": "Assistant extension providing AI assistant management and conversation handling",
+      "files": [
+        "extensions/assistant-extension/src/index.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "conversational-extension",
+      "path": "extensions/conversational-extension/src/",
+      "purpose": "Conversational AI extension for multi-turn dialogue management and context handling",
+      "files": [
+        "extensions/conversational-extension/src/index.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "download-extension",
+      "path": "extensions/download-extension/src/",
+      "purpose": "Model download extension for fetching and managing model files from HuggingFace and other sources",
+      "files": [
+        "extensions/download-extension/src/index.ts"
+      ],
+      "loc": 150,
+      "language": "typescript"
+    },
+    {
+      "name": "mlx-server",
+      "path": "mlx-server/Sources/MLXServer/",
+      "purpose": "Swift-based MLX server providing OpenAI-compatible API for Apple Silicon Metal acceleration",
+      "files": [
+        "mlx-server/Sources/MLXServer/Server.swift",
+        "mlx-server/Sources/MLXServer/ModelRunner.swift",
+        "mlx-server/Sources/MLXServer/MLXServerCommand.swift",
+        "mlx-server/Sources/MLXServer/OpenAITypes.swift",
+        "mlx-server/Sources/MLXServer/Logger.swift"
+      ],
+      "loc": 500,
+      "language": "swift"
+    },
+    {
+      "name": "src-tauri",
+      "path": "src-tauri/",
+      "purpose": "Tauri 2 desktop application providing native window management, system tray, and IPC bridge between web frontend and core engine",
+      "files": [
+        "src-tauri/src/main.rs",
+        "src-tauri/src/lib.rs",
+        "src-tauri/build.rs",
+        "src-tauri/tauri.conf.json",
+        "src-tauri/capabilities/default.json",
+        "src-tauri/capabilities/desktop.json",
+        "src-tauri/capabilities/mobile.json"
+      ],
+      "loc": 5000,
+      "language": "rust"
+    },
+    {
+      "name": "docs",
+      "path": "docs/",
+      "purpose": "Docusaurus-based documentation website with blog, changelog, API reference, and download pages",
+      "files": [
+        "docs/src/pages/index.mdx",
+        "docs/src/pages/download.mdx",
+        "docs/src/pages/changelog.mdx",
+        "docs/src/pages/blog.mdx",
+        "docs/public/openapi/jan.json"
+      ],
+      "loc": 5000,
+      "language": "typescript"
+    },
+    {
+      "name": "autoqa",
+      "path": "autoqa/",
+      "purpose": "Automated QA testing framework using Python with ReportPortal integration for test reporting",
+      "files": [
+        "autoqa/main.py",
+        "autoqa/test_runner.py",
+        "autoqa/screen_recorder.py",
+        "autoqa/reportportal_handler.py",
+        "autoqa/utils.py"
+      ],
+      "loc": 800,
+      "language": "python"
+    },
+    {
+      "name": "scripts",
+      "path": "scripts/",
+      "purpose": "Build and deployment scripts for downloading binaries, finding translations, and cross-platform build automation",
+      "files": [
+        "scripts/download-bin.mjs",
+        "scripts/find-missing-i18n-key.js",
+        "scripts/find-missing-translations.js"
+      ],
+      "loc": 300,
+      "language": "javascript"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "@tauri-apps/api",
+      "version": "^2.7.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "@tauri-apps/cli",
+      "version": "^2.7.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "react",
+      "version": "18.3.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-dom",
+      "version": "18.3.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-router-dom",
+      "version": "^7.1.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "vitest",
+      "version": "^3.1.3",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "@vitest/coverage-v8",
+      "version": "^3.1.3",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "i18next",
+      "version": "^24.2.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "react-i18next",
+      "version": "^15.4.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "tailwindcss",
+      "version": "^3.4.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "typescript",
+      "version": "^5.7.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "rolldown",
+      "version": "^1.0.0",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "cross-env",
+      "version": "^7.0.3",
+      "ecosystem": "npm",
+      "dev_only": true
+    },
+    {
+      "name": "husky",
+      "version": "^9.1.5",
+      "ecosystem": "npm",
+      "dev_only": true
+    }
+  ],
+  "data_flows": [
+    {
+      "source": "Web UI (React)",
+      "destination": "Tauri IPC Bridge",
+      "data_type": "user commands (chat, settings, model selection)",
+      "is_authenticated": false
+    },
+    {
+      "source": "Tauri IPC Bridge",
+      "destination": "Core Engine",
+      "data_type": "API calls, event streams",
+      "is_authenticated": false
+    },
+    {
+      "source": "Core Engine",
+      "destination": "Llama.cpp Extension",
+      "data_type": "inference requests, model parameters",
+      "is_authenticated": false
+    },
+    {
+      "source": "Core Engine",
+      "destination": "MLX Extension",
+      "data_type": "inference requests for Apple Silicon",
+      "is_authenticated": false
+    },
+    {
+      "source": "Llama.cpp Extension",
+      "destination": "Local GGUF/GGML Models",
+      "data_type": "prompt tokens, inference output",
+      "is_authenticated": false
+    },
+    {
+      "source": "RAG Extension",
+      "destination": "Vector DB Extension",
+      "data_type": "text chunks, embeddings",
+      "is_authenticated": false
+    },
+    {
+      "source": "Web UI",
+      "destination": "External Model APIs (OpenAI, Anthropic, etc.)",
+      "data_type": "API requests for cloud models",
+      "is_authenticated": true
+    },
+    {
+      "source": "Web UI",
+      "destination": "Download Extension",
+      "data_type": "model download requests",
+      "is_authenticated": false
+    },
+    {
+      "source": "Download Extension",
+      "destination": "HuggingFace/Model Repos",
+      "data_type": "model file downloads",
+      "is_authenticated": false
+    },
+    {
+      "source": "MLX Server",
+      "destination": "Core Engine via OpenAI API",
+      "data_type": "inference requests",
+      "is_authenticated": false
+    }
+  ],
+  "auth_boundaries": [
+    {
+      "path": "/settings/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/models/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/tools/*",
+      "auth_type": "tool_approval",
+      "is_protected": true
+    },
+    {
+      "path": "/api/providers/*",
+      "auth_type": "api_key",
+      "is_protected": true
+    }
+  ],
+  "entry_points": [
+    {
+      "path": "web-app/src/main.tsx",
+      "type": "ui",
+      "is_public": true
+    },
+    {
+      "path": "src-tauri/src/main.rs",
+      "type": "desktop_app",
+      "is_public": true
+    },
+    {
+      "path": "core/src/index.ts",
+      "type": "library",
+      "is_public": false
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/index.ts",
+      "type": "extension",
+      "is_public": false
+    },
+    {
+      "path": "extensions/mlx-extension/src/index.ts",
+      "type": "extension",
+      "is_public": false
+    },
+    {
+      "path": "extensions/rag-extension/src/index.ts",
+      "type": "extension",
+      "is_public": false
+    },
+    {
+      "path": "extensions/vector-db-extension/src/index.ts",
+      "type": "extension",
+      "is_public": false
+    },
+    {
+      "path": "extensions/assistant-extension/src/index.ts",
+      "type": "extension",
+      "is_public": false
+    },
+    {
+      "path": "extensions/conversational-extension/src/index.ts",
+      "type": "extension",
+      "is_public": false
+    },
+    {
+      "path": "extensions/download-extension/src/index.ts",
+      "type": "extension",
+      "is_public": false
+    },
+    {
+      "path": "mlx-server/Sources/MLXServer/Server.swift",
+      "type": "api_server",
+      "is_public": false
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Tailwind CSS",
+    "backend": "TypeScript Core Engine + Rust Tauri",
+    "database": "Local filesystem + Vector DB extension",
+    "hosting": "Desktop app (Windows/macOS/Linux)",
+    "packages": [
+      "react",
+      "@tauri-apps/api",
+      "vitest",
+      "i18next",
+      "tailwindcss",
+      "rolldown"
+    ]
+  },
+  "files": [
+    {
+      "path": ".yarnrc.yml",
+      "language": "yaml",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 252,
+      "purpose": ""
+    },
+    {
+      "path": "vitest.config.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/tsconfig.node.json",
+      "language": "json",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/index.html",
+      "language": "html",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/tsconfig.app.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/README.md",
+      "language": "markdown",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/package.json",
+      "language": "json",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 128,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/components.json",
+      "language": "json",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/tsconfig.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/eslint.config.js",
+      "language": "javascript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/vite.config.ts",
+      "language": "typescript",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/vitest.config.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/main.tsx",
+      "language": "typescript",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/loader.css",
+      "language": "css",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/i18n.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/index.css",
+      "language": "css",
+      "loc": 237,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/vite-env.d.ts",
+      "language": "typescript",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routeTree.gen.ts",
+      "language": "typescript",
+      "loc": 484,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/haptic.d.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/app.d.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/attachment.ts",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/modelProviders.d.ts",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/threads.d.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/react-syntax-highlighter-virtualized-renderer.d.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/events.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/global.d.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/models.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/completion.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/appearance.d.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/types/message.d.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/settings.json",
+      "language": "json",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/common.json",
+      "language": "json",
+      "loc": 376,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/hub.json",
+      "language": "json",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/de-DE/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/settings.json",
+      "language": "json",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/common.json",
+      "language": "json",
+      "loc": 376,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pl/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/settings.json",
+      "language": "json",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/common.json",
+      "language": "json",
+      "loc": 376,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/vn/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/settings.json",
+      "language": "json",
+      "loc": 275,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/common.json",
+      "language": "json",
+      "loc": 367,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/providers.json",
+      "language": "json",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ja/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/settings.json",
+      "language": "json",
+      "loc": 310,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/common.json",
+      "language": "json",
+      "loc": 377,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/cs/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/settings.json",
+      "language": "json",
+      "loc": 318,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/common.json",
+      "language": "json",
+      "loc": 387,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/ru/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/settings.json",
+      "language": "json",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/common.json",
+      "language": "json",
+      "loc": 376,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-CN/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/settings.json",
+      "language": "json",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/common.json",
+      "language": "json",
+      "loc": 376,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/zh-TW/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/settings.json",
+      "language": "json",
+      "loc": 310,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/common.json",
+      "language": "json",
+      "loc": 379,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/providers.json",
+      "language": "json",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/pt-BR/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/settings.json",
+      "language": "json",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/common.json",
+      "language": "json",
+      "loc": 376,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/id/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/settings.json",
+      "language": "json",
+      "loc": 316,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/common.json",
+      "language": "json",
+      "loc": 380,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/fr/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/chat.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/setup.json",
+      "language": "json",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/settings.json",
+      "language": "json",
+      "loc": 322,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/logs.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/mcp-servers.json",
+      "language": "json",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/tools.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/common.json",
+      "language": "json",
+      "loc": 441,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/providers.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/updater.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/model-errors.json",
+      "language": "json",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/system-monitor.json",
+      "language": "json",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/provider.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/hub.json",
+      "language": "json",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/tool-approval.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/locales/en/assistants.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/test/setup.ts",
+      "language": "typescript",
+      "loc": 188,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/routes.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/localStorage.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/windows.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/chat.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/providers.ts",
+      "language": "typescript",
+      "loc": 354,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/threadScroll.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/models.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/constants/__tests__/windows.test.ts",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/ServiceHubProvider.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/DataProvider.tsx",
+      "language": "typescript",
+      "loc": 258,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/ExtensionProvider.tsx",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/ThemeProvider.tsx",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/InterfaceProvider.tsx",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/KeyboardShortcuts.tsx",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/AnalyticProvider.tsx",
+      "language": "typescript",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/GlobalEventHandler.tsx",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/ToasterProvider.tsx",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/__tests__/DataProvider.test.tsx",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/providers/__tests__/ThemeProvider.test.tsx",
+      "language": "typescript",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/stores/chat-session-store.ts",
+      "language": "typescript",
+      "loc": 250,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/path.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/highlight.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/reasoning.ts",
+      "language": "typescript",
+      "loc": 111,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/getModelToStart.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/formatDate.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/number.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/teamEmoji.ts",
+      "language": "typescript",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/error.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/blurSupport.ts",
+      "language": "typescript",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/__tests__/formatDate.test.ts",
+      "language": "typescript",
+      "loc": 103,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/__tests__/teamEmoji.test.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/__tests__/number.test.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/__tests__/reasoning.test.ts",
+      "language": "typescript",
+      "loc": 381,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/__tests__/error.test.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/utils/__tests__/highlight.test.ts",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/styles/markdown.css",
+      "language": "css",
+      "loc": 197,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/styles/font.css",
+      "language": "css",
+      "loc": 186,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/MermaidError.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/WindowControls.tsx",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/PromptProgress.tsx",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/LogViewer.tsx",
+      "language": "typescript",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/TokenCounter.tsx",
+      "language": "typescript",
+      "loc": 231,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/settings.tsx",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/button-group.tsx",
+      "language": "typescript",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/card.tsx",
+      "language": "typescript",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/slider.tsx",
+      "language": "typescript",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/popover.tsx",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/progress.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/hover-card.tsx",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/sheet.tsx",
+      "language": "typescript",
+      "loc": 143,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/sonner.tsx",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/drawer.tsx",
+      "language": "typescript",
+      "loc": 133,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/tooltip.tsx",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/switch.tsx",
+      "language": "typescript",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/radio-group.tsx",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/avatar.tsx",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/kbd.tsx",
+      "language": "typescript",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/dialog.tsx",
+      "language": "typescript",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/sidebar.tsx",
+      "language": "typescript",
+      "loc": 859,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/separator.tsx",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/button.tsx",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/dropdrawer.tsx",
+      "language": "typescript",
+      "loc": 974,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/collapsible.tsx",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/dropdown-menu.tsx",
+      "language": "typescript",
+      "loc": 255,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/textarea.tsx",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/input.tsx",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/skeleton.tsx",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/button.test.tsx",
+      "language": "typescript",
+      "loc": 202,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/switch.test.tsx",
+      "language": "typescript",
+      "loc": 192,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/dialog.test.tsx",
+      "language": "typescript",
+      "loc": 417,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/progress.test.tsx",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/dropdown-menu.test.tsx",
+      "language": "typescript",
+      "loc": 855,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/input.test.tsx",
+      "language": "typescript",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/popover.test.tsx",
+      "language": "typescript",
+      "loc": 439,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/dropdrawer.test.tsx",
+      "language": "typescript",
+      "loc": 533,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/textarea.test.tsx",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/sonner.test.tsx",
+      "language": "typescript",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/hover-card.test.tsx",
+      "language": "typescript",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/skeleton.test.tsx",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/sheet.test.tsx",
+      "language": "typescript",
+      "loc": 264,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/slider.test.tsx",
+      "language": "typescript",
+      "loc": 193,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/tooltip.test.tsx",
+      "language": "typescript",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ui/__tests__/radio-group.test.tsx",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/settings.tsx",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/gallery-vertical-end.tsx",
+      "language": "typescript",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/folder-open.tsx",
+      "language": "typescript",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/blocks.tsx",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/folders.tsx",
+      "language": "typescript",
+      "loc": 122,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/message-circle-more.tsx",
+      "language": "typescript",
+      "loc": 125,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/search.tsx",
+      "language": "typescript",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/message-circle.tsx",
+      "language": "typescript",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/animated-icon/folder-plus.tsx",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/__tests__/PromptProgress.test.tsx",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/left-sidebar/index.tsx",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/left-sidebar/NavMain.tsx",
+      "language": "typescript",
+      "loc": 221,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/left-sidebar/NavChats.tsx",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/left-sidebar/NavProjects.tsx",
+      "language": "typescript",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ai-elements/reasoning.tsx",
+      "language": "typescript",
+      "loc": 201,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ai-elements/tool.tsx",
+      "language": "typescript",
+      "loc": 369,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ai-elements/shimmer.tsx",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ai-elements/conversation.tsx",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/components/ai-elements/code-block.tsx",
+      "language": "typescript",
+      "loc": 178,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/__tests__/main.test.tsx",
+      "language": "typescript",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/__tests__/i18n.test.ts",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useGeneralSetting.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useToolApproval.ts",
+      "language": "typescript",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useInterfaceSettings.ts",
+      "language": "typescript",
+      "loc": 218,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useThreadManagement.ts",
+      "language": "typescript",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useJanModelPrompt.ts",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useModelContextApproval.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useModelSources.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/use-sidebar-resize.ts",
+      "language": "typescript",
+      "loc": 485,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useLocalApiServer.ts",
+      "language": "typescript",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useServiceHub.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useChatAttachments.ts",
+      "language": "typescript",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useModelLoad.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useAppState.ts",
+      "language": "typescript",
+      "loc": 187,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useLlamacppDevices.ts",
+      "language": "typescript",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useAppUpdater.ts",
+      "language": "typescript",
+      "loc": 249,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useProviderModels.ts",
+      "language": "typescript",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useBackendUpdater.ts",
+      "language": "typescript",
+      "loc": 352,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useClickOutside.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useMediaQuery.ts",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useAssistant.ts",
+      "language": "typescript",
+      "loc": 165,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useJanBrowserExtension.ts",
+      "language": "typescript",
+      "loc": 212,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/use-mobile.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useSearchDialog.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useMCPServers.ts",
+      "language": "typescript",
+      "loc": 163,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useVulkan.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useThreads.ts",
+      "language": "typescript",
+      "loc": 474,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useReleaseNotes.ts",
+      "language": "typescript",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useDownloadStore.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useProjectDialog.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useTheme.ts",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useHotkeys.ts",
+      "language": "typescript",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useModelProvider.ts",
+      "language": "typescript",
+      "loc": 509,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useToolAvailable.ts",
+      "language": "typescript",
+      "loc": 182,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useFavoriteModel.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useAnalytic.ts",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/use-chat.ts",
+      "language": "typescript",
+      "loc": 151,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useAttachmentIngestionPrompt.ts",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useProxyConfig.ts",
+      "language": "typescript",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useAttachments.ts",
+      "language": "typescript",
+      "loc": 319,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useLeftPanel.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useHardware.ts",
+      "language": "typescript",
+      "loc": 215,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useMessages.ts",
+      "language": "typescript",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useClaudeCodeModel.ts",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useTokensCount.ts",
+      "language": "typescript",
+      "loc": 270,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/usePrompt.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/useTools.ts",
+      "language": "typescript",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useTheme.test.ts",
+      "language": "typescript",
+      "loc": 189,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useAppState.test.ts",
+      "language": "typescript",
+      "loc": 186,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useModelContextApproval.test.ts",
+      "language": "typescript",
+      "loc": 314,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useToolApproval.test.ts",
+      "language": "typescript",
+      "loc": 443,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useAnalytic.test.ts",
+      "language": "typescript",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useGeneralSetting.test.ts",
+      "language": "typescript",
+      "loc": 290,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useInterfaceSettings.test.ts",
+      "language": "typescript",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useModelProvider.test.ts",
+      "language": "typescript",
+      "loc": 348,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useReleaseNotes.test.ts",
+      "language": "typescript",
+      "loc": 362,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useTools.test.ts",
+      "language": "typescript",
+      "loc": 185,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useThreads.test.ts",
+      "language": "typescript",
+      "loc": 268,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useProxyConfig.test.ts",
+      "language": "typescript",
+      "loc": 323,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useAppUpdater.test.ts",
+      "language": "typescript",
+      "loc": 399,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/usePrompt.test.ts",
+      "language": "typescript",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useLeftPanel.test.ts",
+      "language": "typescript",
+      "loc": 146,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useDownloadStore.test.ts",
+      "language": "typescript",
+      "loc": 262,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useClickOutside.test.ts",
+      "language": "typescript",
+      "loc": 174,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useModelSources.test.ts",
+      "language": "typescript",
+      "loc": 399,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useToolAvailable.test.ts",
+      "language": "typescript",
+      "loc": 420,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useHotkeys.test.ts",
+      "language": "typescript",
+      "loc": 471,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useLocalApiServer.test.ts",
+      "language": "typescript",
+      "loc": 666,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useMessages.test.ts",
+      "language": "typescript",
+      "loc": 377,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useLlamacppDevices.test.ts",
+      "language": "typescript",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useMediaQuery.test.ts",
+      "language": "typescript",
+      "loc": 319,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useProviderModels.test.ts",
+      "language": "typescript",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useVulkan.test.ts",
+      "language": "typescript",
+      "loc": 217,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useAssistant.test.ts",
+      "language": "typescript",
+      "loc": 184,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useHardware.test.ts",
+      "language": "typescript",
+      "loc": 449,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/hooks/__tests__/useMCPServers.test.ts",
+      "language": "typescript",
+      "loc": 581,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/model-factory.ts",
+      "language": "typescript",
+      "loc": 425,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/predefinedParams.ts",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/custom-chat-transport.ts",
+      "language": "typescript",
+      "loc": 424,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/messages.ts",
+      "language": "typescript",
+      "loc": 678,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/ai-model.ts",
+      "language": "typescript",
+      "loc": 125,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/extension.ts",
+      "language": "typescript",
+      "loc": 259,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/utils.ts",
+      "language": "typescript",
+      "loc": 239,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/attachmentProcessing.ts",
+      "language": "typescript",
+      "loc": 267,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/haptic.ts",
+      "language": "typescript",
+      "loc": 138,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/instructionTemplate.ts",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/predefined.ts",
+      "language": "typescript",
+      "loc": 190,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/models.ts",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/completion.ts",
+      "language": "typescript",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/fileMetadata.ts",
+      "language": "typescript",
+      "loc": 112,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/version.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/merge-button-refs.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/service.ts",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/platform/const.ts",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/platform/PlatformGuard.tsx",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/platform/utils.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/platform/types.ts",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/platform/index.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/__tests__/instructionTemplate.test.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/__tests__/utils.test.ts",
+      "language": "typescript",
+      "loc": 252,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/__tests__/messages.test.ts",
+      "language": "typescript",
+      "loc": 567,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/__tests__/models.test.ts",
+      "language": "typescript",
+      "loc": 307,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/__tests__/extension.test.ts",
+      "language": "typescript",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/__tests__/model-factory.test.ts",
+      "language": "typescript",
+      "loc": 126,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/shortcuts/const.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/shortcuts/types.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/lib/shortcuts/index.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ThemeSwitcher.tsx",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/HeaderPage.tsx",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/DropdownToolsAvailable.tsx",
+      "language": "typescript",
+      "loc": 272,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/FavoriteModelAction.tsx",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/AccentColorPicker.tsx",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/PromptJanModel.tsx",
+      "language": "typescript",
+      "loc": 132,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/Card.tsx",
+      "language": "typescript",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ThreadList.tsx",
+      "language": "typescript",
+      "loc": 289,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/DownloadButton.tsx",
+      "language": "typescript",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ModelDownloadAction.tsx",
+      "language": "typescript",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/TokenCounterCompactSwitcher.tsx",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/DownloadManegement.tsx",
+      "language": "typescript",
+      "loc": 491,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/TrustedHostsInput.tsx",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/TokenSpeedIndicator.tsx",
+      "language": "typescript",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/RenderMarkdown.tsx",
+      "language": "typescript",
+      "loc": 146,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ModelSetting.tsx",
+      "language": "typescript",
+      "loc": 173,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/Capabilities.tsx",
+      "language": "typescript",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/MessageItem.tsx",
+      "language": "typescript",
+      "loc": 442,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/DropdownModelProvider.tsx",
+      "language": "typescript",
+      "loc": 697,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/MlxModelDownloadAction.tsx",
+      "language": "typescript",
+      "loc": 197,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ModelInfoHoverCard.tsx",
+      "language": "typescript",
+      "loc": 189,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/SettingsMenu.tsx",
+      "language": "typescript",
+      "loc": 231,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/PromptVisionModel.tsx",
+      "language": "typescript",
+      "loc": 224,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ApiPrefixInput.tsx",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/MovingBorder.tsx",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ServerHostSwitcher.tsx",
+      "language": "typescript",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/McpExtensionToolLoader.tsx",
+      "language": "typescript",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/GlobalError.tsx",
+      "language": "typescript",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/PortInput.tsx",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/CopyButton.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ApiKeyInput.tsx",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/SetupScreen.tsx",
+      "language": "typescript",
+      "loc": 471,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ModelSupportStatus.tsx",
+      "language": "typescript",
+      "loc": 176,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/PlatformMetaKey.tsx",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/AvatarEmoji.tsx",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ProjectFiles.tsx",
+      "language": "typescript",
+      "loc": 480,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ProxyTimeoutInput.tsx",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ProvidersAvatar.tsx",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ChatInput.tsx",
+      "language": "typescript",
+      "loc": 1888,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/ModelCombobox.tsx",
+      "language": "typescript",
+      "loc": 492,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/LanguageSwitcher.tsx",
+      "language": "typescript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/FontSizeSwitcher.tsx",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dynamicControllerSetting/index.tsx",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dynamicControllerSetting/SliderControl.tsx",
+      "language": "typescript",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dynamicControllerSetting/InputControl.tsx",
+      "language": "typescript",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dynamicControllerSetting/TextareaControl.tsx",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dynamicControllerSetting/CheckboxControl.tsx",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dynamicControllerSetting/DropdownControl.tsx",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/ModelCombobox.test.tsx",
+      "language": "typescript",
+      "loc": 523,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/Capabilities.test.tsx",
+      "language": "typescript",
+      "loc": 87,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/AvatarEmoji.test.tsx",
+      "language": "typescript",
+      "loc": 124,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/SetupScreen.test.tsx",
+      "language": "typescript",
+      "loc": 171,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/EditModel.test.tsx",
+      "language": "typescript",
+      "loc": 247,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/ChatInput.simple.test.tsx",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/SettingsMenu.test.tsx",
+      "language": "typescript",
+      "loc": 224,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/RenderMarkdown.test.tsx",
+      "language": "typescript",
+      "loc": 268,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/GlobalError.test.tsx",
+      "language": "typescript",
+      "loc": 106,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/__tests__/DropdownModelProvider.displayName.test.tsx",
+      "language": "typescript",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AddEditCustomCliDialog.tsx",
+      "language": "typescript",
+      "loc": 167,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteAssistantDialog.tsx",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/ImportMlxModelDialog.tsx",
+      "language": "typescript",
+      "loc": 257,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteThreadDialog.tsx",
+      "language": "typescript",
+      "loc": 125,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/FactoryResetDialog.tsx",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/ImageModal.tsx",
+      "language": "typescript",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AddProjectDialog.tsx",
+      "language": "typescript",
+      "loc": 216,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteMCPServerConfirm.tsx",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/EditMessageDialog.tsx",
+      "language": "typescript",
+      "loc": 190,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/OutOfContextDialog.tsx",
+      "language": "typescript",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AddModel.tsx",
+      "language": "typescript",
+      "loc": 148,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/ToolApproval.tsx",
+      "language": "typescript",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/ImportVisionModelDialog.tsx",
+      "language": "typescript",
+      "loc": 567,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/EditJsonMCPserver.tsx",
+      "language": "typescript",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/EditModel.tsx",
+      "language": "typescript",
+      "loc": 294,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteModel.tsx",
+      "language": "typescript",
+      "loc": 122,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteProvider.tsx",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AppUpdater.tsx",
+      "language": "typescript",
+      "loc": 138,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/SearchDialog.tsx",
+      "language": "typescript",
+      "loc": 376,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/ChangeDataFolderLocation.tsx",
+      "language": "typescript",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AddEditMCPServer.tsx",
+      "language": "typescript",
+      "loc": 681,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/JanBrowserExtensionDialog.tsx",
+      "language": "typescript",
+      "loc": 128,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteMessageDialog.tsx",
+      "language": "typescript",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteAllThreadsInProjectDialog.tsx",
+      "language": "typescript",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AddEditAssistant.tsx",
+      "language": "typescript",
+      "loc": 582,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/RenameThreadDialog.tsx",
+      "language": "typescript",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/MessageMetadataDialog.tsx",
+      "language": "typescript",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AddProviderDialog.tsx",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/index.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/AttachmentIngestionDialog.tsx",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/BackendUpdater.tsx",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteAllThreadsDialog.tsx",
+      "language": "typescript",
+      "loc": 103,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/dialogs/DeleteProjectDialog.tsx",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/loaders/ModelLoader.tsx",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/containers/analytics/PromptAnalytic.tsx",
+      "language": "typescript",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/i18n/TranslationContext.tsx",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/i18n/react-i18next-compat.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/i18n/context.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/i18n/setup.ts",
+      "language": "typescript",
+      "loc": 156,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/i18n/index.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/i18n/hooks.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/index.tsx",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/__root.tsx",
+      "language": "typescript",
+      "loc": 148,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/system-monitor.tsx",
+      "language": "typescript",
+      "loc": 198,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/logs.tsx",
+      "language": "typescript",
+      "loc": 112,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/assistant.tsx",
+      "language": "typescript",
+      "loc": 150,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/https-proxy.tsx",
+      "language": "typescript",
+      "loc": 150,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/attachments.tsx",
+      "language": "typescript",
+      "loc": 280,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/interface.tsx",
+      "language": "typescript",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/local-api-server.tsx",
+      "language": "typescript",
+      "loc": 1007,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/mcp-servers.tsx",
+      "language": "typescript",
+      "loc": 643,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/privacy.tsx",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/extensions.tsx",
+      "language": "typescript",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/hardware.tsx",
+      "language": "typescript",
+      "loc": 349,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/shortcuts.tsx",
+      "language": "typescript",
+      "loc": 157,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/general.tsx",
+      "language": "typescript",
+      "loc": 575,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/providers/index.tsx",
+      "language": "typescript",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/providers/$providerName.tsx",
+      "language": "typescript",
+      "loc": 792,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/providers/__tests__/index.test.tsx",
+      "language": "typescript",
+      "loc": 308,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/__tests__/privacy.test.tsx",
+      "language": "typescript",
+      "loc": 187,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/__tests__/hardware.test.tsx",
+      "language": "typescript",
+      "loc": 188,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/__tests__/extensions.test.tsx",
+      "language": "typescript",
+      "loc": 229,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/__tests__/shortcuts.test.tsx",
+      "language": "typescript",
+      "loc": 193,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/__tests__/general.test.tsx",
+      "language": "typescript",
+      "loc": 535,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/settings/__tests__/interface.test.tsx",
+      "language": "typescript",
+      "loc": 180,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/local-api-server/logs.tsx",
+      "language": "typescript",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/project/$projectId.tsx",
+      "language": "typescript",
+      "loc": 237,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/threads/$threadId.tsx",
+      "language": "typescript",
+      "loc": 822,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/hub/index.tsx",
+      "language": "typescript",
+      "loc": 806,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/hub/$modelId.tsx",
+      "language": "typescript",
+      "loc": 542,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/routes/hub/__tests__/huggingface-conversion.test.ts",
+      "language": "typescript",
+      "loc": 307,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/index.ts",
+      "language": "typescript",
+      "loc": 332,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/messages/default.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/messages/types.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/hardware/default.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/hardware/types.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/hardware/tauri.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/core/default.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/core/types.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/core/mobile.ts",
+      "language": "typescript",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/core/tauri.ts",
+      "language": "typescript",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/app/default.ts",
+      "language": "typescript",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/app/types.ts",
+      "language": "typescript",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/app/tauri.ts",
+      "language": "typescript",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/assistants/default.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/assistants/types.ts",
+      "language": "typescript",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/projects/default.ts",
+      "language": "typescript",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/projects/types.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/providers/default.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/providers/types.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/providers/tauri.ts",
+      "language": "typescript",
+      "loc": 277,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/path/default.ts",
+      "language": "typescript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/path/types.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/path/tauri.ts",
+      "language": "typescript",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/uploads/default.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/uploads/types.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/updater/default.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/updater/types.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/updater/tauri.ts",
+      "language": "typescript",
+      "loc": 165,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/mcp/default.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/mcp/types.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/mcp/tauri.ts",
+      "language": "typescript",
+      "loc": 122,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/models/default.ts",
+      "language": "typescript",
+      "loc": 672,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/models/types.ts",
+      "language": "typescript",
+      "loc": 156,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/rag/default.ts",
+      "language": "typescript",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/rag/types.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/dialog/default.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/dialog/types.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/dialog/tauri.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/opener/default.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/opener/types.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/opener/tauri.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/app.test.ts",
+      "language": "typescript",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/hardware.test.ts",
+      "language": "typescript",
+      "loc": 265,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/serviceHub.integration.test.ts",
+      "language": "typescript",
+      "loc": 220,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/mcp.test.ts",
+      "language": "typescript",
+      "loc": 446,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/messages.test.ts",
+      "language": "typescript",
+      "loc": 161,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/assistants.test.ts",
+      "language": "typescript",
+      "loc": 133,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/models.test.ts",
+      "language": "typescript",
+      "loc": 1015,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/path.test.ts",
+      "language": "typescript",
+      "loc": 180,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/events.test.ts",
+      "language": "typescript",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/threads.test.ts",
+      "language": "typescript",
+      "loc": 507,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/__tests__/analytic.test.ts",
+      "language": "typescript",
+      "loc": 268,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/threads/default.ts",
+      "language": "typescript",
+      "loc": 179,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/threads/types.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/theme/default.ts",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/theme/types.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/theme/tauri.ts",
+      "language": "typescript",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/window/default.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/window/types.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/window/tauri.ts",
+      "language": "typescript",
+      "loc": 206,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/events/EventEmitter.ts",
+      "language": "typescript",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/events/default.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/events/types.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/events/tauri.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/analytic/default.ts",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/analytic/types.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/deeplink/default.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/deeplink/types.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "web-app/src/services/deeplink/tauri.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "core/README.md",
+      "language": "markdown",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "core/package.json",
+      "language": "json",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "core/tslint.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "core/CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "core/tsconfig.json",
+      "language": "json",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "core/vitest.config.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/index.test.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/index.ts",
+      "language": "typescript",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/@global/index.d.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/index.test.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/index.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/assistant/assistantEvent.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/assistant/assistantInterface.ts",
+      "language": "typescript",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/assistant/assistantEvent.test.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/assistant/assistantEntity.ts",
+      "language": "typescript",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/assistant/index.ts",
+      "language": "typescript",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/hardware/index.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/file/index.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/config/appConfigEvent.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/config/appConfigEntity.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/config/appConfigEvent.test.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/config/index.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/messageRequestType.test.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/messageEvent.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/messageEntity.ts",
+      "language": "typescript",
+      "loc": 217,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/messageInterface.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/messageRequestType.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/index.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/messageEntity.test.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/message/messageEvent.test.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/mcp/mcpEntity.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/mcp/index.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/mcp/mcpInterface.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/miscellaneous/systemResourceInfo.test.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/miscellaneous/systemResourceInfo.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/miscellaneous/index.ts",
+      "language": "typescript",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/modelImport.ts",
+      "language": "typescript",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/modelInterface.ts",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/modelEvent.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/modelEntity.test.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/modelEvent.test.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/modelEntity.ts",
+      "language": "typescript",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/index.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/model/modelSource.ts",
+      "language": "typescript",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/api/index.test.ts",
+      "language": "typescript",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/api/index.ts",
+      "language": "typescript",
+      "loc": 162,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/inference/inferenceEvent.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/inference/inferenceEntity.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/inference/inferenceEvent.test.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/inference/inferenceEntity.test.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/inference/index.ts",
+      "language": "typescript",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/inference/inferenceInterface.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/setting/index.test.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/setting/settingComponent.test.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/setting/settingComponent.ts",
+      "language": "typescript",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/setting/index.ts",
+      "language": "typescript",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/engine/index.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/thread/threadEntity.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/thread/threadInterface.ts",
+      "language": "typescript",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/types/thread/index.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/test/setup.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/index.test.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/events.test.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/fs.test.ts",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/core.test.ts",
+      "language": "typescript",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extension.test.ts",
+      "language": "typescript",
+      "loc": 202,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extension.ts",
+      "language": "typescript",
+      "loc": 232,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/fs.ts",
+      "language": "typescript",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/core.ts",
+      "language": "typescript",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/events.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/index.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/models/manager.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/models/utils.test.ts",
+      "language": "typescript",
+      "loc": 344,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/models/manager.test.ts",
+      "language": "typescript",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/models/utils.ts",
+      "language": "typescript",
+      "loc": 180,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/models/index.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/assistant.test.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/mcp.test.ts",
+      "language": "typescript",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/conversational.ts",
+      "language": "typescript",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/conversational.test.ts",
+      "language": "typescript",
+      "loc": 253,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/index.test.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/vector-db.ts",
+      "language": "typescript",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/inference.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/rag.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/mcp.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/inference.test.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/assistant.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/index.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/RemoteOAIEngine.test.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/LocalOAIEngine.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/OAIEngine.ts",
+      "language": "typescript",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/index.test.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/EngineManager.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/RemoteOAIEngine.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/OAIEngine.test.ts",
+      "language": "typescript",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/EngineManager.test.ts",
+      "language": "typescript",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/AIEngine.ts",
+      "language": "typescript",
+      "loc": 314,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/index.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/LocalOAIEngine.test.ts",
+      "language": "typescript",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "core/src/browser/extensions/engines/AIEngine.test.ts",
+      "language": "typescript",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "tests/checklist.md",
+      "language": "markdown",
+      "loc": 302,
+      "purpose": ""
+    },
+    {
+      "path": "flatpak/ai.jan.Jan.yml",
+      "language": "yaml",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "flatpak/flathub.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "docs/plopfile.js",
+      "language": "javascript",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "docs/next-sitemap.config.js",
+      "language": "javascript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "docs/README.md",
+      "language": "markdown",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "docs/tailwind.config.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "docs/package.json",
+      "language": "json",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "docs/theme.config.tsx",
+      "language": "typescript",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "docs/tsconfig.json",
+      "language": "json",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "docs/postcss.config.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "docs/.eslintrc.json",
+      "language": "json",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "docs/tests/conftest.py",
+      "language": "python",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "docs/tests/endpoints_mapping.json",
+      "language": "json",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "docs/public/openapi/jan.json",
+      "language": "json",
+      "loc": 1972,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/types/release.d.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/types/blog.d.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/utils/format.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/styles/changelog.scss",
+      "language": "scss",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/styles/fonts.scss",
+      "language": "scss",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/styles/animations.css",
+      "language": "css",
+      "loc": 232,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/styles/main.scss",
+      "language": "scss",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/styles/general.scss",
+      "language": "scss",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/styles/wall-of-love.scss",
+      "language": "scss",
+      "loc": 166,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Navbar.tsx",
+      "language": "typescript",
+      "loc": 316,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/FavoriteModels.tsx",
+      "language": "typescript",
+      "loc": 258,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/OpenAIStatusChecker.tsx",
+      "language": "typescript",
+      "loc": 283,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/TweetSection.tsx",
+      "language": "typescript",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/ui/tweet-card.tsx",
+      "language": "typescript",
+      "loc": 293,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/ui/dropdown-button.tsx",
+      "language": "typescript",
+      "loc": 255,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/ui/button.tsx",
+      "language": "typescript",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/index.tsx",
+      "language": "typescript",
+      "loc": 624,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/CTANewsletter/index.tsx",
+      "language": "typescript",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/WallOfLove/index.tsx",
+      "language": "typescript",
+      "loc": 551,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/WallOfLove/ArrowButtonMobile.tsx",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/WallOfLove/SliderMobile.tsx",
+      "language": "typescript",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/WallOfLove/ArrowButton.tsx",
+      "language": "typescript",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/Customizable/index.tsx",
+      "language": "typescript",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/BuiltWithLove/index.tsx",
+      "language": "typescript",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/CTADownload/index.tsx",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/Principles/index.tsx",
+      "language": "typescript",
+      "loc": 293,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/Feature/index.tsx",
+      "language": "typescript",
+      "loc": 205,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/Statistic/index.tsx",
+      "language": "typescript",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/Hero/index.tsx",
+      "language": "typescript",
+      "loc": 124,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Home/APIStructure/index.tsx",
+      "language": "typescript",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Changelog/index.tsx",
+      "language": "typescript",
+      "loc": 164,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Changelog/ChangelogHeader.tsx",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/FooterMenu/index.tsx",
+      "language": "typescript",
+      "loc": 178,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/NewsletterForm/index.tsx",
+      "language": "typescript",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Blog/index.tsx",
+      "language": "typescript",
+      "loc": 150,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Blog/CTA/index.tsx",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/OAICoverage/index.tsx",
+      "language": "typescript",
+      "loc": 329,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/FaqBox/index.tsx",
+      "language": "typescript",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/ImageCaption/index.tsx",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Download/index.tsx",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/Download/CardDownload.tsx",
+      "language": "typescript",
+      "loc": 146,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/LogoMark/index.tsx",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/ThemeImage/index.tsx",
+      "language": "typescript",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/ThemeVideo/index.tsx",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/SocialShareButton/index.tsx",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/APIReference/index.tsx",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/DropdownDownload/index.tsx",
+      "language": "typescript",
+      "loc": 221,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/components/JSONLD/index.tsx",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/hooks/useClickOutside.ts",
+      "language": "typescript",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/hooks/useBodyClass.ts",
+      "language": "typescript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/hooks/useIsomorphicLayoutEffect.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/hooks/useDiscordWidget.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/lib/utils.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/_meta.json",
+      "language": "json",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/_document.tsx",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/post/_meta.json",
+      "language": "json",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/changelog/_meta.json",
+      "language": "json",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/_meta.json",
+      "language": "json",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/_meta.json",
+      "language": "json",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/remote-models/_meta.json",
+      "language": "json",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/mcp-examples/_meta.json",
+      "language": "json",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/mcp-examples/design/_meta.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/mcp-examples/deepresearch/_meta.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/mcp-examples/search/_meta.json",
+      "language": "json",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/mcp-examples/browser/_meta.json",
+      "language": "json",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/mcp-examples/data-analysis/_meta.json",
+      "language": "json",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/docs/desktop/mcp-examples/productivity/_meta.json",
+      "language": "json",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/handbook/_meta.json",
+      "language": "json",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/handbook/why/_meta.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/pages/handbook/who/_meta.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "docs/src/helpers/authors.yml",
+      "language": "yaml",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/.yarnrc.yml",
+      "language": "yaml",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/package.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 137,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/download-extension/settings.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/download-extension/package.json",
+      "language": "json",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/download-extension/tsconfig.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/download-extension/vite.config.ts",
+      "language": "typescript",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/download-extension/src/index.ts",
+      "language": "typescript",
+      "loc": 97,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/download-extension/src/@types/global.d.ts",
+      "language": "typescript",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/assistant-extension/README.md",
+      "language": "markdown",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/assistant-extension/package.json",
+      "language": "json",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/assistant-extension/tsconfig.json",
+      "language": "json",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/assistant-extension/src/index.ts",
+      "language": "typescript",
+      "loc": 305,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/assistant-extension/src/@types/global.d.ts",
+      "language": "typescript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/rag-extension/settings.json",
+      "language": "json",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/rag-extension/package.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/rag-extension/src/env.d.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/rag-extension/src/tools.ts",
+      "language": "typescript",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/rag-extension/src/global.d.ts",
+      "language": "typescript",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/rag-extension/src/index.ts",
+      "language": "typescript",
+      "loc": 539,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/conversational-extension/package.json",
+      "language": "json",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/conversational-extension/tsconfig.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/conversational-extension/src/index.ts",
+      "language": "typescript",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/conversational-extension/src/@types/global.d.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/vector-db-extension/package.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/vector-db-extension/src/index.ts",
+      "language": "typescript",
+      "loc": 210,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/mlx-extension/settings.json",
+      "language": "json",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/mlx-extension/package.json",
+      "language": "json",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/mlx-extension/tsconfig.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/mlx-extension/src/env.d.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/mlx-extension/src/index.ts",
+      "language": "typescript",
+      "loc": 1013,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/settings.json",
+      "language": "json",
+      "loc": 390,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/package.json",
+      "language": "json",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/tsconfig.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/vitest.config.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/util.test.ts",
+      "language": "typescript",
+      "loc": 526,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/env.d.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/util.ts",
+      "language": "typescript",
+      "loc": 208,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/index.ts",
+      "language": "typescript",
+      "loc": 2294,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/type.d.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/backend.ts",
+      "language": "typescript",
+      "loc": 330,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/test/migrateLegacyModels.test.ts",
+      "language": "typescript",
+      "loc": 295,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/test/index.test.ts",
+      "language": "typescript",
+      "loc": 406,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/test/setup.ts",
+      "language": "typescript",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "extensions/llamacpp-extension/src/test/backend.test.ts",
+      "language": "typescript",
+      "loc": 265,
+      "purpose": ""
+    },
+    {
+      "path": "mlx-server/README.md",
+      "language": "markdown",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "mlx-server/Package.swift",
+      "language": "swift",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "mlx-server/Sources/MLXServer/Logger.swift",
+      "language": "swift",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "mlx-server/Sources/MLXServer/OpenAITypes.swift",
+      "language": "swift",
+      "loc": 329,
+      "purpose": ""
+    },
+    {
+      "path": "mlx-server/Sources/MLXServer/Server.swift",
+      "language": "swift",
+      "loc": 441,
+      "purpose": ""
+    },
+    {
+      "path": "mlx-server/Sources/MLXServer/MLXServerCommand.swift",
+      "language": "swift",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "mlx-server/Sources/MLXServer/ModelRunner.swift",
+      "language": "swift",
+      "loc": 349,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/find-missing-translations.js",
+      "language": "javascript",
+      "loc": 268,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/find-missing-i18n-key.js",
+      "language": "javascript",
+      "loc": 345,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/Cargo.toml",
+      "language": "toml",
+      "loc": 153,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/tauri.macos.conf.json",
+      "language": "json",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/tauri.conf.json",
+      "language": "json",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/tauri.android.conf.json",
+      "language": "json",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/tauri.linux.conf.json",
+      "language": "json",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/build.rs",
+      "language": "rust",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 111,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/tauri.windows.conf.json",
+      "language": "json",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/tauri.ios.conf.json",
+      "language": "json",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/capabilities/logs-window.json",
+      "language": "json",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/capabilities/log-app-window.json",
+      "language": "json",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/capabilities/mobile.json",
+      "language": "json",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/capabilities/system-monitor-window.json",
+      "language": "json",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/capabilities/default.json",
+      "language": "json",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/capabilities/desktop.json",
+      "language": "json",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/.yarnrc.yml",
+      "language": "yaml",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/package.json",
+      "language": "json",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/Cargo.toml",
+      "language": "toml",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/build.rs",
+      "language": "rust",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/rollup.config.js",
+      "language": "javascript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/package.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/tsconfig.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/default.toml",
+      "language": "toml",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/schemas/schema.json",
+      "language": "json",
+      "loc": 402,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/reference.md",
+      "language": "markdown",
+      "loc": 232,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/load_mlx_model.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/get_mlx_random_port.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/cleanup_mlx_processes.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/unload_mlx_model.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/get_mlx_loaded_models.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/find_mlx_session_by_model.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/get_mlx_all_sessions.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/permissions/autogenerated/commands/is_mlx_process_running.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/guest-js/types.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/guest-js/index.ts",
+      "language": "typescript",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/src/cleanup.rs",
+      "language": "rust",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/src/error.rs",
+      "language": "rust",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/src/lib.rs",
+      "language": "rust",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/src/commands.rs",
+      "language": "rust",
+      "loc": 351,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/src/state.rs",
+      "language": "rust",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-mlx/src/process.rs",
+      "language": "rust",
+      "loc": 120,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/Cargo.toml",
+      "language": "toml",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/build.rs",
+      "language": "rust",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/rollup.config.js",
+      "language": "javascript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/package.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/tsconfig.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/default.toml",
+      "language": "toml",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/schemas/schema.json",
+      "language": "json",
+      "loc": 438,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/reference.md",
+      "language": "markdown",
+      "loc": 313,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/create_file.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/list_attachments.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/delete_chunks.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/chunk_text.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/insert_chunks.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/create_collection.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/delete_collection.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/delete_file.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/search_collection.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/get_chunks.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/permissions/autogenerated/commands/get_status.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/guest-js/index.ts",
+      "language": "typescript",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/src/error.rs",
+      "language": "rust",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/src/lib.rs",
+      "language": "rust",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/src/db.rs",
+      "language": "rust",
+      "loc": 630,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/src/commands.rs",
+      "language": "rust",
+      "loc": 206,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/src/state.rs",
+      "language": "rust",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-vector-db/src/utils.rs",
+      "language": "rust",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/Cargo.toml",
+      "language": "toml",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/build.rs",
+      "language": "rust",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/rollup.config.js",
+      "language": "javascript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/package.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/tsconfig.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/default.toml",
+      "language": "toml",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/schemas/schema.json",
+      "language": "json",
+      "loc": 666,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/reference.md",
+      "language": "markdown",
+      "loc": 826,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/list_supported_backends.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/determine_supported_backends.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_local_installed_backends.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/generate_api_key.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/is_model_supported.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/is_process_running.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/read_gguf_metadata.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/should_migrate_backend.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/cleanup_llama_processes.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/unload_llama_model.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/load_llama_model.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/validate_backend_string.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/plan_model_load.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/map_old_backend_to_new.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/prioritize_backends.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/find_session_by_model.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_all_sessions.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_devices.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_supported_features.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/parse_backend_version.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/find_latest_version_for_backend.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/is_cuda_installed.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/check_backend_for_updates.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/remove_old_backend_versions.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_model_size.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/handle_setting_update.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/estimate_kv_cache_size.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_random_port.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_loaded_models.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/permissions/autogenerated/commands/get_session_by_model.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/guest-js/types.ts",
+      "language": "typescript",
+      "loc": 179,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/guest-js/index.ts",
+      "language": "typescript",
+      "loc": 352,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/cleanup.rs",
+      "language": "rust",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/device.rs",
+      "language": "rust",
+      "loc": 420,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/error.rs",
+      "language": "rust",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/backend.rs",
+      "language": "rust",
+      "loc": 1323,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/lib.rs",
+      "language": "rust",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/commands.rs",
+      "language": "rust",
+      "loc": 385,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/path.rs",
+      "language": "rust",
+      "loc": 278,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/state.rs",
+      "language": "rust",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/process.rs",
+      "language": "rust",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/args.rs",
+      "language": "rust",
+      "loc": 992,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/gguf/types.rs",
+      "language": "rust",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/gguf/commands.rs",
+      "language": "rust",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/gguf/helpers.rs",
+      "language": "rust",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/gguf/mod.rs",
+      "language": "rust",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-llamacpp/src/gguf/utils.rs",
+      "language": "rust",
+      "loc": 192,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/Cargo.toml",
+      "language": "toml",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/build.rs",
+      "language": "rust",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/rollup.config.js",
+      "language": "javascript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/package.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/tsconfig.json",
+      "language": "json",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/permissions/default.toml",
+      "language": "toml",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/permissions/schemas/schema.json",
+      "language": "json",
+      "loc": 330,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/permissions/autogenerated/reference.md",
+      "language": "markdown",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/permissions/autogenerated/commands/get_system_info.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/permissions/autogenerated/commands/get_system_usage.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/guest-js/index.ts",
+      "language": "typescript",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/types.rs",
+      "language": "rust",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/constants.rs",
+      "language": "rust",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/cpu.rs",
+      "language": "rust",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/lib.rs",
+      "language": "rust",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/commands.rs",
+      "language": "rust",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/gpu.rs",
+      "language": "rust",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/tests.rs",
+      "language": "rust",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/vendor/vulkan.rs",
+      "language": "rust",
+      "loc": 122,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/vendor/nvidia.rs",
+      "language": "rust",
+      "loc": 156,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/vendor/amd.rs",
+      "language": "rust",
+      "loc": 210,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/vendor/mod.rs",
+      "language": "rust",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-hardware/src/vendor/tests.rs",
+      "language": "rust",
+      "loc": 133,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/Cargo.toml",
+      "language": "toml",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/build.rs",
+      "language": "rust",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/rollup.config.js",
+      "language": "javascript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/package.json",
+      "language": "json",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/tsconfig.json",
+      "language": "json",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/permissions/default.toml",
+      "language": "toml",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/permissions/schemas/schema.json",
+      "language": "json",
+      "loc": 318,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/permissions/autogenerated/reference.md",
+      "language": "markdown",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/permissions/autogenerated/commands/parse_document.toml",
+      "language": "toml",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/guest-js/index.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/src/error.rs",
+      "language": "rust",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/src/lib.rs",
+      "language": "rust",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/src/commands.rs",
+      "language": "rust",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/plugins/tauri-plugin-rag/src/parser.rs",
+      "language": "rust",
+      "loc": 291,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/Cargo.toml",
+      "language": "toml",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/config.rs",
+      "language": "rust",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/lib.rs",
+      "language": "rust",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/system.rs",
+      "language": "rust",
+      "loc": 354,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/path.rs",
+      "language": "rust",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/string.rs",
+      "language": "rust",
+      "loc": 202,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/math.rs",
+      "language": "rust",
+      "loc": 133,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/http.rs",
+      "language": "rust",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/fs.rs",
+      "language": "rust",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/network.rs",
+      "language": "rust",
+      "loc": 429,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/cli.rs",
+      "language": "rust",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/utils/src/crypto.rs",
+      "language": "rust",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/build-utils/shim-linuxdeploy.sh",
+      "language": "bash",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/build-utils/buildAppImage.sh",
+      "language": "bash",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/static/openapi.json",
+      "language": "json",
+      "loc": 1011,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/static/swagger-ui/swagger-ui.css",
+      "language": "css",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/static/swagger-ui/swagger-ui-bundle.js",
+      "language": "javascript",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/lib.rs",
+      "language": "rust",
+      "loc": 366,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/main.rs",
+      "language": "rust",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mod.rs",
+      "language": "rust",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/state.rs",
+      "language": "rust",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/setup.rs",
+      "language": "rust",
+      "loc": 375,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/app/constants.rs",
+      "language": "rust",
+      "loc": 2,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/app/models.rs",
+      "language": "rust",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/app/commands.rs",
+      "language": "rust",
+      "loc": 211,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/app/helpers.rs",
+      "language": "rust",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/app/mod.rs",
+      "language": "rust",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/server/proxy.rs",
+      "language": "rust",
+      "loc": 2016,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/server/commands.rs",
+      "language": "rust",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/server/remote_provider_commands.rs",
+      "language": "rust",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/server/mod.rs",
+      "language": "rust",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/server/tests.rs",
+      "language": "rust",
+      "loc": 296,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/updater/session.rs",
+      "language": "rust",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/updater/commands.rs",
+      "language": "rust",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/updater/mod.rs",
+      "language": "rust",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/updater/custom_updater.rs",
+      "language": "rust",
+      "loc": 266,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/updater/hmac_client.rs",
+      "language": "rust",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/filesystem/models.rs",
+      "language": "rust",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/filesystem/commands.rs",
+      "language": "rust",
+      "loc": 332,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/filesystem/helpers.rs",
+      "language": "rust",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/filesystem/mod.rs",
+      "language": "rust",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/filesystem/tests.rs",
+      "language": "rust",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mcp/constants.rs",
+      "language": "rust",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mcp/lockfile.rs",
+      "language": "rust",
+      "loc": 202,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mcp/models.rs",
+      "language": "rust",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mcp/commands.rs",
+      "language": "rust",
+      "loc": 607,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mcp/helpers.rs",
+      "language": "rust",
+      "loc": 1021,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mcp/mod.rs",
+      "language": "rust",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/mcp/tests.rs",
+      "language": "rust",
+      "loc": 409,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/extensions/commands.rs",
+      "language": "rust",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/extensions/mod.rs",
+      "language": "rust",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/system/commands.rs",
+      "language": "rust",
+      "loc": 334,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/system/mod.rs",
+      "language": "rust",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/threads/constants.rs",
+      "language": "rust",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/threads/db.rs",
+      "language": "rust",
+      "loc": 388,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/threads/commands.rs",
+      "language": "rust",
+      "loc": 375,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/threads/helpers.rs",
+      "language": "rust",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/threads/mod.rs",
+      "language": "rust",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/threads/tests.rs",
+      "language": "rust",
+      "loc": 506,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/threads/utils.rs",
+      "language": "rust",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/downloads/models.rs",
+      "language": "rust",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/downloads/commands.rs",
+      "language": "rust",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/downloads/helpers.rs",
+      "language": "rust",
+      "loc": 855,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/downloads/mod.rs",
+      "language": "rust",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "src-tauri/src/core/downloads/tests.rs",
+      "language": "rust",
+      "loc": 350,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/reportportal_handler.py",
+      "language": "python",
+      "loc": 439,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/screen_recorder.py",
+      "language": "python",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/README.md",
+      "language": "markdown",
+      "loc": 319,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/utils.py",
+      "language": "python",
+      "loc": 343,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/test_runner.py",
+      "language": "python",
+      "loc": 322,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/checklist.md",
+      "language": "markdown",
+      "loc": 264,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/main.py",
+      "language": "python",
+      "loc": 514,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/macos_download.sh",
+      "language": "bash",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/setup-android-env.sh",
+      "language": "bash",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/ubuntu_post_cleanup.sh",
+      "language": "bash",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/ubuntu_cleanup.sh",
+      "language": "bash",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/macos_install.sh",
+      "language": "bash",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/README.md",
+      "language": "markdown",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/ubuntu_download.sh",
+      "language": "bash",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/run_tests.sh",
+      "language": "bash",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/macos_post_cleanup.sh",
+      "language": "bash",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/setup_permissions.sh",
+      "language": "bash",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/macos_cleanup.sh",
+      "language": "bash",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "autoqa/scripts/ubuntu_install.sh",
+      "language": "bash",
+      "loc": 39,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 136094,
+  "file_count": 1107,
+  "primary_language": "typescript",
+  "languages": [
+    "bash",
+    "css",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "python",
+    "rust",
+    "scss",
+    "swift",
+    "toml",
+    "typescript",
+    "yaml"
+  ],
+  "architecture_summary": "Jan is a local AI inference platform built as a Tauri desktop application with a React frontend. The architecture consists of: (1) Web UI layer using React 18 with i18n support, (2) Tauri native bridge providing IPC between frontend and backend, (3) Core TypeScript engine handling events, extensions, and model management, (4) Pluggable inference extensions supporting llama.cpp for general CPUs, MLX for Apple Silicon, RAG for document retrieval, and vector DB for embeddings, (5) Optional external API integration for cloud models (OpenAI, Anthropic, etc.). The app runs entirely locally with no mandatory cloud dependencies.",
+  "key_patterns": [
+    "Tauri IPC pattern - frontend communicates with core via Tauri commands/events",
+    "Extension plugin pattern - inference backends loaded as plugins",
+    "Event-driven architecture - Core uses typed events for all state changes",
+    "Model Manager pattern - centralized model download, loading, and lifecycle",
+    "Tool Approval pattern - MCP tools require user consent before execution",
+    "OpenAI-compatible API - MLX server exposes OpenAI API for integration",
+    "i18n pattern - full internationalization with 14 language locales",
+    "Vitest testing - unit tests with coverage using Vitest framework"
+  ]
+}

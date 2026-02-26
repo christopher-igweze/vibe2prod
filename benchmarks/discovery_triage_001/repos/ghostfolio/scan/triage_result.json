@@ -1,0 +1,479 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-b9f8acf9",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-edaab3a2",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-c0654916",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-7b96c10b",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-daf53c0f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0f8b0681",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-3cc3668d",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-b8098fd8",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e90e4bfa",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fd21581f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-86ab4d63",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-a1e7ffd3",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fbb6078e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-15550897",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-7533890a",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-280aa52a",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0bdfc508",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-ddbbc27b",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-5bdf0461",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-46793959",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fad4d675",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fc188998",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-ff28e2ab",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-583ed754",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: apps/api/src/services/data-provider",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-73e9c8cd",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: apps/api/src/services/data-provider/errors",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e2b68fd9",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: apps/api/src/app, apps/client/src/app/pages",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fa72b7d9",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-dbc88b3a",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: libs/common/src/lib",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-7f3e47cc",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Known cryptographic pattern - replace Math.random() with crypto.randomBytes(). Single file change with a validated fix template.",
+      "fix_template_id": "crypto_random_generation",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-ec4fcad2",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Requires validation logic in OAuth callback handlers. Scoped to auth controller, involves understanding redirect validation patterns but not architectural changes.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/app/auth/auth.controller.ts"
+      ]
+    },
+    {
+      "finding_id": "F-d85b6f87",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "Finding itself acknowledges the implementation is acceptable. This is a false positive/informational item that explicitly states no change is needed.",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1fd95767",
+      "tier": 1,
+      "confidence": 0.8,
+      "rationale": "Known pattern - add missing @HasPermission decorator. Single file, validated decorator pattern.",
+      "fix_template_id": "missing_permission_decorator",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-16fe08a9",
+      "tier": 2,
+      "confidence": 0.7,
+      "rationale": "Requires counter validation logic in WebAuthn service. Localized fix in one service file with clear validation pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/app/auth/web-auth.service.ts"
+      ]
+    },
+    {
+      "finding_id": "F-88c83420",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Requires reordering checks in JWT strategy - move inactive user check before analytics. Single file, clear localized fix.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/app/auth/jwt.strategy.ts"
+      ]
+    },
+    {
+      "finding_id": "F-ad27b62c",
+      "tier": 2,
+      "confidence": 0.9,
+      "rationale": "Move CSP headers outside subscription conditional. Single file (main.ts), straightforward fix extracting helmet configuration.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-1daa835a",
+      "tier": 2,
+      "confidence": 0.95,
+      "rationale": "Configure CORS with origin allowlist in main.ts. Single file, known security pattern with validated fix template.",
+      "fix_template_id": "cors_origin_restriction",
+      "relevant_files": [
+        "apps/api/src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-6f4ae3a3",
+      "tier": 2,
+      "confidence": 0.98,
+      "rationale": "Duplicate of F-1daa835a - configure CORS origins. Same single-file fix. Mark as duplicate with lower confidence on this instance.",
+      "fix_template_id": "cors_origin_restriction",
+      "relevant_files": [
+        "apps/api/src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-377c6cc6",
+      "tier": 2,
+      "confidence": 0.95,
+      "rationale": "Remove unsafe-inline from CSP directives in main.ts. Single file, known CSP security pattern.",
+      "fix_template_id": "csp_unsafe_inline_removal",
+      "relevant_files": [
+        "apps/api/src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-7497b5fb",
+      "tier": 2,
+      "confidence": 0.88,
+      "rationale": "Disable sourceMap in tsconfig.base.json and restrict logging levels. Two files but simple, localized changes with known patterns.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "tsconfig.base.json",
+        "apps/api/src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-74929fe7",
+      "tier": 3,
+      "confidence": 0.85,
+      "rationale": "Enabling strict TypeScript checking affects entire codebase (5+ files). Requires gradual migration of code to pass strict checks. Architectural decision with cross-cutting implications.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "tsconfig.base.json"
+      ]
+    },
+    {
+      "finding_id": "F-36673c83",
+      "tier": 2,
+      "confidence": 0.9,
+      "rationale": "Move helmet configuration outside subscription conditional. Single file, straightforward extraction and global application.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-ae503812",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Configure Prisma connection pooling in environment variables and potentially schema. Localized to config/schema, known database pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "prisma/schema.prisma"
+      ]
+    },
+    {
+      "finding_id": "F-36f28099",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Add HTTPS redirect middleware and fix environment configuration. 2-3 files (environment files + main.ts), scoped middleware addition.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/main.ts",
+        "apps/api/src/environments/environment.prod.ts"
+      ]
+    },
+    {
+      "finding_id": "F-a7f27df0",
+      "tier": 2,
+      "confidence": 0.72,
+      "rationale": "Add global request timeout middleware. Single file (main.ts), simple middleware pattern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/main.ts"
+      ]
+    },
+    {
+      "finding_id": "F-80fa6e42",
+      "tier": 1,
+      "confidence": 0.75,
+      "rationale": "Enable strictNullChecks flag in tsconfig. Single configuration change, known TypeScript pattern. However, code migration is needed - escalate to Tier 2.",
+      "fix_template_id": "typescript_strict_null_checks",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-1f132208",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Requires refactoring of 1173 LOC portfolio calculator with strategy pattern abstraction. Affects portfolio module and dependent services (5+ files). Architectural restructuring.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/app/portfolio/calculator/portfolio-calculator.ts",
+        "apps/api/src/app/portfolio/portfolio.service.ts",
+        "apps/api/src/app/portfolio/portfolio.controller.ts"
+      ]
+    },
+    {
+      "finding_id": "F-be1a3a07",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Centralizing scattered configuration requires refactoring across 5+ files and modules. Cross-cutting architectural concern touching API services, client, and libs.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "libs/common/src/lib/config.ts",
+        "apps/api/src/services/configuration/configuration.service.ts",
+        "apps/api/src/environments/environment.ts",
+        "apps/api/src/environments/environment.prod.ts"
+      ]
+    },
+    {
+      "finding_id": "F-b3fa2270",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Implementing repository pattern requires refactoring all services that use Prisma directly. Affects 5+ service files across portfolio, order, account, holding domains.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/app/portfolio/portfolio.service.ts",
+        "apps/api/src/app/order/order.service.ts",
+        "apps/api/src/app/account/account.service.ts"
+      ]
+    },
+    {
+      "finding_id": "F-06211d57",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Decoupling controllers from business logic requires refactoring controller-service interactions across 5+ files. Architectural pattern change.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/app/portfolio/portfolio.controller.ts",
+        "apps/api/src/app/portfolio/portfolio.service.ts"
+      ]
+    },
+    {
+      "finding_id": "F-0fc90fed",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Defining domain boundaries and refactoring multiple domain modules. Affects Portfolio, Order, Account, Holding domains (5+ files). Requires strategic architectural redesign.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/app/portfolio/portfolio.service.ts",
+        "apps/api/src/app/order/order.service.ts",
+        "apps/api/src/app/account/account.service.ts"
+      ]
+    },
+    {
+      "finding_id": "F-affa27c4",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Requires documentation and potentially refactoring event propagation model across multiple listeners and aggregates. Affects 5+ event-related files and event consumers.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "apps/api/src/events/portfolio-changed.listener.ts",
+        "apps/api/src/events/asset-profile-changed.listener.ts"
+      ]
+    },
+    {
+      "finding_id": "F-d5e7bc93",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Moving business logic services from UI library requires restructuring multiple files and creating new library architecture. Affects UI library, client app, and business logic layers.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "libs/ui/src/lib/services/data.service.ts",
+        "libs/ui/src/lib/services/admin.service.ts",
+        "libs/ui/src/lib"
+      ]
+    }
+  ],
+  "tier_0_count": 5,
+  "tier_1_count": 20,
+  "tier_2_count": 12,
+  "tier_3_count": 15
+}

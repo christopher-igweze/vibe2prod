@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestLargeDecent::test_discover_ghostfolio",
+  "total_cost_usd": 1.0127,
+  "total_tokens": 635220,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 257082,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.1676,
+    "codebase_analyst": 0.0065,
+    "fix_strategist": 0.2324,
+    "quality_auditor/code_patterns": 0.052,
+    "quality_auditor/error_handling": 0.0321,
+    "quality_auditor/performance": 0.044,
+    "security_auditor/auth_flow": 0.1462,
+    "security_auditor/data_handling": 0.1504,
+    "security_auditor/infrastructure": 0.1392,
+    "triage_classifier": 0.0425
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.8782,
+    "minimax/minimax-m2.5": 0.1346
+  },
+  "training_pairs_logged": 0
+}

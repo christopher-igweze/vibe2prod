@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestLargeSimple::test_discover_juice_shop",
+  "total_cost_usd": 1.0217,
+  "total_tokens": 629688,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 323952,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.1247,
+    "codebase_analyst": 0.006,
+    "fix_strategist": 0.1449,
+    "quality_auditor/code_patterns": 0.0517,
+    "quality_auditor/error_handling": 0.0261,
+    "quality_auditor/performance": 0.0433,
+    "security_auditor/auth_flow": 0.1587,
+    "security_auditor/data_handling": 0.2505,
+    "security_auditor/infrastructure": 0.1861,
+    "triage_classifier": 0.0296
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.8945,
+    "minimax/minimax-m2.5": 0.1272
+  },
+  "training_pairs_logged": 0
+}

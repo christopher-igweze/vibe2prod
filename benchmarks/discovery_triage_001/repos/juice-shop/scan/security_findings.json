@@ -1,0 +1,26 @@
+{
+  "findings": [],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [],
+      "pass_summary": "Found 16 findings: 2 critical (SQL injection, unsigned JWT acceptance), 10 high severity (weak OAuth, missing CSRF, insecure token storage, weak RBAC), 3 medium (missing email verification, hardcoded OAuth ID, setup token validation), 1 low (token expiration check). The application intentionally includes vulnerable code for CTF purposes, but production deployment would be extremely high-risk.",
+      "files_analyzed": 28
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "Found 16 findings: 4 critical (SQL injection, NoSQL injection, file upload validation, XXE/YAML), 8 high (XSS, DOM XSS, CSRF, reflected XSS, file type validation, XXE handling, YAML bombs, unencrypted tokens), 3 medium (password validation, insufficient rate limiting, query parameter validation, password logging), and 1 low-medium (input length validation).",
+      "files_analyzed": 89
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [],
+      "pass_summary": "Found 4 critical and 8 high severity infrastructure security issues. Critical issues include hardcoded private key exposure, unprotected directory listings, CORS misconfiguration, and error stack trace leakage. High-severity findings include missing HSTS/CSP headers, disabled XSS protection, lack of rate limiting on sensitive endpoints, and weak cryptographic practices. Recommended immediate remediation of critical issues before production deployment.",
+      "files_analyzed": 47
+    }
+  ],
+  "total_findings": 0,
+  "critical_count": 0,
+  "high_count": 0
+}

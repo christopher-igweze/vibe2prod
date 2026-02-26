@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestMediumDecent::test_discover_screenshot_to_code",
+  "total_cost_usd": 0.7387,
+  "total_tokens": 451566,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 198446,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.0413,
+    "codebase_analyst": 0.0042,
+    "fix_strategist": 0.1152,
+    "quality_auditor/code_patterns": 0.0298,
+    "quality_auditor/error_handling": 0.0277,
+    "quality_auditor/performance": 0.0274,
+    "security_auditor/auth_flow": 0.145,
+    "security_auditor/data_handling": 0.1483,
+    "security_auditor/infrastructure": 0.1464,
+    "triage_classifier": 0.0534
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.6496,
+    "minimax/minimax-m2.5": 0.0891
+  },
+  "training_pairs_logged": 0
+}

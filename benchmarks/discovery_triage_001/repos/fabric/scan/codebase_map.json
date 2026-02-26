@@ -1,0 +1,4918 @@
+{
+  "modules": [
+    {
+      "name": "fabric-cli",
+      "path": "cmd/fabric/",
+      "purpose": "Main CLI application providing AI-powered text analysis via pattern-based prompts",
+      "files": [
+        "cmd/fabric/main.go",
+        "cmd/fabric/version.go"
+      ],
+      "loc": 150,
+      "language": "go"
+    },
+    {
+      "name": "code2context",
+      "path": "cmd/code2context/",
+      "purpose": "Extract code context and structure from source files for AI analysis",
+      "files": [
+        "cmd/code2context/main.go",
+        "cmd/code2context/code.go",
+        "cmd/code2context/code_test.go"
+      ],
+      "loc": 200,
+      "language": "go"
+    },
+    {
+      "name": "generate_changelog",
+      "path": "cmd/generate_changelog/",
+      "purpose": "Automated changelog generation from git history and GitHub releases",
+      "files": [
+        "cmd/generate_changelog/main.go",
+        "cmd/generate_changelog/internal/release.go",
+        "cmd/generate_changelog/internal/cache/cache.go",
+        "cmd/generate_changelog/internal/changelog/generator.go",
+        "cmd/generate_changelog/internal/changelog/generator_test.go",
+        "cmd/generate_changelog/internal/changelog/merge_detection_test.go",
+        "cmd/generate_changelog/internal/changelog/processing.go",
+        "cmd/generate_changelog/internal/changelog/processing_test.go",
+        "cmd/generate_changelog/internal/changelog/summarize.go",
+        "cmd/generate_changelog/internal/config/config.go",
+        "cmd/generate_changelog/internal/git/types.go",
+        "cmd/generate_changelog/internal/git/walker.go",
+        "cmd/generate_changelog/internal/github/client.go",
+        "cmd/generate_changelog/internal/github/email_test.go",
+        "cmd/generate_changelog/internal/github/types.go",
+        "cmd/generate_changelog/util/token.go"
+      ],
+      "loc": 800,
+      "language": "go"
+    },
+    {
+      "name": "to_pdf",
+      "path": "cmd/to_pdf/",
+      "purpose": "Convert documents to PDF format",
+      "files": [
+        "cmd/to_pdf/main.go"
+      ],
+      "loc": 50,
+      "language": "go"
+    },
+    {
+      "name": "web-frontend",
+      "path": "web/",
+      "purpose": "SvelteKit-based web interface for interacting with AI patterns and chat functionality",
+      "files": [
+        "web/src/routes/+page.svelte",
+        "web/src/routes/chat/+page.svelte",
+        "web/src/routes/chat/+server.ts",
+        "web/src/routes/posts/+page.svelte",
+        "web/src/routes/posts/[slug]/+page.svelte",
+        "web/src/routes/api/youtube/transcript/+server.ts",
+        "web/src/routes/obsidian/+server.ts",
+        "web/src/routes/notes/+server.ts",
+        "web/src/lib/components/chat/Chat.svelte",
+        "web/src/lib/components/chat/ChatInput.svelte",
+        "web/src/lib/components/chat/ChatMessages.svelte",
+        "web/src/lib/components/patterns/PatternList.svelte",
+        "web/src/lib/services/ChatService.ts",
+        "web/src/lib/api/base.ts"
+      ],
+      "loc": 3500,
+      "language": "typescript"
+    },
+    {
+      "name": "internal-tools",
+      "path": "internal/tools/",
+      "purpose": "Shared utilities for pattern loading, HTML readability conversion, and default tool configurations",
+      "files": [
+        "internal/tools/defaults.go",
+        "internal/tools/patterns_loader.go",
+        "internal/tools/converter/html_readability.go",
+        "internal/tools/converter/html_readability_test.go"
+      ],
+      "loc": 300,
+      "language": "go"
+    },
+    {
+      "name": "ai-providers",
+      "path": "internal/",
+      "purpose": "AI provider integrations (OpenAI, Anthropic, Ollama, AWS Bedrock, Perplexity)",
+      "files": [
+        "internal/",
+        "internal/"
+      ],
+      "loc": 400,
+      "language": "go"
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "github.com/anthropics/anthropic-sdk-go",
+      "version": "1.23.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/openai/openai-go",
+      "version": "1.12.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/ollama/ollama",
+      "version": "0.16.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/sgaunet/perplexity-go/v2",
+      "version": "2.15.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/aws/aws-sdk-go-v2/service/bedrock",
+      "version": "1.53.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/aws/aws-sdk-go-v2/service/bedrockruntime",
+      "version": "1.49.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/gin-gonic/gin",
+      "version": "1.11.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/spf13/cobra",
+      "version": "1.10.2",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/mattn/go-sqlite3",
+      "version": "1.14.34",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/go-git/go-git/v5",
+      "version": "5.16.5",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/google/go-github/v66",
+      "version": "66.0.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "golang.org/x/oauth2",
+      "version": "0.35.0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/go-shiori/go-readability",
+      "version": "0.0.0-20251205110129-5db1dc9836f0",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/otiai10/copy",
+      "version": "1.14.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "gopkg.in/yaml.v3",
+      "version": "3.0.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    },
+    {
+      "name": "github.com/stretchr/testify",
+      "version": "1.11.1",
+      "ecosystem": "npm",
+      "dev_only": false
+    }
+  ],
+  "data_flows": [
+    {
+      "source": "CLI user input",
+      "destination": "AI Provider APIs",
+      "data_type": "user text prompts",
+      "is_authenticated": true
+    },
+    {
+      "source": "Web UI Chat",
+      "destination": "Web API server (+server.ts)",
+      "data_type": "chat messages",
+      "is_authenticated": false
+    },
+    {
+      "source": "Web API server",
+      "destination": "AI Provider APIs",
+      "data_type": "user prompts via backend proxy",
+      "is_authenticated": true
+    },
+    {
+      "source": "GitHub client",
+      "destination": "GitHub API",
+      "data_type": "commits, PRs, releases",
+      "is_authenticated": true
+    },
+    {
+      "source": "Pattern loader",
+      "destination": "Pattern files (data/patterns/)",
+      "data_type": "markdown pattern definitions",
+      "is_authenticated": false
+    },
+    {
+      "source": "YouTube transcript API",
+      "destination": "YouTube API",
+      "data_type": "video transcripts",
+      "is_authenticated": false
+    }
+  ],
+  "auth_boundaries": [
+    {
+      "path": "/chat/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/api/youtube/transcript/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/obsidian/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "/notes/*",
+      "auth_type": "none",
+      "is_protected": false
+    },
+    {
+      "path": "CLI commands",
+      "auth_type": "env_api_keys",
+      "is_protected": true
+    }
+  ],
+  "entry_points": [
+    {
+      "path": "cmd/fabric/main.go",
+      "type": "cli",
+      "is_public": true
+    },
+    {
+      "path": "cmd/code2context/main.go",
+      "type": "cli",
+      "is_public": true
+    },
+    {
+      "path": "cmd/generate_changelog/main.go",
+      "type": "cli",
+      "is_public": true
+    },
+    {
+      "path": "cmd/to_pdf/main.go",
+      "type": "cli",
+      "is_public": true
+    },
+    {
+      "path": "web/src/routes/+page.svelte",
+      "type": "web",
+      "is_public": true
+    },
+    {
+      "path": "web/src/routes/chat/+server.ts",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "web/src/routes/api/youtube/transcript/+server.ts",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "web/src/routes/obsidian/+server.ts",
+      "type": "api",
+      "is_public": true
+    },
+    {
+      "path": "web/src/routes/notes/+server.ts",
+      "type": "api",
+      "is_public": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "SvelteKit + TypeScript + TailwindCSS",
+    "backend": "Go + Gin web framework",
+    "database": "SQLite (changelog generator)",
+    "hosting": "Nix/Flake deployment",
+    "packages": [
+      "svelte",
+      "sveltekit",
+      "vite",
+      "tailwindcss",
+      "openai-go",
+      "anthropic-sdk",
+      "ollama",
+      "cobra",
+      "gin",
+      "sqlite3",
+      "go-git",
+      "go-github"
+    ]
+  },
+  "files": [
+    {
+      "path": ".goreleaser.yaml",
+      "language": "yaml",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "CHANGELOG.md",
+      "language": "markdown",
+      "loc": 4235,
+      "purpose": ""
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "loc": 1112,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/code2context/code.go",
+      "language": "go",
+      "loc": 250,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/code2context/code_test.go",
+      "language": "go",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/code2context/main.go",
+      "language": "go",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/to_pdf/main.go",
+      "language": "go",
+      "loc": 220,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/PRD.md",
+      "language": "markdown",
+      "loc": 151,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/README.md",
+      "language": "markdown",
+      "loc": 264,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/main.go",
+      "language": "go",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/util/token.go",
+      "language": "go",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/release.go",
+      "language": "go",
+      "loc": 149,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/cache/cache.go",
+      "language": "go",
+      "loc": 485,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/changelog/summarize.go",
+      "language": "go",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/changelog/generator.go",
+      "language": "go",
+      "loc": 806,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/changelog/merge_detection_test.go",
+      "language": "go",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/changelog/processing_test.go",
+      "language": "go",
+      "loc": 262,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/changelog/generator_test.go",
+      "language": "go",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/changelog/processing.go",
+      "language": "go",
+      "loc": 544,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/config/config.go",
+      "language": "go",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/github/types.go",
+      "language": "go",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/github/email_test.go",
+      "language": "go",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/github/client.go",
+      "language": "go",
+      "loc": 431,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/git/types.go",
+      "language": "go",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/generate_changelog/internal/git/walker.go",
+      "language": "go",
+      "loc": 582,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/fabric/version.go",
+      "language": "go",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "cmd/fabric/main.go",
+      "language": "go",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "nix/pkgs/fabric/gomod2nix.toml",
+      "language": "toml",
+      "loc": 465,
+      "purpose": ""
+    },
+    {
+      "path": "web/pnpm-lock.yaml",
+      "language": "yaml",
+      "loc": 3993,
+      "purpose": ""
+    },
+    {
+      "path": "web/jsconfig.json",
+      "language": "json",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web/svelte.config.js",
+      "language": "javascript",
+      "loc": 103,
+      "purpose": ""
+    },
+    {
+      "path": "web/my-custom-theme.ts",
+      "language": "typescript",
+      "loc": 102,
+      "purpose": ""
+    },
+    {
+      "path": "web/STD-README.md",
+      "language": "markdown",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "web/README.md",
+      "language": "markdown",
+      "loc": 124,
+      "purpose": ""
+    },
+    {
+      "path": "web/tailwind.config.ts",
+      "language": "typescript",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "web/rollup.config.js",
+      "language": "javascript",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "web/package-lock.json",
+      "language": "json",
+      "loc": 6323,
+      "purpose": ""
+    },
+    {
+      "path": "web/package.json",
+      "language": "json",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "web/tsconfig.json",
+      "language": "json",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "web/eslint.config.js",
+      "language": "javascript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "web/vite.config.ts",
+      "language": "typescript",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "web/postcss.config.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "web/legacy/Install-Guide.md",
+      "language": "markdown",
+      "loc": 215,
+      "purpose": ""
+    },
+    {
+      "path": "web/legacy/pr-1319_PDF_TO_MARKDOWN_README.md",
+      "language": "markdown",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "web/legacy/pattern-search-implementation.md",
+      "language": "markdown",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "web/legacy/pr-1284-update.md",
+      "language": "markdown",
+      "loc": 303,
+      "purpose": ""
+    },
+    {
+      "path": "web/legacy/enhanced-pattern-selection-update.md",
+      "language": "markdown",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "web/legacy/language-options.md",
+      "language": "markdown",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "web/static/strategies/strategies.json",
+      "language": "json",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web/scripts/pnpm-install.sh",
+      "language": "bash",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web/scripts/npm-install.sh",
+      "language": "bash",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/app.d.ts",
+      "language": "typescript",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/index.test.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/app.css",
+      "language": "css",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/app.html",
+      "language": "html",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/types/index.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/config/environment.ts",
+      "language": "typescript",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/config/features.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/resources.md",
+      "language": "markdown",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/personal-story.md",
+      "language": "markdown",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/product-review.md",
+      "language": "markdown",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/opinion.md",
+      "language": "markdown",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/faq.md",
+      "language": "markdown",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/welcome.md",
+      "language": "markdown",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/obsidian.md",
+      "language": "markdown",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/tutorial.md",
+      "language": "markdown",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/extract_wisdom.md",
+      "language": "markdown",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/using-svelte-in-markdown.md",
+      "language": "markdown",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/posts/tips-n-tricks.md",
+      "language": "markdown",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/content/templates/{{title}}.md",
+      "language": "markdown",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/utils/markdown.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/utils/utils.ts",
+      "language": "typescript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/utils/validators.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/utils/file-utils.ts",
+      "language": "typescript",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/toc/Toc.svelte",
+      "language": "svelte",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/tooltip/Tooltip.svelte",
+      "language": "svelte",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/tooltip/Tooltip.test.ts",
+      "language": "typescript",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/tooltip/positioning.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/tagSearch/TagList.svelte",
+      "language": "svelte",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/tagSearch/TagSearch.svelte",
+      "language": "svelte",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/input/Input.svelte",
+      "language": "svelte",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/input/index.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/cards/card.svelte",
+      "language": "svelte",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/toast/ToastContainer.svelte",
+      "language": "svelte",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/toast/Toast.svelte",
+      "language": "svelte",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/buymeacoffee/BuyMeCoffee.svelte",
+      "language": "svelte",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/checkbox/Checkbox.svelte",
+      "language": "svelte",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/checkbox/index.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/label/index.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/label/label.svelte",
+      "language": "svelte",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/slider/index.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/slider/slider.svelte",
+      "language": "svelte",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/spinner/spinner.svelte",
+      "language": "svelte",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/connections/colors.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/connections/canvas.ts",
+      "language": "typescript",
+      "loc": 12,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/connections/Connections.svelte",
+      "language": "svelte",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/connections/particle.ts",
+      "language": "typescript",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/connections/ParticleSystem.ts",
+      "language": "typescript",
+      "loc": 110,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/textarea/textarea.svelte",
+      "language": "svelte",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/textarea/index.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/button/index.js",
+      "language": "javascript",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/button/button.svelte",
+      "language": "svelte",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/select-separator.svelte",
+      "language": "svelte",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/select-label.svelte",
+      "language": "svelte",
+      "loc": 10,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/select-item.svelte",
+      "language": "svelte",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/select-content.svelte",
+      "language": "svelte",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/select-value.svelte",
+      "language": "svelte",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/select.svelte",
+      "language": "svelte",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/index.js",
+      "language": "javascript",
+      "loc": 6,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/select/select-trigger.svelte",
+      "language": "svelte",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/modal/Modal.svelte",
+      "language": "svelte",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/modal/PatternTilesModal.svelte",
+      "language": "svelte",
+      "loc": 333,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/noteDrawer/NoteDrawer.svelte",
+      "language": "svelte",
+      "loc": 152,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/ui/help/HelpModal.svelte",
+      "language": "svelte",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/settings/LanguageSelector.svelte",
+      "language": "svelte",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/home/Header.svelte",
+      "language": "svelte",
+      "loc": 201,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/home/Footer.svelte",
+      "language": "svelte",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/contact/Contact.svelte",
+      "language": "svelte",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/posts/post-interface.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/posts/PostContent.svelte",
+      "language": "svelte",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/posts/PostMeta.svelte",
+      "language": "svelte",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/posts/PostLayout.svelte",
+      "language": "svelte",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/posts/PostCard.svelte",
+      "language": "svelte",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/patterns/TagFilterPanel.svelte",
+      "language": "svelte",
+      "loc": 180,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/patterns/PatternList.svelte",
+      "language": "svelte",
+      "loc": 251,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/Models.svelte",
+      "language": "svelte",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/ModelConfig.svelte",
+      "language": "svelte",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/ChatInput.svelte",
+      "language": "svelte",
+      "loc": 631,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/SessionManager.svelte",
+      "language": "svelte",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/Patterns.svelte",
+      "language": "svelte",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/Transcripts.svelte",
+      "language": "svelte",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/ChatMessages.svelte",
+      "language": "svelte",
+      "loc": 252,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/SessionSelector.svelte",
+      "language": "svelte",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/DropdownGroup.svelte",
+      "language": "svelte",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/chat/Chat.svelte",
+      "language": "svelte",
+      "loc": 333,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/components/terminal/Terminal.svelte",
+      "language": "svelte",
+      "loc": 179,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/actions/clickOutside.ts",
+      "language": "typescript",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/api/base.ts",
+      "language": "typescript",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/api/contexts.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/api/models.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/api/config.ts",
+      "language": "typescript",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/services/ChatService.ts",
+      "language": "typescript",
+      "loc": 286,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/services/transcriptService.ts",
+      "language": "typescript",
+      "loc": 80,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/services/pdf-config.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/services/PdfConversionService.ts",
+      "language": "typescript",
+      "loc": 74,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/services/toast-service.ts",
+      "language": "typescript",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/interfaces/storage-interface.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/interfaces/context-interface.ts",
+      "language": "typescript",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/interfaces/chat-interface.ts",
+      "language": "typescript",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/interfaces/LanguageDisplay.svelte",
+      "language": "svelte",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/interfaces/pattern-interface.ts",
+      "language": "typescript",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/interfaces/session-interface.ts",
+      "language": "typescript",
+      "loc": 7,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/interfaces/model-interface.ts",
+      "language": "typescript",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/strategy-store.ts",
+      "language": "typescript",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/note-store.ts",
+      "language": "typescript",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/chat-store.ts",
+      "language": "typescript",
+      "loc": 170,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/pattern-store.ts",
+      "language": "typescript",
+      "loc": 124,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/toast-store.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/session-store.ts",
+      "language": "typescript",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/theme-store.ts",
+      "language": "typescript",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/chat-config.ts",
+      "language": "typescript",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/language-store.ts",
+      "language": "typescript",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/favorites-store.ts",
+      "language": "typescript",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/obsidian-store.ts",
+      "language": "typescript",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/lib/store/model-store.ts",
+      "language": "typescript",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/+layout.ts",
+      "language": "typescript",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/+page.svelte",
+      "language": "svelte",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/+page.ts",
+      "language": "typescript",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/+layout.svelte",
+      "language": "svelte",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/contact/+page.svelte",
+      "language": "svelte",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/contact/+error.svelte",
+      "language": "svelte",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/contact/+page.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/contact/contact.md",
+      "language": "markdown",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/posts/+page.svelte",
+      "language": "svelte",
+      "loc": 175,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/posts/+error.svelte",
+      "language": "svelte",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/posts/+page.ts",
+      "language": "typescript",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/posts/Search.svelte",
+      "language": "svelte",
+      "loc": 264,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/posts/[slug]/+page.svelte",
+      "language": "svelte",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/posts/[slug]/+error.svelte",
+      "language": "svelte",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/posts/[slug]/+page.ts",
+      "language": "typescript",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/chat/+page.svelte",
+      "language": "svelte",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/chat/+page.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/chat/+server.ts",
+      "language": "typescript",
+      "loc": 163,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/chat/+layout.svelte",
+      "language": "svelte",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/about/+page.svelte",
+      "language": "svelte",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/about/+error.svelte",
+      "language": "svelte",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/about/+page.ts",
+      "language": "typescript",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/about/README.md",
+      "language": "markdown",
+      "loc": 547,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/tags/+page.svelte",
+      "language": "svelte",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/tags/+page.ts",
+      "language": "typescript",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/tags/[tag]/+page.svelte",
+      "language": "svelte",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/tags/[tag]/+page.ts",
+      "language": "typescript",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/notes/+server.ts",
+      "language": "typescript",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/api/youtube/transcript/+server.ts",
+      "language": "typescript",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "web/src/routes/obsidian/+server.ts",
+      "language": "typescript",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "completions/setup-completions.sh",
+      "language": "bash",
+      "loc": 503,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/defaults.go",
+      "language": "go",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/patterns_loader.go",
+      "language": "go",
+      "loc": 371,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/converter/html_readability_test.go",
+      "language": "go",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/converter/html_readability.go",
+      "language": "go",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/githelper/githelper.go",
+      "language": "go",
+      "loc": 112,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/spotify/spotify_test.go",
+      "language": "go",
+      "loc": 306,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/spotify/spotify_integration_test.go",
+      "language": "go",
+      "loc": 238,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/spotify/spotify.go",
+      "language": "go",
+      "loc": 525,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/youtube/youtube.go",
+      "language": "go",
+      "loc": 841,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/youtube/youtube_test.go",
+      "language": "go",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/youtube/timestamp_test.go",
+      "language": "go",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/youtube/youtube_optional_test.go",
+      "language": "go",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/lang/language.go",
+      "language": "go",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/jina/jina.go",
+      "language": "go",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/notifications/notifications_test.go",
+      "language": "go",
+      "loc": 168,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/notifications/notifications.go",
+      "language": "go",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/custom_patterns/custom_patterns.go",
+      "language": "go",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "internal/tools/custom_patterns/custom_patterns_test.go",
+      "language": "go",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "internal/core/chatter.go",
+      "language": "go",
+      "loc": 328,
+      "purpose": ""
+    },
+    {
+      "path": "internal/core/plugin_registry.go",
+      "language": "go",
+      "loc": 593,
+      "purpose": ""
+    },
+    {
+      "path": "internal/core/chatter_test.go",
+      "language": "go",
+      "loc": 314,
+      "purpose": ""
+    },
+    {
+      "path": "internal/core/plugin_registry_test.go",
+      "language": "go",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "internal/chat/chat.go",
+      "language": "go",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "internal/util/groups_items.go",
+      "language": "go",
+      "loc": 183,
+      "purpose": ""
+    },
+    {
+      "path": "internal/util/utils.go",
+      "language": "go",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/plugin_test.go",
+      "language": "go",
+      "loc": 298,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/plugin.go",
+      "language": "go",
+      "loc": 344,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/text.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/template_extension_mixed_test.go",
+      "language": "go",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/extension_manager.go",
+      "language": "go",
+      "loc": 137,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/extension_registry.go",
+      "language": "go",
+      "loc": 335,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/extension_manager_test.go",
+      "language": "go",
+      "loc": 184,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/fetch.go",
+      "language": "go",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/file.md",
+      "language": "markdown",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/extension_registry_test.go",
+      "language": "go",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/sys.md",
+      "language": "markdown",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/constants.go",
+      "language": "go",
+      "loc": 5,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/template_test.go",
+      "language": "go",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/file_test.go",
+      "language": "go",
+      "loc": 152,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/text_test.go",
+      "language": "go",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/datetime.md",
+      "language": "markdown",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/README.md",
+      "language": "markdown",
+      "loc": 418,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/extension_executor.go",
+      "language": "go",
+      "loc": 203,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/template.go",
+      "language": "go",
+      "loc": 153,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/hash_test.go",
+      "language": "go",
+      "loc": 119,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/text.go",
+      "language": "go",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/template_sentinel_test.go",
+      "language": "go",
+      "loc": 275,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/sys_test.go",
+      "language": "go",
+      "loc": 140,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/template_extension_multiple_test.go",
+      "language": "go",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/utils.go",
+      "language": "go",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/file.go",
+      "language": "go",
+      "loc": 200,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/fetch.md",
+      "language": "markdown",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/hash.go",
+      "language": "go",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/sys.go",
+      "language": "go",
+      "loc": 90,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/fetch_test.go",
+      "language": "go",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/datetime.go",
+      "language": "go",
+      "loc": 147,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/datetime_test.go",
+      "language": "go",
+      "loc": 138,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/extension_executor_test.go",
+      "language": "go",
+      "loc": 361,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/word-generator.yaml",
+      "language": "yaml",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/openai.yaml",
+      "language": "yaml",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/security-report.yaml",
+      "language": "yaml",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/track_packages.sh",
+      "language": "bash",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/remote-security-report.sh",
+      "language": "bash",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/word-generator.py",
+      "language": "python",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/README.md",
+      "language": "markdown",
+      "loc": 276,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/security-report.sh",
+      "language": "bash",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/sqlite3_demo.yaml",
+      "language": "yaml",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/openai-chat.sh",
+      "language": "bash",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/remote-security-report.yaml",
+      "language": "yaml",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/template/Examples/test_pattern.md",
+      "language": "markdown",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/models.go",
+      "language": "go",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/vendor.go",
+      "language": "go",
+      "loc": 18,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/vendors.go",
+      "language": "go",
+      "loc": 163,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/models_test.go",
+      "language": "go",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/vendors_test.go",
+      "language": "go",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/lmstudio/lmstudio.go",
+      "language": "go",
+      "loc": 392,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/lmstudio/lmstudio_test.go",
+      "language": "go",
+      "loc": 92,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azureaigateway/azureaigateway.go",
+      "language": "go",
+      "loc": 230,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azureaigateway/backend_vertex_ai.go",
+      "language": "go",
+      "loc": 136,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azureaigateway/azureaigateway_test.go",
+      "language": "go",
+      "loc": 1015,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azureaigateway/backend_bedrock.go",
+      "language": "go",
+      "loc": 131,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azureaigateway/backend_azure_openai.go",
+      "language": "go",
+      "loc": 110,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/dryrun/dryrun_test.go",
+      "language": "go",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/dryrun/dryrun.go",
+      "language": "go",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/exolab/exolab.go",
+      "language": "go",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/gemini/gemini.go",
+      "language": "go",
+      "loc": 453,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/gemini/voices.go",
+      "language": "go",
+      "loc": 222,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/gemini/gemini_test.go",
+      "language": "go",
+      "loc": 254,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/copilot/copilot.go",
+      "language": "go",
+      "loc": 487,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azure/azure.go",
+      "language": "go",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azure/azure_test.go",
+      "language": "go",
+      "loc": 173,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/geminicommon/geminicommon.go",
+      "language": "go",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azurecommon/azurecommon.go",
+      "language": "go",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azurecommon/azurecommon_test.go",
+      "language": "go",
+      "loc": 143,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/digitalocean/digitalocean.go",
+      "language": "go",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azure_entra/azure_entra_test.go",
+      "language": "go",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/azure_entra/azure_entra.go",
+      "language": "go",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/bedrock/bedrock.go",
+      "language": "go",
+      "loc": 284,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/vertexai/models.go",
+      "language": "go",
+      "loc": 238,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/vertexai/vertexai.go",
+      "language": "go",
+      "loc": 462,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/vertexai/vertexai_test.go",
+      "language": "go",
+      "loc": 442,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/perplexity/perplexity.go",
+      "language": "go",
+      "loc": 264,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai_compatible/providers_config_test.go",
+      "language": "go",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai_compatible/providers_config.go",
+      "language": "go",
+      "loc": 349,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai_compatible/direct_models_call.go",
+      "language": "go",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/anthropic/anthropic.go",
+      "language": "go",
+      "loc": 554,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/anthropic/anthropic_test.go",
+      "language": "go",
+      "loc": 365,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/ollama/ollama_test.go",
+      "language": "go",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/ollama/ollama.go",
+      "language": "go",
+      "loc": 272,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/message_conversion.go",
+      "language": "go",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/openai_models_test.go",
+      "language": "go",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/chat_completions.go",
+      "language": "go",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/direct_models.go",
+      "language": "go",
+      "loc": 123,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/openai_test.go",
+      "language": "go",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/openai.go",
+      "language": "go",
+      "loc": 371,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/openai_audio_test.go",
+      "language": "go",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/openai_image_test.go",
+      "language": "go",
+      "loc": 624,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/openai_image.go",
+      "language": "go",
+      "loc": 142,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/ai/openai/openai_audio.go",
+      "language": "go",
+      "loc": 192,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/api.go",
+      "language": "go",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/patterns.go",
+      "language": "go",
+      "loc": 275,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/db.go",
+      "language": "go",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/sessions.go",
+      "language": "go",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/db_test.go",
+      "language": "go",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/sessions_test.go",
+      "language": "go",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/contexts_test.go",
+      "language": "go",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/storage_test.go",
+      "language": "go",
+      "loc": 52,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/storage.go",
+      "language": "go",
+      "loc": 158,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/patterns_test.go",
+      "language": "go",
+      "loc": 300,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/db/fsdb/contexts.go",
+      "language": "go",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "internal/plugins/strategy/strategy.go",
+      "language": "go",
+      "loc": 256,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/models.go",
+      "language": "go",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/strategies.go",
+      "language": "go",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/patterns.go",
+      "language": "go",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/youtube.go",
+      "language": "go",
+      "loc": 100,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/sessions.go",
+      "language": "go",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/auth.go",
+      "language": "go",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/configuration.go",
+      "language": "go",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/serve.go",
+      "language": "go",
+      "loc": 86,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/storage.go",
+      "language": "go",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/ollama_test.go",
+      "language": "go",
+      "loc": 363,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/chat.go",
+      "language": "go",
+      "loc": 234,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/ollama.go",
+      "language": "go",
+      "loc": 570,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/contexts.go",
+      "language": "go",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "internal/server/docs/API_VARIABLES_EXAMPLE.md",
+      "language": "markdown",
+      "loc": 105,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/flags_test.go",
+      "language": "go",
+      "loc": 484,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/configuration.go",
+      "language": "go",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/example.yaml",
+      "language": "yaml",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/listing.go",
+      "language": "go",
+      "loc": 129,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/tools.go",
+      "language": "go",
+      "loc": 113,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/flags.go",
+      "language": "go",
+      "loc": 570,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/README.md",
+      "language": "markdown",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/management.go",
+      "language": "go",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/transcribe.go",
+      "language": "go",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/cli.go",
+      "language": "go",
+      "loc": 189,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/chat_test.go",
+      "language": "go",
+      "loc": 346,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/chat.go",
+      "language": "go",
+      "loc": 201,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/extensions.go",
+      "language": "go",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/initialization.go",
+      "language": "go",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/output_test.go",
+      "language": "go",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/output.go",
+      "language": "go",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/setup_server.go",
+      "language": "go",
+      "loc": 30,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/help.go",
+      "language": "go",
+      "loc": 286,
+      "purpose": ""
+    },
+    {
+      "path": "internal/cli/cli_test.go",
+      "language": "go",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "internal/log/log.go",
+      "language": "go",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "internal/log/log_test.go",
+      "language": "go",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/i18n_variants_test.go",
+      "language": "go",
+      "loc": 175,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locale_test.go",
+      "language": "go",
+      "loc": 288,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/i18n.go",
+      "language": "go",
+      "loc": 240,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locale.go",
+      "language": "go",
+      "loc": 94,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/i18n_test.go",
+      "language": "go",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/zh.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/ja.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/de.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/en.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/pt-PT.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/it.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/fr.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/pt-BR.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/fa.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/i18n/locales/es.json",
+      "language": "json",
+      "loc": 682,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/domain.go",
+      "language": "go",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/domain_test.go",
+      "language": "go",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/stream.go",
+      "language": "go",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/think.go",
+      "language": "go",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/think_test.go",
+      "language": "go",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/attachment.go",
+      "language": "go",
+      "loc": 173,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/thinking.go",
+      "language": "go",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/file_manager_test.go",
+      "language": "go",
+      "loc": 185,
+      "purpose": ""
+    },
+    {
+      "path": "internal/domain/file_manager.go",
+      "language": "go",
+      "loc": 191,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Using-Speech-To-Text.md",
+      "language": "markdown",
+      "loc": 139,
+      "purpose": ""
+    },
+    {
+      "path": "docs/CODE_OF_CONDUCT.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "docs/contexts-and-sessions-tutorial.md",
+      "language": "markdown",
+      "loc": 107,
+      "purpose": ""
+    },
+    {
+      "path": "docs/i18n.md",
+      "language": "markdown",
+      "loc": 182,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Azure-AI-Gateway.md",
+      "language": "markdown",
+      "loc": 346,
+      "purpose": ""
+    },
+    {
+      "path": "docs/GitHub-Models-Setup.md",
+      "language": "markdown",
+      "loc": 700,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Automated-ChangeLog.md",
+      "language": "markdown",
+      "loc": 373,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Microsoft-365-Copilot-Setup.md",
+      "language": "markdown",
+      "loc": 449,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Gemini-TTS.md",
+      "language": "markdown",
+      "loc": 155,
+      "purpose": ""
+    },
+    {
+      "path": "docs/swagger.yaml",
+      "language": "yaml",
+      "loc": 363,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Azure-OpenAI-Troubleshooting.md",
+      "language": "markdown",
+      "loc": 127,
+      "purpose": ""
+    },
+    {
+      "path": "docs/docs.go",
+      "language": "go",
+      "loc": 565,
+      "purpose": ""
+    },
+    {
+      "path": "docs/swagger.json",
+      "language": "json",
+      "loc": 541,
+      "purpose": ""
+    },
+    {
+      "path": "docs/YouTube-Processing.md",
+      "language": "markdown",
+      "loc": 298,
+      "purpose": ""
+    },
+    {
+      "path": "docs/notification-config.yaml",
+      "language": "yaml",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "docs/README.md",
+      "language": "markdown",
+      "loc": 88,
+      "purpose": ""
+    },
+    {
+      "path": "docs/DigitalOcean-Agents-Setup.md",
+      "language": "markdown",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "docs/SUPPORT.md",
+      "language": "markdown",
+      "loc": 148,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Go-Updates-September-2025.md",
+      "language": "markdown",
+      "loc": 298,
+      "purpose": ""
+    },
+    {
+      "path": "docs/CONTRIBUTING.md",
+      "language": "markdown",
+      "loc": 250,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Project-Restructured.md",
+      "language": "markdown",
+      "loc": 219,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Desktop-Notifications.md",
+      "language": "markdown",
+      "loc": 183,
+      "purpose": ""
+    },
+    {
+      "path": "docs/i18n-variants.md",
+      "language": "markdown",
+      "loc": 140,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Shell-Completions.md",
+      "language": "markdown",
+      "loc": 140,
+      "purpose": ""
+    },
+    {
+      "path": "docs/NOTES.md",
+      "language": "markdown",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "docs/Automated-Changelog-Usage.md",
+      "language": "markdown",
+      "loc": 195,
+      "purpose": ""
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "language": "markdown",
+      "loc": 158,
+      "purpose": ""
+    },
+    {
+      "path": "docs/rest-api.md",
+      "language": "markdown",
+      "loc": 491,
+      "purpose": ""
+    },
+    {
+      "path": "docs/voices/README.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/python_ui/streamlit.py",
+      "language": "python",
+      "loc": 1975,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/docker/README.md",
+      "language": "markdown",
+      "loc": 60,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/readme_updates/README.md",
+      "language": "markdown",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/readme_updates/update_readme_features.py",
+      "language": "python",
+      "loc": 281,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/pattern_descriptions/extract_patterns.py",
+      "language": "python",
+      "loc": 126,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/pattern_descriptions/pattern_descriptions.json",
+      "language": "json",
+      "loc": 2079,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/pattern_descriptions/pattern_extracts.json",
+      "language": "json",
+      "loc": 1004,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/pattern_descriptions/README_Pattern_Descriptions_and_Tags_MGT.md",
+      "language": "markdown",
+      "loc": 118,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/installer/install.sh",
+      "language": "bash",
+      "loc": 219,
+      "purpose": ""
+    },
+    {
+      "path": "scripts/installer/README.md",
+      "language": "markdown",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/pattern_explanations.md",
+      "language": "markdown",
+      "loc": 254,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/answer_interview_question/system.md",
+      "language": "markdown",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_primary_problem/system.md",
+      "language": "markdown",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_debate/system.md",
+      "language": "markdown",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_main_activities/system.md",
+      "language": "markdown",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_investigation_visualization/system.md",
+      "language": "markdown",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/suggest_openclaw_pattern/system.md",
+      "language": "markdown",
+      "loc": 387,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/official_pattern_template/system.md",
+      "language": "markdown",
+      "loc": 101,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_extraordinary_claims/system.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/check_agreement/system.md",
+      "language": "markdown",
+      "loc": 28,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/check_agreement/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/identify_job_stories/system.md",
+      "language": "markdown",
+      "loc": 99,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_malware/system.md",
+      "language": "markdown",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/identify_dsrp_distinctions/system.md",
+      "language": "markdown",
+      "loc": 63,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_golden_rules/system.md",
+      "language": "markdown",
+      "loc": 109,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_threat_model_plans/system.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_sigma_rules/system.md",
+      "language": "markdown",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/suggest_pattern/system.md",
+      "language": "markdown",
+      "loc": 130,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/suggest_pattern/user.md",
+      "language": "markdown",
+      "loc": 1119,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/recommend_talkpanel_topics/system.md",
+      "language": "markdown",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_network_threat_landscape/system.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_network_threat_landscape/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/label_and_rate/system.md",
+      "language": "markdown",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/tweet/system.md",
+      "language": "markdown",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/judge_output/system.md",
+      "language": "markdown",
+      "loc": 89,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/recommend_artists/system.md",
+      "language": "markdown",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_terms/system.md",
+      "language": "markdown",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_wisdom_dm/system.md",
+      "language": "markdown",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_loe_document/system.md",
+      "language": "markdown",
+      "loc": 76,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_comments/system.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_create_opening_sentences/system.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_create_h3_career/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_recursive_outline/system.md",
+      "language": "markdown",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/detect_silent_victims/README.md",
+      "language": "markdown",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/detect_silent_victims/system.md",
+      "language": "markdown",
+      "loc": 176,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_story_about_person/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/rate_ai_response/system.md",
+      "language": "markdown",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_military_strategy/system.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_bd_issue/system.md",
+      "language": "markdown",
+      "loc": 104,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_ideas/system.md",
+      "language": "markdown",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/get_wow_per_minute/system.md",
+      "language": "markdown",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_threat_report/system.md",
+      "language": "markdown",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_threat_report/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_skills/system.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_npc/system.md",
+      "language": "markdown",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_npc/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_quiz/README.md",
+      "language": "markdown",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_quiz/system.md",
+      "language": "markdown",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_terms_and_conditions/system.md",
+      "language": "markdown",
+      "loc": 79,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_story_explanation/system.md",
+      "language": "markdown",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_jokes/system.md",
+      "language": "markdown",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_year_in_review/system.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_domains/system.md",
+      "language": "markdown",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_prose/system.md",
+      "language": "markdown",
+      "loc": 82,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_prose/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_logs/system.md",
+      "language": "markdown",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/enrich_blog_post/system.md",
+      "language": "markdown",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_alpha/system.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_algorithm_update_recommendations/system.md",
+      "language": "markdown",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_algorithm_update_recommendations/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_aphorisms/system.md",
+      "language": "markdown",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_aphorisms/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_markmap_visualization/system.md",
+      "language": "markdown",
+      "loc": 88,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/raw_query/system.md",
+      "language": "markdown",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/heal_person/system.md",
+      "language": "markdown",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/export_data_as_csv/system.md",
+      "language": "markdown",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_paper/README.md",
+      "language": "markdown",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_paper/system.md",
+      "language": "markdown",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_paper/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_git_diff/system.md",
+      "language": "markdown",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_presentation/system.md",
+      "language": "markdown",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_prose_json/system.md",
+      "language": "markdown",
+      "loc": 116,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_prose_json/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_proposition/system.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_proposition/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_design_document/system.md",
+      "language": "markdown",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/fix_typos/system.md",
+      "language": "markdown",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_characters/system.md",
+      "language": "markdown",
+      "loc": 83,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/greybeard_secure_prompt_engineer/system.md",
+      "language": "markdown",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_questions/system.md",
+      "language": "markdown",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_wisdom_nometa/system.md",
+      "language": "markdown",
+      "loc": 55,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_controversial_ideas/system.md",
+      "language": "markdown",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_micro/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_micro/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/capture_thinkers_work/system.md",
+      "language": "markdown",
+      "loc": 93,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_candidates/system.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_candidates/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/translate/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_better_frame/system.md",
+      "language": "markdown",
+      "loc": 145,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_better_frame/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_conceptmap/system.md",
+      "language": "markdown",
+      "loc": 151,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_give_encouragement/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_prd/system.md",
+      "language": "markdown",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_interviewer_techniques/system.md",
+      "language": "markdown",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_sponsors/system.md",
+      "language": "markdown",
+      "loc": 38,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/apply_ul_tags/system.md",
+      "language": "markdown",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_essay_pg/system.md",
+      "language": "markdown",
+      "loc": 322,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_micro_summary/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_article_wisdom/README.md",
+      "language": "markdown",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_article_wisdom/system.md",
+      "language": "markdown",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_article_wisdom/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/identify_dsrp_systems/system.md",
+      "language": "markdown",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_security_update/system.md",
+      "language": "markdown",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_security_update/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_micro_essay/system.md",
+      "language": "markdown",
+      "loc": 322,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_academic_paper/system.md",
+      "language": "markdown",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_wisdom/README.md",
+      "language": "markdown",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_wisdom/system.md",
+      "language": "markdown",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_wisdom_agents/system.md",
+      "language": "markdown",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_claims/system.md",
+      "language": "markdown",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_claims/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_nuclei_template_rule/system.md",
+      "language": "markdown",
+      "loc": 1773,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_nuclei_template_rule/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_answers/README.md",
+      "language": "markdown",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_answers/system.md",
+      "language": "markdown",
+      "loc": 70,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_stride_threat_model/system.md",
+      "language": "markdown",
+      "loc": 66,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_discord_structure/system.md",
+      "language": "markdown",
+      "loc": 148,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_risk/system.md",
+      "language": "markdown",
+      "loc": 81,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_lecture/system.md",
+      "language": "markdown",
+      "loc": 68,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/review_code/system.md",
+      "language": "markdown",
+      "loc": 140,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_hormozi_offer/system.md",
+      "language": "markdown",
+      "loc": 338,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_check_metrics/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_excalidraw_visualization/system.md",
+      "language": "markdown",
+      "loc": 131,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_ttrc_narrative/system.md",
+      "language": "markdown",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/rate_ai_result/system.md",
+      "language": "markdown",
+      "loc": 114,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/ultimate_law_safety/README.md",
+      "language": "markdown",
+      "loc": 73,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/ultimate_law_safety/system.md",
+      "language": "markdown",
+      "loc": 144,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_flash_cards/system.md",
+      "language": "markdown",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_semgrep_rule/system.md",
+      "language": "markdown",
+      "loc": 751,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_semgrep_rule/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_analyze_challenge_handling/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/compare_and_contrast/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/compare_and_contrast/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_book_recommendations/system.md",
+      "language": "markdown",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_latest_video/system.md",
+      "language": "markdown",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_mermaid_visualization/system.md",
+      "language": "markdown",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_email_headers/system.md",
+      "language": "markdown",
+      "loc": 78,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_email_headers/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_videoid/system.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_videoid/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_pull-request/system.md",
+      "language": "markdown",
+      "loc": 98,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_wisdom_with_attribution/README.md",
+      "language": "markdown",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_wisdom_with_attribution/system.md",
+      "language": "markdown",
+      "loc": 59,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/improve_academic_writing/system.md",
+      "language": "markdown",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/improve_academic_writing/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_essay/system.md",
+      "language": "markdown",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_find_neglected_goals/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/ask_secure_by_design_questions/system.md",
+      "language": "markdown",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_extract_panel_topics/system.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_keynote/system.md",
+      "language": "markdown",
+      "loc": 46,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_mistakes/system.md",
+      "language": "markdown",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_most_redeeming_thing/system.md",
+      "language": "markdown",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_primary_solution/system.md",
+      "language": "markdown",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_bill_short/system.md",
+      "language": "markdown",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/md_callout/system.md",
+      "language": "markdown",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/generate_code_rules/system.md",
+      "language": "markdown",
+      "loc": 8,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_story_about_people_interaction/system.md",
+      "language": "markdown",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/model_as_sherlock_freud/system.md",
+      "language": "markdown",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_user_story/system.md",
+      "language": "markdown",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/rate_content/system.md",
+      "language": "markdown",
+      "loc": 48,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/rate_content/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_threat_report_cmds/system.md",
+      "language": "markdown",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_visualize_mission_goals_projects/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_video_chapters/system.md",
+      "language": "markdown",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_video_chapters/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/to_flashcards/system.md",
+      "language": "markdown",
+      "loc": 57,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/find_logical_fallacies/system.md",
+      "language": "markdown",
+      "loc": 222,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_rpg_session/system.md",
+      "language": "markdown",
+      "loc": 108,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_mcp_servers/system.md",
+      "language": "markdown",
+      "loc": 64,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_ai_jobs_analysis/system.md",
+      "language": "markdown",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_business_ideas/system.md",
+      "language": "markdown",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_board_meeting/system.md",
+      "language": "markdown",
+      "loc": 115,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_graph_from_input/system.md",
+      "language": "markdown",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_recipe/README.md",
+      "language": "markdown",
+      "loc": 14,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_recipe/system.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_project/system.md",
+      "language": "markdown",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_show_intro/system.md",
+      "language": "markdown",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_report_finding/system.md",
+      "language": "markdown",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_report_finding/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_bill/system.md",
+      "language": "markdown",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_book_ideas/system.md",
+      "language": "markdown",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_cfp_submission/system.md",
+      "language": "markdown",
+      "loc": 56,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/detect_mind_virus/README.md",
+      "language": "markdown",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/detect_mind_virus/system.md",
+      "language": "markdown",
+      "loc": 161,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_legislation/system.md",
+      "language": "markdown",
+      "loc": 65,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_rpg_summary/system.md",
+      "language": "markdown",
+      "loc": 137,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_visualization/system.md",
+      "language": "markdown",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/ai/system.md",
+      "language": "markdown",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_references/system.md",
+      "language": "markdown",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_references/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/identify_dsrp_perspectives/system.md",
+      "language": "markdown",
+      "loc": 62,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/recommend_yoga_practice/system.md",
+      "language": "markdown",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_5_sentence_summary/system.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/sanitize_broken_html_to_markdown/system.md",
+      "language": "markdown",
+      "loc": 3956,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_pull-requests/system.md",
+      "language": "markdown",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_pull-requests/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_cyber_summary/system.md",
+      "language": "markdown",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_poc/system.md",
+      "language": "markdown",
+      "loc": 17,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_poc/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/refine_design_document/system.md",
+      "language": "markdown",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_mnemonic_phrases/readme.md",
+      "language": "markdown",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_mnemonic_phrases/system.md",
+      "language": "markdown",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_song_meaning/system.md",
+      "language": "markdown",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/humanize/README.md",
+      "language": "markdown",
+      "loc": 67,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/humanize/system.md",
+      "language": "markdown",
+      "loc": 128,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/improve_writing/system.md",
+      "language": "markdown",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/improve_writing/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_tech_impact/system.md",
+      "language": "markdown",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_tech_impact/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_ctf_writeup/README.md",
+      "language": "markdown",
+      "loc": 13,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_ctf_writeup/system.md",
+      "language": "markdown",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_check_dunning_kruger/system.md",
+      "language": "markdown",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_formal_email/system.md",
+      "language": "markdown",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/coding_master/system.md",
+      "language": "markdown",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_core_message/system.md",
+      "language": "markdown",
+      "loc": 39,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/dialog_with_socrates/system.md",
+      "language": "markdown",
+      "loc": 72,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_ethical_framework/README.md",
+      "language": "markdown",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_ethical_framework/system.md",
+      "language": "markdown",
+      "loc": 188,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_find_negative_thinking/system.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_coding_feature/README.md",
+      "language": "markdown",
+      "loc": 85,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_coding_feature/system.md",
+      "language": "markdown",
+      "loc": 117,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/prepare_7s_strategy/system.md",
+      "language": "markdown",
+      "loc": 71,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/find_hidden_message/system.md",
+      "language": "markdown",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_git_changes/system.md",
+      "language": "markdown",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_recommendations/system.md",
+      "language": "markdown",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_recommendations/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_idea_compass/system.md",
+      "language": "markdown",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/rate_value/README.md",
+      "language": "markdown",
+      "loc": 3,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/rate_value/system.md",
+      "language": "markdown",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/rate_value/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/identify_dsrp_relationships/system.md",
+      "language": "markdown",
+      "loc": 58,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_paper/system.md",
+      "language": "markdown",
+      "loc": 126,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_paper/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_red_team_thinking/system.md",
+      "language": "markdown",
+      "loc": 16,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_bd_ideas/system.md",
+      "language": "markdown",
+      "loc": 96,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_threat_scenarios/system.md",
+      "language": "markdown",
+      "loc": 173,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_diy/system.md",
+      "language": "markdown",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_ttrc_graph/system.md",
+      "language": "markdown",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_insights/system.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_debate/system.md",
+      "language": "markdown",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/transcribe_minutes/README.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/transcribe_minutes/system.md",
+      "language": "markdown",
+      "loc": 45,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_prediction_block/system.md",
+      "language": "markdown",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_pattern/system.md",
+      "language": "markdown",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_latex/system.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_meeting/system.md",
+      "language": "markdown",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_code/system.md",
+      "language": "markdown",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_code/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_personality/system.md",
+      "language": "markdown",
+      "loc": 33,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_product_features/README.md",
+      "language": "markdown",
+      "loc": 154,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_product_features/system.md",
+      "language": "markdown",
+      "loc": 31,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_sales_call/system.md",
+      "language": "markdown",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_patent/system.md",
+      "language": "markdown",
+      "loc": 32,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_predictions/system.md",
+      "language": "markdown",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_threat_report_trends/system.md",
+      "language": "markdown",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_threat_report_trends/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_instructions/system.md",
+      "language": "markdown",
+      "loc": 53,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_product_feedback/system.md",
+      "language": "markdown",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/audit_transparency/README.md",
+      "language": "markdown",
+      "loc": 49,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/audit_transparency/system.md",
+      "language": "markdown",
+      "loc": 177,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/provide_guidance/system.md",
+      "language": "markdown",
+      "loc": 36,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_math/README.md",
+      "language": "markdown",
+      "loc": 121,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_math/system.md",
+      "language": "markdown",
+      "loc": 9,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_command/README.md",
+      "language": "markdown",
+      "loc": 75,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_command/system.md",
+      "language": "markdown",
+      "loc": 22,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_command/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_terraform_plan/system.md",
+      "language": "markdown",
+      "loc": 24,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/review_design/system.md",
+      "language": "markdown",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/clean_text/system.md",
+      "language": "markdown",
+      "loc": 19,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/clean_text/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/improve_prompt/system.md",
+      "language": "markdown",
+      "loc": 518,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_art_prompt/system.md",
+      "language": "markdown",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_incident/system.md",
+      "language": "markdown",
+      "loc": 34,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_incident/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_find_blindspots/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_git_diff_commit/README.md",
+      "language": "markdown",
+      "loc": 11,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_git_diff_commit/system.md",
+      "language": "markdown",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_docs/system.md",
+      "language": "markdown",
+      "loc": 51,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/explain_docs/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/check_falsifiability/README.md",
+      "language": "markdown",
+      "loc": 44,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/check_falsifiability/system.md",
+      "language": "markdown",
+      "loc": 159,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/ask_uncle_duke/system.md",
+      "language": "markdown",
+      "loc": 91,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_prompt/system.md",
+      "language": "markdown",
+      "loc": 29,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_logo/system.md",
+      "language": "markdown",
+      "loc": 20,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_logo/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/concall_summary/system.md",
+      "language": "markdown",
+      "loc": 84,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_prose_pinker/system.md",
+      "language": "markdown",
+      "loc": 134,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/predict_person_actions/system.md",
+      "language": "markdown",
+      "loc": 37,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_newsletter_entry/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_newsletter_entry/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/audit_consent/README.md",
+      "language": "markdown",
+      "loc": 50,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/audit_consent/system.md",
+      "language": "markdown",
+      "loc": 141,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_hackerone_report/README.md",
+      "language": "markdown",
+      "loc": 54,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/write_hackerone_report/system.md",
+      "language": "markdown",
+      "loc": 135,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/recommend_pipeline_upgrades/system.md",
+      "language": "markdown",
+      "loc": 27,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_newsletter/system.md",
+      "language": "markdown",
+      "loc": 35,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/summarize_newsletter/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_reading_plan/system.md",
+      "language": "markdown",
+      "loc": 77,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_summary/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/suggest_gt_command/system.md",
+      "language": "markdown",
+      "loc": 259,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_main_idea/system.md",
+      "language": "markdown",
+      "loc": 26,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_mermaid_visualization_for_github/system.md",
+      "language": "markdown",
+      "loc": 47,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_paper_simple/system.md",
+      "language": "markdown",
+      "loc": 122,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_design_system/system.md",
+      "language": "markdown",
+      "loc": 181,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_patterns/system.md",
+      "language": "markdown",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/youtube_summary/system.md",
+      "language": "markdown",
+      "loc": 41,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/improve_report_finding/system.md",
+      "language": "markdown",
+      "loc": 40,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/improve_report_finding/user.md",
+      "language": "markdown",
+      "loc": 1,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_extract_intro_sentences/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_all_quotes/system.md",
+      "language": "markdown",
+      "loc": 69,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/agility_story/system.md",
+      "language": "markdown",
+      "loc": 21,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/agility_story/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/convert_to_markdown/system.md",
+      "language": "markdown",
+      "loc": 43,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/find_female_life_partner/system.md",
+      "language": "markdown",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_tags/system.md",
+      "language": "markdown",
+      "loc": 25,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/t_describe_life_outlook/system.md",
+      "language": "markdown",
+      "loc": 15,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/extract_insights_dm/system.md",
+      "language": "markdown",
+      "loc": 186,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_coding_project/README.md",
+      "language": "markdown",
+      "loc": 95,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_coding_project/system.md",
+      "language": "markdown",
+      "loc": 42,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/create_upgrade_pack/system.md",
+      "language": "markdown",
+      "loc": 61,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_spiritual_text/system.md",
+      "language": "markdown",
+      "loc": 23,
+      "purpose": ""
+    },
+    {
+      "path": "data/patterns/analyze_spiritual_text/user.md",
+      "language": "markdown",
+      "loc": 0,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/tot.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/cod.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/ltm.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/self-consistent.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/aot.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/cot.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/standard.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/reflexion.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    },
+    {
+      "path": "data/strategies/self-refine.json",
+      "language": "json",
+      "loc": 4,
+      "purpose": ""
+    }
+  ],
+  "loc_total": 105809,
+  "file_count": 758,
+  "primary_language": "markdown",
+  "languages": [
+    "bash",
+    "css",
+    "go",
+    "html",
+    "javascript",
+    "json",
+    "markdown",
+    "python",
+    "svelte",
+    "toml",
+    "typescript",
+    "yaml"
+  ],
+  "architecture_summary": "A multi-tool AI CLI application written in Go with a SvelteKit web frontend. The core functionality uses pattern-based AI prompting (200+ patterns in data/patterns/) to analyze, extract, summarize, and transform text content. Supports multiple AI providers (OpenAI, Anthropic, Ollama, AWS Bedrock, Perplexity, Google Gemini). Includes auxiliary tools for changelog generation, code context extraction, and PDF conversion. The web interface provides a chat UI and pattern browsing. All AI calls are authenticated via environment API keys; the web interface has no authentication layer.",
+  "key_patterns": [
+    "AI Provider abstraction layer (multiple backends)",
+    "Pattern-based prompting system (200+ markdown patterns)",
+    "Cobra CLI framework",
+    "Gin web server for API routes",
+    "SvelteKit reactive frontend",
+    "Git-based changelog generation with merge detection",
+    "GitHub API integration for releases and PRs",
+    "HTML readability extraction",
+    "SQLite caching for changelog generation"
+  ]
+}

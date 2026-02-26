@@ -1,0 +1,26 @@
+{
+  "findings": [],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [],
+      "pass_summary": "",
+      "files_analyzed": 0
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "Found 1 critical (credential storage), 6 high/medium severity issues (XXE, path traversal, DoS via JSON, insecure session formats, header injection, file handling), and 3 low severity items (output encoding, config injection). Primary concerns are unencrypted credential storage in plaintext session files and potential path traversal in file operations.",
+      "files_analyzed": 12
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [],
+      "pass_summary": "Found 11 infrastructure and configuration security issues: 2 high severity (plaintext credentials in sessions, path traversal in downloads), 6 medium severity (insecure directory permissions, certificate validation bypasses, missing HSTS support, verbose error logging, proxy credentials, download timeouts), and 3 low severity (debug info exposure, lack of rate limiting, missing response header validation).",
+      "files_analyzed": 45
+    }
+  ],
+  "total_findings": 0,
+  "critical_count": 0,
+  "high_count": 0
+}

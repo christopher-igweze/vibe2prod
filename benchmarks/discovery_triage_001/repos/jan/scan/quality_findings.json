@@ -1,0 +1,21 @@
+{
+  "findings": [],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": "Found 6 issues with error handling coverage. Critical issue: missing React Error Boundary at app root which will cause complete app crashes on runtime errors."
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": "Found 8 code pattern issues across 5 files. Key findings: magic number 17134 in blurSupport, unused extractReasoningFromMessage function, unsafe type assertions, and hardcoded locale in date formatting."
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [],
+      "pass_summary": ""
+    }
+  ],
+  "total_findings": 0
+}

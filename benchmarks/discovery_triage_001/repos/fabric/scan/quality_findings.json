@@ -1,0 +1,21 @@
+{
+  "findings": [],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": ""
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": ""
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [],
+      "pass_summary": ""
+    }
+  ],
+  "total_findings": 0
+}

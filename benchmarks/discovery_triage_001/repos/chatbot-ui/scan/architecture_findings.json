@@ -1,0 +1,393 @@
+{
+  "findings": [
+    {
+      "id": "F-b43819d5",
+      "title": "God module: chat-components exceeds recommended size with mixed responsibilities",
+      "description": "The chat-components module contains 3200 LOC across 22 files with multiple concerns: UI rendering, state management, file handling, hooks, and helpers. The chat-helpers/index.ts file alone contains 511 LOC mixing unrelated utility functions. This violates single responsibility principle and makes testing and maintenance difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "components/chat/",
+          "line_start": 1,
+          "line_end": 3200,
+          "snippet": "22 files with mixed concerns: chat-input.tsx, chat-messages.tsx, chat-ui.tsx, chat-settings.tsx, chat-files-display.tsx, file-picker.tsx, tool-picker.tsx, assistant-picker.tsx, prompt-picker.tsx, quick-settings.tsx, chat-command-input.tsx, chat-help.tsx, chat-retrieval-settings.tsx, chat-scroll-buttons.tsx, chat-secondary-buttons.tsx, quick-setting-option.tsx, chat-helpers/index.ts (511 LOC), use-chat-handler.tsx (422 LOC), use-chat-history.tsx, use-prompt-and-command.tsx, use-scroll.tsx, use-select-file-handler.tsx"
+        },
+        {
+          "file_path": "components/chat/chat-helpers/index.ts",
+          "line_start": 1,
+          "line_end": 511,
+          "snippet": "Large utility file mixing file handling, message building, streaming logic, and state transformations"
+        },
+        {
+          "file_path": "components/chat/chat-hooks/use-chat-handler.tsx",
+          "line_start": 1,
+          "line_end": 422,
+          "snippet": "Complex hook handling chat submission, file processing, streaming, and state management"
+        }
+      ],
+      "suggested_fix": "Decompose chat-components into focused sub-modules: chat-core (UI shell), chat-input-management (input-related logic), chat-file-handling (file operations), chat-streaming (message rendering with streaming), chat-state-management (hooks). Move 511 LOC from chat-helpers/index.ts into domain-specific utilities: file-utils.ts, message-utils.ts, streaming-utils.ts.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8459224d",
+      "title": "Missing abstraction layer between API routes and database operations",
+      "description": "API routes (app/api/chat/*, app/api/retrieval/*) directly import and call database functions from db/ module. There is no service/repository pattern abstraction. Changes to database schema require modifications across multiple API routes, creating tight coupling and increasing bug risk.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 1,
+          "line_end": 58,
+          "snippet": "API route directly calling db functions for messages, chats, files"
+        },
+        {
+          "file_path": "app/api/chat/anthropic/route.ts",
+          "line_start": 1,
+          "line_end": 111,
+          "snippet": "API route directly calling db functions for assistants, tools, messages"
+        },
+        {
+          "file_path": "app/api/retrieval/process/route.ts",
+          "line_start": 1,
+          "line_end": 175,
+          "snippet": "API route directly calling db.files, db.collections, storage functions"
+        },
+        {
+          "file_path": "db/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "24 database files with no service layer abstraction: chats.ts, messages.ts, assistants.ts, assistant-tools.ts, assistant-files.ts, models.ts, presets.ts, prompts.ts, tools.ts, files.ts, folders.ts, collections.ts, collection-files.ts, chat-files.ts, message-file-items.ts, workspaces.ts, profile.ts, limits.ts, storage/*"
+        }
+      ],
+      "suggested_fix": "Create lib/services/ layer with domain-focused service classes: ChatService (handles chat creation, message persistence), AssistantService (assistant CRUD and tool/file assignments), FileService (file processing, storage, retrieval), RetrievalService (embedding, vector search). API routes should depend on services, not db directly. Services encapsulate all database access patterns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6f49eeb4",
+      "title": "Inconsistent state management patterns across chat and sidebar components",
+      "description": "Chat state is managed via React Context (context-providers), hooks (use-chat-handler.tsx, use-chat-history.tsx), and local component state. Sidebar uses similar patterns but with different conventions. This creates confusion and makes refactoring state difficult. Some components lift state unnecessarily high (workspace-level) when they could be local.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "context/context.tsx",
+          "line_start": 1,
+          "line_end": 265,
+          "snippet": "Global context for workspace, chats, assistants, models, files, presets, prompts, tools, collections managing app-level state"
+        },
+        {
+          "file_path": "components/chat/chat-hooks/use-chat-handler.tsx",
+          "line_start": 1,
+          "line_end": 422,
+          "snippet": "Custom hook with extensive local state management for chat submission and streaming"
+        },
+        {
+          "file_path": "components/sidebar/sidebar-data-list.tsx",
+          "line_start": 1,
+          "line_end": 344,
+          "snippet": "Sidebar component managing local state for items and using context simultaneously"
+        },
+        {
+          "file_path": "components/utility/global-state.tsx",
+          "line_start": 1,
+          "line_end": 331,
+          "snippet": "Additional global state management component creating parallel state system"
+        }
+      ],
+      "suggested_fix": "Standardize state management: (1) Use React Context only for truly global state (user, workspace, theme). (2) Use local state + hooks for feature-specific state (chat, sidebar items). (3) Create custom hooks (useChat, useSidebar, useAssistants) that encapsulate state logic. (4) Remove redundant state from global-state.tsx and consolidate into context.tsx. (5) Document state ownership at module level.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-71d6c76b",
+      "title": "Sidebar component module has high complexity and mixed concerns",
+      "description": "sidebar-components contains 2800 LOC across 34 files handling multiple entity types (chats, assistants, models, prompts, files, folders, presets, tools, collections) with separate CRUD operations for each. The sidebar-update-item.tsx file is 680 LOC, and sidebar-data-list.tsx is 344 LOC. This creates a maintainability burden when adding new entity types.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "components/sidebar/items/all/sidebar-update-item.tsx",
+          "line_start": 1,
+          "line_end": 680,
+          "snippet": "Massive component handling update logic for 8+ different entity types with conditional rendering"
+        },
+        {
+          "file_path": "components/sidebar/sidebar-data-list.tsx",
+          "line_start": 1,
+          "line_end": 344,
+          "snippet": "Complex data list rendering with filters, search, and type-specific rendering logic"
+        },
+        {
+          "file_path": "components/sidebar/items/all/",
+          "line_start": 1,
+          "line_end": 1200,
+          "snippet": "Four large files (sidebar-create-item.tsx 254 LOC, sidebar-delete-item.tsx 142 LOC, sidebar-display-item.tsx 127 LOC) handling generic CRUD across multiple entity types"
+        }
+      ],
+      "suggested_fix": "Refactor sidebar into entity-specific modules: chat-sidebar, assistant-sidebar, file-sidebar, etc. Each module owns its CRUD operations. Create abstraction: ItemRenderer interface with specific implementations (ChatRenderer, AssistantRenderer). Use composition over conditionals in sidebar-data-list.tsx. Extract generic CRUD logic into useSidebarItem hook. This reduces sidebar-update-item.tsx from 680 LOC to <150 LOC per entity.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-cca89594",
+      "title": "API routes layer lacks consistent error handling and validation",
+      "description": "API routes across chat, retrieval, and assistants endpoints have inconsistent error handling patterns. Some routes validate input, others don't. Error responses vary in format. No centralized request validation or error boundary exists, making API contract unstable and client error handling inconsistent.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 1,
+          "line_end": 58,
+          "snippet": "Minimal validation, direct error throws without consistent response format"
+        },
+        {
+          "file_path": "app/api/chat/tools/route.ts",
+          "line_start": 1,
+          "line_end": 218,
+          "snippet": "Complex tool execution logic without centralized validation or error handling"
+        },
+        {
+          "file_path": "app/api/retrieval/process/route.ts",
+          "line_start": 1,
+          "line_end": 175,
+          "snippet": "File processing without consistent error handling across multiple processing paths"
+        },
+        {
+          "file_path": "app/api/retrieval/retrieve/route.ts",
+          "line_start": 1,
+          "line_end": 102,
+          "snippet": "Vector retrieval without input validation or error standardization"
+        }
+      ],
+      "suggested_fix": "Create lib/api/request-handler.ts wrapper with: (1) Automatic JWT validation via middleware, (2) Zod schema validation for request bodies, (3) Standardized error response format, (4) Error logging and telemetry. Create lib/api/error-handler.ts with typed error classes (ValidationError, NotFoundError, ServerError). Update all routes to use wrapper. Example: const handler = createApiHandler(z.object({...}), async (req, validated) => {...})",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-958d2c7e",
+      "title": "Configuration values scattered across codebase without centralized config module",
+      "description": "Magic numbers and configuration strings are hardcoded in multiple files: API timeouts in chat routes, embedding limits in retrieval, token limits in chat-setting-limits.ts, model context windows in lib/models/. No single source of truth for configuration, making it difficult to adjust system parameters.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "lib/chat-setting-limits.ts",
+          "line_start": 1,
+          "line_end": 240,
+          "snippet": "Chat-specific limits defined locally without connection to model configuration"
+        },
+        {
+          "file_path": "lib/models/llm/openai-llm-list.ts",
+          "line_start": 1,
+          "line_end": 90,
+          "snippet": "Model context windows and token limits hardcoded in model list files"
+        },
+        {
+          "file_path": "app/api/chat/tools/route.ts",
+          "line_start": 1,
+          "line_end": 218,
+          "snippet": "Tool execution timeouts and retry logic with hardcoded values"
+        },
+        {
+          "file_path": "components/chat/chat-files-display.tsx",
+          "line_start": 1,
+          "line_end": 283,
+          "snippet": "File size limits hardcoded in component logic"
+        }
+      ],
+      "suggested_fix": "Create lib/config/index.ts exporting: CHAT_LIMITS (max tokens, timeout, retry count), MODEL_CONFIG (context windows by provider), FILE_CONFIG (max size, allowed types), API_CONFIG (endpoints, timeouts). Import throughout codebase. Use environment variables for environment-specific values. This creates single source of truth for all configuration.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fe4b0aa5",
+      "title": "Type definitions scattered across types/ directory without clear organizational structure",
+      "description": "The types/ directory has 19 files with minimal organization. Related types are split across files (chat.ts, chat-message.ts, chat-file.tsx). No clear dependency hierarchy between type files. Adding new entity types requires decisions about where to define types, leading to inconsistency.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "types/index.ts",
+          "line_start": 1,
+          "line_end": 15,
+          "snippet": "Re-exports all types without clear organization or documentation"
+        },
+        {
+          "file_path": "types/",
+          "line_start": 1,
+          "line_end": 500,
+          "snippet": "Fragmented types: chat.ts, chat-message.ts, chat-file.tsx, collection-file.ts, content-type.ts, error-response.ts, file-item-chunk.ts, key-type.ts, llms.ts, models.ts, sharing.ts, sidebar-data.ts, valid-keys.ts, announcement.ts, assistant-retrieval-item.ts, images/*"
+        }
+      ],
+      "suggested_fix": "Reorganize types/ as: domains/ (chat/, assistant/, file/, model/, user/), core/ (error-response.ts, content-type.ts, valid-keys.ts), api/ (request/response types). Group related types: types/domains/chat/ contains Chat, ChatMessage, ChatFile types. Clear dependency tree with core as foundation.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ead07def",
+      "title": "Retrieval processing module has potential bottleneck with sequential file processing",
+      "description": "The retrieval-processing module (lib/retrieval/) handles file parsing and embedding sequentially. Files like PDF, DOCX, CSV are processed one at a time. The API route (app/api/retrieval/process) doesn't support batch processing. As file volumes grow, this becomes a performance bottleneck with no clear async processing queue or job management.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "lib/retrieval/processing/index.ts",
+          "line_start": 1,
+          "line_end": 9,
+          "snippet": "Sequential file processing without async/queue abstraction"
+        },
+        {
+          "file_path": "app/api/retrieval/process/route.ts",
+          "line_start": 1,
+          "line_end": 175,
+          "snippet": "Single file processing per request, no batch or queue support"
+        }
+      ],
+      "suggested_fix": "Create lib/retrieval/queue-processor.ts with job abstraction for async file processing. Implement batch processing in app/api/retrieval/process route. Add lib/retrieval/embedding-cache.ts to cache embeddings and avoid reprocessing. Future: add Redis-backed queue (Bull or similar) for scale.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0396fe09",
+      "title": "UI components library (ui-components) lacks semantic organization despite large size",
+      "description": "The components/ui/ directory contains 52 files of Radix UI wrapper components with no clear organization. Primitives (button, input, dialog) are mixed with composite components (chat-settings-form, advanced-settings) and utilities (with-tooltip, use-toast). This makes discovery difficult and increases chances of duplicating components.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "components/ui/",
+          "line_start": 1,
+          "line_end": 2200,
+          "snippet": "52 files mixing: primitives (button.tsx, input.tsx, textarea.tsx, dialog.tsx, etc.), composites (chat-settings-form.tsx, advanced-settings.tsx, dashboard.tsx), utilities (with-tooltip.tsx, use-toast.ts, file-icon.tsx)"
+        }
+      ],
+      "suggested_fix": "Reorganize components/ui/ into: primitives/ (button, input, textarea, dialog, etc.), forms/ (form.tsx, chat-settings-form.tsx), composites/ (dashboard.tsx, command.tsx), utilities/ (with-tooltip.tsx, file-icon.tsx), hooks/ (use-toast.ts). Update index.ts to clearly export from each category. Add README documenting which component to use for different scenarios.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-953985f5",
+      "title": "Tight coupling between chat UI and database operations via context",
+      "description": "The context.tsx (265 LOC) directly manages all entity CRUD operations (create, update, delete chats, messages, assistants, etc.). Components throughout the app directly call these methods. This couples UI rendering directly to database operations with no separation of concerns. Testing UI components requires mocking entire database layer.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "context/context.tsx",
+          "line_start": 1,
+          "line_end": 265,
+          "snippet": "Context handling simultaneous concerns: state management, database operations, async loading, error handling across 8+ entity types"
+        },
+        {
+          "file_path": "components/sidebar/items/chat/update-chat.tsx",
+          "line_start": 1,
+          "line_end": 76,
+          "snippet": "Component directly calling context database methods: updateChat, deleteChat"
+        },
+        {
+          "file_path": "components/chat/chat-hooks/use-chat-handler.tsx",
+          "line_start": 1,
+          "line_end": 422,
+          "snippet": "Hook directly calling context methods for message persistence"
+        }
+      ],
+      "suggested_fix": "Refactor context.tsx into three layers: (1) UIContext (state + loading/error states only), (2) ApiLayer (service classes calling API routes), (3) Components use only UIContext and ApiLayer. Move all db operations to lib/services/. Example: context provides updateChatAsync which calls ChatService.updateChat which calls /api/chats/{id}. Components don't know about database.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-173e8ad5",
+      "title": "Workspace isolation not enforced at database layer - relies on application logic",
+      "description": "Workspace-scoped data access is implemented in components and API routes (checking workspace_id before queries) but not at database layer. If someone misses the check in one place, data leaks between workspaces. No row-level security (RLS) policies enforced in Supabase, no service layer validation before database access.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "db/chats.ts",
+          "line_start": 1,
+          "line_end": 81,
+          "snippet": "Chat database functions accept workspace_id but don't enforce access control at database layer"
+        },
+        {
+          "file_path": "db/assistants.ts",
+          "line_start": 1,
+          "line_end": 184,
+          "snippet": "Assistant queries require workspace_id parameter but no RLS policies guard access"
+        },
+        {
+          "file_path": "app/api/chat/openai/route.ts",
+          "line_start": 1,
+          "line_end": 58,
+          "snippet": "API route checks workspace_id manually without centralized authorization"
+        }
+      ],
+      "suggested_fix": "Implement Supabase RLS policies: all SELECT/UPDATE/DELETE operations on tenant-scoped tables require user_id match AND workspace_id match. Add authorization service in lib/services/auth-service.ts that validates workspace access before all operations. Example: await AuthService.validateWorkspaceAccess(userId, workspaceId) before any db call. Add tests verifying RLS prevents cross-workspace access.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 48,
+  "coupling_assessment": "High coupling between multiple layers: API routes directly import database functions (no service abstraction), context tightly couples UI state to database operations, components directly call database mutation methods. Workspace isolation relies on application logic rather than database constraints, creating security risks. Changes to database schema require updates across API routes, components, and hooks.",
+  "layering_assessment": "Incomplete and inconsistent layering. Application has 5+ semi-defined layers with unclear boundaries: Components \u2192 Context \u2192 Database (missing Service layer), Components \u2192 Hooks \u2192 API Routes \u2192 Database (missing validation layer), Components \u2192 Utilities \u2192 Database (missing abstraction). Type system provides some structure but many database functions lack input validation. No request/response standardization between API routes and frontend.",
+  "summary": "The codebase has significant structural issues affecting maintainability and security (score: 48/100). Most critical: missing service abstraction layer causes tight coupling between API routes and database (high severity), workspace isolation enforced in code rather than database RLS policies (high severity), and inconsistent state management patterns across chat/sidebar components (medium severity). Secondary issues include oversized chat-components module (3200 LOC), configuration values scattered throughout, and complex sidebar component lacking abstraction for entity-specific operations. These issues will compound as the application grows, making refactoring increasingly difficult. Recommend prioritizing service layer introduction and workspace RLS enforcement before adding major features."
+}

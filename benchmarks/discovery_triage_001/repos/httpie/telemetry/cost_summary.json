@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestMediumSimple::test_discover_httpie",
+  "total_cost_usd": 0.5956,
+  "total_tokens": 381882,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 152737,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.0338,
+    "codebase_analyst": 0.0035,
+    "fix_strategist": 0.0532,
+    "quality_auditor/code_patterns": 0.0282,
+    "quality_auditor/error_handling": 0.0274,
+    "quality_auditor/performance": 0.0263,
+    "security_auditor/auth_flow": 0.1324,
+    "security_auditor/data_handling": 0.1343,
+    "security_auditor/infrastructure": 0.1311,
+    "triage_classifier": 0.0253
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.5101,
+    "minimax/minimax-m2.5": 0.0855
+  },
+  "training_pairs_logged": 0
+}

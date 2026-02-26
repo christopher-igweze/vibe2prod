@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        h3 { font-size: 1rem; color: #334155; margin: 1rem 0 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .arch-summary { color: #475569; line-height: 1.6; margin-bottom: 1rem; white-space: pre-line; }
+        .arch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        .arch-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; }
+        .arch-card h4 { font-size: 0.85rem; color: #0f172a; margin-bottom: 0.5rem; }
+        .arch-card .mono { font-family: monospace; font-size: 0.8rem; color: #475569; }
+        .flow-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .flow-arrow { color: #94a3b8; flex-shrink: 0; }
+        .flow-src, .flow-dst { font-family: monospace; font-size: 0.78rem; color: #334155; }
+        .flow-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .flow-auth { font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; }
+        .flow-auth.yes { background: #f0fdf4; color: #166534; }
+        .flow-auth.no { background: #fef2f2; color: #991b1b; }
+        .auth-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; font-size: 0.8rem; }
+        .auth-path { font-family: monospace; font-size: 0.78rem; color: #334155; flex: 1; }
+        .auth-badge { font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+        .auth-badge.protected { background: #f0fdf4; color: #166534; }
+        .auth-badge.unprotected { background: #fef2f2; color: #991b1b; }
+        .auth-type { font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 3px; }
+        .impact { margin-top: 0.25rem; }
+        .flow-tag { display: inline-block; font-size: 0.7rem; color: #6366f1; background: #eef2ff; padding: 1px 6px; border-radius: 3px; margin-right: 4px; font-family: monospace; }
+        .pattern-tag { display: inline-block; font-size: 0.75rem; color: #475569; background: #f1f5f9; padding: 2px 8px; border-radius: 4px; margin: 2px 4px 2px 0; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .arch-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: a3098ce8b5e7 &bull; Generated: 2026-02-26 01:40 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>27 findings</span>
+        <span>189s runtime</span>
+        <span>$0.9520 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box high"><div class="num">10</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">13</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">4</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>Architecture Context</h2>
+<div class="arch-summary">Jan is a local AI inference platform built as a Tauri desktop application with a React frontend. The architecture consists of: (1) Web UI layer using React 18 with i18n support, (2) Tauri native bridge providing IPC between frontend and backend, (3) Core TypeScript engine handling events, extensions, and model management, (4) Pluggable inference extensions supporting llama.cpp for general CPUs, MLX for Apple Silicon, RAG for document retrieval, and vector DB for embeddings, (5) Optional external API integration for cloud models (OpenAI, Anthropic, etc.). The app runs entirely locally with no mandatory cloud dependencies.</div>
+<div class="arch-grid"><div class="arch-card"><h4>Modules (14)</h4><div class="mono">core/src/ &mdash; Core inference engine providing the underlying AI runtime, event system, and extension interfaces for model management and execution (12000 LOC)</div>
+<div class="mono">web-app/src/ &mdash; React 18 frontend application providing the user interface for chat, model management, settings, and system monitoring (25000 LOC)</div>
+<div class="mono">extensions/llamacpp-extension/src/ &mdash; Llama.cpp inference backend extension providing local LLM inference using GGML/GGUF models (800 LOC)</div>
+<div class="mono">extensions/mlx-extension/src/ &mdash; Apple MLX framework extension for Metal-accelerated inference on Apple Silicon Macs (200 LOC)</div>
+<div class="mono">extensions/rag-extension/src/ &mdash; Retrieval-Augmented Generation extension providing document chunking, embedding, and retrieval capabilities (300 LOC)</div>
+<div class="mono">extensions/vector-db-extension/src/ &mdash; Vector database extension for storing and querying embeddings using local storage (200 LOC)</div>
+<div class="mono">extensions/assistant-extension/src/ &mdash; Assistant extension providing AI assistant management and conversation handling (150 LOC)</div>
+<div class="mono">extensions/conversational-extension/src/ &mdash; Conversational AI extension for multi-turn dialogue management and context handling (150 LOC)</div>
+<div class="mono">extensions/download-extension/src/ &mdash; Model download extension for fetching and managing model files from HuggingFace and other sources (150 LOC)</div>
+<div class="mono">mlx-server/Sources/MLXServer/ &mdash; Swift-based MLX server providing OpenAI-compatible API for Apple Silicon Metal acceleration (500 LOC)</div>
+<div class="mono">src-tauri/ &mdash; Tauri 2 desktop application providing native window management, system tray, and IPC bridge between web frontend and core engine (5000 LOC)</div>
+<div class="mono">docs/ &mdash; Docusaurus-based documentation website with blog, changelog, API reference, and download pages (5000 LOC)</div>
+</div><div class="arch-card"><h4>Entry Points (11)</h4><div class="mono">web-app/src/main.tsx <span class="flow-type">ui</span> (public)</div>
+<div class="mono">src-tauri/src/main.rs <span class="flow-type">desktop_app</span> (public)</div>
+<div class="mono">core/src/index.ts <span class="flow-type">library</span> (internal)</div>
+<div class="mono">extensions/llamacpp-extension/src/index.ts <span class="flow-type">extension</span> (internal)</div>
+<div class="mono">extensions/mlx-extension/src/index.ts <span class="flow-type">extension</span> (internal)</div>
+<div class="mono">extensions/rag-extension/src/index.ts <span class="flow-type">extension</span> (internal)</div>
+<div class="mono">extensions/vector-db-extension/src/index.ts <span class="flow-type">extension</span> (internal)</div>
+<div class="mono">extensions/assistant-extension/src/index.ts <span class="flow-type">extension</span> (internal)</div>
+</div></div>
+<h3>Key Patterns</h3><div style="margin-bottom:1rem"><span class="pattern-tag">Tauri IPC pattern - frontend communicates with core via Tauri commands/events</span> <span class="pattern-tag">Extension plugin pattern - inference backends loaded as plugins</span> <span class="pattern-tag">Event-driven architecture - Core uses typed events for all state changes</span> <span class="pattern-tag">Model Manager pattern - centralized model download, loading, and lifecycle</span> <span class="pattern-tag">Tool Approval pattern - MCP tools require user consent before execution</span> <span class="pattern-tag">OpenAI-compatible API - MLX server exposes OpenAI API for integration</span> <span class="pattern-tag">i18n pattern - full internationalization with 14 language locales</span> <span class="pattern-tag">Vitest testing - unit tests with coverage using Vitest framework</span></div>
+<h3>Data Flows (10)</h3>
+<div class="flow-row"><span class="flow-src">Web UI (React)</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Tauri IPC Bridge</span> <span class="flow-type">user commands (chat, settings, model selection)</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Tauri IPC Bridge</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Core Engine</span> <span class="flow-type">API calls, event streams</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Core Engine</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Llama.cpp Extension</span> <span class="flow-type">inference requests, model parameters</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Core Engine</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">MLX Extension</span> <span class="flow-type">inference requests for Apple Silicon</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Llama.cpp Extension</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Local GGUF/GGML Models</span> <span class="flow-type">prompt tokens, inference output</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">RAG Extension</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Vector DB Extension</span> <span class="flow-type">text chunks, embeddings</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Web UI</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">External Model APIs (OpenAI, Anthropic, etc.)</span> <span class="flow-type">API requests for cloud models</span> <span class="flow-auth yes">auth</span></div>
+<div class="flow-row"><span class="flow-src">Web UI</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Download Extension</span> <span class="flow-type">model download requests</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">Download Extension</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">HuggingFace/Model Repos</span> <span class="flow-type">model file downloads</span> <span class="flow-auth no">no auth</span></div>
+<div class="flow-row"><span class="flow-src">MLX Server</span><span class="flow-arrow">&rarr;</span><span class="flow-dst">Core Engine via OpenAI API</span> <span class="flow-type">inference requests</span> <span class="flow-auth no">no auth</span></div>
+
+<h3>Auth Boundaries (4)</h3>
+<div class="auth-row"><span class="auth-path">/settings/*</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+<div class="auth-row"><span class="auth-path">/models/*</span><span class="auth-badge unprotected">unprotected</span> <span class="auth-type">none</span></div>
+<div class="auth-row"><span class="auth-path">/api/tools/*</span><span class="auth-badge protected">protected</span> <span class="auth-type">tool_approval</span></div>
+<div class="auth-row"><span class="auth-path">/api/providers/*</span><span class="auth-badge protected">protected</span> <span class="auth-type">api_key</span></div>
+
+<h3>Finding Hotspots by Module</h3>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">web-app</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">22</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">llamacpp-extension</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:100%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">7</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">src-tauri</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:75%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">5</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">mlx-extension</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:60%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">4</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">rag-extension</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:45%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">3</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">mlx-server</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">2</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">download-extension</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">2</span></div>
+<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem"><span style="width:160px;font-size:0.8rem;font-family:monospace">vector-db-extension</span><div style="flex:1;height:16px;background:#e2e8f0;border-radius:4px;overflow:hidden"><div style="width:15%;height:100%;background:#6366f1;border-radius:4px"></div></div><span style="font-size:0.8rem;font-weight:600;width:30px;text-align:right">1</span></div>
+
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Weak API Key Generation Using Hardcoded Secrets</strong>
+                <div class="desc">The MLX and llamacpp extensions generate API keys using hardcoded string constants ('JanMLX' and 'JustAskNow') as API secrets. These are not cryptographically secure and are reused across all instances. An attacker who discovers these constants can forge valid API keys for any model.</div>
+                
+            </td>
+            <td class="loc">extensions/mlx-extension/src/index.ts:58</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing Authentication on MLX HTTP Server Chat Endpoint</strong>
+                <div class="desc">While the MLX server validates the Authorization header with `Bearer {apiKey}`, the validation only checks if apiKey is non-empty. An attacker can send any bearer token as long as it's not empty. Additionally, no rate limiting or session validation is performed.</div>
+                
+            </td>
+            <td class="loc">mlx-server/Sources/MLXServer/Server.swift:45</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>HuggingFace Token Stored in Application Memory Without Encryption</strong>
+                <div class="desc">The HuggingFace token in the download extension is retrieved via `getSetting()` and stored in plaintext in the `hfToken` property. If the application process is compromised or memory is dumped, the token is exposed.</div>
+                
+            </td>
+            <td class="loc">extensions/download-extension/src/index.ts:23</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Authorization for Assistant and Thread Operations</strong>
+                <div class="desc">The conversational extension provides methods to create, modify, and delete threads/assistants/messages without any authorization context. There is no verification that the requesting user/entity should have access to a specific thread.</div>
+                
+            </td>
+            <td class="loc">extensions/conversational-extension/src/index.ts:20</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>Insufficient Input Validation on File Upload Paths</strong>
+                <div class="desc">The RAG extension accepts file paths for ingestion but performs minimal validation. An attacker could potentially use path traversal (e.g., '../../../etc/passwd') to access files outside the intended directory.</div>
+                
+            </td>
+            <td class="loc">extensions/rag-extension/src/index.ts:243</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: web-app/src/containers/ChatInput.tsx exceeds 1800 LOC</strong>
+                <div class="desc">The ChatInput container component has grown to 1888 LOC, combining chat input handling, attachment processing, model selection, tool approval, and message submission. This violates single responsibility principle and makes testing/maintenance difficult.</div>
+                
+            </td>
+            <td class="loc">web-app/src/containers/ChatInput.tsx:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: extensions/llamacpp-extension/src/index.ts exceeds 2200 LOC</strong>
+                <div class="desc">The llama.cpp extension's main file contains 2294 LOC with mixed responsibilities: model loading, backend management, inference execution, device handling, and settings management all in a single file.</div>
+                
+            </td>
+            <td class="loc">extensions/llamacpp-extension/src/index.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: extensions/mlx-extension/src/index.ts exceeds 1000 LOC</strong>
+                <div class="desc">MLX extension main file contains 1013 LOC covering model loading, inference, device detection, and Apple Silicon-specific optimizations without clear separation of concerns.</div>
+                
+            </td>
+            <td class="loc">extensions/mlx-extension/src/index.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: src-tauri/src/core/server/proxy.rs exceeds 2000 LOC</strong>
+                <div class="desc">The proxy module contains 2016 LOC implementing reverse proxy logic, request routing, response handling, streaming, and error handling all in one file. This is a critical bottleneck for maintainability.</div>
+                
+            </td>
+            <td class="loc">src-tauri/src/core/server/proxy.rs:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>High coupling: web-app hooks depend on multiple service layers</strong>
+                <div class="desc">Web-app hooks (useThreads, useModelProvider, useHardware, etc.) directly depend on service implementations, creating tight coupling. Changes to service interfaces force hook updates across the application.</div>
+                
+            </td>
+            <td class="loc">web-app/src/hooks/useThreads.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Authentication Required for Vector DB Operations</strong>
+                <div class="desc">The vector database extension provides no authentication mechanism. Any code that can call these functions (file ingestion, search, deletion) can access all vector collections and attachments without any authorization checks.</div>
+                
+            </td>
+            <td class="loc">extensions/vector-db-extension/src/index.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Protection Against Concurrent Session Overload</strong>
+                <div class="desc">The extension managers allow multiple models to be loaded concurrently and only implement auto-unload of other models. Without proper session management, an attacker could potentially load many models simultaneously to cause resource exhaustion or DoS.</div>
+                
+            </td>
+            <td class="loc">extensions/llamacpp-extension/src/index.ts:250</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unvalidated Backend String Leading to Potential Deserialization Attack</strong>
+                <div class="desc">The `version_backend` setting accepts user input and uses it directly to parse backend configurations. Malicious input could cause incorrect backend selection or expose path traversal vulnerabilities.</div>
+                
+            </td>
+            <td class="loc">extensions/llamacpp-extension/src/index.ts:201</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No Rate Limiting on Model Loading Endpoint</strong>
+                <div class="desc">The load endpoint can be called repeatedly without rate limiting, potentially allowing an attacker to exhaust system resources or trigger a denial of service by attempting to load multiple models in quick succession.</div>
+                
+            </td>
+            <td class="loc">extensions/mlx-extension/src/index.ts:142</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction layer: Direct Tauri IPC calls scattered across web-app</strong>
+                <div class="desc">Web-app services directly invoke Tauri IPC commands throughout (tauri.invoke) without a consistent abstraction. This couples frontend to Tauri implementation details.</div>
+                
+            </td>
+            <td class="loc">web-app/src/services/index.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent dependency injection patterns across extensions</strong>
+                <div class="desc">Extension modules use inconsistent patterns for dependency management. Some use direct imports, others use event listeners, creating unpredictable coupling patterns.</div>
+                
+            </td>
+            <td class="loc">extensions/rag-extension/src/index.ts:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Unclear responsibility boundaries: services vs containers in web-app</strong>
+                <div class="desc">The distinction between service responsibilities and container component responsibilities is blurred. Containers like MessageItem (442 LOC) and DropdownModelProvider (697 LOC) contain business logic that should be in services.</div>
+                
+            </td>
+            <td class="loc">web-app/src/containers/MessageItem.tsx:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing configuration abstraction: hardcoded values and constants scattered</strong>
+                <div class="desc">Configuration values are spread across constants files and hardcoded in implementation files. Constants are defined separately (providers.ts, routes.ts, chat.ts) without a unified configuration system.</div>
+                
+            </td>
+            <td class="loc">web-app/src/constants/providers.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Circular dependency risk: providers and hooks interdependency</strong>
+                <div class="desc">Web-app providers (DataProvider, ExtensionProvider, etc.) and hooks share tight interdependencies. DataProvider manages global state while hooks read from it, but hooks also update state through services that feed back to DataProvider.</div>
+                
+            </td>
+            <td class="loc">web-app/src/providers/DataProvider.tsx:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Large hook files with multiple responsibilities</strong>
+                <div class="desc">Several hook files exceed 300+ LOC and combine multiple concerns. useLocalApiServer (352 LOC), useBackendUpdater (352 LOC), useTokensCount (270 LOC), and useModelProvider (509 LOC) should be split.</div>
+                
+            </td>
+            <td class="loc">web-app/src/hooks/useModelProvider.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing adapter/bridge pattern between core and Tauri</strong>
+                <div class="desc">src-tauri acts as bridge between TypeScript core and native backend, but lacks clear adapter pattern. Commands are scattered across multiple files without unified request/response contracts.</div>
+                
+            </td>
+            <td class="loc">src-tauri/src/core/app/commands.rs:1</td>
+            <td><span class="tier">T3</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Cross-cutting concern: authentication/authorization scattered across codebase</strong>
+                <div class="desc">Tool approval, API key validation, and permission checks are implemented inconsistently across hooks, services, and containers without a unified security layer.</div>
+                
+            </td>
+            <td class="loc">web-app/src/hooks/useToolApproval.ts:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent error handling patterns across modules</strong>
+                <div class="desc">Error handling varies significantly: some modules use Result types, others use exceptions, some use error callbacks. No consistent error boundary or logging strategy.</div>
+                
+            </td>
+            <td class="loc">src-tauri/src/core/server/proxy.rs:1</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Plaintext Storage of Session ID in Browser localStorage</strong>
+                <div class="desc">The llamacpp extension stores the backend type preference in localStorage without encryption. While not highly sensitive, localStorage is vulnerable to XSS attacks and can be accessed by any JavaScript in the same origin.</div>
+                
+            </td>
+            <td class="loc">extensions/llamacpp-extension/src/index.ts:138</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing CSRF Protection for Chat Completion Requests</strong>
+                <div class="desc">The MLX server accepts POST requests to `/v1/chat/completions` without CSRF token validation. While Tauri desktop apps have some inherent protection, the lack of explicit CSRF handling is a security gap.</div>
+                
+            </td>
+            <td class="loc">mlx-server/Sources/MLXServer/Server.swift:54</td>
+            <td><span class="tier">T1</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Lack of clear testing layer boundaries</strong>
+                <div class="desc">Tests are co-located with source files but don't follow consistent mocking/stubbing patterns. Integration tests vs unit tests boundaries are unclear.</div>
+                
+            </td>
+            <td class="loc">web-app/src/hooks/__tests__/:1</td>
+            <td><span class="tier">T2</span></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Incoherent localization system: i18n scattered across layers</strong>
+                <div class="desc">i18n is implemented at multiple levels (web-app, docs) with different strategies. Translation keys and loading mechanisms are not unified across the platform.</div>
+                
+            </td>
+            <td class="loc">web-app/src/i18n/setup.ts:1</td>
+            <td><span class="tier">T2</span></td>
+        </tr></tbody>
+    </table>
+
+    
+        <h2>Remediation Plan (27 items across 4 levels)</h2>
+        <p class="plan-summary">27 actionable remediation items across 4 execution levels. Level 1 (6 items): Input validation, secrets, CSRF hardening. Level 2 (11 items): Authentication enforcement, token management, architecture abstraction. Level 3 (7 items): Authorization checks, hook/container refactoring, service decomposition. Level 4 (3 items): Large module decomposition (god module fixes). Critical path: API secret generation (F-7d74336a) → auth validation (F-de3ebc7f) → token security (F-1f437170). Architecture improvements can proceed in parallel. No findings deferred; all are actionable within development capacity.</p>
+        <table>
+            <thead><tr><th>Priority</th><th>Tier</th><th>Fix</th><th>Files</th></tr></thead>
+            <tbody>
+            <tr>
+                <td>P1</td>
+                <td>T1</td>
+                <td><strong>Replace hardcoded API secrets with cryptographically secure random generation</strong></td>
+                <td>extensions/mlx-extension/src/index.ts, extensions/llamacpp-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P2</td>
+                <td>T1</td>
+                <td><strong>Implement strict authentication validation on MLX HTTP endpoints</strong></td>
+                <td>mlx-server/Sources/MLXServer/Server.swift</td>
+            </tr>
+            <tr>
+                <td>P3</td>
+                <td>T2</td>
+                <td><strong>Secure HuggingFace token storage using system keychain</strong></td>
+                <td>extensions/download-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P4</td>
+                <td>T2</td>
+                <td><strong>Add path traversal protection and input validation for file uploads</strong></td>
+                <td>extensions/rag-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P5</td>
+                <td>T3</td>
+                <td><strong>Implement thread/message ownership verification in conversational extension</strong></td>
+                <td>extensions/conversational-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P6</td>
+                <td>T3</td>
+                <td><strong>Add access control checks to vector database operations</strong></td>
+                <td>extensions/vector-db-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P7</td>
+                <td>T1</td>
+                <td><strong>Validate backend string format against whitelist</strong></td>
+                <td>extensions/llamacpp-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P8</td>
+                <td>T2</td>
+                <td><strong>Implement session limits and load request throttling</strong></td>
+                <td>extensions/llamacpp-extension/src/index.ts, extensions/mlx-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P9</td>
+                <td>T1</td>
+                <td><strong>Add rate limiting to model loading endpoints</strong></td>
+                <td>extensions/mlx-extension/src/index.ts, extensions/llamacpp-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P10</td>
+                <td>T3</td>
+                <td><strong>Refactor ChatInput container into smaller focused components</strong></td>
+                <td>web-app/src/containers/ChatInput.tsx, web-app/src/containers/ChatInputField.tsx, web-app/src/containers/AttachmentPanel.tsx</td>
+            </tr>
+            <tr>
+                <td>P11</td>
+                <td>T3</td>
+                <td><strong>Decompose llamacpp extension into domain modules</strong></td>
+                <td>extensions/llamacpp-extension/src/index.ts, extensions/llamacpp-extension/src/backend-manager.ts, extensions/llamacpp-extension/src/device-detector.ts</td>
+            </tr>
+            <tr>
+                <td>P12</td>
+                <td>T3</td>
+                <td><strong>Split MLX extension into focused modules</strong></td>
+                <td>extensions/mlx-extension/src/index.ts, extensions/mlx-extension/src/mlx-runtime.ts, extensions/mlx-extension/src/model-quantizer.ts</td>
+            </tr>
+            <tr>
+                <td>P13</td>
+                <td>T3</td>
+                <td><strong>Decompose proxy.rs reverse proxy into focused modules</strong></td>
+                <td>src-tauri/src/core/server/proxy.rs, src-tauri/src/core/server/request_transformer.rs, src-tauri/src/core/server/response_handler.rs</td>
+            </tr>
+            <tr>
+                <td>P14</td>
+                <td>T3</td>
+                <td><strong>Introduce service abstraction layer to reduce hook coupling</strong></td>
+                <td>web-app/src/services/ServiceFacade.ts, web-app/src/hooks/useThreads.ts, web-app/src/hooks/useModelProvider.ts</td>
+            </tr>
+            <tr>
+                <td>P15</td>
+                <td>T3</td>
+                <td><strong>Create IPC abstraction layer to centralize Tauri invocations</strong></td>
+                <td>web-app/src/services/IPCBridge.ts, web-app/src/services/index.ts</td>
+            </tr>
+            <tr>
+                <td>P16</td>
+                <td>T3</td>
+                <td><strong>Standardize extension dependency injection patterns</strong></td>
+                <td>core/src/browser/extension.ts, extensions/rag-extension/src/index.ts, extensions/llamacpp-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P17</td>
+                <td>T3</td>
+                <td><strong>Move business logic from large containers to services</strong></td>
+                <td>web-app/src/containers/MessageItem.tsx, web-app/src/containers/DropdownModelProvider.tsx, web-app/src/containers/DownloadManegement.tsx</td>
+            </tr>
+            <tr>
+                <td>P18</td>
+                <td>T1</td>
+                <td><strong>Create centralized configuration system</strong></td>
+                <td>web-app/src/config/AppConfig.ts, web-app/src/config/ProviderConfig.ts, web-app/src/constants/providers.ts</td>
+            </tr>
+            <tr>
+                <td>P19</td>
+                <td>T3</td>
+                <td><strong>Clarify data flow between providers and hooks</strong></td>
+                <td>web-app/src/providers/DataProvider.tsx, web-app/src/hooks/useAppState.ts</td>
+            </tr>
+            <tr>
+                <td>P20</td>
+                <td>T2</td>
+                <td><strong>Split large hooks into smaller, focused hooks</strong></td>
+                <td>web-app/src/hooks/useModelProvider.ts, web-app/src/hooks/useProviderConfig.ts, web-app/src/hooks/useProviderModels.ts</td>
+            </tr>
+            <tr>
+                <td>P21</td>
+                <td>T3</td>
+                <td><strong>Establish command adapter pattern for Tauri commands</strong></td>
+                <td>src-tauri/src/core/command_adapter.rs, src-tauri/src/core/app/commands.rs, src-tauri/src/core/filesystem/commands.rs</td>
+            </tr>
+            <tr>
+                <td>P22</td>
+                <td>T1</td>
+                <td><strong>Centralize authentication and authorization in security layer</strong></td>
+                <td>web-app/src/services/SecurityService.ts, web-app/src/hooks/useToolApproval.ts, web-app/src/hooks/useModelContextApproval.ts</td>
+            </tr>
+            <tr>
+                <td>P23</td>
+                <td>T2</td>
+                <td><strong>Establish consistent error handling patterns across all modules</strong></td>
+                <td>web-app/src/lib/ErrorHandler.ts, src-tauri/src/core/error_handler.rs, extensions/llamacpp-extension/src/error-handler.ts</td>
+            </tr>
+            <tr>
+                <td>P24</td>
+                <td>T2</td>
+                <td><strong>Establish clear testing layer boundaries and mocking patterns</strong></td>
+                <td>web-app/src/test/setup.ts, web-app/src/test/factories.ts, web-app/src/test/mocks.ts</td>
+            </tr>
+            <tr>
+                <td>P25</td>
+                <td>T1</td>
+                <td><strong>Unify i18n system across web-app and docs</strong></td>
+                <td>web-app/src/i18n/setup.ts, docs/theme.config.tsx</td>
+            </tr>
+            <tr>
+                <td>P26</td>
+                <td>T1</td>
+                <td><strong>Encrypt sensitive preferences stored in localStorage</strong></td>
+                <td>extensions/llamacpp-extension/src/index.ts</td>
+            </tr>
+            <tr>
+                <td>P27</td>
+                <td>T1</td>
+                <td><strong>Add CSRF protection to MLX server endpoints</strong></td>
+                <td>mlx-server/Sources/MLXServer/Server.swift</td>
+            </tr></tbody>
+        </table>
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

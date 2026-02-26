@@ -1,0 +1,345 @@
+{
+  "findings": [
+    {
+      "id": "F-a4d6084d",
+      "title": "Repeated localStorage reads on every HTTP request without memoization",
+      "description": "The RequestInterceptor reads from localStorage on every single HTTP request. The token and email values are read synchronously from localStorage on every request, causing unnecessary I/O overhead. These values could be cached in memory after first access.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/app/Services/request.interceptor.ts",
+          "line_start": 14,
+          "line_end": 23,
+          "snippet": "if (localStorage.getItem('token')) {\n      req = req.clone({\n        setHeaders: {\n          Authorization: `Bearer ${localStorage.getItem('token')}`\n        }\n      })\n    }\n    if (localStorage.getItem('email')) {\n      req = req.clone({\n        setHeaders: {\n          'X-User-Email': String(localStorage.getItem('email'))\n        }\n      })"
+        }
+      ],
+      "suggested_fix": "Cache the token and email values in module-level variables or use a BehaviorSubject in an AuthService. Only update the cache when the token actually changes.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d206e995",
+      "title": "Unbounded list queries without pagination on Products API endpoint",
+      "description": "The /api/Products endpoint returns all products without pagination. Tests verify that all products are returned (products.length) with no limit/offset parameters. This will cause performance degradation as the product catalog grows.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/searchApiSpec.ts",
+          "line_start": 106,
+          "line_end": 114,
+          "snippet": "it('GET product search without search parameter returns all products', () => {\n    return frisby.get(`${API_URL}/Products`)\n      .expect('status', 200)\n      .expect('header', 'content-type', /application\\/json/)\n      .then(({ json }) => {\n        const products = json.data\n        return frisby.get(`${REST_URL}/products/search`)\n          .expect('status', 200)\n          .expect('header', 'content-type', /application\\/json/)\n          .then(({ json }) => {\n            expect(json.data.length).toBe(products.length)\n          })\n      })\n  })"
+        }
+      ],
+      "suggested_fix": "Add pagination support to the Products endpoint: include limit and offset/page query parameters, default to reasonable limits (e.g., 20 items), and return total count for pagination UI.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-4de63ec7",
+      "title": "Unbounded list queries without pagination on Feedbacks API endpoint",
+      "description": "The /api/Feedbacks endpoint returns all feedback without pagination, similar to Products. This will cause memory and performance issues with large feedback datasets.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/feedbackApiSpec.ts",
+          "line_start": 8,
+          "line_end": 14,
+          "snippet": "it('GET all feedback', () => {\n    return frisby.get(API_URL + '/Feedbacks')\n      .expect('status', 200)\n  })"
+        }
+      ],
+      "suggested_fix": "Add pagination support to the Feedbacks endpoint with limit and offset/page parameters.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e1ec7ea1",
+      "title": "Unbounded list queries without pagination on Users API endpoint",
+      "description": "The /api/Users endpoint returns all users without pagination. This is a security and performance concern - exposing all user data and causing memory issues with large user bases.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/userApiSpec.ts",
+          "line_start": 10,
+          "line_end": 22,
+          "snippet": "it('GET all users', () => {\n    return frisby.get(`${API_URL}/Users`, { headers: authHeader })\n      .expect('status', 200)\n  })\n\n  it('GET all users doesnt include passwords', () => {\n    return frisby.get(`${API_URL}/Users`, { headers: authHeader })\n      .expect('status', 200)\n      .expect('jsonTypes', 'data.*', {\n        password: Joi.any().forbidden()\n      })"
+        }
+      ],
+      "suggested_fix": "Add pagination to the Users endpoint with limit and page parameters, plus server-side filtering capabilities.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a35c2452",
+      "title": "Expensive reduce operation on config products array in test",
+      "description": "The productReviewApiSpec performs a reduce operation on config.get<Product[]>('products') to count reviews. If this config is accessed repeatedly without caching, it causes unnecessary computation.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/productReviewApiSpec.ts",
+          "line_start": 89,
+          "line_end": 106,
+          "snippet": "it('PATCH multiple product review via injection', () => {\n    // Count all the reviews. (Count starts at one because of the review inserted by the other tests...)\n    const totalReviews = config.get<Product[]>('products').reduce((sum: number, { reviews = [] }: any) => sum + reviews.length, 1)"
+        }
+      ],
+      "suggested_fix": "Cache the product config at module level or before the test suite to avoid repeated config access.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1a8e2f4a",
+      "title": "Nested promise chains without parallel execution in data export tests",
+      "description": "The dataExportApiSpec has multiple sequential .then() chains that could be parallelized. For example, login followed by data export could run login once and reuse the token.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/dataExportApiSpec.ts",
+          "line_start": 1,
+          "line_end": 60,
+          "snippet": "it('Export data without use of CAPTCHA', () => {\n    return frisby.post(REST_URL + '/user/login', {...})\n      .expect('status', 200)\n      .then(({ json: jsonLogin }) => {\n        return frisby.post(REST_URL + '/user/data-export', {...})"
+        }
+      ],
+      "suggested_fix": "Use Promise.all() to run independent API calls in parallel where applicable, or cache auth tokens for reuse across multiple test cases.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d2428b60",
+      "title": "Missing eager loading for related data in API responses",
+      "description": "API endpoints like basket with products likely perform N+1 queries - fetching basket then iterating to fetch each product separately. The test verifies Products are loaded but doesn't show efficient loading.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "test/api/basketApiSpec.ts",
+          "line_start": 39,
+          "line_end": 48,
+          "snippet": "it('GET existing basket with contained products by id', () => {\n    return frisby.get(REST_URL + '/basket/1', { headers: authHeader })\n      .expect('status', 200)\n      .expect('header', 'content-type', /application\\/json/)\n      .expect('json', 'data', { id: 1 })\n      .then(({ json }) => {\n        expect(json.data.Products.length).toBe(3)\n      })\n  })"
+        }
+      ],
+      "suggested_fix": "Implement eager loading using Sequelize's include option or Mongoose's populate() to fetch related products in a single query rather than N+1 queries.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": "Found 7 error handling issues: 1 critical (unhandled file I/O), 2 high (error detail leakage, missing Angular error boundary), 3 medium (ineffective handlers, empty error responses), 1 low (redundant catch block)."
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": ""
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [
+        {
+          "id": "F-a4d6084d",
+          "title": "Repeated localStorage reads on every HTTP request without memoization",
+          "description": "The RequestInterceptor reads from localStorage on every single HTTP request. The token and email values are read synchronously from localStorage on every request, causing unnecessary I/O overhead. These values could be cached in memory after first access.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/app/Services/request.interceptor.ts",
+              "line_start": 14,
+              "line_end": 23,
+              "snippet": "if (localStorage.getItem('token')) {\n      req = req.clone({\n        setHeaders: {\n          Authorization: `Bearer ${localStorage.getItem('token')}`\n        }\n      })\n    }\n    if (localStorage.getItem('email')) {\n      req = req.clone({\n        setHeaders: {\n          'X-User-Email': String(localStorage.getItem('email'))\n        }\n      })"
+            }
+          ],
+          "suggested_fix": "Cache the token and email values in module-level variables or use a BehaviorSubject in an AuthService. Only update the cache when the token actually changes.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d206e995",
+          "title": "Unbounded list queries without pagination on Products API endpoint",
+          "description": "The /api/Products endpoint returns all products without pagination. Tests verify that all products are returned (products.length) with no limit/offset parameters. This will cause performance degradation as the product catalog grows.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "test/api/searchApiSpec.ts",
+              "line_start": 106,
+              "line_end": 114,
+              "snippet": "it('GET product search without search parameter returns all products', () => {\n    return frisby.get(`${API_URL}/Products`)\n      .expect('status', 200)\n      .expect('header', 'content-type', /application\\/json/)\n      .then(({ json }) => {\n        const products = json.data\n        return frisby.get(`${REST_URL}/products/search`)\n          .expect('status', 200)\n          .expect('header', 'content-type', /application\\/json/)\n          .then(({ json }) => {\n            expect(json.data.length).toBe(products.length)\n          })\n      })\n  })"
+            }
+          ],
+          "suggested_fix": "Add pagination support to the Products endpoint: include limit and offset/page query parameters, default to reasonable limits (e.g., 20 items), and return total count for pagination UI.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-4de63ec7",
+          "title": "Unbounded list queries without pagination on Feedbacks API endpoint",
+          "description": "The /api/Feedbacks endpoint returns all feedback without pagination, similar to Products. This will cause memory and performance issues with large feedback datasets.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "test/api/feedbackApiSpec.ts",
+              "line_start": 8,
+              "line_end": 14,
+              "snippet": "it('GET all feedback', () => {\n    return frisby.get(API_URL + '/Feedbacks')\n      .expect('status', 200)\n  })"
+            }
+          ],
+          "suggested_fix": "Add pagination support to the Feedbacks endpoint with limit and offset/page parameters.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-e1ec7ea1",
+          "title": "Unbounded list queries without pagination on Users API endpoint",
+          "description": "The /api/Users endpoint returns all users without pagination. This is a security and performance concern - exposing all user data and causing memory issues with large user bases.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "test/api/userApiSpec.ts",
+              "line_start": 10,
+              "line_end": 22,
+              "snippet": "it('GET all users', () => {\n    return frisby.get(`${API_URL}/Users`, { headers: authHeader })\n      .expect('status', 200)\n  })\n\n  it('GET all users doesnt include passwords', () => {\n    return frisby.get(`${API_URL}/Users`, { headers: authHeader })\n      .expect('status', 200)\n      .expect('jsonTypes', 'data.*', {\n        password: Joi.any().forbidden()\n      })"
+            }
+          ],
+          "suggested_fix": "Add pagination to the Users endpoint with limit and page parameters, plus server-side filtering capabilities.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-a35c2452",
+          "title": "Expensive reduce operation on config products array in test",
+          "description": "The productReviewApiSpec performs a reduce operation on config.get<Product[]>('products') to count reviews. If this config is accessed repeatedly without caching, it causes unnecessary computation.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "test/api/productReviewApiSpec.ts",
+              "line_start": 89,
+              "line_end": 106,
+              "snippet": "it('PATCH multiple product review via injection', () => {\n    // Count all the reviews. (Count starts at one because of the review inserted by the other tests...)\n    const totalReviews = config.get<Product[]>('products').reduce((sum: number, { reviews = [] }: any) => sum + reviews.length, 1)"
+            }
+          ],
+          "suggested_fix": "Cache the product config at module level or before the test suite to avoid repeated config access.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-1a8e2f4a",
+          "title": "Nested promise chains without parallel execution in data export tests",
+          "description": "The dataExportApiSpec has multiple sequential .then() chains that could be parallelized. For example, login followed by data export could run login once and reuse the token.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "test/api/dataExportApiSpec.ts",
+              "line_start": 1,
+              "line_end": 60,
+              "snippet": "it('Export data without use of CAPTCHA', () => {\n    return frisby.post(REST_URL + '/user/login', {...})\n      .expect('status', 200)\n      .then(({ json: jsonLogin }) => {\n        return frisby.post(REST_URL + '/user/data-export', {...})"
+            }
+          ],
+          "suggested_fix": "Use Promise.all() to run independent API calls in parallel where applicable, or cache auth tokens for reuse across multiple test cases.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d2428b60",
+          "title": "Missing eager loading for related data in API responses",
+          "description": "API endpoints like basket with products likely perform N+1 queries - fetching basket then iterating to fetch each product separately. The test verifies Products are loaded but doesn't show efficient loading.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "test/api/basketApiSpec.ts",
+              "line_start": 39,
+              "line_end": 48,
+              "snippet": "it('GET existing basket with contained products by id', () => {\n    return frisby.get(REST_URL + '/basket/1', { headers: authHeader })\n      .expect('status', 200)\n      .expect('header', 'content-type', /application\\/json/)\n      .expect('json', 'data', { id: 1 })\n      .then(({ json }) => {\n        expect(json.data.Products.length).toBe(3)\n      })\n  })"
+            }
+          ],
+          "suggested_fix": "Implement eager loading using Sequelize's include option or Mongoose's populate() to fetch related products in a single query rather than N+1 queries.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 7 performance issues: 1 localStorage caching issue, 3 missing pagination endpoints, 1 expensive reduce operation, 1 sequential promise chain, and 1 potential N+1 query pattern."
+    }
+  ],
+  "total_findings": 7
+}

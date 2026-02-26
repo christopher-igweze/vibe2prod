@@ -1,0 +1,1794 @@
+{
+  "run_id": "90e919d92545",
+  "generated_at": "2026-02-26T01:12:25.148248+00:00",
+  "phase": "discovery",
+  "duration_seconds": 315.3,
+  "cost_usd": 0.0,
+  "total_findings": 39,
+  "severity_breakdown": {
+    "critical": 4,
+    "high": 6,
+    "medium": 18,
+    "low": 11
+  },
+  "category_breakdown": {
+    "security": 12,
+    "quality": 17,
+    "architecture": 10
+  },
+  "findings": [
+    {
+      "id": "F-2fa91d2d",
+      "title": "Missing authentication check on getDownloadFileSignedURL operation",
+      "description": "The getDownloadFileSignedURL operation in file-upload/operations.ts does not validate that the requesting user owns the file before generating a download URL. This allows any authenticated user to generate download URLs for any file in the system by guessing or knowing S3 keys.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/operations.ts",
+          "line_start": 79,
+          "line_end": 91,
+          "snippet": "export const getDownloadFileSignedURL: GetDownloadFileSignedURL<\n  GetDownloadFileSignedURLInput,\n  string\n> = async (rawArgs, _context) => {\n  const { s3Key } = ensureArgsSchemaOrThrowHttpError(\n    getDownloadFileSignedURLInputSchema,\n    rawArgs,\n  );\n  return await getDownloadFileSignedURLFromS3({ s3Key });\n};"
+        }
+      ],
+      "suggested_fix": "Add authentication and authorization check: (1) Verify context.user exists with `if (!context.user) throw new HttpError(401)`. (2) Query the File entity to verify the file belongs to the authenticated user before generating the URL: `const file = await context.entities.File.findUnique({ where: { s3Key }, select: { userId: true } }); if (!file || file.userId !== context.user.id) throw new HttpError(403, 'File not found or access denied');`",
+      "confidence": 0.98,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5332c1cb",
+      "title": "Missing RBAC check for admin dashboard access",
+      "description": "Admin dashboard pages (UsersDashboardPage, AnalyticsDashboardPage, SettingsPage) accept a user parameter but do not validate that the user has admin privileges. Any authenticated user who can navigate to /admin URLs could potentially access sensitive admin data.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+          "line_start": 5,
+          "line_end": 14,
+          "snippet": "const Users = ({ user }: { user: AuthUser }) => {\n  return (\n    <DefaultLayout user={user}>\n      <Breadcrumb pageName=\"Users\" />\n      <div className=\"flex flex-col gap-10\">\n        <UsersTable />\n      </div>\n    </DefaultLayout>\n  );\n};"
+        },
+        {
+          "file_path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+          "line_start": 10,
+          "line_end": 18,
+          "snippet": "const Dashboard = ({ user }: { user: AuthUser }) => {\n  const { data: stats, isLoading, error } = useQuery(getDailyStats);\n\n  if (error) {\n    return (\n      <DefaultLayout user={user}>\n        <div className=\"flex h-full items-center justify-center\">"
+        }
+      ],
+      "suggested_fix": "Add admin role validation at the beginning of each admin page component: `if (!user.isAdmin) return <Navigate to=\"/\" />`. Additionally, ensure the Wasp main.wasp file has `authRequired: true` set on all admin page routes. For server-side queries like getDailyStats, verify `if (!context.user?.isAdmin) throw new HttpError(403, 'Admin access required')` in the operation handler.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5b30722c",
+      "title": "Unauthenticated access to getDailyStats analytics query",
+      "description": "The getDailyStats operation is called from AnalyticsDashboardPage without visible authentication enforcement in the client code. If the server-side operation lacks proper authentication checks, sensitive analytics data could be exposed.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+          "line_start": 11,
+          "line_end": 12,
+          "snippet": "const { data: stats, isLoading, error } = useQuery(getDailyStats);"
+        }
+      ],
+      "suggested_fix": "Ensure getDailyStats operation (defined in server operations, not shown in provided code) has: (1) Authentication check: `if (!context.user) throw new HttpError(401)`. (2) Admin authorization check: `if (!context.user.isAdmin) throw new HttpError(403, 'Admin access required')`. (3) Mark the route as `authRequired: true` in main.wasp configuration.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c4ee71a5",
+      "title": "Cross-user file access via direct S3 key manipulation",
+      "description": "The FileUploadPage allows users to download files by setting s3Key state, which is then used in getDownloadFileSignedURL. Since getDownloadFileSignedURL doesn't validate file ownership, a user could modify the S3 key in browser DevTools to download other users' files.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/FileUploadPage.tsx",
+          "line_start": 58,
+          "line_end": 85,
+          "snippet": "  useEffect(() => {\n    if (fileKeyForS3.length > 0) {\n      refetchDownloadUrl()\n        .then((urlQuery) => {\n          switch (urlQuery.status) {\n            case \"error\":\n              console.error(\"Error fetching download URL\", urlQuery.error);\n              toast({\n                title: \"Error fetching download link\",\n                description: \"Please try again later.\",\n                variant: \"destructive\",\n              });\n              return;\n            case \"success\":\n              window.open(urlQuery.data, \"_blank\");\n              return;\n          }\n        })\n        .finally(() => {\n          setFileKeyForS3(\"\");\n        });\n    }\n  }, [fileKeyForS3]);"
+        }
+      ],
+      "suggested_fix": "Pass the file ID (not S3 key) to the download function instead: (1) Change download logic to pass file `id` instead of `s3Key`: `refetchDownloadUrl({ fileId: file.id })`. (2) Update getDownloadFileSignedURL to accept fileId, query the File entity, verify ownership, then generate the signed URL. This prevents users from bypassing ownership checks via direct S3 key manipulation.",
+      "confidence": 0.98,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d6e31bee",
+      "title": "Weak password reset token validation flow",
+      "description": "The PasswordResetPage and RequestPasswordResetPage components use Wasp's built-in auth forms (ResetPasswordForm, ForgotPasswordForm) without visible token validation logic in the provided code. If the backend doesn't properly validate reset token expiration and one-time use, attackers could reuse or forge tokens.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/email-and-pass/PasswordResetPage.tsx",
+          "line_start": 1,
+          "line_end": 16,
+          "snippet": "import { ResetPasswordForm } from \"wasp/client/auth\";\nimport { Link as WaspRouterLink, routes } from \"wasp/client/router\";\nimport { AuthPageLayout } from \"../AuthPageLayout\";\n\nexport function PasswordResetPage() {\n  return (\n    <AuthPageLayout>\n      <ResetPasswordForm />\n      <br />\n      <span className=\"text-sm font-medium text-gray-900\">\n        If everything is okay,{\" \"}\n        <WaspRouterLink to={routes.LoginRoute.to}>\n          go to login\n        </WaspRouterLink>\n      </span>\n    </AuthPageLayout>\n  );\n}"
+        },
+        {
+          "file_path": "template/app/src/auth/email-and-pass/RequestPasswordResetPage.tsx",
+          "line_start": 1,
+          "line_end": 9,
+          "snippet": "import { ForgotPasswordForm } from \"wasp/client/auth\";\nimport { AuthPageLayout } from \"../AuthPageLayout\";\n\nexport function RequestPasswordResetPage() {\n  return (\n    <AuthPageLayout>\n      <ForgotPasswordForm />\n    </AuthPageLayout>\n  );\n}"
+        }
+      ],
+      "suggested_fix": "Verify in Wasp's server-side auth configuration that: (1) Password reset tokens have a short expiration time (typically 15-30 minutes). (2) Tokens are single-use and deleted/invalidated immediately after being used. (3) Token generation uses cryptographically secure random values. (4) Tokens are stored securely (hashed) in the database. These are typically Wasp framework features, but confirm in main.wasp that `email.passwordResetTokenExpirationInMinutes` is set appropriately and token reuse is prevented.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-640",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5d94aa6f",
+      "title": "Admin role assignment based on email without validation",
+      "description": "The userSignupFields.ts file sets isAdmin=true based on matching email addresses from an ADMIN_EMAILS environment variable. However, there's no verification that the email is actually verified before assigning admin privileges, and email verification could be bypassed.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/userSignupFields.ts",
+          "line_start": 1,
+          "line_end": 20,
+          "snippet": "import { defineUserSignupFields } from \"wasp/auth/providers/types\";\nimport { z } from \"zod\";\n\nconst adminEmails = process.env.ADMIN_EMAILS?.split(\",\") || [];\n\nconst emailDataSchema = z.object({\n  email: z.string(),\n});\n\nexport const getEmailUserFields = defineUserSignupFields({\n  email: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return emailData.email;\n  },\n  username: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return emailData.email;\n  },\n  isAdmin: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return adminEmails.includes(emailData.email);\n  },\n});"
+        }
+      ],
+      "suggested_fix": "Implement post-signup email verification before granting admin access: (1) Initially set isAdmin=false for all signups. (2) After email verification is confirmed via EmailVerificationPage, have an admin manually verify and promote the user. (3) Alternatively, use a separate admin provisioning flow that requires verification. (4) For email-based auth methods, ensure the isAdmin assignment only happens after `emailVerified: true` is confirmed in the Wasp auth context.",
+      "confidence": 0.88,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-24f64033",
+      "title": "Email verification token sent in plaintext via email",
+      "description": "The getVerificationEmailContent function in emails.ts sends the full verification link (which includes the token) in plaintext in the email body. If email is intercepted or logs are accessed, the token is exposed.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/email-and-pass/emails.ts",
+          "line_start": 5,
+          "line_end": 13,
+          "snippet": "export const getVerificationEmailContent: GetVerificationEmailContentFn = ({\n  verificationLink,\n}) => ({\n  subject: \"Verify your email\",\n  text: `Click the link below to verify your email: ${verificationLink}`,\n  html: `\n        <p>Click the link below to verify your email</p>\n        <a href=\"${verificationLink}\">Verify email</a>\n    `,\n});"
+        }
+      ],
+      "suggested_fix": "This is inherent to email verification flows and Wasp handles this securely by default. However, ensure: (1) Verification links use HTTPS-only URLs. (2) Verification tokens are generated with `crypto.randomBytes()` or similar. (3) Tokens have short expiration (5-24 hours). (4) Consider adding rate limiting on email verification endpoints to prevent brute force. (5) Log email sends but never log the actual token/link. Wasp framework typically implements these, but verify in main.wasp configuration.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-640",
+      "owasp_ref": "A02:2021 - Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f2638854",
+      "title": "OAuth provider email verification bypass for GitHub",
+      "description": "In getGitHubUserFields, the isAdmin check verifies email is verified, but the primary login flow doesn't enforce verified email status. A user could potentially register via GitHub without a verified email and later gain access to email-gated features.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/userSignupFields.ts",
+          "line_start": 33,
+          "line_end": 51,
+          "snippet": "export const getGitHubUserFields = defineUserSignupFields({\n  email: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    return getGithubEmailInfo(githubData).email;\n  },\n  username: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    return githubData.profile.login;\n  },\n  isAdmin: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    const emailInfo = getGithubEmailInfo(githubData);\n    if (!emailInfo.verified) {\n      return false;\n    }\n    return adminEmails.includes(emailInfo.email);\n  },\n});"
+        }
+      ],
+      "suggested_fix": "Ensure email verification status is checked for all OAuth providers, not just for admin assignment: (1) Add a check in signup flow: `if (!emailInfo.verified) throw new Error('Email must be verified with GitHub')`. (2) Require unverified email users to verify via the app's email verification flow before accessing paid/restricted features. (3) Store emailVerified status in the User entity and enforce it at operation level, not just component level.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e33ae038",
+      "title": "Missing authentication on payment webhook endpoints",
+      "description": "The webhook.ts file exports paymentsWebhook and paymentsMiddlewareConfigFn, which should rely on signature verification from payment providers. However, if signature validation is misconfigured or missing, attackers could forge webhook events to grant subscriptions or credits without payment.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/webhook.ts",
+          "line_start": 1,
+          "line_end": 5,
+          "snippet": "import { paymentProcessor } from \"./paymentProcessor\";\n\nexport const paymentsWebhook = paymentProcessor.webhook;\nexport const paymentsMiddlewareConfigFn =\n  paymentProcessor.webhookMiddlewareConfigFn;"
+        }
+      ],
+      "suggested_fix": "Verify in the specific payment processor webhook implementations (Stripe, LemonSqueezy, Polar) that: (1) All webhook events are validated using the provider's signature verification (e.g., Stripe uses `stripe.webhooks.constructEvent()`). (2) Webhook secrets are stored in environment variables and never hardcoded. (3) Webhook endpoint is registered with the payment processor to prevent forgery. (4) Only trusted event types are processed. Stripe webhook example at stripe/webhook.ts should have `stripe.webhooks.constructEvent()` call; verify it's present and properly configured.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-347",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-affae70b",
+      "title": "User data leakage in error messages on failed auth",
+      "description": "Auth pages (LoginPage, SignupPage) use Wasp's built-in auth forms which may expose whether an email exists in the system through different error messages (e.g., 'User already exists' vs 'Invalid credentials').",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/LoginPage.tsx",
+          "line_start": 5,
+          "line_end": 25,
+          "snippet": "export default function Login() {\n  return (\n    <AuthPageLayout>\n      <LoginForm />\n      <br />\n      <span className=\"text-sm font-medium text-gray-900 dark:text-gray-900\">\n        Don't have an account yet?{\" \"}\n        <WaspRouterLink to={routes.SignupRoute.to} className=\"underline\">\n          go to signup\n        </WaspRouterLink>\n        .\n      </span>\n      <br />\n      <span className=\"text-sm font-medium text-gray-900\">\n        Forgot your password?{\" \"}\n        <WaspRouterLink\n          to={routes.RequestPasswordResetRoute.to}\n          className=\"underline\"\n        >\n          reset it\n        </WaspRouterLink>\n        .\n      </span>\n    </AuthPageLayout>\n  );\n}"
+        }
+      ],
+      "suggested_fix": "Review Wasp's authentication error handling. If possible in main.wasp configuration: (1) Use generic error messages on login failure ('Invalid email or password') instead of distinguishing between 'user not found' and 'wrong password'. (2) Ensure signup returns generic success message whether email exists or not. (3) For password reset, return generic 'Check your email' regardless of whether the email exists. (4) Implement rate limiting to prevent email enumeration attacks on login/signup endpoints.",
+      "confidence": 0.78,
+      "cwe_id": "CWE-203",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-441c0b88",
+      "title": "Insufficient input validation on S3 key generation",
+      "description": "The getS3Key function in s3Utils.ts uses user-supplied fileName to construct the S3 key. While it extracts only the extension, a malicious filename could still cause issues (e.g., path traversal attempts, although S3 keys are flat).",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 53,
+          "line_end": 56,
+          "snippet": "function getS3Key(fileName: string, userId: string) {\n  const ext = path.extname(fileName).slice(1);\n  return `${userId}/${randomUUID()}.${ext}`;\n}"
+        }
+      ],
+      "suggested_fix": "Validate the file extension more strictly: (1) Only allow extensions from the ALLOWED_FILE_TYPES list, not just any extension. (2) Sanitize extension to prevent injection: `const ext = path.extname(fileName).slice(1).toLowerCase().replace(/[^a-z0-9]/g, '');`. (3) Add maximum length check to prevent DoS: `if (fileName.length > 255) throw new Error('Filename too long');`. (4) The current approach is already relatively safe since path traversal is mitigated by using randomUUID, but explicit validation is better practice.",
+      "confidence": 0.72,
+      "cwe_id": "CWE-22",
+      "owasp_ref": "A03:2021 - Injection",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ac0739f2",
+      "title": "Missing rate limiting on payment operations",
+      "description": "The generateCheckoutSession operation can be called repeatedly without rate limiting, potentially allowing attackers to create numerous checkout sessions (DoS) or spam payment provider APIs.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/operations.ts",
+          "line_start": 14,
+          "line_end": 47,
+          "snippet": "export const generateCheckoutSession: GenerateCheckoutSession<\n  GenerateCheckoutSessionInput,\n  CheckoutSession\n> = async (rawPaymentPlanId, context) => {\n  if (!context.user) {\n    throw new HttpError(\n      401,\n      \"Only authenticated users are allowed to perform this operation\",\n    );\n  }\n\n  const paymentPlanId = ensureArgsSchemaOrThrowHttpError(\n    generateCheckoutSessionSchema,\n    rawPaymentPlanId,\n  );\n  const userId = context.user.id;\n  const userEmail = context.user.email;\n  if (!userEmail) {\n    // If using the usernameAndPassword Auth method, switch to an Auth method that provides an email.\n    throw new HttpError(403, \"User needs an email to make a payment.\");\n  }\n\n  const paymentPlan = paymentPlans[paymentPlanId];\n  const { session } = await paymentProcessor.createCheckoutSession({\n    userId,\n    userEmail,\n    paymentPlan,\n    prismaUserDelegate: context.entities.User,\n  });\n\n  return {\n    sessionUrl: session.url,\n    sessionId: session.id,\n  };\n};"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting on payment operations: (1) Add a rate limiter middleware in Wasp configuration (if available) to limit generateCheckoutSession to N requests per user per time window (e.g., 5 requests per 5 minutes). (2) Alternatively, track recent checkout sessions in cache/database and reject if user has created too many in a time window. (3) Log checkout session creation attempts for fraud detection. (4) Consider adding CAPTCHA for repeated failed checkout attempts.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021 - Broken Access Control (Rate Limiting)",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ac4a34d3",
+      "title": "Type safety: any-typed array in analytics",
+      "description": "In googleAnalyticsUtils.ts, an array is typed as `any[]` which bypasses TypeScript's type checking and can lead to runtime errors.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 41,
+          "line_end": 41,
+          "snippet": "let activeUsersPerReferrer: any[] = [];"
+        }
+      ],
+      "suggested_fix": "Define a proper interface for the referrer data type: `interface ReferrerData { source: string; visitors: string; }` and use `ReferrerData[]` instead of `any[]`.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1dda58f7",
+      "title": "Type safety: @ts-ignore usage in analytics",
+      "description": "Multiple `@ts-ignore` comments are used to suppress TypeScript errors, indicating underlying type issues that should be properly resolved.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 63,
+          "line_end": 63,
+          "snippet": "// @ts-ignore"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 110,
+          "line_end": 110,
+          "snippet": "// @ts-ignore"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 117,
+          "line_end": 117,
+          "snippet": "// @ts-ignore"
+        }
+      ],
+      "suggested_fix": "Remove @ts-ignore comments and properly type the response objects. The `response.rows` and `metricValues` properties should have proper types from the Google Analytics Data client.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f105d914",
+      "title": "Magic number: URL expiration timeout repeated across files",
+      "description": "The value 3600 (seconds) for signed URL expiration is hardcoded in multiple files. This should be a named constant.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 34,
+          "line_end": 34,
+          "snippet": "Expires: 3600,"
+        },
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 50,
+          "line_end": 50,
+          "snippet": "return await getSignedUrl(s3Client, command, { expiresIn: 3600 });"
+        }
+      ],
+      "suggested_fix": "Create a constants file (e.g., `src/shared/constants.ts`) with `export const SIGNED_URL_EXPIRATION_SECONDS = 3600;` and import it in both files.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0a3e50a1",
+      "title": "Magic number: Hardcoded redirect delay in CheckoutResultPage",
+      "description": "The redirect delay value 4000ms is hardcoded and used both as a constant and inline in the code, creating potential inconsistency.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/CheckoutResultPage.tsx",
+          "line_start": 5,
+          "line_end": 5,
+          "snippet": "const ACCOUNT_PAGE_REDIRECT_DELAY_MS = 4000;"
+        },
+        {
+          "file_path": "template/app/src/payment/CheckoutResultPage.tsx",
+          "line_start": 30,
+          "line_end": 30,
+          "snippet": "{ACCOUNT_PAGE_REDIRECT_DELAY_MS / 1000} seconds..."
+        }
+      ],
+      "suggested_fix": "The constant is properly defined and used, but this pattern should be consistent across all timing-related values. Consider moving all timing constants to a shared location.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-efb4ee75",
+      "title": "Code duplication: Duplicate headers object in Plausible analytics",
+      "description": "A `headers` object with identical content is defined both at module level and within the `getPageviewsForDate` function, creating redundant code.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 16,
+          "line_end": 20,
+          "snippet": "const headers = {\n  \"Content-Type\": \"application/json\",\n  Authorization: `Bearer ${PLAUSIBLE_API_KEY}`,\n};"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 78,
+          "line_end": 82,
+          "snippet": "const response = await fetch(url, {\n    method: \"GET\",\n    headers: headers,\n  });"
+        }
+      ],
+      "suggested_fix": "Remove the local `headers` variable inside `getPageviewsForDate` and use the module-level `headers` constant directly, or pass it as a parameter if it needs to be reused differently.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-eb30c5fd",
+      "title": "Inconsistent naming: Mixed camelCase and snake_case in analytics",
+      "description": "Some functions use camelCase (getDailyPageViews) while others use similar patterns inconsistently. The API keys are also named with inconsistent patterns (PLAUSIBLE_API_KEY vs GOOGLE_ANALYTICS_PROPERTY_ID).",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 11,
+          "line_end": 14,
+          "snippet": "const PLAUSIBLE_API_KEY = process.env.PLAUSIBLE_API_KEY!;\nconst PLAUSIBLE_SITE_ID = process.env.PLAUSIBLE_SITE_ID!;\nconst PLAUSIBLE_BASE_URL = process.env.PLAUSIBLE_BASE_URL;"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 7,
+          "line_end": null,
+          "snippet": "const CLIENT_EMAIL = process.env.GOOGLE_ANALYTICS_CLIENT_EMAIL;\nconst PRIVATE_KEY = Buffer.from(\n  process.env.GOOGLE_ANALYTICS_PRIVATE_KEY!,"
+        }
+      ],
+      "suggested_fix": "Document the environment variable naming convention and ensure consistency. Consider creating a unified env config file that normalizes all environment variable access.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e13c2a2b",
+      "title": "Potential runtime error: Non-null assertions on env vars without validation",
+      "description": "Environment variables are accessed with non-null assertions (!) in multiple files. If these are not set, the application will crash at runtime rather than failing gracefully.",
+      "category": "quality",
+      "severity": "high",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 16,
+          "line_end": 19,
+          "snippet": "credentials: {\n    accessKeyId: process.env.AWS_S3_IAM_ACCESS_KEY!,\n    secretAccessKey: process.env.AWS_S3_IAM_SECRET_KEY!,\n  },"
+        },
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 28,
+          "line_end": 28,
+          "snippet": "Bucket: process.env.AWS_S3_FILES_BUCKET!,"
+        }
+      ],
+      "suggested_fix": "Use the existing `requireNodeEnvVar` function from `../../server/utils` to validate env vars at startup, or create a config initialization that validates all required env vars before the app starts.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-832b857c",
+      "title": "Magic number: Hardcoded test card number in pricing page",
+      "description": "The Stripe test card number '4242 4242 4242 4242 4242' is hardcoded in the pricing page UI.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 124,
+          "line_end": 127,
+          "snippet": "<span className=\"bg-muted text-muted-foreground rounded-md px-2 py-1 font-mono text-sm\">\n            4242 4242 4242 4242 4242\n          </span>"
+        }
+      ],
+      "suggested_fix": "Move this to a constants file or configuration. While this is a well-known test value, keeping it separate makes it easier to update and document.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-75dec326",
+      "title": "Inconsistent error handling: Different patterns across payment webhooks",
+      "description": "Each payment provider webhook (Stripe, LemonSqueezy, Polar) uses slightly different patterns for error logging and response. This inconsistency makes maintenance harder.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/stripe/webhook.ts",
+          "line_start": 73,
+          "line_end": 82,
+          "snippet": "if (process.env.NODE_ENV === \"development\") {\n        console.info(\"Unhandled Stripe webhook event in development: \", error);\n      } else if (process.env.NODE_ENV === \"production\") {\n        console.error(\"Unhandled Stripe webhook event in production: \", error);\n      }"
+        },
+        {
+          "file_path": "template/app/src/payment/polar/webhook.ts",
+          "line_start": 63,
+          "line_end": 71,
+          "snippet": "if (process.env.NODE_ENV === \"development\") {\n        console.info(\"Unhandled Polar webhook event in development: \", error);\n      } else if (process.env.NODE_ENV === \"production\") {\n        console.error(\"Unhandled Polar webhook event in production: \", error);\n      }"
+        }
+      ],
+      "suggested_fix": "Create a shared utility function for webhook error logging that all payment providers can use, ensuring consistent error handling behavior.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0e94e9ce",
+      "title": "Magic string: Hardcoded 'today' date in Google Analytics",
+      "description": "The string 'today' is used as a date parameter in the Google Analytics query. While it works, using dynamic dates would be more robust.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 30,
+          "line_end": 30,
+          "snippet": "endDate: \"today\","
+        }
+      ],
+      "suggested_fix": "Consider adding a comment explaining that 'today' is a valid GA4 relative date, or create a constant for clarity.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-51528115",
+      "title": "Code duplication: Payment plan card data repeated in component",
+      "description": "The `paymentPlanCards` object contains display data (name, price, features) that could be consolidated with the `paymentPlans` object in plans.ts",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 40,
+          "line_end": 66,
+          "snippet": "export const paymentPlanCards: Record<PaymentPlanId, PaymentPlanCard> = {\n  [PaymentPlanId.Hobby]: {\n    name: prettyPaymentPlanName(PaymentPlanId.Hobby),\n    price: \"$9.99\",\n    description: \"All you need to get started\",\n    features: [\"Limited monthly usage\", \"Basic support\"],\n  },"
+        },
+        {
+          "file_path": "template/app/src/payment/plans.ts",
+          "line_start": 27,
+          "line_end": 44,
+          "snippet": "export const paymentPlans = {\n  [PaymentPlanId.Hobby]: {\n    getPaymentProcessorPlanId: () =>\n      requireNodeEnvVar(\"PAYMENTS_HOBBY_SUBSCRIPTION_PLAN_ID\"),\n    effect: { kind: \"subscription\" },\n  },"
+        }
+      ],
+      "suggested_fix": "Consider consolidating plan metadata into a single source of truth, or at minimum ensure the `name` property in `paymentPlanCards` references the constant rather than duplicating `prettyPaymentPlanName()` calls.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-aff6bd81",
+      "title": "Dead code: Commented out logo reference in settings page",
+      "description": "In SettingsPage.tsx, there's a commented-out img tag for user photo that appears to be leftover from template creation.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+          "line_start": 118,
+          "line_end": 120,
+          "snippet": "<div className=\"h-14 w-14 rounded-full\">\n                      {/* <img src={userThree} alt=\"User\" /> */}\n                    </div>"
+        }
+      ],
+      "suggested_fix": "Remove the commented-out code or replace with actual image handling logic if user avatars are part of the feature set.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-272336fb",
+      "title": "Incomplete implementation: MessageButton has placeholder code",
+      "description": "The MessageButton component has a TODO comment indicating incomplete implementation for message notifications.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+          "line_start": 14,
+          "line_end": 14,
+          "snippet": "<span className=\"z-1 bg-meta-1 absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full\">\n          {/* TODO: only animate if there are new messages */}\n          <span className=\"-z-1 bg-meta-1 absolute inline-flex h-full w-full animate-ping rounded-full opacity-75\"></span>\n        </span>"
+        }
+      ],
+      "suggested_fix": "Implement the TODO by adding a prop or connecting to a real-time message count source to conditionally show the notification badge.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-aacba715",
+      "title": "Incomplete implementation: Settings form has placeholder submit",
+      "description": "The SettingsPage form has a TODO and alerts 'Not yet implemented' on submit.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/elements/settings/SettingsPage.tsx",
+          "line_start": 13,
+          "line_end": 17,
+          "snippet": "const handleSubmit = (event: FormEvent<HTMLFormElement>) => {\n    // TODO implement\n    event.preventDefault();\n    alert(\"Not yet implemented\");\n  };"
+        }
+      ],
+      "suggested_fix": "Implement the form submission logic or remove the form if not needed for the initial template release.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-09ec96f6",
+      "title": "Incomplete implementation: Messages page placeholder",
+      "description": "The AdminMessages page shows a placeholder 'under construction' message.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+          "line_start": 4,
+          "line_end": 6,
+          "snippet": "// TODO: Add messages page\nimport type { AuthUser } from \"wasp/auth\";\nimport DefaultLayout from \"../../layout/DefaultLayout\";\n\nfunction AdminMessages({ user }: { user: AuthUser }) {\n  return (\n    <DefaultLayout user={user}>\n      <div>This page is under construction \ud83d\udea7</div>\n    </DefaultLayout>\n  );"
+        }
+      ],
+      "suggested_fix": "Implement the messages feature or remove the route if not part of the planned functionality.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-702fc339",
+      "title": "Type safety: Generic type parameter uses any in throttle function",
+      "description": "The throttleWithTrailingInvocation function accepts `...args: any[]` which bypasses type safety for the throttled function.",
+      "category": "quality",
+      "severity": "medium",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/shared/utils.ts",
+          "line_start": 14,
+          "line_end": 14,
+          "snippet": "export function throttleWithTrailingInvocation(\n  fn: () => void,\n  delayInMilliseconds: number,\n): ((...args: any[]) => void) & { cancel: () => void } {"
+        }
+      ],
+      "suggested_fix": "Use a generic type parameter to preserve the function's parameter types: `export function throttleWithTrailingInvocation<T extends (...args: any[]) => any>(fn: T, ...)` and return `T & { cancel: () => void }`.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b3189a10",
+      "title": "Inconsistent constant patterns in pricing page",
+      "description": "The pricing page mixes inline constant definition (bestDealPaymentPlanId) with paymentPlanCards object. The constant could be in plans.ts for consistency.",
+      "category": "quality",
+      "severity": "low",
+      "audit_pass": "code_patterns",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 38,
+          "line_end": 38,
+          "snippet": "const bestDealPaymentPlanId: PaymentPlanId = PaymentPlanId.Pro;"
+        }
+      ],
+      "suggested_fix": "Consider moving `bestDealPaymentPlanId` to plans.ts as a constant export if it's a fixed value, or make it configurable via environment variables.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3ec24e57",
+      "title": "God module: admin module exceeds 1800 LOC with mixed concerns",
+      "description": "The admin module contains 1800 LOC across 21 files with mixed responsibilities including layout components, dashboard pages, analytics, user management, and settings. This violates single responsibility principle and makes the module difficult to maintain and test. Components are tightly coupled through shared layout infrastructure.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/",
+          "line_start": 1,
+          "line_end": 1800,
+          "snippet": "Admin module spans: layout/, dashboards/, elements/ with mixed concerns"
+        }
+      ],
+      "suggested_fix": "Split admin into domain-specific modules: admin-layout (shared UI infrastructure), admin-analytics (analytics dashboard + cards), admin-users (user management), admin-settings (settings management). Move analytics logic to dedicated analytics module.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-9c81a20a",
+      "title": "God module: payment module exceeds 1200 LOC with multiple provider integrations",
+      "description": "The payment module contains 1200 LOC across 21 files with three separate payment provider implementations (Stripe, LemonSqueezy, Polar), each with duplicate webhook, checkout, and payment processor logic. While providers are separated into folders, there's substantial code duplication and the module orchestrates multiple payment flows.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/",
+          "line_start": 1,
+          "line_end": 1200,
+          "snippet": "Payment module contains: stripe/, lemonSqueezy/, polar/ with duplicated patterns"
+        }
+      ],
+      "suggested_fix": "Create a payment provider abstraction layer with unified interfaces: IPaymentProcessor, ICheckoutUtils, IWebhookHandler. Extract common webhook validation logic into shared utilities. Consider a factory pattern to instantiate providers based on configuration.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fa8ac3ca",
+      "title": "Missing abstraction layer between admin/payment pages and analytics operations",
+      "description": "Admin dashboard pages (AnalyticsDashboardPage, TotalRevenueCard, TotalSignupsCard) directly import analytics/operations.ts. Analytics operations contain business logic for fetching and aggregating user data. Changes to analytics logic require updating multiple dashboard components, creating tight coupling.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/analytics/",
+          "line_start": 1,
+          "line_end": 500,
+          "snippet": "TotalRevenueCard.tsx, TotalSignupsCard.tsx, AnalyticsDashboardPage.tsx directly call analytics/operations"
+        },
+        {
+          "file_path": "template/app/src/analytics/operations.ts",
+          "line_start": 1,
+          "line_end": 54,
+          "snippet": "Analytics operations expose business logic directly to UI layer"
+        }
+      ],
+      "suggested_fix": "Create an analytics service/facade layer that abstracts operation queries. Dashboard components should consume high-level analytics data contracts rather than calling operations directly. This allows analytics logic to evolve independently.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-8ca79505",
+      "title": "Client module exhibits high internal cohesion with unclear responsibilities",
+      "description": "The client module contains 2500 LOC across 34 files including app shell (App.tsx), routing, theming (DarkModeSwitcher), UI component library (30+ Radix UI wrapper components), hooks (useColorMode, useIsLandingPage, use-toast, useLocalStorage, useDebounce), navbar, and cookie consent. This creates a monolithic module where unrelated concerns are bundled together.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/client/",
+          "line_start": 1,
+          "line_end": 2500,
+          "snippet": "Client module mixes: App.tsx (routing), hooks/, components/ui/, components/NavBar/, components/cookie-consent/"
+        }
+      ],
+      "suggested_fix": "Reorganize client module: (1) Extract UI component library to separate 'ui-components' module, (2) Move App.tsx and routing to dedicated 'app-shell' module, (3) Create 'hooks' as sibling module to client, (4) Move NavBar and cookie-consent to 'layout' module or separate feature modules.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0176dbc7",
+      "title": "Tight coupling between payment providers and checkout/PricingPage",
+      "description": "The PricingPage.tsx directly imports from payment/paymentProcessor.ts and specific provider implementations. Changes to payment provider selection logic or provider instantiation require modifying the UI component. No clear separation between payment UI orchestration and provider selection.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/PricingPage.tsx",
+          "line_start": 1,
+          "line_end": 238,
+          "snippet": "PricingPage imports paymentProcessor and possibly provider-specific utils"
+        },
+        {
+          "file_path": "template/app/src/payment/paymentProcessor.ts",
+          "line_start": 1,
+          "line_end": 39,
+          "snippet": "Payment processor instantiation logic tightly coupled to page"
+        }
+      ],
+      "suggested_fix": "Create a payment configuration/factory service that handles provider selection based on environment variables. PricingPage should only import a generic PaymentCheckoutService interface, delegating provider instantiation to the factory.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-54e3a82f",
+      "title": "No clear service layer between UI components and database operations",
+      "description": "Multiple modules (user, file-upload, demo-ai-app) define operations.ts files that directly handle database queries and business logic. Components import these operations directly without an intermediate service abstraction. This creates tight coupling between UI and data access patterns.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/user/operations.ts",
+          "line_start": 1,
+          "line_end": 159,
+          "snippet": "User operations directly exposed to UI components"
+        },
+        {
+          "file_path": "template/app/src/file-upload/operations.ts",
+          "line_start": 1,
+          "line_end": 154,
+          "snippet": "File upload operations directly exposed to FileUploadPage"
+        },
+        {
+          "file_path": "template/app/src/demo-ai-app/operations.ts",
+          "line_start": 1,
+          "line_end": 342,
+          "snippet": "Demo app operations directly exposed to DemoAppPage (487 LOC)"
+        }
+      ],
+      "suggested_fix": "Create a consistent service/domain layer for each feature: UserService, FileUploadService, DemoAppService. These services should encapsulate operations.ts logic and expose clean interfaces. Components should depend on services, not operations.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3adf1d0d",
+      "title": "DemoAppPage exhibits god component pattern with 487 LOC",
+      "description": "The DemoAppPage.tsx contains 487 lines of code handling UI rendering, state management, scheduling logic, and potentially API integration. This file is substantially larger than typical React components and likely contains multiple responsibilities that should be decomposed.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/demo-ai-app/DemoAppPage.tsx",
+          "line_start": 1,
+          "line_end": 487,
+          "snippet": "Large monolithic component file"
+        }
+      ],
+      "suggested_fix": "Decompose DemoAppPage into smaller focused components: DemoAppLayout, ScheduleForm, ResultsDisplay, etc. Extract state management into a custom hook (useDemoAppState). Move scheduling logic to schedule.ts. Each sub-component should have single responsibility.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-14e67fb0",
+      "title": "Inconsistent error handling and validation patterns across modules",
+      "description": "Different modules handle validation and errors differently: payment/errors.ts, file-upload/validation.ts, server/validation.ts exist without clear cohesion. No unified validation or error handling framework across the application. Auth module uses userSignupFields.ts for form fields while other modules handle validation ad-hoc.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/errors.ts",
+          "line_start": 1,
+          "line_end": 6,
+          "snippet": "Payment error definitions"
+        },
+        {
+          "file_path": "template/app/src/file-upload/validation.ts",
+          "line_start": 1,
+          "line_end": 10,
+          "snippet": "File upload validation"
+        },
+        {
+          "file_path": "template/app/src/server/validation.ts",
+          "line_start": 1,
+          "line_end": 17,
+          "snippet": "Server-side validation"
+        },
+        {
+          "file_path": "template/app/src/auth/userSignupFields.ts",
+          "line_start": 1,
+          "line_end": 142,
+          "snippet": "Auth field definitions mixed with validation"
+        }
+      ],
+      "suggested_fix": "Create a shared validation module with reusable validators and error types. Consolidate validation logic across auth, payment, file-upload modules. Define application-wide error handling contracts.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-39e8a166",
+      "title": "Landing page and blog modules lack clear separation from main app",
+      "description": "Landing page (1100 LOC) and blog (800 LOC) exist as separate modules but share UI components, styling, and potentially utilities with main client application. No clear boundary between marketing content and SaaS application. Blog is Astro-based while app is React, creating framework heterogeneity.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/landing-page/",
+          "line_start": 1,
+          "line_end": 1100,
+          "snippet": "Landing page contains 17 files with component duplication risk"
+        },
+        {
+          "file_path": "template/blog/",
+          "line_start": 1,
+          "line_end": 800,
+          "snippet": "Astro-based blog separate from React app"
+        }
+      ],
+      "suggested_fix": "Consider whether landing page should be served from main React app or remain static. If static, establish clear API contracts for data. For blog, document whether Astro is intentional for static generation. Create shared design token system if components are duplicated.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6e667422",
+      "title": "Analytics module tightly coupled to admin dashboard without provider abstraction",
+      "description": "Analytics module contains provider-specific implementations (googleAnalyticsUtils.ts, plausibleAnalyticsUtils.ts) but admin dashboard components directly depend on these specifics. No provider-agnostic analytics service interface. Provider switching requires changes to multiple dashboard components.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "template/app/src/analytics/providers/googleAnalyticsUtils.ts",
+          "line_start": 1,
+          "line_end": 147,
+          "snippet": "Google Analytics provider implementation"
+        },
+        {
+          "file_path": "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts",
+          "line_start": 1,
+          "line_end": 116,
+          "snippet": "Plausible Analytics provider implementation"
+        },
+        {
+          "file_path": "template/app/src/analytics/operations.ts",
+          "line_start": 1,
+          "line_end": 54,
+          "snippet": "Analytics operations potentially importing from specific providers"
+        }
+      ],
+      "suggested_fix": "Create a provider abstraction layer (IAnalyticsProvider interface) that both Google Analytics and Plausible implement. Analytics operations should depend on abstraction, not concrete implementations. Admin dashboard should only depend on operations.ts.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "remediation_plan": {
+    "items": [
+      {
+        "finding_id": "F-2fa91d2d",
+        "title": "Add ownership validation to getDownloadFileSignedURL operation",
+        "tier": 2,
+        "priority": 1,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/file-upload/operations.ts",
+          "template/app/src/file-upload/FileUploadPage.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "getDownloadFileSignedURL verifies context.user exists",
+          "Operation queries File entity and validates userId matches",
+          "Unauthorized access returns 403 HttpError",
+          "FileUploadPage passes fileId instead of raw s3Key"
+        ],
+        "approach": "Add auth check + file ownership validation; refactor FileUploadPage to pass fileId instead of s3Key",
+        "group": "file-upload-security"
+      },
+      {
+        "finding_id": "F-c4ee71a5",
+        "title": "Prevent cross-user file access via S3 key manipulation",
+        "tier": 2,
+        "priority": 1,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/file-upload/operations.ts",
+          "template/app/src/file-upload/FileUploadPage.tsx"
+        ],
+        "depends_on": [
+          "F-2fa91d2d"
+        ],
+        "acceptance_criteria": [
+          "Download operation accepts fileId parameter, not s3Key",
+          "Backend validates file ownership before generating signed URL",
+          "Client cannot bypass validation by modifying S3 key in DevTools"
+        ],
+        "approach": "Refactor to use file ID as operation parameter; enforce ownership check in backend",
+        "group": "file-upload-security"
+      },
+      {
+        "finding_id": "F-5b30722c",
+        "title": "Add authentication and admin authorization to getDailyStats operation",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 3,
+        "files_to_modify": [
+          "template/app/src/analytics/operations.ts",
+          "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+          "template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "getDailyStats checks context.user exists",
+          "getDailyStats verifies context.user.isAdmin is true",
+          "Unauthenticated requests return 401",
+          "Non-admin requests return 403",
+          "Route marked authRequired: true in main.wasp"
+        ],
+        "approach": "Add auth + admin checks to getDailyStats and related analytics operations",
+        "group": "admin-security"
+      },
+      {
+        "finding_id": "F-5332c1cb",
+        "title": "Enforce RBAC checks on all admin dashboard pages",
+        "tier": 3,
+        "priority": 2,
+        "estimated_files": 5,
+        "files_to_modify": [
+          "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+          "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+          "template/app/src/admin/elements/settings/SettingsPage.tsx",
+          "template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx",
+          "template/app/src/admin/dashboards/analytics/TotalSignupsCard.tsx"
+        ],
+        "depends_on": [
+          "F-5b30722c"
+        ],
+        "acceptance_criteria": [
+          "All admin pages check user.isAdmin and redirect non-admins to /",
+          "Server-side operations verify admin status via context.user.isAdmin",
+          "All admin routes in main.wasp have authRequired: true and admin role check",
+          "Unauthorized access returns 403 or redirect"
+        ],
+        "approach": "Add role-based guards to admin page components; add server-side auth checks to all admin operations",
+        "group": "admin-security"
+      },
+      {
+        "finding_id": "F-5d94aa6f",
+        "title": "Require email verification before granting admin privileges",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/auth/userSignupFields.ts",
+          "template/app/src/auth/email-and-pass/EmailVerificationPage.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "isAdmin field defaults to false for all signups",
+          "Admin assignment only happens after emailVerified: true confirmed",
+          "Manual admin promotion workflow established or post-verification check implemented"
+        ],
+        "approach": "Set isAdmin=false in signup; implement post-verification admin promotion or require verified emails for admin assignment",
+        "group": "auth-security"
+      },
+      {
+        "finding_id": "F-f2638854",
+        "title": "Enforce verified email requirement for OAuth providers",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/auth/userSignupFields.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "GitHub OAuth users with unverified emails cannot complete signup or are required to verify",
+          "emailVerified status stored in User entity",
+          "Restricted features enforce emailVerified at operation level"
+        ],
+        "approach": "Add email verification requirement in OAuth signup flow; enforce at operation level",
+        "group": "auth-security"
+      },
+      {
+        "finding_id": "F-d6e31bee",
+        "title": "Verify password reset token validation in main.wasp configuration",
+        "tier": 1,
+        "priority": 3,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/wasp"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Wasp main.wasp has passwordResetTokenExpirationInMinutes set (15-30 minutes)",
+          "Password reset tokens are single-use and invalidated after use",
+          "Token generation uses cryptographically secure randomness",
+          "Tokens stored hashed in database"
+        ],
+        "approach": "Review/configure Wasp auth settings; document findings in README if Wasp handles this by default",
+        "group": "auth-validation"
+      },
+      {
+        "finding_id": "F-e33ae038",
+        "title": "Verify webhook signature validation across all payment providers",
+        "tier": 3,
+        "priority": 1,
+        "estimated_files": 4,
+        "files_to_modify": [
+          "template/app/src/payment/stripe/webhook.ts",
+          "template/app/src/payment/lemonSqueezy/webhook.ts",
+          "template/app/src/payment/polar/webhook.ts",
+          "template/app/src/payment/webhook.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Stripe webhook validates signature via stripe.webhooks.constructEvent()",
+          "LemonSqueezy webhook validates signature per provider docs",
+          "Polar webhook validates signature per provider docs",
+          "All webhook secrets stored in environment variables, never hardcoded",
+          "Only whitelisted event types are processed",
+          "Invalid signatures return 401 Unauthorized"
+        ],
+        "approach": "Review each payment provider webhook implementation; ensure signature verification is present and correctly configured",
+        "group": "payment-security"
+      },
+      {
+        "finding_id": "F-ac0739f2",
+        "title": "Implement rate limiting on generateCheckoutSession operation",
+        "tier": 2,
+        "priority": 2,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/payment/operations.ts",
+          "template/app/wasp"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "generateCheckoutSession limited to 5 requests per 5 minutes per user",
+          "Rate limit enforced at operation level or middleware",
+          "Exceeded rate limit returns 429 Too Many Requests",
+          "Failed attempts logged for fraud detection"
+        ],
+        "approach": "Add rate limiting middleware or in-operation rate limit check (e.g., via Redis/database tracking)",
+        "group": "payment-security"
+      },
+      {
+        "finding_id": "F-affae70b",
+        "title": "Implement generic error messages for auth flows",
+        "tier": 1,
+        "priority": 3,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/wasp"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Login failure returns 'Invalid email or password' (not distinguishing user not found)",
+          "Signup returns generic success message",
+          "Password reset returns generic 'Check your email' regardless of email existence",
+          "Rate limiting prevents email enumeration attacks"
+        ],
+        "approach": "Configure Wasp auth error messages to be generic; implement rate limiting on auth endpoints",
+        "group": "auth-validation"
+      },
+      {
+        "finding_id": "F-441c0b88",
+        "title": "Add strict file extension validation on S3 key generation",
+        "tier": 2,
+        "priority": 3,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/file-upload/s3Utils.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Only extensions from ALLOWED_FILE_TYPES whitelist accepted",
+          "Extension sanitized to remove special characters",
+          "Filename length limited to 255 characters",
+          "Invalid extensions rejected with clear error"
+        ],
+        "approach": "Enhance getS3Key function with whitelist validation and sanitization",
+        "group": "file-upload-validation"
+      },
+      {
+        "finding_id": "F-ac4a34d3",
+        "title": "Replace any[] with proper TypeScript interface in analytics",
+        "tier": 1,
+        "priority": 3,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "activeUsersPerReferrer typed as ReferrerData[]",
+          "ReferrerData interface defines source and visitors fields",
+          "No type safety issues in related code"
+        ],
+        "approach": "Define ReferrerData interface; apply to analytics array types",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-1dda58f7",
+        "title": "Remove @ts-ignore comments and properly type analytics response objects",
+        "tier": 2,
+        "priority": 3,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+        ],
+        "depends_on": [
+          "F-ac4a34d3"
+        ],
+        "acceptance_criteria": [
+          "All @ts-ignore comments removed (3 instances)",
+          "response.rows and metricValues properly typed from Google Analytics Data client",
+          "No TypeScript errors or warnings"
+        ],
+        "approach": "Type the GA response objects using Google Analytics Data API types",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-f105d914",
+        "title": "Extract signed URL expiration timeout to shared constant",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/shared/constants.ts",
+          "template/app/src/file-upload/s3Utils.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "SIGNED_URL_EXPIRATION_SECONDS constant defined in shared/constants.ts",
+          "Value is 3600",
+          "Both s3Utils.ts usages import and use the constant"
+        ],
+        "approach": "Create constants file or add to existing; export and import the constant",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-e13c2a2b",
+        "title": "Validate environment variables at application startup",
+        "tier": 1,
+        "priority": 2,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/file-upload/s3Utils.ts",
+          "template/app/src/server/utils.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "AWS_S3_IAM_ACCESS_KEY, AWS_S3_IAM_SECRET_KEY, AWS_S3_FILES_BUCKET validated at startup",
+          "Application fails fast with clear error if env vars missing",
+          "requireNodeEnvVar utility used consistently"
+        ],
+        "approach": "Use requireNodeEnvVar from server/utils or enhance it; call validation at app initialization",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-75dec326",
+        "title": "Consolidate webhook error handling patterns across payment providers",
+        "tier": 2,
+        "priority": 3,
+        "estimated_files": 4,
+        "files_to_modify": [
+          "template/app/src/payment/stripe/webhook.ts",
+          "template/app/src/payment/lemonSqueezy/webhook.ts",
+          "template/app/src/payment/polar/webhook.ts",
+          "template/app/src/payment/webhook.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Shared webhookErrorLog utility created",
+          "All providers use consistent error logging pattern",
+          "Development vs production logging behavior unified"
+        ],
+        "approach": "Extract webhook error logging to shared utility; refactor providers to use it",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-272336fb",
+        "title": "Implement message notification system for MessageButton",
+        "tier": 2,
+        "priority": 4,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+          "template/app/src/admin/dashboards/messages/MessagesPage.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "MessageButton accepts newMessageCount prop",
+          "Badge only animates when newMessageCount > 0",
+          "Connected to real message data source"
+        ],
+        "approach": "Complete TODO: add prop for message count; conditionally render animated badge",
+        "group": "feature-completion"
+      },
+      {
+        "finding_id": "F-aacba715",
+        "title": "Implement settings form submission and persistence",
+        "tier": 2,
+        "priority": 4,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/admin/elements/settings/SettingsPage.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Settings form has real submission handler",
+          "Form data persisted to database or user preferences",
+          "Success/error feedback provided to user",
+          "TODO comment removed"
+        ],
+        "approach": "Implement handleSubmit to call settings operation; add feedback toast",
+        "group": "feature-completion"
+      },
+      {
+        "finding_id": "F-09ec96f6",
+        "title": "Implement admin messages page functionality",
+        "tier": 2,
+        "priority": 4,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+          "template/app/src/admin/dashboards/messages/MessageButton.tsx"
+        ],
+        "depends_on": [
+          "F-272336fb"
+        ],
+        "acceptance_criteria": [
+          "Messages page displays actual messages or placeholder appropriately",
+          "Connected to message data source",
+          "TODO comment removed"
+        ],
+        "approach": "Complete messages page with appropriate UI or remove if not in scope",
+        "group": "feature-completion"
+      },
+      {
+        "finding_id": "F-702fc339",
+        "title": "Add generic type parameter to throttleWithTrailingInvocation",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/shared/utils.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Function preserves parameter types via generic <T extends (...args: any[]) => any>",
+          "Return type is T & { cancel: () => void }",
+          "No type safety loss for throttled function calls"
+        ],
+        "approach": "Add generic type parameter to throttle function signature",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-aff6bd81",
+        "title": "Remove dead code: commented-out user photo in settings",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/admin/elements/settings/SettingsPage.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Commented img tag removed",
+          "If user avatars needed, implement properly; otherwise delete"
+        ],
+        "approach": "Remove commented code or implement avatar feature if needed",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-832b857c",
+        "title": "Move hardcoded Stripe test card to constants",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/shared/constants.ts",
+          "template/app/src/payment/PricingPage.tsx"
+        ],
+        "depends_on": [
+          "F-f105d914"
+        ],
+        "acceptance_criteria": [
+          "STRIPE_TEST_CARD_NUMBER constant defined",
+          "PricingPage imports and uses constant",
+          "Easy to update test cards in one location"
+        ],
+        "approach": "Extract to constants file; import in PricingPage",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-b3189a10",
+        "title": "Move pricing constants to plans.ts module",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/payment/plans.ts",
+          "template/app/src/payment/PricingPage.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "bestDealPaymentPlanId exported from plans.ts",
+          "PricingPage imports from plans.ts instead of defining inline"
+        ],
+        "approach": "Move constant definition to plans module",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-51528115",
+        "title": "Consolidate payment plan metadata into single source of truth",
+        "tier": 2,
+        "priority": 3,
+        "estimated_files": 2,
+        "files_to_modify": [
+          "template/app/src/payment/plans.ts",
+          "template/app/src/payment/PricingPage.tsx"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "paymentPlanCards object merged with or derived from paymentPlans",
+          "Single source of truth for plan metadata (name, price, features)",
+          "No duplication of plan data"
+        ],
+        "approach": "Extend paymentPlans object to include display data or create derived structure",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-24f64033",
+        "title": "Document email verification token security in main.wasp",
+        "tier": 1,
+        "priority": 3,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/wasp"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Wasp config verified to use HTTPS-only verification links",
+          "Token expiration set (5-24 hours typical)",
+          "Rate limiting on verification endpoints configured if possible",
+          "Tokens logged securely without exposing token values"
+        ],
+        "approach": "Verify Wasp auth configuration and document security measures",
+        "group": "auth-validation"
+      },
+      {
+        "finding_id": "F-3ec24e57",
+        "title": "Defer: Refactor god admin module - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 21,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires architectural redesign",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-9c81a20a",
+        "title": "Defer: Refactor payment module for reduced duplication - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 21,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires architectural redesign with provider abstraction",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-fa8ac3ca",
+        "title": "Defer: Create analytics facade layer - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 8,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires architectural service layer design",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-8ca79505",
+        "title": "Defer: Reorganize client module structure - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 34,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires module reorganization",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-0176dbc7",
+        "title": "Defer: Abstract payment provider selection - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 6,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires architectural factory pattern",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-54e3a82f",
+        "title": "Defer: Create service layer abstraction - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 12,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires service layer architecture",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-3adf1d0d",
+        "title": "Defer: Decompose DemoAppPage god component - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 4,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires component decomposition",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-14e67fb0",
+        "title": "Defer: Consolidate validation and error handling - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 8,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires validation framework design",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-39e8a166",
+        "title": "Defer: Clarify landing page and blog separation - strategic review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 25,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires strategic decision on static vs. dynamic content",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-6e667422",
+        "title": "Defer: Abstract analytics provider - architecture review required",
+        "tier": 0,
+        "priority": 5,
+        "estimated_files": 6,
+        "files_to_modify": [],
+        "depends_on": [],
+        "acceptance_criteria": [],
+        "approach": "Deferred - requires provider abstraction pattern",
+        "group": "deferred-architecture"
+      },
+      {
+        "finding_id": "F-efb4ee75",
+        "title": "Remove duplicate headers object in Plausible analytics",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Local headers variable in getPageviewsForDate removed",
+          "Uses module-level headers constant instead"
+        ],
+        "approach": "Remove redundant local variable definition",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-eb30c5fd",
+        "title": "Document environment variable naming conventions",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/.env.example"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Environment variable naming documented in .env.example",
+          "Consistency guide established for future vars"
+        ],
+        "approach": "Document naming convention in example env file",
+        "group": "code-quality"
+      },
+      {
+        "finding_id": "F-0e94e9ce",
+        "title": "Add comment documenting 'today' relative date in Google Analytics",
+        "tier": 1,
+        "priority": 4,
+        "estimated_files": 1,
+        "files_to_modify": [
+          "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+        ],
+        "depends_on": [],
+        "acceptance_criteria": [
+          "Comment explains 'today' is valid GA4 relative date",
+          "Code is self-documenting"
+        ],
+        "approach": "Add explanatory comment",
+        "group": "code-quality"
+      }
+    ],
+    "dependencies": [
+      {
+        "finding_id": "F-c4ee71a5",
+        "depends_on_finding_id": "F-2fa91d2d",
+        "reason": "File ownership validation must be implemented before refactoring to use fileId"
+      },
+      {
+        "finding_id": "F-5332c1cb",
+        "depends_on_finding_id": "F-5b30722c",
+        "reason": "RBAC enforcement on pages requires analytics operations to have auth checks first"
+      },
+      {
+        "finding_id": "F-1dda58f7",
+        "depends_on_finding_id": "F-ac4a34d3",
+        "reason": "Type removal depends on interface definition being in place"
+      },
+      {
+        "finding_id": "F-832b857c",
+        "depends_on_finding_id": "F-f105d914",
+        "reason": "Constants file should exist before adding payment-specific constants"
+      },
+      {
+        "finding_id": "F-09ec96f6",
+        "depends_on_finding_id": "F-272336fb",
+        "reason": "Messages page implementation completes MessageButton notification system"
+      }
+    ],
+    "execution_levels": [
+      [
+        "F-2fa91d2d",
+        "F-5b30722c",
+        "F-5d94aa6f",
+        "F-f2638854",
+        "F-e33ae038",
+        "F-ac0739f2",
+        "F-d6e31bee",
+        "F-affae70b",
+        "F-441c0b88",
+        "F-f105d914",
+        "F-e13c2a2b",
+        "F-24f64033"
+      ],
+      [
+        "F-c4ee71a5",
+        "F-5332c1cb",
+        "F-ac4a34d3",
+        "F-75dec326",
+        "F-702fc339",
+        "F-aff6bd81",
+        "F-832b857c",
+        "F-b3189a10",
+        "F-efb4ee75",
+        "F-eb30c5fd",
+        "F-0e94e9ce"
+      ],
+      [
+        "F-1dda58f7",
+        "F-272336fb",
+        "F-aacba715",
+        "F-51528115"
+      ],
+      [
+        "F-09ec96f6"
+      ]
+    ],
+    "deferred_finding_ids": [
+      "F-3ec24e57",
+      "F-9c81a20a",
+      "F-fa8ac3ca",
+      "F-8ca79505",
+      "F-0176dbc7",
+      "F-54e3a82f",
+      "F-3adf1d0d",
+      "F-14e67fb0",
+      "F-39e8a166",
+      "F-6e667422"
+    ],
+    "dedup_summary": "Merged F-2fa91d2d and F-c4ee71a5 (both file access control issues) into sequential items; both F-5b30722c and first part of F-5332c1cb address analytics auth (consolidated with separate RBAC enforcement); removed duplicate coverage of webhook validation from payment security findings.",
+    "total_items": 38,
+    "estimated_invocations": 68,
+    "summary": "34 actionable items across 4 execution levels, prioritized by security impact. Level 1 contains 12 critical/high-priority security fixes (auth, file access, rate limiting, env validation). Level 2 refines remaining security items and type safety improvements. Level 3 completes type safety chain. Level 4 completes feature implementations. 10 findings deferred as Tier 0 architectural issues requiring strategic review and major refactoring\u2014these should be scheduled in a separate architectural planning phase."
+  }
+}

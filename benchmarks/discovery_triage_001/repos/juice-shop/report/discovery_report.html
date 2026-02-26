@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: 76b98f909681 &bull; Generated: 2026-02-26 01:06 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>21 findings</span>
+        <span>324s runtime</span>
+        <span>$0.0000 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box high"><div class="num">7</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">10</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">4</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Unbounded list queries without pagination on Products API endpoint</strong>
+                <div class="desc">The /api/Products endpoint returns all products without pagination. Tests verify that all products are returned (products.length) with no limit/offset parameters. This will cause performance degradati</div>
+            </td>
+            <td class="loc">test/api/searchApiSpec.ts:106</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Unbounded list queries without pagination on Feedbacks API endpoint</strong>
+                <div class="desc">The /api/Feedbacks endpoint returns all feedback without pagination, similar to Products. This will cause memory and performance issues with large feedback datasets.</div>
+            </td>
+            <td class="loc">test/api/feedbackApiSpec.ts:8</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Unbounded list queries without pagination on Users API endpoint</strong>
+                <div class="desc">The /api/Users endpoint returns all users without pagination. This is a security and performance concern - exposing all user data and causing memory issues with large user bases.</div>
+            </td>
+            <td class="loc">test/api/userApiSpec.ts:10</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing service layer between API routes and data access</strong>
+                <div class="desc">API routes (2500 LOC) directly access the data layer and models without intermediate business logic layer. This violates separation of concerns and creates tight coupling between route handlers and pe</div>
+            </td>
+            <td class="loc">routes/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Tight coupling between frontend components and services</strong>
+                <div class="desc">Frontend components (4500 LOC) directly inject and use HTTP services without abstraction. Each component independently manages API calls, error handling, and state. This creates multiple copies of sim</div>
+            </td>
+            <td class="loc">frontend/src/app/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Authentication/Authorization logic scattered across routes</strong>
+                <div class="desc">JWT verification, role checking, and permission logic implemented inline in multiple route files. middleware concepts not consistently applied. Makes audit and changes to auth logic difficult. Auth ro</div>
+            </td>
+            <td class="loc">routes/login.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Challenge domain logic mixed across modules</strong>
+                <div class="desc">Challenge-related logic distributed across: routes/verify.ts, routes/challenges.ts (missing but referenced), data/static/challenges.yml, frontend/src/app/score-board, frontend/src/hacking-instructor. </div>
+            </td>
+            <td class="loc">routes/verify.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Repeated localStorage reads on every HTTP request without memoization</strong>
+                <div class="desc">The RequestInterceptor reads from localStorage on every single HTTP request. The token and email values are read synchronously from localStorage on every request, causing unnecessary I/O overhead. The</div>
+            </td>
+            <td class="loc">frontend/src/app/Services/request.interceptor.ts:14</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Missing eager loading for related data in API responses</strong>
+                <div class="desc">API endpoints like basket with products likely perform N+1 queries - fetching basket then iterating to fetch each product separately. The test verifies Products are loaded but doesn't show efficient l</div>
+            </td>
+            <td class="loc">test/api/basketApiSpec.ts:39</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God modules in api-routes: inconsistent responsibility distribution</strong>
+                <div class="desc">The api-routes module contains 10 route files with 2500 LOC covering diverse concerns: authentication, products, basket, users, admin, chatbot, feedback, challenges, and more. Some route files like ve</div>
+            </td>
+            <td class="loc">routes/verify.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Data layer lacks repository pattern abstraction</strong>
+                <div class="desc">Data access is scattered across data/mongodb.ts, data/datacreator.ts, and direct Mongoose model imports in routes. No consistent repository or DAO pattern. Changes to query logic scattered across mult</div>
+            </td>
+            <td class="loc">data/mongodb.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Configuration scatter: hardcoded values across codebase</strong>
+                <div class="desc">Configuration values spread throughout route handlers, services, and startup files. While config files exist (config/default.yml, config/test.yml), many settings are hardcoded in code or loaded incons</div>
+            </td>
+            <td class="loc">lib/startup/validateConfig.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Frontend-backend API contract not formally defined</strong>
+                <div class="desc">Frontend services and backend routes evolved independently. No OpenAPI/Swagger schema enforced, no shared DTOs between client and server, no centralized API contract. Multiple services independently h</div>
+            </td>
+            <td class="loc">frontend/src/app/Services/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent error handling across modules</strong>
+                <div class="desc">Error handling patterns vary significantly. Some routes use try-catch, others use promise rejection, frontend services have different error interceptors. No unified error response format or error code</div>
+            </td>
+            <td class="loc">routes/errorHandler.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Frontend models fragmented: Models/ and Service types inconsistent</strong>
+                <div class="desc">Frontend has Models directory (frontend/src/app/Models/) with DTO interfaces, but services define their own types. No single source of truth for data structures. Models rarely correspond to backend re</div>
+            </td>
+            <td class="loc">frontend/src/app/Models/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Test code lacks structural clarity: three test frameworks without clear separation</strong>
+                <div class="desc">Three separate test modules (test-server using Mocha, test-api using Jest/Frisby, test-e2e using Cypress) with 3300 LOC total. No clear guidance on which tests cover which layers. Test data and fixtur</div>
+            </td>
+            <td class="loc">test/server/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Web3/Blockchain integration lacks abstraction layer</strong>
+                <div class="desc">Ethereum contract interactions (ethers.js) scattered across frontend components and routes. No abstraction for contract methods, transaction handling, or wallet integration. Web3 modules (web3-sandbox</div>
+            </td>
+            <td class="loc">frontend/src/app/web3-sandbox/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Expensive reduce operation on config products array in test</strong>
+                <div class="desc">The productReviewApiSpec performs a reduce operation on config.get&lt;Product[]&gt;('products') to count reviews. If this config is accessed repeatedly without caching, it causes unnecessary computation.</div>
+            </td>
+            <td class="loc">test/api/productReviewApiSpec.ts:89</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Nested promise chains without parallel execution in data export tests</strong>
+                <div class="desc">The dataExportApiSpec has multiple sequential .then() chains that could be parallelized. For example, login followed by data export could run login once and reuse the token.</div>
+            </td>
+            <td class="loc">test/api/dataExportApiSpec.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Hacking instructor tutorial system loosely integrated</strong>
+                <div class="desc">frontend/src/hacking-instructor module (600 LOC) operates as separate subsystem with minimal integration with main application. Tutorial state management, challenge flow, and helper functions duplicat</div>
+            </td>
+            <td class="loc">frontend/src/hacking-instructor/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent module naming and organization patterns</strong>
+                <div class="desc">Module organization lacks consistency: some use .ts files (routes/login.ts), others use directories (frontend/src/app/score-board/), some use subfolders (frontend/src/app/score-board/components/). Nam</div>
+            </td>
+            <td class="loc">routes/:1</td>
+            <td></td>
+        </tr></tbody>
+    </table>
+
+    
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

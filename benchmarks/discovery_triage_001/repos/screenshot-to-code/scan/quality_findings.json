@@ -1,0 +1,345 @@
+{
+  "findings": [
+    {
+      "id": "F-c5f36674",
+      "title": "Repeated function call in ImageLightbox useEffect",
+      "description": "The `recomputeFitScale` function is called twice in quick succession in ImageLightbox.tsx - once in the useEffect that watches [image, recomputeFitScale] and again immediately after. This causes redundant calculations.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/ImageLightbox.tsx",
+          "line_start": 60,
+          "line_end": 70,
+          "snippet": "useEffect(() => {\n    if (!image) return;\n    recomputeFitScale();\n\n    const handleResize = () => recomputeFitScale();\n    window.addEventListener('resize', handleResize);\n    return () => window.removeEventListener('resize', handleResize);\n  }, [image, recomputeFitScale]);\n\n  useEffect(() => {\n    recomputeFitScale();\n  }, [recomputeFitScale]);"
+        }
+      ],
+      "suggested_fix": "Remove the second useEffect (lines 67-69) that calls recomputeFitScale redundantly. The first useEffect already handles this when dependencies change.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2a66d2fe",
+      "title": "Unmemoized O(n log n) sort operation in Sidebar render",
+      "description": "The `currentVersionNumber` computation performs `Object.values(commits).sort(...)` on every render, which is O(n log n). For projects with many commits, this creates significant overhead.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/sidebar/Sidebar.tsx",
+          "line_start": 149,
+          "line_end": 158,
+          "snippet": "// Compute version number for the current head\n  const currentVersionNumber = (() => {\n    if (!head) return null;\n    const sorted = Object.values(commits).sort(\n      (a, b) => new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()\n    );\n    const index = sorted.findIndex((c) => c.hash === head);\n    return index !== -1 ? index + 1 : null;\n  })();"
+        }
+      ],
+      "suggested_fix": "Wrap this computation in a useMemo hook with dependencies [head, commits]: `const currentVersionNumber = useMemo(() => {...}, [head, commits]);`",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f529939a",
+      "title": "Missing useCallback for event handler in ImageUpload",
+      "description": "The handleGenerate function is defined with useCallback but depends on multiple values that change frequently. The global keydown handler in useEffect may capture stale closures.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/ImageUpload.tsx",
+          "line_start": 83,
+          "line_end": 106,
+          "snippet": "// Global Enter key listener for generating when image is uploaded\n  useEffect(() => {\n    if (!hasUploadedFile) return;\n\n    const handleGlobalKeyDown = (e: KeyboardEvent) => {\n      if (e.key === 'Enter' && !e.shiftKey) {\n        if (document.activeElement === textInputRef.current) return;\n        e.preventDefault();\n        handleGenerate();\n      }\n    };\n\n    document.addEventListener('keydown', handleGlobalKeyDown);\n    return () => document.removeEventListener('keydown', handleGlobalKeyDown);\n  }, [hasUploadedFile, handleGenerate]);"
+        }
+      ],
+      "suggested_fix": "Add handleGenerate to the dependency array and ensure it's wrapped in useCallback with stable dependencies. Consider using useRef to store the latest handleGenerate reference to avoid re-attaching the listener.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e84c96e8",
+      "title": "Multiple WebSocket event listeners without cleanup verification",
+      "description": "The generateCode.ts creates new WebSocket listeners but there's no explicit guarantee that previous listeners are fully cleaned up before new ones are created, potentially causing memory leaks during rapid regeneration.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/generateCode.ts",
+          "line_start": 48,
+          "line_end": 95,
+          "snippet": "ws.addEventListener('message', async (event: MessageEvent) => {\n    const response = JSON.parse(event.data) as WebSocketResponse;\n    // ... multiple if/else if branches\n  });\n\n  ws.addEventListener('close', (event) => {...});\n  ws.addEventListener('error', (error) => {...});"
+        }
+      ],
+      "suggested_fix": "Ensure ws.close() is called before creating a new WebSocket in the calling code (App.tsx). Consider adding explicit cleanup in the cancelCodeGeneration function to guarantee proper connection termination.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ec7da3e0",
+      "title": "Potentially large agentEvents array causing re-renders",
+      "description": "The Variant type includes agentEvents array that grows during generation. If this array reference changes on every event, it could trigger unnecessary re-renders in child components that depend on the variant.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/store/project-store.ts",
+          "line_start": 1,
+          "line_end": 200,
+          "snippet": "// From types.ts in commits folder:\nexport type AgentEvent = {\n  id: string;\n  type: AgentEventType;\n  status: AgentEventStatus;\n  content?: string;\n  // ... other fields\n};"
+        }
+      ],
+      "suggested_fix": "Consider using Immer or immutable update patterns to ensure the agentEvents array reference only changes when genuinely necessary. Use shallow comparison optimization in components consuming variants.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c63ff059",
+      "title": "No React.memo on list-rendering components",
+      "description": "Components like HistoryDisplay, Variants, and AgentActivity that render lists of items are not wrapped in React.memo, causing unnecessary re-renders when parent state changes.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/components/history/HistoryDisplay.tsx",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "// No React.memo wrapper found in the component export"
+        }
+      ],
+      "suggested_fix": "Wrap list-rendering components with React.memo and ensure proper comparison of props. For example: `export default React.memo(HistoryDisplay);`",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2df0ef26",
+      "title": "Missing pagination in prompt history parsing",
+      "description": "The parse_prompt_history function in request_parsing.py iterates through all history items without any pagination or streaming. For very long conversations, this processes the entire array in one call.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/prompts/request_parsing.py",
+          "line_start": 24,
+          "line_end": 45,
+          "snippet": "def parse_prompt_history(raw_history: object) -> List[PromptHistoryMessage]:\n    if not isinstance(raw_history, list):\n        return []\n\n    history: List[PromptHistoryMessage] = []\n    raw_items = cast(List[object], raw_history)\n    for item in raw_items:\n        # ... processing each item\n        history.append(...)\n\n    return history"
+        }
+      ],
+      "suggested_fix": "Consider adding a max_history_length parameter to limit the number of history items processed, or implement sliding window approach to keep only the most recent N messages.",
+      "confidence": 0.65,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": "Found 11 issues with error handling coverage. Critical gap: missing React Error Boundary in app root. High-priority gaps: unhandled fetch in TermsOfServiceDialog, unprotected WebSocket JSON parsing, missing error handling in code generation flow."
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": ""
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [
+        {
+          "id": "F-c5f36674",
+          "title": "Repeated function call in ImageLightbox useEffect",
+          "description": "The `recomputeFitScale` function is called twice in quick succession in ImageLightbox.tsx - once in the useEffect that watches [image, recomputeFitScale] and again immediately after. This causes redundant calculations.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/components/ImageLightbox.tsx",
+              "line_start": 60,
+              "line_end": 70,
+              "snippet": "useEffect(() => {\n    if (!image) return;\n    recomputeFitScale();\n\n    const handleResize = () => recomputeFitScale();\n    window.addEventListener('resize', handleResize);\n    return () => window.removeEventListener('resize', handleResize);\n  }, [image, recomputeFitScale]);\n\n  useEffect(() => {\n    recomputeFitScale();\n  }, [recomputeFitScale]);"
+            }
+          ],
+          "suggested_fix": "Remove the second useEffect (lines 67-69) that calls recomputeFitScale redundantly. The first useEffect already handles this when dependencies change.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2a66d2fe",
+          "title": "Unmemoized O(n log n) sort operation in Sidebar render",
+          "description": "The `currentVersionNumber` computation performs `Object.values(commits).sort(...)` on every render, which is O(n log n). For projects with many commits, this creates significant overhead.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/components/sidebar/Sidebar.tsx",
+              "line_start": 149,
+              "line_end": 158,
+              "snippet": "// Compute version number for the current head\n  const currentVersionNumber = (() => {\n    if (!head) return null;\n    const sorted = Object.values(commits).sort(\n      (a, b) => new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()\n    );\n    const index = sorted.findIndex((c) => c.hash === head);\n    return index !== -1 ? index + 1 : null;\n  })();"
+            }
+          ],
+          "suggested_fix": "Wrap this computation in a useMemo hook with dependencies [head, commits]: `const currentVersionNumber = useMemo(() => {...}, [head, commits]);`",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f529939a",
+          "title": "Missing useCallback for event handler in ImageUpload",
+          "description": "The handleGenerate function is defined with useCallback but depends on multiple values that change frequently. The global keydown handler in useEffect may capture stale closures.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/components/ImageUpload.tsx",
+              "line_start": 83,
+              "line_end": 106,
+              "snippet": "// Global Enter key listener for generating when image is uploaded\n  useEffect(() => {\n    if (!hasUploadedFile) return;\n\n    const handleGlobalKeyDown = (e: KeyboardEvent) => {\n      if (e.key === 'Enter' && !e.shiftKey) {\n        if (document.activeElement === textInputRef.current) return;\n        e.preventDefault();\n        handleGenerate();\n      }\n    };\n\n    document.addEventListener('keydown', handleGlobalKeyDown);\n    return () => document.removeEventListener('keydown', handleGlobalKeyDown);\n  }, [hasUploadedFile, handleGenerate]);"
+            }
+          ],
+          "suggested_fix": "Add handleGenerate to the dependency array and ensure it's wrapped in useCallback with stable dependencies. Consider using useRef to store the latest handleGenerate reference to avoid re-attaching the listener.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-e84c96e8",
+          "title": "Multiple WebSocket event listeners without cleanup verification",
+          "description": "The generateCode.ts creates new WebSocket listeners but there's no explicit guarantee that previous listeners are fully cleaned up before new ones are created, potentially causing memory leaks during rapid regeneration.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/generateCode.ts",
+              "line_start": 48,
+              "line_end": 95,
+              "snippet": "ws.addEventListener('message', async (event: MessageEvent) => {\n    const response = JSON.parse(event.data) as WebSocketResponse;\n    // ... multiple if/else if branches\n  });\n\n  ws.addEventListener('close', (event) => {...});\n  ws.addEventListener('error', (error) => {...});"
+            }
+          ],
+          "suggested_fix": "Ensure ws.close() is called before creating a new WebSocket in the calling code (App.tsx). Consider adding explicit cleanup in the cancelCodeGeneration function to guarantee proper connection termination.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-ec7da3e0",
+          "title": "Potentially large agentEvents array causing re-renders",
+          "description": "The Variant type includes agentEvents array that grows during generation. If this array reference changes on every event, it could trigger unnecessary re-renders in child components that depend on the variant.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/store/project-store.ts",
+              "line_start": 1,
+              "line_end": 200,
+              "snippet": "// From types.ts in commits folder:\nexport type AgentEvent = {\n  id: string;\n  type: AgentEventType;\n  status: AgentEventStatus;\n  content?: string;\n  // ... other fields\n};"
+            }
+          ],
+          "suggested_fix": "Consider using Immer or immutable update patterns to ensure the agentEvents array reference only changes when genuinely necessary. Use shallow comparison optimization in components consuming variants.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-c63ff059",
+          "title": "No React.memo on list-rendering components",
+          "description": "Components like HistoryDisplay, Variants, and AgentActivity that render lists of items are not wrapped in React.memo, causing unnecessary re-renders when parent state changes.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/components/history/HistoryDisplay.tsx",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "// No React.memo wrapper found in the component export"
+            }
+          ],
+          "suggested_fix": "Wrap list-rendering components with React.memo and ensure proper comparison of props. For example: `export default React.memo(HistoryDisplay);`",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2df0ef26",
+          "title": "Missing pagination in prompt history parsing",
+          "description": "The parse_prompt_history function in request_parsing.py iterates through all history items without any pagination or streaming. For very long conversations, this processes the entire array in one call.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "backend/prompts/request_parsing.py",
+              "line_start": 24,
+              "line_end": 45,
+              "snippet": "def parse_prompt_history(raw_history: object) -> List[PromptHistoryMessage]:\n    if not isinstance(raw_history, list):\n        return []\n\n    history: List[PromptHistoryMessage] = []\n    raw_items = cast(List[object], raw_history)\n    for item in raw_items:\n        # ... processing each item\n        history.append(...)\n\n    return history"
+            }
+          ],
+          "suggested_fix": "Consider adding a max_history_length parameter to limit the number of history items processed, or implement sliding window approach to keep only the most recent N messages.",
+          "confidence": 0.65,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 7 performance issues: 1 redundant useEffect call, 1 unmemoized O(n log n) sort operation, 1 missing useCallback dependency, 2 potential memory/connection issues, and 2 missing optimization patterns (React.memo, pagination)."
+    }
+  ],
+  "total_findings": 7
+}

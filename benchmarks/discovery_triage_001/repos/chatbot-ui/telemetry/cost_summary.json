@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestMediumComplex::test_discover_chatbot_ui",
+  "total_cost_usd": 0.771,
+  "total_tokens": 478415,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 266767,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.0662,
+    "codebase_analyst": 0.0075,
+    "fix_strategist": 0.1121,
+    "quality_auditor/code_patterns": 0.0304,
+    "quality_auditor/error_handling": 0.0296,
+    "quality_auditor/performance": 0.031,
+    "security_auditor/auth_flow": 0.1486,
+    "security_auditor/data_handling": 0.147,
+    "security_auditor/infrastructure": 0.1638,
+    "triage_classifier": 0.0349
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.6726,
+    "minimax/minimax-m2.5": 0.0984
+  },
+  "training_pairs_logged": 0
+}

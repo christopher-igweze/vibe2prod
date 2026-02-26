@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestLargeComplex::test_discover_jan",
+  "total_cost_usd": 0.952,
+  "total_tokens": 515039,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 190054,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.1486,
+    "codebase_analyst": 0.006,
+    "fix_strategist": 0.1789,
+    "quality_auditor/code_patterns": 0.0024,
+    "quality_auditor/error_handling": 0.0292,
+    "quality_auditor/performance": 0.0258,
+    "security_auditor/auth_flow": 0.1699,
+    "security_auditor/data_handling": 0.1617,
+    "security_auditor/infrastructure": 0.1983,
+    "triage_classifier": 0.0313
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.8887,
+    "minimax/minimax-m2.5": 0.0633
+  },
+  "training_pairs_logged": 0
+}

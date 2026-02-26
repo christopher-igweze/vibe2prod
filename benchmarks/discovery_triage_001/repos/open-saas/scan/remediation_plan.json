@@ -1,0 +1,750 @@
+{
+  "items": [
+    {
+      "finding_id": "F-2fa91d2d",
+      "title": "Add ownership validation to getDownloadFileSignedURL operation",
+      "tier": 2,
+      "priority": 1,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/file-upload/operations.ts",
+        "template/app/src/file-upload/FileUploadPage.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "getDownloadFileSignedURL verifies context.user exists",
+        "Operation queries File entity and validates userId matches",
+        "Unauthorized access returns 403 HttpError",
+        "FileUploadPage passes fileId instead of raw s3Key"
+      ],
+      "approach": "Add auth check + file ownership validation; refactor FileUploadPage to pass fileId instead of s3Key",
+      "group": "file-upload-security"
+    },
+    {
+      "finding_id": "F-c4ee71a5",
+      "title": "Prevent cross-user file access via S3 key manipulation",
+      "tier": 2,
+      "priority": 1,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/file-upload/operations.ts",
+        "template/app/src/file-upload/FileUploadPage.tsx"
+      ],
+      "depends_on": [
+        "F-2fa91d2d"
+      ],
+      "acceptance_criteria": [
+        "Download operation accepts fileId parameter, not s3Key",
+        "Backend validates file ownership before generating signed URL",
+        "Client cannot bypass validation by modifying S3 key in DevTools"
+      ],
+      "approach": "Refactor to use file ID as operation parameter; enforce ownership check in backend",
+      "group": "file-upload-security"
+    },
+    {
+      "finding_id": "F-5b30722c",
+      "title": "Add authentication and admin authorization to getDailyStats operation",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "template/app/src/analytics/operations.ts",
+        "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "getDailyStats checks context.user exists",
+        "getDailyStats verifies context.user.isAdmin is true",
+        "Unauthenticated requests return 401",
+        "Non-admin requests return 403",
+        "Route marked authRequired: true in main.wasp"
+      ],
+      "approach": "Add auth + admin checks to getDailyStats and related analytics operations",
+      "group": "admin-security"
+    },
+    {
+      "finding_id": "F-5332c1cb",
+      "title": "Enforce RBAC checks on all admin dashboard pages",
+      "tier": 3,
+      "priority": 2,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+        "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+        "template/app/src/admin/elements/settings/SettingsPage.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalRevenueCard.tsx",
+        "template/app/src/admin/dashboards/analytics/TotalSignupsCard.tsx"
+      ],
+      "depends_on": [
+        "F-5b30722c"
+      ],
+      "acceptance_criteria": [
+        "All admin pages check user.isAdmin and redirect non-admins to /",
+        "Server-side operations verify admin status via context.user.isAdmin",
+        "All admin routes in main.wasp have authRequired: true and admin role check",
+        "Unauthorized access returns 403 or redirect"
+      ],
+      "approach": "Add role-based guards to admin page components; add server-side auth checks to all admin operations",
+      "group": "admin-security"
+    },
+    {
+      "finding_id": "F-5d94aa6f",
+      "title": "Require email verification before granting admin privileges",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/auth/userSignupFields.ts",
+        "template/app/src/auth/email-and-pass/EmailVerificationPage.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "isAdmin field defaults to false for all signups",
+        "Admin assignment only happens after emailVerified: true confirmed",
+        "Manual admin promotion workflow established or post-verification check implemented"
+      ],
+      "approach": "Set isAdmin=false in signup; implement post-verification admin promotion or require verified emails for admin assignment",
+      "group": "auth-security"
+    },
+    {
+      "finding_id": "F-f2638854",
+      "title": "Enforce verified email requirement for OAuth providers",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/auth/userSignupFields.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "GitHub OAuth users with unverified emails cannot complete signup or are required to verify",
+        "emailVerified status stored in User entity",
+        "Restricted features enforce emailVerified at operation level"
+      ],
+      "approach": "Add email verification requirement in OAuth signup flow; enforce at operation level",
+      "group": "auth-security"
+    },
+    {
+      "finding_id": "F-d6e31bee",
+      "title": "Verify password reset token validation in main.wasp configuration",
+      "tier": 1,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/wasp"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Wasp main.wasp has passwordResetTokenExpirationInMinutes set (15-30 minutes)",
+        "Password reset tokens are single-use and invalidated after use",
+        "Token generation uses cryptographically secure randomness",
+        "Tokens stored hashed in database"
+      ],
+      "approach": "Review/configure Wasp auth settings; document findings in README if Wasp handles this by default",
+      "group": "auth-validation"
+    },
+    {
+      "finding_id": "F-e33ae038",
+      "title": "Verify webhook signature validation across all payment providers",
+      "tier": 3,
+      "priority": 1,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "template/app/src/payment/stripe/webhook.ts",
+        "template/app/src/payment/lemonSqueezy/webhook.ts",
+        "template/app/src/payment/polar/webhook.ts",
+        "template/app/src/payment/webhook.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Stripe webhook validates signature via stripe.webhooks.constructEvent()",
+        "LemonSqueezy webhook validates signature per provider docs",
+        "Polar webhook validates signature per provider docs",
+        "All webhook secrets stored in environment variables, never hardcoded",
+        "Only whitelisted event types are processed",
+        "Invalid signatures return 401 Unauthorized"
+      ],
+      "approach": "Review each payment provider webhook implementation; ensure signature verification is present and correctly configured",
+      "group": "payment-security"
+    },
+    {
+      "finding_id": "F-ac0739f2",
+      "title": "Implement rate limiting on generateCheckoutSession operation",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/payment/operations.ts",
+        "template/app/wasp"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "generateCheckoutSession limited to 5 requests per 5 minutes per user",
+        "Rate limit enforced at operation level or middleware",
+        "Exceeded rate limit returns 429 Too Many Requests",
+        "Failed attempts logged for fraud detection"
+      ],
+      "approach": "Add rate limiting middleware or in-operation rate limit check (e.g., via Redis/database tracking)",
+      "group": "payment-security"
+    },
+    {
+      "finding_id": "F-affae70b",
+      "title": "Implement generic error messages for auth flows",
+      "tier": 1,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/wasp"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Login failure returns 'Invalid email or password' (not distinguishing user not found)",
+        "Signup returns generic success message",
+        "Password reset returns generic 'Check your email' regardless of email existence",
+        "Rate limiting prevents email enumeration attacks"
+      ],
+      "approach": "Configure Wasp auth error messages to be generic; implement rate limiting on auth endpoints",
+      "group": "auth-validation"
+    },
+    {
+      "finding_id": "F-441c0b88",
+      "title": "Add strict file extension validation on S3 key generation",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/file-upload/s3Utils.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Only extensions from ALLOWED_FILE_TYPES whitelist accepted",
+        "Extension sanitized to remove special characters",
+        "Filename length limited to 255 characters",
+        "Invalid extensions rejected with clear error"
+      ],
+      "approach": "Enhance getS3Key function with whitelist validation and sanitization",
+      "group": "file-upload-validation"
+    },
+    {
+      "finding_id": "F-ac4a34d3",
+      "title": "Replace any[] with proper TypeScript interface in analytics",
+      "tier": 1,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "activeUsersPerReferrer typed as ReferrerData[]",
+        "ReferrerData interface defines source and visitors fields",
+        "No type safety issues in related code"
+      ],
+      "approach": "Define ReferrerData interface; apply to analytics array types",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-1dda58f7",
+      "title": "Remove @ts-ignore comments and properly type analytics response objects",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+      ],
+      "depends_on": [
+        "F-ac4a34d3"
+      ],
+      "acceptance_criteria": [
+        "All @ts-ignore comments removed (3 instances)",
+        "response.rows and metricValues properly typed from Google Analytics Data client",
+        "No TypeScript errors or warnings"
+      ],
+      "approach": "Type the GA response objects using Google Analytics Data API types",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-f105d914",
+      "title": "Extract signed URL expiration timeout to shared constant",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/shared/constants.ts",
+        "template/app/src/file-upload/s3Utils.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "SIGNED_URL_EXPIRATION_SECONDS constant defined in shared/constants.ts",
+        "Value is 3600",
+        "Both s3Utils.ts usages import and use the constant"
+      ],
+      "approach": "Create constants file or add to existing; export and import the constant",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-e13c2a2b",
+      "title": "Validate environment variables at application startup",
+      "tier": 1,
+      "priority": 2,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/file-upload/s3Utils.ts",
+        "template/app/src/server/utils.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "AWS_S3_IAM_ACCESS_KEY, AWS_S3_IAM_SECRET_KEY, AWS_S3_FILES_BUCKET validated at startup",
+        "Application fails fast with clear error if env vars missing",
+        "requireNodeEnvVar utility used consistently"
+      ],
+      "approach": "Use requireNodeEnvVar from server/utils or enhance it; call validation at app initialization",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-75dec326",
+      "title": "Consolidate webhook error handling patterns across payment providers",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "template/app/src/payment/stripe/webhook.ts",
+        "template/app/src/payment/lemonSqueezy/webhook.ts",
+        "template/app/src/payment/polar/webhook.ts",
+        "template/app/src/payment/webhook.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Shared webhookErrorLog utility created",
+        "All providers use consistent error logging pattern",
+        "Development vs production logging behavior unified"
+      ],
+      "approach": "Extract webhook error logging to shared utility; refactor providers to use it",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-272336fb",
+      "title": "Implement message notification system for MessageButton",
+      "tier": 2,
+      "priority": 4,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/admin/dashboards/messages/MessageButton.tsx",
+        "template/app/src/admin/dashboards/messages/MessagesPage.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "MessageButton accepts newMessageCount prop",
+        "Badge only animates when newMessageCount > 0",
+        "Connected to real message data source"
+      ],
+      "approach": "Complete TODO: add prop for message count; conditionally render animated badge",
+      "group": "feature-completion"
+    },
+    {
+      "finding_id": "F-aacba715",
+      "title": "Implement settings form submission and persistence",
+      "tier": 2,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/admin/elements/settings/SettingsPage.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Settings form has real submission handler",
+        "Form data persisted to database or user preferences",
+        "Success/error feedback provided to user",
+        "TODO comment removed"
+      ],
+      "approach": "Implement handleSubmit to call settings operation; add feedback toast",
+      "group": "feature-completion"
+    },
+    {
+      "finding_id": "F-09ec96f6",
+      "title": "Implement admin messages page functionality",
+      "tier": 2,
+      "priority": 4,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/admin/dashboards/messages/MessagesPage.tsx",
+        "template/app/src/admin/dashboards/messages/MessageButton.tsx"
+      ],
+      "depends_on": [
+        "F-272336fb"
+      ],
+      "acceptance_criteria": [
+        "Messages page displays actual messages or placeholder appropriately",
+        "Connected to message data source",
+        "TODO comment removed"
+      ],
+      "approach": "Complete messages page with appropriate UI or remove if not in scope",
+      "group": "feature-completion"
+    },
+    {
+      "finding_id": "F-702fc339",
+      "title": "Add generic type parameter to throttleWithTrailingInvocation",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/shared/utils.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Function preserves parameter types via generic <T extends (...args: any[]) => any>",
+        "Return type is T & { cancel: () => void }",
+        "No type safety loss for throttled function calls"
+      ],
+      "approach": "Add generic type parameter to throttle function signature",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-aff6bd81",
+      "title": "Remove dead code: commented-out user photo in settings",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/admin/elements/settings/SettingsPage.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Commented img tag removed",
+        "If user avatars needed, implement properly; otherwise delete"
+      ],
+      "approach": "Remove commented code or implement avatar feature if needed",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-832b857c",
+      "title": "Move hardcoded Stripe test card to constants",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/shared/constants.ts",
+        "template/app/src/payment/PricingPage.tsx"
+      ],
+      "depends_on": [
+        "F-f105d914"
+      ],
+      "acceptance_criteria": [
+        "STRIPE_TEST_CARD_NUMBER constant defined",
+        "PricingPage imports and uses constant",
+        "Easy to update test cards in one location"
+      ],
+      "approach": "Extract to constants file; import in PricingPage",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-b3189a10",
+      "title": "Move pricing constants to plans.ts module",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/payment/plans.ts",
+        "template/app/src/payment/PricingPage.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "bestDealPaymentPlanId exported from plans.ts",
+        "PricingPage imports from plans.ts instead of defining inline"
+      ],
+      "approach": "Move constant definition to plans module",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-51528115",
+      "title": "Consolidate payment plan metadata into single source of truth",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "template/app/src/payment/plans.ts",
+        "template/app/src/payment/PricingPage.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "paymentPlanCards object merged with or derived from paymentPlans",
+        "Single source of truth for plan metadata (name, price, features)",
+        "No duplication of plan data"
+      ],
+      "approach": "Extend paymentPlans object to include display data or create derived structure",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-24f64033",
+      "title": "Document email verification token security in main.wasp",
+      "tier": 1,
+      "priority": 3,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/wasp"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Wasp config verified to use HTTPS-only verification links",
+        "Token expiration set (5-24 hours typical)",
+        "Rate limiting on verification endpoints configured if possible",
+        "Tokens logged securely without exposing token values"
+      ],
+      "approach": "Verify Wasp auth configuration and document security measures",
+      "group": "auth-validation"
+    },
+    {
+      "finding_id": "F-3ec24e57",
+      "title": "Defer: Refactor god admin module - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 21,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires architectural redesign",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-9c81a20a",
+      "title": "Defer: Refactor payment module for reduced duplication - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 21,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires architectural redesign with provider abstraction",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-fa8ac3ca",
+      "title": "Defer: Create analytics facade layer - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 8,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires architectural service layer design",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-8ca79505",
+      "title": "Defer: Reorganize client module structure - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 34,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires module reorganization",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-0176dbc7",
+      "title": "Defer: Abstract payment provider selection - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 6,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires architectural factory pattern",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-54e3a82f",
+      "title": "Defer: Create service layer abstraction - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 12,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires service layer architecture",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-3adf1d0d",
+      "title": "Defer: Decompose DemoAppPage god component - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 4,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires component decomposition",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-14e67fb0",
+      "title": "Defer: Consolidate validation and error handling - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 8,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires validation framework design",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-39e8a166",
+      "title": "Defer: Clarify landing page and blog separation - strategic review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 25,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires strategic decision on static vs. dynamic content",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-6e667422",
+      "title": "Defer: Abstract analytics provider - architecture review required",
+      "tier": 0,
+      "priority": 5,
+      "estimated_files": 6,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - requires provider abstraction pattern",
+      "group": "deferred-architecture"
+    },
+    {
+      "finding_id": "F-efb4ee75",
+      "title": "Remove duplicate headers object in Plausible analytics",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/analytics/providers/plausibleAnalyticsUtils.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Local headers variable in getPageviewsForDate removed",
+        "Uses module-level headers constant instead"
+      ],
+      "approach": "Remove redundant local variable definition",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-eb30c5fd",
+      "title": "Document environment variable naming conventions",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/.env.example"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Environment variable naming documented in .env.example",
+        "Consistency guide established for future vars"
+      ],
+      "approach": "Document naming convention in example env file",
+      "group": "code-quality"
+    },
+    {
+      "finding_id": "F-0e94e9ce",
+      "title": "Add comment documenting 'today' relative date in Google Analytics",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "template/app/src/analytics/providers/googleAnalyticsUtils.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Comment explains 'today' is valid GA4 relative date",
+        "Code is self-documenting"
+      ],
+      "approach": "Add explanatory comment",
+      "group": "code-quality"
+    }
+  ],
+  "dependencies": [
+    {
+      "finding_id": "F-c4ee71a5",
+      "depends_on_finding_id": "F-2fa91d2d",
+      "reason": "File ownership validation must be implemented before refactoring to use fileId"
+    },
+    {
+      "finding_id": "F-5332c1cb",
+      "depends_on_finding_id": "F-5b30722c",
+      "reason": "RBAC enforcement on pages requires analytics operations to have auth checks first"
+    },
+    {
+      "finding_id": "F-1dda58f7",
+      "depends_on_finding_id": "F-ac4a34d3",
+      "reason": "Type removal depends on interface definition being in place"
+    },
+    {
+      "finding_id": "F-832b857c",
+      "depends_on_finding_id": "F-f105d914",
+      "reason": "Constants file should exist before adding payment-specific constants"
+    },
+    {
+      "finding_id": "F-09ec96f6",
+      "depends_on_finding_id": "F-272336fb",
+      "reason": "Messages page implementation completes MessageButton notification system"
+    }
+  ],
+  "execution_levels": [
+    [
+      "F-2fa91d2d",
+      "F-5b30722c",
+      "F-5d94aa6f",
+      "F-f2638854",
+      "F-e33ae038",
+      "F-ac0739f2",
+      "F-d6e31bee",
+      "F-affae70b",
+      "F-441c0b88",
+      "F-f105d914",
+      "F-e13c2a2b",
+      "F-24f64033"
+    ],
+    [
+      "F-c4ee71a5",
+      "F-5332c1cb",
+      "F-ac4a34d3",
+      "F-75dec326",
+      "F-702fc339",
+      "F-aff6bd81",
+      "F-832b857c",
+      "F-b3189a10",
+      "F-efb4ee75",
+      "F-eb30c5fd",
+      "F-0e94e9ce"
+    ],
+    [
+      "F-1dda58f7",
+      "F-272336fb",
+      "F-aacba715",
+      "F-51528115"
+    ],
+    [
+      "F-09ec96f6"
+    ]
+  ],
+  "deferred_finding_ids": [
+    "F-3ec24e57",
+    "F-9c81a20a",
+    "F-fa8ac3ca",
+    "F-8ca79505",
+    "F-0176dbc7",
+    "F-54e3a82f",
+    "F-3adf1d0d",
+    "F-14e67fb0",
+    "F-39e8a166",
+    "F-6e667422"
+  ],
+  "dedup_summary": "Merged F-2fa91d2d and F-c4ee71a5 (both file access control issues) into sequential items; both F-5b30722c and first part of F-5332c1cb address analytics auth (consolidated with separate RBAC enforcement); removed duplicate coverage of webhook validation from payment security findings.",
+  "total_items": 38,
+  "estimated_invocations": 68,
+  "summary": "34 actionable items across 4 execution levels, prioritized by security impact. Level 1 contains 12 critical/high-priority security fixes (auth, file access, rate limiting, env validation). Level 2 refines remaining security items and type safety improvements. Level 3 completes type safety chain. Level 4 completes feature implementations. 10 findings deferred as Tier 0 architectural issues requiring strategic review and major refactoring\u2014these should be scheduled in a separate architectural planning phase."
+}

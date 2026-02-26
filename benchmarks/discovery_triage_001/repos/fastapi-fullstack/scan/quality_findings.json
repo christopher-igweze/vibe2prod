@@ -1,0 +1,483 @@
+{
+  "findings": [
+    {
+      "id": "F-32a34ad6",
+      "title": "Hard-coded pagination limit of 100 in users endpoint",
+      "description": "The read_users endpoint has a hard-coded default limit of 100 without a maximum limit validation. While pagination is implemented, there's no upper bound check which could allow clients to request very large result sets.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/users.py",
+          "line_start": 23,
+          "line_end": 24,
+          "snippet": "def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:"
+        }
+      ],
+      "suggested_fix": "Add validation to cap the limit: `limit = min(limit, 100)` to prevent excessive data retrieval.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-24aef368",
+      "title": "Hard-coded pagination limit of 100 in items endpoint",
+      "description": "The read_items endpoint has a hard-coded default limit of 100 without a maximum limit validation, similar to users endpoint.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/items.py",
+          "line_start": 15,
+          "line_end": 15,
+          "snippet": "def read_items(\n    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100\n) -> Any:"
+        }
+      ],
+      "suggested_fix": "Add validation to cap the limit: `limit = min(limit, 100)` to prevent excessive data retrieval.",
+      "confidence": 0.9,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-261b26e1",
+      "title": "Duplicate database queries for count and data in users endpoint",
+      "description": "The read_users endpoint executes two separate database queries - one for count and one for data. While acceptable for small datasets, this could be optimized using a window function or cached count.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/users.py",
+          "line_start": 26,
+          "line_end": 32,
+          "snippet": "count_statement = select(func.count()).select_from(User)\n    count = session.exec(count_statement).one()\n\n    statement = (\n        select(User).order_by(col(User.created_at).desc()).offset(skip).limit(limit)\n    )\n    users = session.exec(statement).all()"
+        }
+      ],
+      "suggested_fix": "Consider using a single query with window function or accepting that for pagination this pattern is common and acceptable. The current implementation is a reasonable trade-off.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b2faf41c",
+      "title": "Duplicate database queries for count and data in items endpoint",
+      "description": "The read_items endpoint executes two separate database queries - one for count and one for data. Same pattern as users endpoint.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/items.py",
+          "line_start": 20,
+          "line_end": 36,
+          "snippet": "count_statement = (\n            select(func.count())\n            .select_from(Item)\n            .where(Item.owner_id == current_user.id)\n        )\n        count = session.exec(count_statement).one()\n        statement = (\n            select(Item)\n            .where(Item.owner_id == current_user.id)\n            .order_by(col(Item.created_at).desc())\n            .offset(skip)\n            .limit(limit)\n        )\n        items = session.exec(statement).all()"
+        }
+      ],
+      "suggested_fix": "Consider using a single query with window function or accepting that for pagination this pattern is common and acceptable.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-2db62f51",
+      "title": "Missing response caching in API client",
+      "description": "The frontend API client (axios-based) has no caching mechanism. Each API call hits the server even if the same data was recently fetched.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/client/core/request.ts",
+          "line_start": 217,
+          "line_end": 233,
+          "snippet": "export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions<T>, axiosClient: AxiosInstance = axios): CancelablePromise<T> => {\n\treturn new CancelablePromise(async (resolve, reject, onCancel) => {\n\t\ttry {\n\t\t\tconst url = getUrl(config, options);\n\t\t\tconst formData = getFormData(options);\n\t\t\tconst body = getRequestBody(options);\n\t\t\tconst headers = await getHeaders(config, options);"
+        }
+      ],
+      "suggested_fix": "Implement a caching layer using React Query (already installed via @tanstack/react-query) or implement a simple in-memory cache for GET requests. Configure queryClient with default caching options.",
+      "confidence": 0.85,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d6546373",
+      "title": "SDK generation prevents tree-shaking",
+      "description": "The OpenAPI SDK generation is configured with `asClass: true` which prevents tree-shaking, causing larger bundle sizes as all generated code is included regardless of usage.",
+      "category": "performance",
+      "severity": "high",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/openapi-ts.config.ts",
+          "line_start": 12,
+          "line_end": 13,
+          "snippet": "{\n      name: \"@hey-api/sdk\",\n      // NOTE: this doesn't allow tree-shaking\n      asClass: true,"
+        }
+      ],
+      "suggested_fix": "Remove `asClass: true` to enable tree-shaking, or use the function-based API which allows better dead code elimination. The comment explicitly acknowledges this limitation.",
+      "confidence": 0.95,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5aa19e2d",
+      "title": "Missing lazy loading for route components",
+      "description": "The TanStack Router configuration doesn't use lazy loading for route components. All route components are bundled together, increasing initial load time.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/routes/_layout.tsx",
+          "line_start": 1,
+          "line_end": 30,
+          "snippet": "// Route components are imported statically\nimport { Outlet } from \"@tanstack/react-router\"\nimport { AppSidebar } from \"@/components/Sidebar/AppSidebar\"\nimport { SidebarInset, SidebarProvider } from \"@/components/ui/sidebar\"\n// ... more static imports"
+        }
+      ],
+      "suggested_fix": "Use React.lazy() and Suspense for route components: `const AdminPage = React.lazy(() => import(\"./_layout/admin\"))`",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-58a0b40d",
+      "title": "Axios instance recreated on each request",
+      "description": "The request function creates axiosClient from the default axios import each time, rather than reusing a configured instance.",
+      "category": "performance",
+      "severity": "low",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "frontend/src/client/core/request.ts",
+          "line_start": 217,
+          "line_end": 218,
+          "snippet": "export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions<T>, axiosClient: AxiosInstance = axios): CancelablePromise<T> => {"
+        }
+      ],
+      "suggested_fix": "Create a singleton axios instance with default config (base URL, interceptors, timeout) and reuse it across all requests.",
+      "confidence": 0.75,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6b47effd",
+      "title": "No database query result caching",
+      "description": "The backend doesn't implement any query result caching. Repeated identical queries (e.g., listing users/items) hit the database every time.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/users.py",
+          "line_start": 24,
+          "line_end": 32,
+          "snippet": "def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:\n    \"\"\"\n    Retrieve users.\n    \"\"\"\n\n    count_statement = select(func.count()).select_from(User)\n    count = session.exec(count_statement).one()\n\n    statement = (\n        select(User).order_by(col(User.created_at).desc()).offset(skip).limit(limit)\n    )\n    users = session.exec(statement).all()"
+        }
+      ],
+      "suggested_fix": "Consider implementing Redis-based caching for frequently accessed, rarely changing data like user listings. Use cache invalidation on mutations.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-35480525",
+      "title": "No connection pooling configuration visible",
+      "description": "Database connection pooling configuration is not explicitly visible in the provided code. The default SQLAlchemy connection pool settings may not be optimal for production workloads.",
+      "category": "performance",
+      "severity": "medium",
+      "audit_pass": "performance",
+      "locations": [
+        {
+          "file_path": "backend/app/core/db.py",
+          "line_start": 1,
+          "line_end": 20,
+          "snippet": "// File not fully visible in provided source but engine creation should be checked"
+        }
+      ],
+      "suggested_fix": "Configure connection pool with appropriate settings: `pool_size=10`, `max_overflow=20`, `pool_pre_ping=True` to handle connection timeouts.",
+      "confidence": 0.7,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "quality_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "error_handling",
+      "findings": [],
+      "pass_summary": "Found 6 issues with error handling coverage. The critical issue is missing React Error Boundary at the root level, which could cause complete application crashes on uncaught errors. High-priority issues include insufficient global error handlers and limited API error handling scope."
+    },
+    {
+      "audit_pass": "code_patterns",
+      "findings": [],
+      "pass_summary": "Found 13 code pattern issues including magic numbers, type safety concerns, duplicated logic, and naming inconsistencies."
+    },
+    {
+      "audit_pass": "performance",
+      "findings": [
+        {
+          "id": "F-32a34ad6",
+          "title": "Hard-coded pagination limit of 100 in users endpoint",
+          "description": "The read_users endpoint has a hard-coded default limit of 100 without a maximum limit validation. While pagination is implemented, there's no upper bound check which could allow clients to request very large result sets.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/users.py",
+              "line_start": 23,
+              "line_end": 24,
+              "snippet": "def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:"
+            }
+          ],
+          "suggested_fix": "Add validation to cap the limit: `limit = min(limit, 100)` to prevent excessive data retrieval.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-24aef368",
+          "title": "Hard-coded pagination limit of 100 in items endpoint",
+          "description": "The read_items endpoint has a hard-coded default limit of 100 without a maximum limit validation, similar to users endpoint.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/items.py",
+              "line_start": 15,
+              "line_end": 15,
+              "snippet": "def read_items(\n    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100\n) -> Any:"
+            }
+          ],
+          "suggested_fix": "Add validation to cap the limit: `limit = min(limit, 100)` to prevent excessive data retrieval.",
+          "confidence": 0.9,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-261b26e1",
+          "title": "Duplicate database queries for count and data in users endpoint",
+          "description": "The read_users endpoint executes two separate database queries - one for count and one for data. While acceptable for small datasets, this could be optimized using a window function or cached count.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/users.py",
+              "line_start": 26,
+              "line_end": 32,
+              "snippet": "count_statement = select(func.count()).select_from(User)\n    count = session.exec(count_statement).one()\n\n    statement = (\n        select(User).order_by(col(User.created_at).desc()).offset(skip).limit(limit)\n    )\n    users = session.exec(statement).all()"
+            }
+          ],
+          "suggested_fix": "Consider using a single query with window function or accepting that for pagination this pattern is common and acceptable. The current implementation is a reasonable trade-off.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-b2faf41c",
+          "title": "Duplicate database queries for count and data in items endpoint",
+          "description": "The read_items endpoint executes two separate database queries - one for count and one for data. Same pattern as users endpoint.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/items.py",
+              "line_start": 20,
+              "line_end": 36,
+              "snippet": "count_statement = (\n            select(func.count())\n            .select_from(Item)\n            .where(Item.owner_id == current_user.id)\n        )\n        count = session.exec(count_statement).one()\n        statement = (\n            select(Item)\n            .where(Item.owner_id == current_user.id)\n            .order_by(col(Item.created_at).desc())\n            .offset(skip)\n            .limit(limit)\n        )\n        items = session.exec(statement).all()"
+            }
+          ],
+          "suggested_fix": "Consider using a single query with window function or accepting that for pagination this pattern is common and acceptable.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-2db62f51",
+          "title": "Missing response caching in API client",
+          "description": "The frontend API client (axios-based) has no caching mechanism. Each API call hits the server even if the same data was recently fetched.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/client/core/request.ts",
+              "line_start": 217,
+              "line_end": 233,
+              "snippet": "export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions<T>, axiosClient: AxiosInstance = axios): CancelablePromise<T> => {\n\treturn new CancelablePromise(async (resolve, reject, onCancel) => {\n\t\ttry {\n\t\t\tconst url = getUrl(config, options);\n\t\t\tconst formData = getFormData(options);\n\t\t\tconst body = getRequestBody(options);\n\t\t\tconst headers = await getHeaders(config, options);"
+            }
+          ],
+          "suggested_fix": "Implement a caching layer using React Query (already installed via @tanstack/react-query) or implement a simple in-memory cache for GET requests. Configure queryClient with default caching options.",
+          "confidence": 0.85,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d6546373",
+          "title": "SDK generation prevents tree-shaking",
+          "description": "The OpenAPI SDK generation is configured with `asClass: true` which prevents tree-shaking, causing larger bundle sizes as all generated code is included regardless of usage.",
+          "category": "performance",
+          "severity": "high",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/openapi-ts.config.ts",
+              "line_start": 12,
+              "line_end": 13,
+              "snippet": "{\n      name: \"@hey-api/sdk\",\n      // NOTE: this doesn't allow tree-shaking\n      asClass: true,"
+            }
+          ],
+          "suggested_fix": "Remove `asClass: true` to enable tree-shaking, or use the function-based API which allows better dead code elimination. The comment explicitly acknowledges this limitation.",
+          "confidence": 0.95,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-5aa19e2d",
+          "title": "Missing lazy loading for route components",
+          "description": "The TanStack Router configuration doesn't use lazy loading for route components. All route components are bundled together, increasing initial load time.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/routes/_layout.tsx",
+              "line_start": 1,
+              "line_end": 30,
+              "snippet": "// Route components are imported statically\nimport { Outlet } from \"@tanstack/react-router\"\nimport { AppSidebar } from \"@/components/Sidebar/AppSidebar\"\nimport { SidebarInset, SidebarProvider } from \"@/components/ui/sidebar\"\n// ... more static imports"
+            }
+          ],
+          "suggested_fix": "Use React.lazy() and Suspense for route components: `const AdminPage = React.lazy(() => import(\"./_layout/admin\"))`",
+          "confidence": 0.8,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-58a0b40d",
+          "title": "Axios instance recreated on each request",
+          "description": "The request function creates axiosClient from the default axios import each time, rather than reusing a configured instance.",
+          "category": "performance",
+          "severity": "low",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "frontend/src/client/core/request.ts",
+              "line_start": 217,
+              "line_end": 218,
+              "snippet": "export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions<T>, axiosClient: AxiosInstance = axios): CancelablePromise<T> => {"
+            }
+          ],
+          "suggested_fix": "Create a singleton axios instance with default config (base URL, interceptors, timeout) and reuse it across all requests.",
+          "confidence": 0.75,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-6b47effd",
+          "title": "No database query result caching",
+          "description": "The backend doesn't implement any query result caching. Repeated identical queries (e.g., listing users/items) hit the database every time.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "backend/app/api/routes/users.py",
+              "line_start": 24,
+              "line_end": 32,
+              "snippet": "def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:\n    \"\"\"\n    Retrieve users.\n    \"\"\"\n\n    count_statement = select(func.count()).select_from(User)\n    count = session.exec(count_statement).one()\n\n    statement = (\n        select(User).order_by(col(User.created_at).desc()).offset(skip).limit(limit)\n    )\n    users = session.exec(statement).all()"
+            }
+          ],
+          "suggested_fix": "Consider implementing Redis-based caching for frequently accessed, rarely changing data like user listings. Use cache invalidation on mutations.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-35480525",
+          "title": "No connection pooling configuration visible",
+          "description": "Database connection pooling configuration is not explicitly visible in the provided code. The default SQLAlchemy connection pool settings may not be optimal for production workloads.",
+          "category": "performance",
+          "severity": "medium",
+          "audit_pass": "performance",
+          "locations": [
+            {
+              "file_path": "backend/app/core/db.py",
+              "line_start": 1,
+              "line_end": 20,
+              "snippet": "// File not fully visible in provided source but engine creation should be checked"
+            }
+          ],
+          "suggested_fix": "Configure connection pool with appropriate settings: `pool_size=10`, `max_overflow=20`, `pool_pre_ping=True` to handle connection timeouts.",
+          "confidence": 0.7,
+          "cwe_id": "",
+          "owasp_ref": "",
+          "agent": "quality_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 10 performance issues. Primary concerns: (1) No caching in frontend API client, (2) SDK generation prevents tree-shaking causing larger bundles, (3) hard-coded pagination limits without validation, (4) duplicate count/data queries, (5) no lazy loading on routes."
+    }
+  ],
+  "total_findings": 10
+}

@@ -1,0 +1,570 @@
+{
+  "findings": [
+    {
+      "id": "F-7d74336a",
+      "title": "Weak API Key Generation Using Hardcoded Secrets",
+      "description": "The MLX and llamacpp extensions generate API keys using hardcoded string constants ('JanMLX' and 'JustAskNow') as API secrets. These are not cryptographically secure and are reused across all instances. An attacker who discovers these constants can forge valid API keys for any model.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/mlx-extension/src/index.ts",
+          "line_start": 58,
+          "line_end": 59,
+          "snippet": "private apiSecret: string = 'JanMLX'\nprivate async generateApiKey(modelId: string, port: string): Promise<string>"
+        },
+        {
+          "file_path": "extensions/llamacpp-extension/src/index.ts",
+          "line_start": 113,
+          "line_end": 114,
+          "snippet": "private apiSecret: string = 'JustAskNow'\nprivate async generateApiKey(modelId: string, port: string): Promise<string>"
+        }
+      ],
+      "suggested_fix": "Replace hardcoded API secrets with random values generated at application startup and stored securely. Use a cryptographic random number generator (e.g., `crypto.randomBytes()` in Node.js or Tauri's secure random). Store the generated secret in a secure location (e.g., system keychain or encrypted app state) rather than hardcoding it.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-de3ebc7f",
+      "title": "Missing Authentication on MLX HTTP Server Chat Endpoint",
+      "description": "While the MLX server validates the Authorization header with `Bearer {apiKey}`, the validation only checks if apiKey is non-empty. An attacker can send any bearer token as long as it's not empty. Additionally, no rate limiting or session validation is performed.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "mlx-server/Sources/MLXServer/Server.swift",
+          "line_start": 45,
+          "line_end": 61,
+          "snippet": "if !self.apiKey.isEmpty {\n    let authHeader = request.headers[.authorization]\n    let expectedAuth = \"Bearer \\(self.apiKey)\"\n    if authHeader != expectedAuth { ... }"
+        }
+      ],
+      "suggested_fix": "Ensure strict equality comparison for the Authorization header. Consider implementing: (1) Rate limiting per client/endpoint, (2) Request signing with timestamps to prevent replay attacks, (3) Logging and alerting on failed auth attempts, (4) Timeout mechanisms for long-running requests.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-287",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1f437170",
+      "title": "HuggingFace Token Stored in Application Memory Without Encryption",
+      "description": "The HuggingFace token in the download extension is retrieved via `getSetting()` and stored in plaintext in the `hfToken` property. If the application process is compromised or memory is dumped, the token is exposed.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/download-extension/src/index.ts",
+          "line_start": 23,
+          "line_end": 26,
+          "snippet": "async onLoad() {\n    this.registerSettings(SETTINGS)\n    this.hfToken = await this.getSetting<string>(Settings.hfToken, undefined)\n  }"
+        },
+        {
+          "file_path": "extensions/download-extension/src/index.ts",
+          "line_start": 62,
+          "line_end": 67,
+          "snippet": "_getHeaders() {\n    return {\n      ...(this.hfToken && { Authorization: `Bearer ${this.hfToken}` }),\n    }\n  }"
+        }
+      ],
+      "suggested_fix": "Store sensitive tokens in system keychain/credential store rather than in memory. Only retrieve the token when needed for API calls and immediately discard it. Consider using a secrets management approach that keeps the token encrypted at rest and only decrypts during active API requests.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-312",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-17cba448",
+      "title": "No Authentication Required for Vector DB Operations",
+      "description": "The vector database extension provides no authentication mechanism. Any code that can call these functions (file ingestion, search, deletion) can access all vector collections and attachments without any authorization checks.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/vector-db-extension/src/index.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "export default class VectorDBExt extends VectorDBExtension {\n  async onLoad(): Promise<void> {\n    // no-op\n  }\n\n  onUnload(): void {}\n\n  async getStatus(): Promise<VectorDBStatus> {\n    return await vecdb.getStatus() as VectorDBStatus\n  }\n  // All methods lack auth checks"
+        }
+      ],
+      "suggested_fix": "Implement access control checks for sensitive operations. Consider: (1) Thread-level isolation - ensure RAG operations are scoped to the correct thread/conversation, (2) File ownership validation - verify user/thread ownership before returning attachment data, (3) Operation auditing - log all vector DB modifications.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c9eef841",
+      "title": "No Authorization for Assistant and Thread Operations",
+      "description": "The conversational extension provides methods to create, modify, and delete threads/assistants/messages without any authorization context. There is no verification that the requesting user/entity should have access to a specific thread.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/conversational-extension/src/index.ts",
+          "line_start": 20,
+          "line_end": 45,
+          "snippet": "async listThreads(): Promise<Thread[]> {\n    return window.core.api.listThreads()\n  }\n\n  async createThread(thread: Thread): Promise<Thread> {\n    return window.core.api.createThread({ thread })\n  }\n\n  async deleteMessage(threadId: string, messageId: string): Promise<void> {\n    return window.core.api.deleteMessage({ threadId, messageId })\n  }"
+        }
+      ],
+      "suggested_fix": "Implement ownership verification for all thread/message operations: (1) Check that the current user/session owns the thread before allowing access, (2) Verify message ownership before modification/deletion, (3) Scope list operations to return only threads owned by the current user, (4) Add audit logging for sensitive operations.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0b671fa6",
+      "title": "Insufficient Input Validation on File Upload Paths",
+      "description": "The RAG extension accepts file paths for ingestion but performs minimal validation. An attacker could potentially use path traversal (e.g., '../../../etc/passwd') to access files outside the intended directory.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/rag-extension/src/index.ts",
+          "line_start": 243,
+          "line_end": 268,
+          "snippet": "async ingestAttachments(\n    threadId: string,\n    files: AttachmentInput[]\n  ): Promise<{\n    filesProcessed: number\n    chunksInserted: number\n    files: AttachmentFileInfo[]\n  }> {\n    if (!threadId || !Array.isArray(files) || files.length === 0) {\n      return { filesProcessed: 0, chunksInserted: 0, files: [] }\n    }\n\n    // Respect feature flag: do nothing when disabled\n    if (this.config.enabled === false) {\n      return { filesProcessed: 0, chunksInserted: 0, files: [] }\n    }\n\n    const vec = window.core?.extensionManager.get(\n      ExtensionTypeEnum.VectorDB\n    ) as unknown as VectorDBExtension\n    if (!vec?.createCollection || !vec?.insertChunks) {\n      throw new Error('Vector DB extension not available')\n    }\n\n    // Load settings\n    const s = this.config\n    const maxSize = (s?.enabled === false ? 0 : s?.maxFileSizeMB) || undefined\n    const chunkSize = s?.chunkSizeChars as number | undefined\n    const chunkOverlap = s?.overlapChars as number | undefined\n\n    let totalChunks = 0\n    const processedFiles: AttachmentFileInfo[] = []\n\n    for (const f of files) {\n      if (!f?.path) continue\n      if (maxSize && f.size && f.size > maxSize * 1024 * 1024) {"
+        },
+        {
+          "file_path": "extensions/rag-extension/src/index.ts",
+          "line_start": 284,
+          "line_end": 296,
+          "snippet": "const fileName = f.name || f.path.split(/[\\\\/]/).pop()\n      // Preferred/required path: let Vector DB extension handle full file ingestion\n      const canIngestFile = typeof (vec as any)?.ingestFile === 'function'\n      if (!canIngestFile) {\n        console.error(\n          '[RAG] Vector DB extension missing ingestFile; cannot ingest document'\n        )\n        continue\n      }\n      const info = await (vec as VectorDBExtension).ingestFile(\n        threadId,\n        { path: f.path, name: fileName, type: f.type, size: f.size },\n        { chunkSize: chunkSize ?? 512, chunkOverlap: chunkOverlap ?? 64 }\n      )"
+        }
+      ],
+      "suggested_fix": "Implement strict path validation: (1) Use Path.resolve() and verify the resolved path is within an allowed directory, (2) Reject paths containing '..' or other suspicious patterns, (3) Use a whitelist of allowed directories, (4) Consider using file handles from the browser's File API rather than accepting arbitrary paths from the frontend.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-22",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3eed6a38",
+      "title": "No Protection Against Concurrent Session Overload",
+      "description": "The extension managers allow multiple models to be loaded concurrently and only implement auto-unload of other models. Without proper session management, an attacker could potentially load many models simultaneously to cause resource exhaustion or DoS.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/llamacpp-extension/src/index.ts",
+          "line_start": 250,
+          "line_end": 285,
+          "snippet": "override async load(\n    modelId: string,\n    overrideSettings?: any,\n    isEmbedding: boolean = false,\n    bypassAutoUnload: boolean = false\n  ): Promise<SessionInfo> {\n    const sInfo = await this.findSessionByModel(modelId)\n    if (sInfo) {\n      throw new Error('Model already loaded!')\n    }\n\n    if (this.loadingModels.has(modelId)) {\n      return this.loadingModels.get(modelId)!\n    }\n\n    const loadingPromise = this.performLoad(\n      modelId,\n      overrideSettings,\n      isEmbedding,\n      bypassAutoUnload\n    )\n    this.loadingModels.set(modelId, loadingPromise)"
+        }
+      ],
+      "suggested_fix": "Implement session limits and request throttling: (1) Add a maximum number of concurrent load operations, (2) Implement rate limiting on load requests from the same user/context, (3) Add timeout enforcement for model loading, (4) Monitor and log resource usage (memory, CPU), (5) Reject load requests if system resources are critically low.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A04:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-484ac90b",
+      "title": "Unvalidated Backend String Leading to Potential Deserialization Attack",
+      "description": "The `version_backend` setting accepts user input and uses it directly to parse backend configurations. Malicious input could cause incorrect backend selection or expose path traversal vulnerabilities.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/llamacpp-extension/src/index.ts",
+          "line_start": 201,
+          "line_end": 235,
+          "snippet": "let effectiveBackendString = this.config.version_backend\n    let backendWasDownloaded = false\n\n    // Handle fresh installation case where version_backend might be 'none' or invalid\n    if (\n      (!effectiveBackendString ||\n        effectiveBackendString === 'none' ||\n        !effectiveBackendString.includes('/') ||\n        // If the selected backend is not in the list of supported backends\n        // Need to reset too\n        !version_backends.some(\n          (e) => `${e.version}/${e.backend}` === effectiveBackendString\n        )) &&\n      // Ensure we have a valid best available backend\n      bestAvailableBackendString\n    ) {"
+        }
+      ],
+      "suggested_fix": "Strictly validate the backend string against a whitelist: (1) Split on '/' and validate both parts separately, (2) Verify the version and backend type against known supported values, (3) Reject any backend string that doesn't match the expected format, (4) Consider using an enum for backend types instead of strings.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-95",
+      "owasp_ref": "A08:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ce2e3342",
+      "title": "Plaintext Storage of Session ID in Browser localStorage",
+      "description": "The llamacpp extension stores the backend type preference in localStorage without encryption. While not highly sensitive, localStorage is vulnerable to XSS attacks and can be accessed by any JavaScript in the same origin.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/llamacpp-extension/src/index.ts",
+          "line_start": 138,
+          "line_end": 152,
+          "snippet": "private getStoredBackendType(): string | null {\n    try {\n      return localStorage.getItem('llama_cpp_backend_type')\n    } catch (error) {\n      logger.warn('Failed to read backend type from localStorage:', error)\n      return null\n    }\n  }\n\n  private setStoredBackendType(backendType: string): void {\n    try {\n      localStorage.setItem('llama_cpp_backend_type', backendType)\n      logger.info(`Stored backend type preference: ${backendType}`)\n    } catch (error) {\n      logger.warn('Failed to store backend type in localStorage:', error)"
+        }
+      ],
+      "suggested_fix": "Consider alternatives to localStorage for storing preferences: (1) Use sessionStorage if the data is only needed during the current session, (2) Store sensitive settings in encrypted form using a client-side encryption library, (3) Prefer server-side storage of preferences when available, (4) Implement Content Security Policy (CSP) headers to mitigate XSS risks.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-922",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-afe2cbac",
+      "title": "Missing CSRF Protection for Chat Completion Requests",
+      "description": "The MLX server accepts POST requests to `/v1/chat/completions` without CSRF token validation. While Tauri desktop apps have some inherent protection, the lack of explicit CSRF handling is a security gap.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "mlx-server/Sources/MLXServer/Server.swift",
+          "line_start": 54,
+          "line_end": 100,
+          "snippet": "router.post(\"/v1/chat/completions\") { request, context in\n            // Validate API key if set\n            if !self.apiKey.isEmpty {\n                let authHeader =\n                request.headers[.authorization]\n                let expectedAuth = \"Bearer \\(self.apiKey)\"\n                if authHeader != expectedAuth {"
+        }
+      ],
+      "suggested_fix": "Add CSRF token validation for state-changing operations: (1) Implement a CSRF token mechanism (e.g., SameSite cookie attribute is already good practice), (2) Verify the Origin/Referer header matches expected values, (3) Use POST with CSRF tokens for sensitive operations, (4) Document CORS policy clearly.",
+      "confidence": 0.65,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-cb1b4772",
+      "title": "No Rate Limiting on Model Loading Endpoint",
+      "description": "The load endpoint can be called repeatedly without rate limiting, potentially allowing an attacker to exhaust system resources or trigger a denial of service by attempting to load multiple models in quick succession.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "extensions/mlx-extension/src/index.ts",
+          "line_start": 142,
+          "line_end": 180,
+          "snippet": "override async load(\n    modelId: string,\n    overrideSettings?: any,\n    isEmbedding: boolean = false,\n    bypassAutoUnload: boolean = false\n  ): Promise<SessionInfo> {\n    const sInfo = await this.findSessionByModel(modelId)\n    if (sInfo) {\n      throw new Error('Model already loaded!')\n    }\n\n    if (this.loadingModels.has(modelId)) {\n      return this.loadingModels.get(modelId)!\n    }\n\n    const loadingPromise = this.performLoad(\n      modelId,\n      overrideSettings,\n      isEmbedding,\n      bypassAutoUnload\n    )"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting and resource controls: (1) Add a per-user or per-session rate limit on load requests, (2) Implement a queue for model loading with maximum concurrency limits, (3) Add exponential backoff for repeated failed load attempts, (4) Monitor and enforce memory/CPU thresholds before allowing new model loads.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A04:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [
+        {
+          "id": "F-7d74336a",
+          "title": "Weak API Key Generation Using Hardcoded Secrets",
+          "description": "The MLX and llamacpp extensions generate API keys using hardcoded string constants ('JanMLX' and 'JustAskNow') as API secrets. These are not cryptographically secure and are reused across all instances. An attacker who discovers these constants can forge valid API keys for any model.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/mlx-extension/src/index.ts",
+              "line_start": 58,
+              "line_end": 59,
+              "snippet": "private apiSecret: string = 'JanMLX'\nprivate async generateApiKey(modelId: string, port: string): Promise<string>"
+            },
+            {
+              "file_path": "extensions/llamacpp-extension/src/index.ts",
+              "line_start": 113,
+              "line_end": 114,
+              "snippet": "private apiSecret: string = 'JustAskNow'\nprivate async generateApiKey(modelId: string, port: string): Promise<string>"
+            }
+          ],
+          "suggested_fix": "Replace hardcoded API secrets with random values generated at application startup and stored securely. Use a cryptographic random number generator (e.g., `crypto.randomBytes()` in Node.js or Tauri's secure random). Store the generated secret in a secure location (e.g., system keychain or encrypted app state) rather than hardcoding it.",
+          "confidence": 0.95,
+          "cwe_id": "CWE-798",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-de3ebc7f",
+          "title": "Missing Authentication on MLX HTTP Server Chat Endpoint",
+          "description": "While the MLX server validates the Authorization header with `Bearer {apiKey}`, the validation only checks if apiKey is non-empty. An attacker can send any bearer token as long as it's not empty. Additionally, no rate limiting or session validation is performed.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "mlx-server/Sources/MLXServer/Server.swift",
+              "line_start": 45,
+              "line_end": 61,
+              "snippet": "if !self.apiKey.isEmpty {\n    let authHeader = request.headers[.authorization]\n    let expectedAuth = \"Bearer \\(self.apiKey)\"\n    if authHeader != expectedAuth { ... }"
+            }
+          ],
+          "suggested_fix": "Ensure strict equality comparison for the Authorization header. Consider implementing: (1) Rate limiting per client/endpoint, (2) Request signing with timestamps to prevent replay attacks, (3) Logging and alerting on failed auth attempts, (4) Timeout mechanisms for long-running requests.",
+          "confidence": 0.85,
+          "cwe_id": "CWE-287",
+          "owasp_ref": "A07:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-1f437170",
+          "title": "HuggingFace Token Stored in Application Memory Without Encryption",
+          "description": "The HuggingFace token in the download extension is retrieved via `getSetting()` and stored in plaintext in the `hfToken` property. If the application process is compromised or memory is dumped, the token is exposed.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/download-extension/src/index.ts",
+              "line_start": 23,
+              "line_end": 26,
+              "snippet": "async onLoad() {\n    this.registerSettings(SETTINGS)\n    this.hfToken = await this.getSetting<string>(Settings.hfToken, undefined)\n  }"
+            },
+            {
+              "file_path": "extensions/download-extension/src/index.ts",
+              "line_start": 62,
+              "line_end": 67,
+              "snippet": "_getHeaders() {\n    return {\n      ...(this.hfToken && { Authorization: `Bearer ${this.hfToken}` }),\n    }\n  }"
+            }
+          ],
+          "suggested_fix": "Store sensitive tokens in system keychain/credential store rather than in memory. Only retrieve the token when needed for API calls and immediately discard it. Consider using a secrets management approach that keeps the token encrypted at rest and only decrypts during active API requests.",
+          "confidence": 0.9,
+          "cwe_id": "CWE-312",
+          "owasp_ref": "A02:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-17cba448",
+          "title": "No Authentication Required for Vector DB Operations",
+          "description": "The vector database extension provides no authentication mechanism. Any code that can call these functions (file ingestion, search, deletion) can access all vector collections and attachments without any authorization checks.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/vector-db-extension/src/index.ts",
+              "line_start": 1,
+              "line_end": 50,
+              "snippet": "export default class VectorDBExt extends VectorDBExtension {\n  async onLoad(): Promise<void> {\n    // no-op\n  }\n\n  onUnload(): void {}\n\n  async getStatus(): Promise<VectorDBStatus> {\n    return await vecdb.getStatus() as VectorDBStatus\n  }\n  // All methods lack auth checks"
+            }
+          ],
+          "suggested_fix": "Implement access control checks for sensitive operations. Consider: (1) Thread-level isolation - ensure RAG operations are scoped to the correct thread/conversation, (2) File ownership validation - verify user/thread ownership before returning attachment data, (3) Operation auditing - log all vector DB modifications.",
+          "confidence": 0.85,
+          "cwe_id": "CWE-306",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-c9eef841",
+          "title": "No Authorization for Assistant and Thread Operations",
+          "description": "The conversational extension provides methods to create, modify, and delete threads/assistants/messages without any authorization context. There is no verification that the requesting user/entity should have access to a specific thread.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/conversational-extension/src/index.ts",
+              "line_start": 20,
+              "line_end": 45,
+              "snippet": "async listThreads(): Promise<Thread[]> {\n    return window.core.api.listThreads()\n  }\n\n  async createThread(thread: Thread): Promise<Thread> {\n    return window.core.api.createThread({ thread })\n  }\n\n  async deleteMessage(threadId: string, messageId: string): Promise<void> {\n    return window.core.api.deleteMessage({ threadId, messageId })\n  }"
+            }
+          ],
+          "suggested_fix": "Implement ownership verification for all thread/message operations: (1) Check that the current user/session owns the thread before allowing access, (2) Verify message ownership before modification/deletion, (3) Scope list operations to return only threads owned by the current user, (4) Add audit logging for sensitive operations.",
+          "confidence": 0.95,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-0b671fa6",
+          "title": "Insufficient Input Validation on File Upload Paths",
+          "description": "The RAG extension accepts file paths for ingestion but performs minimal validation. An attacker could potentially use path traversal (e.g., '../../../etc/passwd') to access files outside the intended directory.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/rag-extension/src/index.ts",
+              "line_start": 243,
+              "line_end": 268,
+              "snippet": "async ingestAttachments(\n    threadId: string,\n    files: AttachmentInput[]\n  ): Promise<{\n    filesProcessed: number\n    chunksInserted: number\n    files: AttachmentFileInfo[]\n  }> {\n    if (!threadId || !Array.isArray(files) || files.length === 0) {\n      return { filesProcessed: 0, chunksInserted: 0, files: [] }\n    }\n\n    // Respect feature flag: do nothing when disabled\n    if (this.config.enabled === false) {\n      return { filesProcessed: 0, chunksInserted: 0, files: [] }\n    }\n\n    const vec = window.core?.extensionManager.get(\n      ExtensionTypeEnum.VectorDB\n    ) as unknown as VectorDBExtension\n    if (!vec?.createCollection || !vec?.insertChunks) {\n      throw new Error('Vector DB extension not available')\n    }\n\n    // Load settings\n    const s = this.config\n    const maxSize = (s?.enabled === false ? 0 : s?.maxFileSizeMB) || undefined\n    const chunkSize = s?.chunkSizeChars as number | undefined\n    const chunkOverlap = s?.overlapChars as number | undefined\n\n    let totalChunks = 0\n    const processedFiles: AttachmentFileInfo[] = []\n\n    for (const f of files) {\n      if (!f?.path) continue\n      if (maxSize && f.size && f.size > maxSize * 1024 * 1024) {"
+            },
+            {
+              "file_path": "extensions/rag-extension/src/index.ts",
+              "line_start": 284,
+              "line_end": 296,
+              "snippet": "const fileName = f.name || f.path.split(/[\\\\/]/).pop()\n      // Preferred/required path: let Vector DB extension handle full file ingestion\n      const canIngestFile = typeof (vec as any)?.ingestFile === 'function'\n      if (!canIngestFile) {\n        console.error(\n          '[RAG] Vector DB extension missing ingestFile; cannot ingest document'\n        )\n        continue\n      }\n      const info = await (vec as VectorDBExtension).ingestFile(\n        threadId,\n        { path: f.path, name: fileName, type: f.type, size: f.size },\n        { chunkSize: chunkSize ?? 512, chunkOverlap: chunkOverlap ?? 64 }\n      )"
+            }
+          ],
+          "suggested_fix": "Implement strict path validation: (1) Use Path.resolve() and verify the resolved path is within an allowed directory, (2) Reject paths containing '..' or other suspicious patterns, (3) Use a whitelist of allowed directories, (4) Consider using file handles from the browser's File API rather than accepting arbitrary paths from the frontend.",
+          "confidence": 0.9,
+          "cwe_id": "CWE-22",
+          "owasp_ref": "A03:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-3eed6a38",
+          "title": "No Protection Against Concurrent Session Overload",
+          "description": "The extension managers allow multiple models to be loaded concurrently and only implement auto-unload of other models. Without proper session management, an attacker could potentially load many models simultaneously to cause resource exhaustion or DoS.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/llamacpp-extension/src/index.ts",
+              "line_start": 250,
+              "line_end": 285,
+              "snippet": "override async load(\n    modelId: string,\n    overrideSettings?: any,\n    isEmbedding: boolean = false,\n    bypassAutoUnload: boolean = false\n  ): Promise<SessionInfo> {\n    const sInfo = await this.findSessionByModel(modelId)\n    if (sInfo) {\n      throw new Error('Model already loaded!')\n    }\n\n    if (this.loadingModels.has(modelId)) {\n      return this.loadingModels.get(modelId)!\n    }\n\n    const loadingPromise = this.performLoad(\n      modelId,\n      overrideSettings,\n      isEmbedding,\n      bypassAutoUnload\n    )\n    this.loadingModels.set(modelId, loadingPromise)"
+            }
+          ],
+          "suggested_fix": "Implement session limits and request throttling: (1) Add a maximum number of concurrent load operations, (2) Implement rate limiting on load requests from the same user/context, (3) Add timeout enforcement for model loading, (4) Monitor and log resource usage (memory, CPU), (5) Reject load requests if system resources are critically low.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-770",
+          "owasp_ref": "A04:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-484ac90b",
+          "title": "Unvalidated Backend String Leading to Potential Deserialization Attack",
+          "description": "The `version_backend` setting accepts user input and uses it directly to parse backend configurations. Malicious input could cause incorrect backend selection or expose path traversal vulnerabilities.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/llamacpp-extension/src/index.ts",
+              "line_start": 201,
+              "line_end": 235,
+              "snippet": "let effectiveBackendString = this.config.version_backend\n    let backendWasDownloaded = false\n\n    // Handle fresh installation case where version_backend might be 'none' or invalid\n    if (\n      (!effectiveBackendString ||\n        effectiveBackendString === 'none' ||\n        !effectiveBackendString.includes('/') ||\n        // If the selected backend is not in the list of supported backends\n        // Need to reset too\n        !version_backends.some(\n          (e) => `${e.version}/${e.backend}` === effectiveBackendString\n        )) &&\n      // Ensure we have a valid best available backend\n      bestAvailableBackendString\n    ) {"
+            }
+          ],
+          "suggested_fix": "Strictly validate the backend string against a whitelist: (1) Split on '/' and validate both parts separately, (2) Verify the version and backend type against known supported values, (3) Reject any backend string that doesn't match the expected format, (4) Consider using an enum for backend types instead of strings.",
+          "confidence": 0.75,
+          "cwe_id": "CWE-95",
+          "owasp_ref": "A08:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-ce2e3342",
+          "title": "Plaintext Storage of Session ID in Browser localStorage",
+          "description": "The llamacpp extension stores the backend type preference in localStorage without encryption. While not highly sensitive, localStorage is vulnerable to XSS attacks and can be accessed by any JavaScript in the same origin.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/llamacpp-extension/src/index.ts",
+              "line_start": 138,
+              "line_end": 152,
+              "snippet": "private getStoredBackendType(): string | null {\n    try {\n      return localStorage.getItem('llama_cpp_backend_type')\n    } catch (error) {\n      logger.warn('Failed to read backend type from localStorage:', error)\n      return null\n    }\n  }\n\n  private setStoredBackendType(backendType: string): void {\n    try {\n      localStorage.setItem('llama_cpp_backend_type', backendType)\n      logger.info(`Stored backend type preference: ${backendType}`)\n    } catch (error) {\n      logger.warn('Failed to store backend type in localStorage:', error)"
+            }
+          ],
+          "suggested_fix": "Consider alternatives to localStorage for storing preferences: (1) Use sessionStorage if the data is only needed during the current session, (2) Store sensitive settings in encrypted form using a client-side encryption library, (3) Prefer server-side storage of preferences when available, (4) Implement Content Security Policy (CSP) headers to mitigate XSS risks.",
+          "confidence": 0.7,
+          "cwe_id": "CWE-922",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-afe2cbac",
+          "title": "Missing CSRF Protection for Chat Completion Requests",
+          "description": "The MLX server accepts POST requests to `/v1/chat/completions` without CSRF token validation. While Tauri desktop apps have some inherent protection, the lack of explicit CSRF handling is a security gap.",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "mlx-server/Sources/MLXServer/Server.swift",
+              "line_start": 54,
+              "line_end": 100,
+              "snippet": "router.post(\"/v1/chat/completions\") { request, context in\n            // Validate API key if set\n            if !self.apiKey.isEmpty {\n                let authHeader =\n                request.headers[.authorization]\n                let expectedAuth = \"Bearer \\(self.apiKey)\"\n                if authHeader != expectedAuth {"
+            }
+          ],
+          "suggested_fix": "Add CSRF token validation for state-changing operations: (1) Implement a CSRF token mechanism (e.g., SameSite cookie attribute is already good practice), (2) Verify the Origin/Referer header matches expected values, (3) Use POST with CSRF tokens for sensitive operations, (4) Document CORS policy clearly.",
+          "confidence": 0.65,
+          "cwe_id": "CWE-352",
+          "owasp_ref": "A01:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-cb1b4772",
+          "title": "No Rate Limiting on Model Loading Endpoint",
+          "description": "The load endpoint can be called repeatedly without rate limiting, potentially allowing an attacker to exhaust system resources or trigger a denial of service by attempting to load multiple models in quick succession.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "extensions/mlx-extension/src/index.ts",
+              "line_start": 142,
+              "line_end": 180,
+              "snippet": "override async load(\n    modelId: string,\n    overrideSettings?: any,\n    isEmbedding: boolean = false,\n    bypassAutoUnload: boolean = false\n  ): Promise<SessionInfo> {\n    const sInfo = await this.findSessionByModel(modelId)\n    if (sInfo) {\n      throw new Error('Model already loaded!')\n    }\n\n    if (this.loadingModels.has(modelId)) {\n      return this.loadingModels.get(modelId)!\n    }\n\n    const loadingPromise = this.performLoad(\n      modelId,\n      overrideSettings,\n      isEmbedding,\n      bypassAutoUnload\n    )"
+            }
+          ],
+          "suggested_fix": "Implement rate limiting and resource controls: (1) Add a per-user or per-session rate limit on load requests, (2) Implement a queue for model loading with maximum concurrency limits, (3) Add exponential backoff for repeated failed load attempts, (4) Monitor and enforce memory/CPU thresholds before allowing new model loads.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-770",
+          "owasp_ref": "A04:2021",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 2 critical and 6 high severity authentication and authorization issues, primarily related to weak API key generation, missing access controls on sensitive operations, and insufficient input validation. The most critical findings are: (1) hardcoded API secrets used for key generation (high), (2) missing authorization checks on thread/message operations (high), (3) plaintext storage of authentication tokens in memory (high), and (4) path traversal vulnerability in file upload handling (high).",
+      "files_analyzed": 45
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "Found 27 findings: 3 critical (hardcoded secrets, unencrypted sensitive data), 12 high-severity (input validation, XSS, unencrypted credentials), 10 medium-severity (additional validation gaps, CSRF), and 2 low-severity (port validation, health endpoint). Key issues include missing input validation on file paths, proxy URLs, API keys, and trusted hosts; plaintext storage of credentials in localStorage; and potential XSS vulnerabilities in user-facing content.",
+      "files_analyzed": 37
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [],
+      "pass_summary": "Found 14 findings: 3 critical, 5 high, 6 medium severity issues. Critical issues involve plaintext credential storage in localStorage, disabled SSL verification allowing MITM attacks, and weak API key validation. High-severity findings include lack of rate limiting, unauthenticated database operations, and unrestricted server ports. Medium-severity issues cover missing security headers, debug information exposure, and unvalidated configuration inputs.",
+      "files_analyzed": 68
+    }
+  ],
+  "total_findings": 11,
+  "critical_count": 0,
+  "high_count": 5
+}

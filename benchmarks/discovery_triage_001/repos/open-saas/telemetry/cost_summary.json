@@ -1,0 +1,26 @@
+{
+  "run_id": "tests/integration/test_matrix_e2e.py::TestSmallDecent::test_discover_open_saas",
+  "total_cost_usd": 0.6783,
+  "total_tokens": 418189,
+  "total_invocations": 10,
+  "successful_invocations": 10,
+  "failed_invocations": 0,
+  "elapsed_ms": 315740,
+  "cost_by_agent": {
+    "architecture_reviewer": 0.0447,
+    "codebase_analyst": 0.0052,
+    "fix_strategist": 0.0914,
+    "quality_auditor/code_patterns": 0.0277,
+    "quality_auditor/error_handling": 0.0262,
+    "quality_auditor/performance": 0.0255,
+    "security_auditor/auth_flow": 0.1379,
+    "security_auditor/data_handling": 0.1372,
+    "security_auditor/infrastructure": 0.1414,
+    "triage_classifier": 0.0411
+  },
+  "cost_by_model": {
+    "anthropic/claude-haiku-4.5": 0.5938,
+    "minimax/minimax-m2.5": 0.0845
+  },
+  "training_pairs_logged": 0
+}

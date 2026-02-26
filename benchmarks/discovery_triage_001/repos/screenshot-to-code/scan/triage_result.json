@@ -1,0 +1,448 @@
+{
+  "decisions": [
+    {
+      "finding_id": "F-f16fdb7f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-9e5f9903",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-98b57317",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-0ff0320f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: missing_rate_limit",
+      "fix_template_id": "add-rate-limiter",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-6788bb7e",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-5912284f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-fb581297",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-2ee7a1b9",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e9cee77f",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-85f9f85d",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-bdfcc9cd",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-98f9f73b",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-8e2e47bf",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-da861edf",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-9a0d7dd3",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-404e2046",
+      "tier": 0,
+      "confidence": 0.9,
+      "rationale": "All referenced files not found: frontend/src/components/",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-654fa269",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Matched Tier 1 pattern: exposed_secret",
+      "fix_template_id": "replace-hardcoded-secret",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e5ccfb84",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-e22eabb2",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Contains architectural keywords suggesting cross-cutting changes",
+      "fix_template_id": "",
+      "relevant_files": []
+    },
+    {
+      "finding_id": "F-a005f40e",
+      "tier": 3,
+      "confidence": 0.95,
+      "rationale": "Complete absence of authentication affects 6+ files (main.py, all route files: generate_code.py, screenshot.py, evals.py, home.py, model_choice_sets.py). Requires architectural implementation of auth middleware, security scheme definition, and modification of all endpoints. Cross-cutting concern.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/main.py",
+        "backend/routes/generate_code.py",
+        "backend/routes/screenshot.py",
+        "backend/routes/evals.py",
+        "backend/routes/home.py",
+        "backend/routes/model_choice_sets.py",
+        "backend/config.py"
+      ]
+    },
+    {
+      "finding_id": "F-a4e06f01",
+      "tier": 2,
+      "confidence": 0.92,
+      "rationale": "WebSocket authentication before connection accept is a scoped fix localized to generate_code.py. Requires adding token validation before ws_comm.accept() call. Single file change with clear pattern.",
+      "fix_template_id": "websocket_auth_validation",
+      "relevant_files": [
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-feea30e5",
+      "tier": 2,
+      "confidence": 0.88,
+      "rationale": "CORS configuration fix is localized to main.py, requires modifying middleware setup and potentially adding CSRF token validation. May touch WebSocket endpoint for token verification (2 files max).",
+      "fix_template_id": "cors_restriction",
+      "relevant_files": [
+        "backend/main.py",
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-196e7a54",
+      "tier": 2,
+      "confidence": 0.86,
+      "rationale": "SSRF validation is a scoped fix in screenshot.py route. Add URL validation function and security check before capture_screenshot call. Single file change with clear pattern.",
+      "fix_template_id": "ssrf_protection",
+      "relevant_files": [
+        "backend/routes/screenshot.py"
+      ]
+    },
+    {
+      "finding_id": "F-71478205",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "Input validation for prompts and file state is localized to generate_code.py parameter extraction stage. Add validation functions and size checks. Single file with clear scoped changes.",
+      "fix_template_id": "input_validation",
+      "relevant_files": [
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-fde308aa",
+      "tier": 1,
+      "confidence": 0.94,
+      "rationale": "Deterministic CORS fix with known pattern. Replace allow_origins=['*'] with environment-variable-based whitelist. Direct single-location patch with no LLM reasoning needed.",
+      "fix_template_id": "cors_wildcard_removal",
+      "relevant_files": [
+        "backend/main.py"
+      ]
+    },
+    {
+      "finding_id": "F-54830005",
+      "tier": 2,
+      "confidence": 0.84,
+      "rationale": "Debug mode configuration requires modifying config.py and main.py startup check. Adds environment validation and safety check. Scoped to 2 files with clear pattern.",
+      "fix_template_id": "debug_mode_production_check",
+      "relevant_files": [
+        "backend/config.py",
+        "backend/main.py"
+      ]
+    },
+    {
+      "finding_id": "F-75e843bb",
+      "tier": 2,
+      "confidence": 0.8,
+      "rationale": "WebSocket timeout and validation implementation is contained in generate_code.py WebSocketCommunicator class. Add timeout handler and origin validation. Single file with scoped changes.",
+      "fix_template_id": "websocket_timeout_validation",
+      "relevant_files": [
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-27268b93",
+      "tier": 2,
+      "confidence": 0.85,
+      "rationale": "Security headers middleware is a scoped addition to main.py. Create SecurityHeadersMiddleware class and register it. Single file change with known pattern.",
+      "fix_template_id": "security_headers_middleware",
+      "relevant_files": [
+        "backend/main.py"
+      ]
+    },
+    {
+      "finding_id": "F-7e075597",
+      "tier": 2,
+      "confidence": 0.82,
+      "rationale": "WebSocket parameter validation using Pydantic models is scoped to generate_code.py. Add request model validation. Single file change with clear pattern.",
+      "fix_template_id": "websocket_request_validation",
+      "relevant_files": [
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-b8e193d3",
+      "tier": 2,
+      "confidence": 0.81,
+      "rationale": "Error message sanitization affects multiple locations in generate_code.py WebSocketCommunicator class. Add consistent debug-mode-aware error handling. Single file with scoped changes.",
+      "fix_template_id": "error_message_sanitization",
+      "relevant_files": [
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-fc295bd2",
+      "tier": 1,
+      "confidence": 0.9,
+      "rationale": "Deterministic pattern: add CSP meta tag to frontend/index.html and backend header. Two simple additions with no complexity.",
+      "fix_template_id": "csp_headers_add",
+      "relevant_files": [
+        "frontend/index.html",
+        "backend/main.py"
+      ]
+    },
+    {
+      "finding_id": "F-39436a1c",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Verify OpenAPI config is properly disabled and add catch-all route. Single file (main.py) with known pattern, no architectural change needed.",
+      "fix_template_id": "openapi_disable_verification",
+      "relevant_files": [
+        "backend/main.py"
+      ]
+    },
+    {
+      "finding_id": "F-45d1cdbf",
+      "tier": 2,
+      "confidence": 0.83,
+      "rationale": "Request size limits involve modifying docker-compose.yml (uvicorn args), main.py (middleware), and generate_code.py (parameter validation). 3 files, scoped but touches multiple layers.",
+      "fix_template_id": "request_size_limits",
+      "relevant_files": [
+        "docker-compose.yml",
+        "backend/main.py",
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-64b59498",
+      "tier": 2,
+      "confidence": 0.79,
+      "rationale": "Frontend config validation is localized to config.ts. Add URL validation functions and environment checks. Single file with scoped changes.",
+      "fix_template_id": "frontend_env_validation",
+      "relevant_files": [
+        "frontend/src/config.ts"
+      ]
+    },
+    {
+      "finding_id": "F-c5f36674",
+      "tier": 1,
+      "confidence": 0.95,
+      "rationale": "Deterministic fix: remove redundant useEffect in ImageLightbox.tsx. Simple deletion of lines 67-69. No LLM reasoning needed.",
+      "fix_template_id": "remove_redundant_effect",
+      "relevant_files": [
+        "frontend/src/components/ImageLightbox.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-2a66d2fe",
+      "tier": 1,
+      "confidence": 0.93,
+      "rationale": "Deterministic pattern: wrap existing sort operation in useMemo hook. Single file (Sidebar.tsx), known optimization pattern.",
+      "fix_template_id": "usememo_sort_optimization",
+      "relevant_files": [
+        "frontend/src/components/sidebar/Sidebar.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-f529939a",
+      "tier": 1,
+      "confidence": 0.88,
+      "rationale": "Deterministic pattern: ensure useCallback has correct dependencies and add useRef for listener. Single file (ImageUpload.tsx), known pattern.",
+      "fix_template_id": "usecallback_ref_optimization",
+      "relevant_files": [
+        "frontend/src/components/ImageUpload.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-e84c96e8",
+      "tier": 1,
+      "confidence": 0.82,
+      "rationale": "Deterministic pattern: add explicit ws.close() check in generateCode.ts and cancelCodeGeneration. Single file, known cleanup pattern.",
+      "fix_template_id": "websocket_cleanup",
+      "relevant_files": [
+        "frontend/src/generateCode.ts"
+      ]
+    },
+    {
+      "finding_id": "F-ec7da3e0",
+      "tier": 2,
+      "confidence": 0.72,
+      "rationale": "Requires changes to project-store.ts (immutable patterns) and potentially components consuming variants for React.memo. 2-3 files with moderate complexity.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "frontend/src/store/project-store.ts",
+        "frontend/src/components/variants/Variants.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-c63ff059",
+      "tier": 1,
+      "confidence": 0.85,
+      "rationale": "Deterministic pattern: wrap existing components with React.memo. Single-line additions to HistoryDisplay.tsx, Variants.tsx, AgentActivity.tsx. Known optimization.",
+      "fix_template_id": "react_memo_wrap",
+      "relevant_files": [
+        "frontend/src/components/history/HistoryDisplay.tsx",
+        "frontend/src/components/variants/Variants.tsx",
+        "frontend/src/components/agent/AgentActivity.tsx"
+      ]
+    },
+    {
+      "finding_id": "F-2df0ef26",
+      "tier": 2,
+      "confidence": 0.68,
+      "rationale": "Add pagination/limit to parse_prompt_history in request_parsing.py and potentially update calling code in generate_code.py. 2 files with moderate scope.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/prompts/request_parsing.py",
+        "backend/routes/generate_code.py"
+      ]
+    },
+    {
+      "finding_id": "F-11f6269d",
+      "tier": 3,
+      "confidence": 0.82,
+      "rationale": "Architectural fix: requires creating new backend/shared/ or backend/core/ module, moving shared types, and updating imports across prompts/ and agent/ modules (5+ files). Requires strategist guidance for dependency restructuring.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/prompts/",
+        "backend/agent/engine.py",
+        "backend/agent/tools/definitions.py",
+        "backend/prompts/message_builder.py",
+        "backend/prompts/pipeline.py"
+      ]
+    },
+    {
+      "finding_id": "F-655cc290",
+      "tier": 3,
+      "confidence": 0.8,
+      "rationale": "Architectural refactor: requires creating FileSystemAdapter and CommandExecutor abstractions, modifying runtime.py (362 LOC), and updating all tool implementations. Cross-cutting concern affecting 5+ files.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/agent/tools/runtime.py",
+        "backend/agent/engine.py",
+        "backend/agent/tools/definitions.py"
+      ]
+    },
+    {
+      "finding_id": "F-dcc31d3b",
+      "tier": 3,
+      "confidence": 0.78,
+      "rationale": "Architectural fix: create backend/exceptions.py with custom hierarchy, add exception handlers to main.py, update error handling across routes (4+), agent engine, and tools. Requires strategist guidance.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/exceptions.py",
+        "backend/main.py",
+        "backend/routes/generate_code.py",
+        "backend/routes/screenshot.py",
+        "backend/agent/engine.py",
+        "backend/agent/tools/runtime.py"
+      ]
+    },
+    {
+      "finding_id": "F-1481cee9",
+      "tier": 2,
+      "confidence": 0.75,
+      "rationale": "Move test_utils.py from codegen/ to tests/fixtures.py and update imports across test files. Affects 2-3 files with clear scoped changes. No architectural complexity.",
+      "fix_template_id": "",
+      "relevant_files": [
+        "backend/codegen/test_utils.py",
+        "backend/tests/fixtures.py",
+        "backend/tests/"
+      ]
+    }
+  ],
+  "tier_0_count": 1,
+  "tier_1_count": 20,
+  "tier_2_count": 14,
+  "tier_3_count": 10
+}

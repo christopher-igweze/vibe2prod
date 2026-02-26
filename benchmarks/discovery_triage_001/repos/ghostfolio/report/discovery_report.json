@@ -1,0 +1,1310 @@
+{
+  "run_id": "3a165c83e4e1",
+  "generated_at": "2026-02-26T01:20:00.754225+00:00",
+  "phase": "discovery",
+  "duration_seconds": 256.8,
+  "cost_usd": 0.0,
+  "total_findings": 52,
+  "severity_breakdown": {
+    "high": 24,
+    "low": 4,
+    "medium": 20,
+    "critical": 4
+  },
+  "category_breakdown": {
+    "security": 33,
+    "architecture": 19
+  },
+  "findings": [
+    {
+      "id": "F-7f3e47cc",
+      "title": "Weak OIDC state parameter generation using Math.random()",
+      "description": "The OidcStateStore.generateHandle() method uses Math.random() for generating state parameters, which is cryptographically insecure. State parameters must be unpredictable to prevent CSRF attacks in OAuth flows. Math.random() produces predictable values that can be easily guessed by attackers.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/oidc-state.store.ts",
+          "line_start": 79,
+          "line_end": 86,
+          "snippet": "private generateHandle() {\n    return (\n      Math.random().toString(36).substring(2, 15) +\n      Math.random().toString(36).substring(2, 15) +\n      Date.now().toString(36)\n    );\n  }"
+        }
+      ],
+      "suggested_fix": "Replace Math.random() with crypto.randomBytes() or similar cryptographically secure random generation. Example: `import { randomBytes } from 'crypto'; const handle = randomBytes(32).toString('hex');`",
+      "confidence": 0.95,
+      "cwe_id": "CWE-338",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b9f8acf9",
+      "title": "JWT token expiration set to 180 days - excessive token lifetime",
+      "description": "JWT tokens are configured with an excessively long expiration of 180 days in multiple locations. This increases the risk window for token compromise. If a token is stolen, it will remain valid for half a year, allowing extended unauthorized access. Industry best practice recommends shorter expiration periods (15 minutes to 1 hour for access tokens).",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth-device/auth-device.module.ts",
+          "line_start": 11,
+          "line_end": 16,
+          "snippet": "JwtModule.register({\n      secret: process.env.JWT_SECRET_KEY,\n      signOptions: { expiresIn: '180 days' }\n    })"
+        },
+        {
+          "file_path": "apps/api/src/app/auth/auth.module.ts",
+          "line_start": 40,
+          "line_end": 45,
+          "snippet": "JwtModule.register({\n      secret: process.env.JWT_SECRET_KEY,\n      signOptions: { expiresIn: '180 days' }\n    })"
+        }
+      ],
+      "suggested_fix": "Reduce JWT expiration to a reasonable value (e.g., '15m' for access tokens, '7d' for refresh tokens if implementing token rotation). Implement refresh token rotation for long-lived sessions.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-edaab3a2",
+      "title": "Missing CSRF token validation on authentication endpoints",
+      "description": "The auth endpoints (POST /api/v1/auth/anonymous, GET/POST /api/v1/auth/google/callback, GET/POST /api/v1/auth/oidc/callback) lack CSRF protection. Although some OAuth flows provide inherent CSRF protection through state parameters, the anonymous access token endpoint and other state-modifying operations should be protected.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/auth.controller.ts",
+          "line_start": 32,
+          "line_end": 41,
+          "snippet": "@Post('anonymous')\n  public async accessTokenLogin(\n    @Body() body: { accessToken: string }\n  ): Promise<OAuthResponse> {"
+        },
+        {
+          "file_path": "apps/api/src/app/auth/auth.controller.ts",
+          "line_start": 23,
+          "line_end": 30,
+          "snippet": "@Get('anonymous/:accessToken')\n  public async accessTokenLoginGet(\n    @Param('accessToken') accessToken: string\n  ): Promise<OAuthResponse> {"
+        }
+      ],
+      "suggested_fix": "Implement CSRF protection using NestJS @UseGuards(CsrfGuard) decorator. For POST endpoints, validate CSRF tokens from request headers/cookies. Consider using the csurf middleware or NestJS csrf protection package.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c0654916",
+      "title": "Access tokens transmitted in URL parameter (deprecated endpoint)",
+      "description": "The deprecated GET endpoint 'GET /api/v1/auth/anonymous/:accessToken' passes security tokens as URL parameters. URL parameters are logged in browser history, server logs, and proxy logs, creating multiple attack vectors for token theft. This violates secure token transmission practices.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/auth.controller.ts",
+          "line_start": 23,
+          "line_end": 30,
+          "snippet": "/**\n   * @deprecated\n   */\n  @Get('anonymous/:accessToken')\n  public async accessTokenLoginGet(\n    @Param('accessToken') accessToken: string\n  ): Promise<OAuthResponse> {"
+        }
+      ],
+      "suggested_fix": "Remove this deprecated endpoint entirely. Enforce POST requests with tokens in request body (already implemented in POST endpoint). Update all clients to use POST /api/v1/auth/anonymous with body instead.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-598",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7b96c10b",
+      "title": "Tokens stored in localStorage vulnerable to XSS attacks",
+      "description": "The TokenStorageService stores JWT tokens in both localStorage and sessionStorage, which are vulnerable to XSS (Cross-Site Scripting) attacks. If an attacker injects JavaScript, they can access all tokens in localStorage, leading to complete account compromise.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/client/src/app/services/token-storage.service.ts",
+          "line_start": 12,
+          "line_end": 24,
+          "snippet": "public saveToken(token: string, staySignedIn = false) {\n    if (staySignedIn) {\n      window.localStorage.setItem(KEY_TOKEN, token);\n    }\n    window.sessionStorage.setItem(KEY_TOKEN, token);\n  }\n\n  public getToken(): string {\n    return (\n      window.sessionStorage.getItem(KEY_TOKEN) ||\n      window.localStorage.getItem(KEY_TOKEN)\n    );\n  }"
+        }
+      ],
+      "suggested_fix": "Store tokens in HttpOnly, Secure, SameSite cookies instead of localStorage. If localStorage is required, implement additional XSS protections: Content Security Policy (CSP), input sanitization, and consider short-lived tokens with refresh token rotation.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-539",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-daf53c0f",
+      "title": "No token refresh mechanism - reliance on 180-day expiration",
+      "description": "The authentication system issues long-lived 180-day tokens without implementing a refresh token mechanism. This violates the principle of least privilege. Long-lived tokens increase the impact of token compromise, and there's no way to revoke compromised tokens without invalidating all user sessions.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/auth.service.ts",
+          "line_start": 19,
+          "line_end": 27,
+          "snippet": "return this.jwtService.sign({\n        id: user.id\n      });"
+        },
+        {
+          "file_path": "apps/api/src/app/auth/web-auth.service.ts",
+          "line_start": 142,
+          "line_end": 148,
+          "snippet": "return this.jwtService.sign({\n        id: user.id\n      });"
+        }
+      ],
+      "suggested_fix": "Implement refresh token rotation: issue short-lived access tokens (15m) and longer-lived refresh tokens (7d-30d). Add token revocation mechanism via token blacklist or database. Rotate refresh tokens on each use.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0f8b0681",
+      "title": "Generic error messages on JWT validation failures mask information",
+      "description": "In JwtStrategy.validate(), all JWT validation errors result in a generic 'UNAUTHORIZED' response (line 57). While this is good for not leaking information, the implementation catches all exceptions without distinguishing between expired tokens, invalid signatures, and missing tokens. This can make debugging harder but is not a direct security issue.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/jwt.strategy.ts",
+          "line_start": 47,
+          "line_end": 57,
+          "snippet": "} catch (error) {\n      if (error?.getStatus?.() === StatusCodes.TOO_MANY_REQUESTS) {\n        throw error;\n      } else {\n        throw new HttpException(\n          getReasonPhrase(StatusCodes.UNAUTHORIZED),\n          StatusCodes.UNAUTHORIZED\n        );\n      }\n    }"
+        }
+      ],
+      "suggested_fix": "This is acceptable as-is. The generic error message prevents token enumeration attacks. If more detailed logging is needed, log the specific error internally without exposing it to the client.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-209",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-3cc3668d",
+      "title": "No rate limiting on anonymous access token endpoint",
+      "description": "The POST /api/v1/auth/anonymous endpoint accepts access token login attempts without rate limiting. An attacker can perform brute-force attacks against access tokens without being throttled.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/auth.controller.ts",
+          "line_start": 32,
+          "line_end": 41,
+          "snippet": "@Post('anonymous')\n  public async accessTokenLogin(\n    @Body() body: { accessToken: string }\n  ): Promise<OAuthResponse> {"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting using @nestjs/throttler or similar package. Apply per-IP throttling (e.g., 5 attempts per minute). Add exponential backoff for failed attempts.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-307",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ec4fcad2",
+      "title": "No validation of OAuth redirect URIs in callback handlers",
+      "description": "The Google and OIDC OAuth callback handlers redirect users back to the client without validating the redirect URI. Although Passport strategies handle some validation, there's no explicit allowlist check in the controller to prevent open redirect vulnerabilities.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/auth.controller.ts",
+          "line_start": 58,
+          "line_end": 73,
+          "snippet": "@Get('google/callback')\n  @UseGuards(AuthGuard('google'))\n  @Version(VERSION_NEUTRAL)\n  public googleLoginCallback(\n    @Req() request: Request,\n    @Res() response: Response\n  ) {\n    const jwt: string = (request.user as any).jwt;\n\n    if (jwt) {\n      response.redirect(\n        `${this.configurationService.get(\n          'ROOT_URL'\n        )}/${DEFAULT_LANGUAGE_CODE}/auth/${jwt}`\n      );"
+        },
+        {
+          "file_path": "apps/api/src/app/auth/auth.controller.ts",
+          "line_start": 84,
+          "line_end": 100,
+          "snippet": "@Get('oidc/callback')\n  @UseGuards(AuthGuard('oidc'))\n  @Version(VERSION_NEUTRAL)\n  public oidcLoginCallback(@Req() request: Request, @Res() response: Response) {\n    const jwt: string = (request.user as any).jwt;\n\n    if (jwt) {\n      response.redirect(\n        `${this.configurationService.get(\n          'ROOT_URL'\n        )}/${DEFAULT_LANGUAGE_CODE}/auth/${jwt}`\n      );"
+        }
+      ],
+      "suggested_fix": "Although redirects use ROOT_URL from configuration (which is safe), explicitly validate that redirect targets match the allowlist. Add validation: `const allowedOrigins = [process.env.ROOT_URL]; if (!allowedOrigins.includes(redirectUrl)) throw new Error('Invalid redirect')`",
+      "confidence": 0.75,
+      "cwe_id": "CWE-601",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d85b6f87",
+      "title": "OIDC state expiration of 10 minutes may be too short for slow networks",
+      "description": "The OIDC state store uses a 10-minute expiration window (line 13 in oidc-state.store.ts). This is reasonable, but users on slow networks or with slow identity providers might experience authentication failures after reaching the endpoint but before completing the flow.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/oidc-state.store.ts",
+          "line_start": 12,
+          "line_end": 13,
+          "snippet": "private readonly STATE_EXPIRY_MS = ms('10 minutes');"
+        }
+      ],
+      "suggested_fix": "Current implementation is acceptable. If needed, increase to 15-20 minutes. Monitor for timeout-related support tickets. Ensure adequate logging when state expires.",
+      "confidence": 0.65,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "N/A",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1fd95767",
+      "title": "Missing explicit permission check for WebAuthn registration endpoint",
+      "description": "The GET /api/v1/auth/webauthn/generate-registration-options endpoint uses HasPermissionGuard but doesn't specify a required permission. The guard will allow access if no permission is explicitly set, which might unintentionally grant access to users without intended permissions.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/auth.controller.ts",
+          "line_start": 103,
+          "line_end": 107,
+          "snippet": "@Get('webauthn/generate-registration-options')\n  @UseGuards(AuthGuard('jwt'), HasPermissionGuard)\n  public async generateRegistrationOptions() {"
+        }
+      ],
+      "suggested_fix": "Add explicit @HasPermission decorator to specify required permission. Example: `@HasPermission(permissions.updateAuthDevice)` to ensure only users with the correct role can register new devices.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-276",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-16fe08a9",
+      "title": "WebAuthn counter not validated against replay attacks",
+      "description": "In web-auth.service.ts, the authenticator counter is updated after successful authentication but there's no check for counter rollback. An attacker with a cloned WebAuthn device could potentially bypass authentication by using an older signature with a lower counter value.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/web-auth.service.ts",
+          "line_start": 135,
+          "line_end": 142,
+          "snippet": "if (verified) {\n      device.counter = authenticationInfo.newCounter;\n\n      await this.deviceService.updateAuthDevice({\n        data: device,\n        where: { id: device.id }\n      });"
+        }
+      ],
+      "suggested_fix": "Add counter validation before updating: `if (authenticationInfo.newCounter <= device.counter) { throw new Error('Counter rollback detected - possible clone'); }` The simplewebauthn library may handle this, but explicitly validating it in code is recommended.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-294",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-88c83420",
+      "title": "Inactive user check happens after analytics recording",
+      "description": "In JwtStrategy.validate() (line 31-38), inactive users are checked and rejected, but this happens AFTER analytics data is upserted (line 39-48). Inactive users are still being counted in the analytics system, which could be exploited for resource exhaustion or could skew analytics.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/jwt.strategy.ts",
+          "line_start": 29,
+          "line_end": 48,
+          "snippet": "if (this.configurationService.get('ENABLE_FEATURE_SUBSCRIPTION')) {\n          if (hasRole(user, 'INACTIVE')) {\n            throw new HttpException(\n              getReasonPhrase(StatusCodes.TOO_MANY_REQUESTS),\n              StatusCodes.TOO_MANY_REQUESTS\n            );\n          }\n\n          const country =\n            countriesAndTimezones.getCountryForTimezone(timezone)?.id;\n\n          await this.prismaService.analytics.upsert({"
+        }
+      ],
+      "suggested_fix": "Move the inactive user check BEFORE analytics recording: Check `hasRole(user, 'INACTIVE')` immediately after user is loaded, before any analytics operations.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-863",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b8098fd8",
+      "title": "Frontend clears localStorage on logout but doesn't invalidate backend tokens",
+      "description": "In token-storage.service.ts signOut() method (line 26-35), tokens are cleared from client storage, but there's no mechanism to invalidate tokens on the backend. A user's old token can still be used to access the API if intercepted before logout.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/client/src/app/services/token-storage.service.ts",
+          "line_start": 26,
+          "line_end": 35,
+          "snippet": "public signOut() {\n    const utmSource = window.localStorage.getItem('utm_source');\n\n    if (this.webAuthnService.isEnabled()) {\n      this.webAuthnService.deregister().subscribe();\n    }\n\n    window.localStorage.clear();\n    window.sessionStorage.clear();\n\n    this.userService.remove();"
+        }
+      ],
+      "suggested_fix": "Implement backend token blacklist/revocation: (1) Add a blacklist table in Prisma schema to store revoked token JTIs. (2) Call a backend logout endpoint from signOut(). (3) In JwtStrategy, check if token JTI is in blacklist before accepting.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e90e4bfa",
+      "title": "User 'Stay Signed In' feature stores tokens in localStorage indefinitely",
+      "description": "The 'Stay Signed In' checkbox (login-with-access-token-dialog.component.ts) stores JWT tokens in localStorage with no expiration. Combined with 180-day JWT expiration, tokens could remain valid for extended periods even if devices are stolen.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/client/src/app/components/login-with-access-token-dialog/login-with-access-token-dialog.component.ts",
+          "line_start": 41,
+          "line_end": 47,
+          "snippet": "public onChangeStaySignedIn(aValue: MatCheckboxChange) {\n    this.settingsStorageService.setSetting(\n      KEY_STAY_SIGNED_IN,\n      aValue.checked?.toString()\n    );\n  }"
+        },
+        {
+          "file_path": "apps/client/src/app/services/token-storage.service.ts",
+          "line_start": 16,
+          "line_end": 22,
+          "snippet": "public saveToken(token: string, staySignedIn = false) {\n    if (staySignedIn) {\n      window.localStorage.setItem(KEY_TOKEN, token);\n    }\n    window.sessionStorage.setItem(KEY_TOKEN, token);\n  }"
+        }
+      ],
+      "suggested_fix": "Reduce JWT expiration for 'Stay Signed In' sessions (e.g., 7 days instead of 180 days). Alternatively, implement 'Remember Me' functionality using secure, HttpOnly cookies with shorter expiration. Provide a 'Log out of all devices' feature.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ad27b62c",
+      "title": "No Content-Security-Policy header for XSS protection (non-subscription mode)",
+      "description": "In main.ts, CSP headers are only applied when ENABLE_FEATURE_SUBSCRIPTION is true. In non-subscription/self-hosted mode, the application runs without Content-Security-Policy protection, leaving it vulnerable to XSS attacks.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 48,
+          "line_end": 69,
+          "snippet": "if (configService.get<string>('ENABLE_FEATURE_SUBSCRIPTION') === 'true') {\n    app.use((req: Request, res: Response, next: NextFunction) => {\n      if (req.path.startsWith(STORYBOOK_PATH)) {\n        next();\n      } else {\n        helmet({\n          contentSecurityPolicy: {"
+        }
+      ],
+      "suggested_fix": "Apply CSP headers in both subscription and non-subscription modes. Move helmet configuration outside the conditional: `const app = await NestFactory.create(AppModule); app.use(helmet({ contentSecurityPolicy: { ... } }));`",
+      "confidence": 0.9,
+      "cwe_id": "CWE-79",
+      "owasp_ref": "A03:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fd21581f",
+      "title": "Missing SameSite cookie attribute for CSRF protection",
+      "description": "While the application uses JWT tokens in headers rather than cookies, if any Set-Cookie headers are used elsewhere, they should have SameSite=Strict attribute. No explicit cookie configuration is visible in the auth code provided.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 1,
+          "line_end": 15,
+          "snippet": "// No explicit cookie configuration detected"
+        }
+      ],
+      "suggested_fix": "If using cookies for auth: Configure NestJS response to include SameSite=Strict in all Set-Cookie headers. Example in main.ts: `app.use((req, res, next) => { res.set('Set-Cookie', 'SameSite=Strict; Secure'); next(); })`",
+      "confidence": 0.7,
+      "cwe_id": "CWE-352",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1daa835a",
+      "title": "CORS enabled globally without origin validation",
+      "description": "In main.ts line 38, `app.enableCors()` is called without any configuration, which enables CORS for all origins. This allows any website to make authenticated requests to the API on behalf of logged-in users.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 38,
+          "line_end": 38,
+          "snippet": "app.enableCors();"
+        }
+      ],
+      "suggested_fix": "Configure CORS with an allowlist of trusted origins: `app.enableCors({ origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:4200'], credentials: true, methods: ['GET', 'POST', 'PUT', 'DELETE'], allowedHeaders: ['Content-Type', 'Authorization'] })`",
+      "confidence": 0.95,
+      "cwe_id": "CWE-346",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-86ab4d63",
+      "title": "API key validation doesn't check for key expiration",
+      "description": "In api-key.strategy.ts, the validateApiKey method validates that an API key exists and belongs to a user, but there's no check for key expiration date. Expired API keys might remain functional.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/auth/api-key.strategy.ts",
+          "line_start": 30,
+          "line_end": 44,
+          "snippet": "private async validateApiKey(apiKey: string) {\n    if (!apiKey) {\n      throw new HttpException(\n        getReasonPhrase(StatusCodes.UNAUTHORIZED),\n        StatusCodes.UNAUTHORIZED\n      );\n    }\n\n    try {\n      const { id } = await this.apiKeyService.getUserByApiKey(apiKey);\n\n      return this.userService.user({ id });\n    } catch {\n      throw new HttpException(\n        getReasonPhrase(StatusCodes.UNAUTHORIZED),\n        StatusCodes.UNAUTHORIZED\n      );\n    }\n  }"
+        }
+      ],
+      "suggested_fix": "Add expiration check in ApiKeyService.getUserByApiKey(): Check if `apiKey.expiresAt && new Date() > apiKey.expiresAt` and throw error if expired. Add `expiresAt` field to ApiKey model in Prisma schema.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-613",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-6f4ae3a3",
+      "title": "CORS enabled without origin restrictions",
+      "description": "The API enables CORS with `app.enableCors()` without specifying allowed origins, which defaults to allowing all origins (*). This exposes the API to cross-origin requests from any domain, potentially enabling CSRF attacks and unauthorized data access.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 36,
+          "line_end": 36,
+          "snippet": "app.enableCors();"
+        }
+      ],
+      "suggested_fix": "Configure CORS to only allow specific trusted origins: `app.enableCors({ origin: process.env.ALLOWED_ORIGINS?.split(',') || ['https://yourdomain.com'], credentials: true });` and set this via environment variables in production.",
+      "confidence": 0.98,
+      "cwe_id": "CWE-346",
+      "owasp_ref": "A01:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-377c6cc6",
+      "title": "Helmet CSP allows unsafe-inline scripts",
+      "description": "The Content Security Policy in helmet middleware includes 'unsafe-inline' for scriptSrc and scriptSrcAttr, which defeats the purpose of CSP protection and allows inline script injection attacks. This is particularly dangerous for a financial application.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 53,
+          "line_end": 65,
+          "snippet": "helmet({\n          contentSecurityPolicy: {\n            directives: {\n              connectSrc: [\"'self'\", 'https://js.stripe.com'],\n              frameSrc: [\"'self'\", 'https://js.stripe.com'],\n              scriptSrc: [\"'self'\", \"'unsafe-inline'\", 'https://js.stripe.com'],\n              scriptSrcAttr: [\"'self'\", \"'unsafe-inline'\"],\n              styleSrc: [\"'self'\", \"'unsafe-inline'\"]\n            }\n          }\n        })"
+        }
+      ],
+      "suggested_fix": "Remove 'unsafe-inline' from scriptSrc and scriptSrcAttr directives. Use nonce or hash-based CSP instead. For inline styles, extract to external stylesheets or use CSS variables. Consider: `scriptSrc: [\"'self'\", 'https://js.stripe.com'], scriptSrcAttr: [\"'self'\"]`",
+      "confidence": 0.95,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7497b5fb",
+      "title": "Debug mode enabled with verbose logging in production",
+      "description": "The TypeScript configuration has `sourceMap: true` and `declaration: false` globally enabled, which generates source maps in production builds. Combined with verbose error logging available in non-production mode ('debug', 'verbose'), this could expose sensitive source code and implementation details.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "tsconfig.base.json",
+          "line_start": 2,
+          "line_end": 5,
+          "snippet": "\"compileOnSave\": false,\n  \"compilerOptions\": {\n    \"rootDir\": \".\",\n    \"sourceMap\": true,"
+        },
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 29,
+          "line_end": 33,
+          "snippet": "const app = await NestFactory.create<NestExpressApplication>(AppModule, {\n    logger:\n      customLogLevels ??\n      (environment.production\n        ? ['error', 'log', 'warn']\n        : ['debug', 'error', 'log', 'verbose', 'warn'])"
+        }
+      ],
+      "suggested_fix": "Set `sourceMap: false` in tsconfig.base.json for production builds. Use a separate tsconfig.prod.json if needed for development. Ensure only ['error', 'warn'] logging in production via environment validation.",
+      "confidence": 0.88,
+      "cwe_id": "CWE-215",
+      "owasp_ref": "A09:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-74929fe7",
+      "title": "Weak TypeScript compiler settings allow implicit any types",
+      "description": "Critical type safety flags are disabled globally: `strict: false`, `noImplicitAny: false`, `noImplicitThis: false`. This allows type errors to slip through, potentially hiding security vulnerabilities like SQL injection or improper input validation.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "tsconfig.base.json",
+          "line_start": 28,
+          "line_end": 34,
+          "snippet": "\"strict\": false,\n    \"strictNullChecks\": false,\n    \"strictPropertyInitialization\": false,\n    \"noImplicitReturns\": false,\n    \"noImplicitAny\": false,\n    \"noImplicitThis\": false,"
+        }
+      ],
+      "suggested_fix": "Enable strict type checking: Set `strict: true` and `strictNullChecks: true` in tsconfig.base.json. Gradually migrate code to pass strict checks. This helps catch potential security issues at compile time.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-400",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a1e7ffd3",
+      "title": "No rate limiting configured on API endpoints",
+      "description": "There is no visible rate limiting middleware configured in the main.ts or app.module.ts. This exposes endpoints to brute force attacks (particularly auth endpoints), DDoS attacks, and abuse. Financial applications require protection against rapid-fire requests.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "No rate limiting middleware found in bootstrap configuration"
+        }
+      ],
+      "suggested_fix": "Add rate limiting middleware using `@nestjs/throttler` or `express-rate-limit`. Apply globally and per-route, especially for `/api/auth/*` endpoints. Example: `ThrottlerModule.forRoot([{ ttl: 60000, limit: 10 }])` for auth endpoints.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-36673c83",
+      "title": "Missing security headers in production",
+      "description": "Helmet is conditionally applied only when subscription feature is enabled. Missing security headers like HSTS, X-Frame-Options, X-Content-Type-Options are not consistently applied across all requests in production.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 48,
+          "line_end": 67,
+          "snippet": "if (configService.get<string>('ENABLE_FEATURE_SUBSCRIPTION') === 'true') {\n    app.use((req: Request, res: Response, next: NextFunction) => {\n      if (req.path.startsWith(STORYBOOK_PATH)) {\n        next();\n      } else {\n        helmet({...})(req, res, next);\n      }\n    });\n  }"
+        }
+      ],
+      "suggested_fix": "Apply helmet middleware globally for all environments: `app.use(helmet({ hsts: { maxAge: 31536000, includeSubDomains: true }, frameguard: { action: 'deny' }, contentSecurityPolicy: {...} }));` before conditional logic.",
+      "confidence": 0.9,
+      "cwe_id": "CWE-693",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fbb6078e",
+      "title": "Insecure environment configuration in docker-compose",
+      "description": "Docker compose files use environment variables from .env files without defaults for critical secrets like REDIS_PASSWORD and POSTGRES_PASSWORD. The entrypoint.sh runs migrations and seeding without error handling, which could expose database state.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "docker/docker-compose.yml",
+          "line_start": 36,
+          "line_end": 51,
+          "snippet": "command:\n      - /bin/sh\n      - -c\n      - redis-server --requirepass \"$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}\""
+        },
+        {
+          "file_path": "docker/entrypoint.sh",
+          "line_start": 1,
+          "line_end": 13,
+          "snippet": "#!/bin/sh\n\nset -ex\n\necho \"Running database migrations\"\nnpx prisma migrate deploy\n\necho \"Seeding the database\"\nnpx prisma db seed\n\necho \"Starting the server\"\nexec node main"
+        }
+      ],
+      "suggested_fix": "Add proper error handling to entrypoint.sh: `set -e` ensures failures halt execution. Ensure POSTGRES_PASSWORD uses strong, randomly generated values. Never commit .env files. Use Docker secrets in production: `redis-server --requirepass '${REDIS_PASSWORD}'` with proper error messages.",
+      "confidence": 0.88,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-15550897",
+      "title": "Default dummy credentials in production configuration",
+      "description": "The ConfigurationService has hardcoded default values for sensitive credentials like 'dummyClientId', 'dummySecret', 'dummyAccessToken' for Google and Twitter OAuth. If these defaults are not overridden in production, authentication bypasses are possible.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/configuration/configuration.service.ts",
+          "line_start": 35,
+          "line_end": 40,
+          "snippet": "GOOGLE_CLIENT_ID: str({ default: 'dummyClientId' }),\n      GOOGLE_SECRET: str({ default: 'dummySecret' }),\n      ...\n      TWITTER_ACCESS_TOKEN: str({ default: 'dummyAccessToken' }),\n      TWITTER_ACCESS_TOKEN_SECRET: str({ default: 'dummyAccessTokenSecret' }),\n      TWITTER_API_KEY: str({ default: 'dummyApiKey' }),\n      TWITTER_API_SECRET: str({ default: 'dummyApiSecret' })"
+        }
+      ],
+      "suggested_fix": "Remove default values for sensitive credentials. Make them required: `GOOGLE_CLIENT_ID: str()` without default, and add validation: `requiredWhen: (env) => env.ENABLE_FEATURE_AUTH_GOOGLE === true`. Log warnings if using defaults in production.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-798",
+      "owasp_ref": "A07:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ae503812",
+      "title": "Database connection pooling not configured",
+      "description": "The Prisma client configuration lacks connection pooling settings. In a high-load production environment, this could exhaust database connections or cause performance degradation under DDoS.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/configuration/configuration.service.ts",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "No connection pooling or Prisma datasource configuration visible"
+        }
+      ],
+      "suggested_fix": "Configure Prisma connection pooling in .env: `DATABASE_URL='postgresql://user:password@host:5432/db?schema=public&sslmode=require&pgbouncer=true'` and set `connection_limit` appropriately. Use PgBouncer for external pooling in production.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-7533890a",
+      "title": "Redis configuration lacks encryption and authentication strength validation",
+      "description": "Redis authentication depends on REDIS_PASSWORD environment variable with no validation of password strength or length requirements. Redis communication to database is not enforced as encrypted (no TLS).",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "docker/docker-compose.yml",
+          "line_start": 51,
+          "line_end": 60,
+          "snippet": "command:\n      - /bin/sh\n      - -c\n      - redis-server --requirepass \"$${REDIS_PASSWORD:?REDIS_PASSWORD variable is not set}\""
+        },
+        {
+          "file_path": "apps/api/src/services/configuration/configuration.service.ts",
+          "line_start": 57,
+          "line_end": 60,
+          "snippet": "REDIS_PASSWORD: str({ default: '' }),"
+        }
+      ],
+      "suggested_fix": "Enforce Redis password strength in validation: add minimum length requirement (min 32 chars). Enable Redis TLS: add `--tls-port 6380` to redis-server. Update connection string: `redis://:password@host:6380?tls=true`. Validate in ConfigurationService: `REDIS_PASSWORD: str({ minLength: 32 })`",
+      "confidence": 0.82,
+      "cwe_id": "CWE-326",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-36f28099",
+      "title": "No HTTPS enforcement in development environment configuration",
+      "description": "The environment.ts file uses HTTP for the rootUrl in development, and there's no mechanism to enforce HTTPS in production or detect insecure connections. API runs on localhost:3333 without HTTPS enforcement.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/environments/environment.ts",
+          "line_start": 1,
+          "line_end": 6,
+          "snippet": "export const environment = {\n  production: false,\n  rootUrl: `https://${DEFAULT_HOST}:4200`,\n  version: 'dev'\n};"
+        },
+        {
+          "file_path": "apps/api/src/environments/environment.prod.ts",
+          "line_start": 3,
+          "line_end": 6,
+          "snippet": "rootUrl: `http://${DEFAULT_HOST}:${DEFAULT_PORT}`,"
+        }
+      ],
+      "suggested_fix": "Enforce HTTPS in production: change environment.prod.ts to `rootUrl: process.env.ROOT_URL || 'https://yourdomain.com'`. Add HTTPS redirect middleware: `app.use((req, res, next) => { if (!req.secure && process.env.NODE_ENV === 'production') { res.redirect(301, 'https://' + req.host + req.url); } else { next(); } });`",
+      "confidence": 0.8,
+      "cwe_id": "CWE-295",
+      "owasp_ref": "A02:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-280aa52a",
+      "title": "Body size limit for file uploads not enforced",
+      "description": "While a 10mb limit is set for CSV/JSON imports, there is no rate limiting per user and no virus scanning or file type validation beyond content-type. This could allow storage exhaustion attacks or malicious file uploads.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 45,
+          "line_end": 46,
+          "snippet": "// Support 10mb csv/json files for importing activities\n  app.useBodyParser('json', { limit: '10mb' });"
+        }
+      ],
+      "suggested_fix": "Add file upload validation: implement virus scanning via ClamAV integration, enforce file type validation beyond content-type header using file-type library, add per-user rate limiting for import endpoints (max 5 imports/hour), and implement disk quota per user.",
+      "confidence": 0.78,
+      "cwe_id": "CWE-434",
+      "owasp_ref": "A04:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-a7f27df0",
+      "title": "No request timeout configuration in main API initialization",
+      "description": "While REQUEST_TIMEOUT is defined in ConfigurationService (default 3 seconds), it's not applied globally to all HTTP requests in main.ts. Long-running requests could cause resource exhaustion.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "apps/api/src/main.ts",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "No request timeout configured in app initialization"
+        }
+      ],
+      "suggested_fix": "Add global request timeout: `app.use((req, res, next) => { req.setTimeout(configService.get('REQUEST_TIMEOUT')); res.setTimeout(configService.get('REQUEST_TIMEOUT')); next(); });` after creating the app instance.",
+      "confidence": 0.72,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-80fa6e42",
+      "title": "TypeScript strict null checks disabled could hide null reference vulnerabilities",
+      "description": "With `strictNullChecks: false` in tsconfig.base.json, null/undefined values can be used where specific types are expected, potentially causing runtime errors in security-critical code paths like authentication or authorization.",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "infrastructure",
+      "locations": [
+        {
+          "file_path": "tsconfig.base.json",
+          "line_start": 29,
+          "line_end": 29,
+          "snippet": "\"strictNullChecks\": false,"
+        }
+      ],
+      "suggested_fix": "Enable `strictNullChecks: true` in tsconfig.base.json. Gradually fix code to handle null cases explicitly. This is especially important in auth strategies and validation guards.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-476",
+      "owasp_ref": "A06:2021",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0bdfc508",
+      "title": "God module: portfolio.service.ts exceeds 2200 LOC with mixed responsibilities",
+      "description": "The portfolio service in apps/api/src/app/portfolio/portfolio.service.ts contains 2220 lines of code handling multiple distinct responsibilities: portfolio calculations, data aggregation, holdings management, and performance analytics. This violates single responsibility principle and makes the module difficult to test, maintain, and extend.",
+      "category": "architecture",
+      "severity": "critical",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 2220,
+          "snippet": "Service handles portfolio calculations, data aggregation, holdings management, performance analytics, and more"
+        }
+      ],
+      "suggested_fix": "Split into domain-specific services: PortfolioCalculationService, PortfolioHoldingsService, PortfolioPerformanceService, PortfolioAggregationService",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ddbbc27b",
+      "title": "God module: admin.service.ts exceeds 900 LOC with disparate concerns",
+      "description": "The admin service (apps/api/src/app/admin/admin.service.ts) contains 938 lines handling user management, data cleanup, market data operations, import processing, and analytics. This mixes administrative, data management, and processing logic.",
+      "category": "architecture",
+      "severity": "critical",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/admin/admin.service.ts",
+          "line_start": 1,
+          "line_end": 938,
+          "snippet": "Service handles user admin operations, data cleanup, market data management, imports, and analytics"
+        }
+      ],
+      "suggested_fix": "Split into AdminUserService, AdminDataCleanupService, AdminMarketDataService, AdminAnalyticsService",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5bdf0461",
+      "title": "God module: data-provider.service.ts exceeds 800 LOC with multiple provider implementations",
+      "description": "The data-provider service (apps/api/src/services/data-provider/data-provider.service.ts) contains 866 lines and manages the orchestration logic for multiple external data providers (AlphaVantage, Yahoo Finance, CoinGecko, etc.). It acts as a facade but lacks proper abstraction.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider/data-provider.service.ts",
+          "line_start": 1,
+          "line_end": 866,
+          "snippet": "Orchestrates multiple data provider implementations with complex routing logic"
+        }
+      ],
+      "suggested_fix": "Create a DataProviderRegistry/Factory pattern and move provider-specific logic to individual provider services",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-46793959",
+      "title": "God module: user.service.ts exceeds 700 LOC with mixed user concerns",
+      "description": "The user service (apps/api/src/app/user/user.service.ts) contains 733 lines handling user profile management, settings, preferences, and related operations. Should be split by domain responsibility.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/user/user.service.ts",
+          "line_start": 1,
+          "line_end": 733,
+          "snippet": "Handles user profile, settings, preferences, and various user-related operations"
+        }
+      ],
+      "suggested_fix": "Split into UserProfileService, UserSettingsService, UserPreferencesService",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fad4d675",
+      "title": "God module: helper.ts in libs/common contains 476 LOC of unrelated utility functions",
+      "description": "The helper.ts file (libs/common/src/lib/helper.ts) contains 476 lines of general-purpose utility functions covering date manipulation, formatting, validation, and data transformation. This creates a dumping ground for utilities.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib/helper.ts",
+          "line_start": 1,
+          "line_end": 476,
+          "snippet": "Contains unrelated utility functions for dates, formatting, validation, and transformations"
+        }
+      ],
+      "suggested_fix": "Split into: date-helper.ts, format-helper.ts, validation-helper.ts, data-transform-helper.ts",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fc188998",
+      "title": "God module: personal-finance-tools.ts exceeds 1100 LOC with complex calculations",
+      "description": "The personal-finance-tools.ts (libs/common/src/lib/personal-finance-tools.ts) contains 1145 lines with multiple financial calculation algorithms (FIRE, retirement, tax-loss harvesting). These calculations should be in separate, testable modules.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib/personal-finance-tools.ts",
+          "line_start": 1,
+          "line_end": 1145,
+          "snippet": "Multiple complex financial calculation algorithms mixed in single file"
+        }
+      ],
+      "suggested_fix": "Split into FireCalculator, RetirementCalculator, TaxLossHarvestingCalculator, etc.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1f132208",
+      "title": "Missing service layer abstraction in portfolio calculations",
+      "description": "The portfolio calculator (apps/api/src/app/portfolio/calculator/portfolio-calculator.ts) contains 1173 LOC with tightly coupled calculation logic. The factory pattern exists but doesn't provide clear abstraction for different calculation strategies.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/calculator/portfolio-calculator.ts",
+          "line_start": 1,
+          "line_end": 1173,
+          "snippet": "Complex portfolio calculation logic with ROAI, TWR, MWR strategies"
+        }
+      ],
+      "suggested_fix": "Create PortfolioCalculationStrategy interface and separate implementations for each strategy (ROAI, TWR, MWR, ROI)",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ff28e2ab",
+      "title": "Tight coupling between portfolio service and calculator components",
+      "description": "The portfolio.service.ts directly instantiates and uses portfolio-calculator without dependency injection for the calculator factory, creating tight coupling and making testing difficult.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Portfolio service instantiates calculator directly without abstraction"
+        }
+      ],
+      "suggested_fix": "Inject PortfolioCalculatorFactory as dependency and define clear interface for calculator operations",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-583ed754",
+      "title": "Missing abstraction for data provider implementations",
+      "description": "Multiple data provider services (yahoo-finance.service.ts, coingecko.service.ts, alpha-vantage.service.ts, etc.) exist but lack a consistent interface contract. Each implements different error handling and retry logic.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Multiple provider implementations with inconsistent interfaces and patterns"
+        }
+      ],
+      "suggested_fix": "Define strict DataProviderInterface and ensure all providers implement it consistently. Use Strategy pattern for provider selection.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-be1a3a07",
+      "title": "Configuration scattered across multiple locations",
+      "description": "Configuration values are found in: environment files, config.ts in libs/common, configuration.service.ts in API, and environment.ts in client. This creates inconsistency and makes configuration management difficult.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib/config.ts",
+          "line_start": 1,
+          "line_end": 268,
+          "snippet": "Configuration constants mixed with business logic"
+        },
+        {
+          "file_path": "apps/api/src/services/configuration/configuration.service.ts",
+          "line_start": 1,
+          "line_end": 116,
+          "snippet": "Runtime configuration management"
+        },
+        {
+          "file_path": "apps/api/src/environments/environment.ts",
+          "line_start": 1,
+          "line_end": 7,
+          "snippet": "Environment-specific configuration"
+        }
+      ],
+      "suggested_fix": "Centralize configuration in a single ConfigurationService with clear separation: build-time (environment files) and runtime (ConfigService)",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b3fa2270",
+      "title": "Missing repository/data access layer abstraction",
+      "description": "Services directly use Prisma client without a repository pattern. Changes to data access patterns require modifying multiple service files. No data access abstraction layer exists.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Direct Prisma calls without repository abstraction"
+        }
+      ],
+      "suggested_fix": "Create repository classes for each domain entity (PortfolioRepository, UserRepository, OrderRepository) to abstract data access",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-73e9c8cd",
+      "title": "Inconsistent error handling patterns across modules",
+      "description": "Error handling varies significantly: some services throw custom errors, others return null/undefined, some use try-catch blocks inconsistently. Data provider errors use specific error classes but other services don't.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider/errors",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Custom error classes exist only for data providers"
+        }
+      ],
+      "suggested_fix": "Define ApplicationError hierarchy and use consistently across all services. Create specific error types for each domain.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-06211d57",
+      "title": "High coupling between API routes and services",
+      "description": "Controllers directly instantiate and call multiple services with business logic validation occurring in controllers. Routes should delegate validation to service layer.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.controller.ts",
+          "line_start": 1,
+          "line_end": 675,
+          "snippet": "Controller contains business logic validation and complex service orchestration"
+        }
+      ],
+      "suggested_fix": "Move validation and orchestration logic to service layer. Controllers should only handle HTTP concerns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0fc90fed",
+      "title": "Missing clear domain boundaries between modules",
+      "description": "Portfolio, Order, Account, and Holding domains have unclear boundaries. Multiple services handle overlapping concerns (portfolio.service handles holdings, order.service, holdings are in portfolio calculations).",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Portfolio service manages holdings, orders, and accounts without clear boundaries"
+        }
+      ],
+      "suggested_fix": "Define clear domain boundaries: Portfolio (aggregate root) -> Holdings -> Orders -> Accounts. Use explicit interfaces for inter-domain communication.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-affa27c4",
+      "title": "Complex event listener dependencies without clear propagation model",
+      "description": "Asset and Portfolio change events have listeners (asset-profile-changed.listener.ts, portfolio-changed.listener.ts) but the event propagation model is unclear. Changes in one aggregate may trigger cascading updates without clear dependency tracking.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/events/portfolio-changed.listener.ts",
+          "line_start": 1,
+          "line_end": 23,
+          "snippet": "Event listener with unclear scope of impact"
+        },
+        {
+          "file_path": "apps/api/src/events/asset-profile-changed.listener.ts",
+          "line_start": 1,
+          "line_end": 61,
+          "snippet": "Asset change listener may trigger portfolio recalculations"
+        }
+      ],
+      "suggested_fix": "Document event propagation model explicitly. Consider using saga pattern for complex cross-aggregate transactions.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d5e7bc93",
+      "title": "UI library mixes component library with business logic services",
+      "description": "The libs/ui library (libs/ui/src/lib) contains both reusable UI components and business logic services (data.service.ts, admin.service.ts). UI library should only contain presentational components.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/ui/src/lib/services/data.service.ts",
+          "line_start": 1,
+          "line_end": 883,
+          "snippet": "Business logic service in UI library (883 LOC)"
+        },
+        {
+          "file_path": "libs/ui/src/lib/services/admin.service.ts",
+          "line_start": 1,
+          "line_end": 286,
+          "snippet": "Admin business logic in UI library (286 LOC)"
+        }
+      ],
+      "suggested_fix": "Move data.service.ts and admin.service.ts to apps/client or create separate business-logic library. UI library should only export components.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e2b68fd9",
+      "title": "Inconsistent module organization between API and client",
+      "description": "API uses feature-based modules (portfolio, account, order, etc.) while client uses page-based organization with nested component directories. Makes feature tracking and shared patterns unclear.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Feature-based module organization"
+        },
+        {
+          "file_path": "apps/client/src/app/pages",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Page-based organization without clear feature boundaries"
+        }
+      ],
+      "suggested_fix": "Align client organization with API: create feature-based modules (portfolio-feature, account-feature, etc.) containing pages, components, services.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fa72b7d9",
+      "title": "Missing abstraction layer for external API integrations",
+      "description": "Multiple external data providers (AlphaVantage, Yahoo Finance, CoinGecko) are integrated directly into services without circuit breaker, retry, or rate limiting abstractions. Makes resilience patterns scattered.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider/alpha-vantage/alpha-vantage.service.ts",
+          "line_start": 1,
+          "line_end": 142,
+          "snippet": "Direct HTTP calls to external API without abstraction"
+        }
+      ],
+      "suggested_fix": "Create HttpClient abstraction layer with retry, circuit breaker, rate limiting, and timeout patterns. Use decorator or strategy pattern for resilience.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-dbc88b3a",
+      "title": "Common library mixes DTOs, utilities, types, and configurations",
+      "description": "libs/common contains DTOs (40+ files), types (20+ files), utilities, configurations, and interfaces all at the same level. This creates a dumping ground without clear organization.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Mixed concerns: DTOs, types, utils, config, interfaces without subdomain organization"
+        }
+      ],
+      "suggested_fix": "Reorganize libs/common by domain: /portfolio (DTOs, types, interfaces), /user, /order, etc. Move utilities to /shared/utils with subdirectories by concern.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "remediation_plan": {
+    "items": [],
+    "dependencies": [],
+    "execution_levels": [],
+    "deferred_finding_ids": [],
+    "dedup_summary": "",
+    "total_items": 0,
+    "estimated_invocations": 0,
+    "summary": "Parse error: 4 validation errors for RemediationPlan\nitems.13.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal\nitems.17.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal\nitems.18.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal\nitems.19.priority\n  Input should be greater than or equal to 1 [type=greater_than_equal, input_value=0, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.12/v/greater_than_equal. Raw findings count: 52"
+  }
+}

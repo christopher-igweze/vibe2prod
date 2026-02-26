@@ -1,0 +1,475 @@
+{
+  "findings": [
+    {
+      "id": "F-0bdfc508",
+      "title": "God module: portfolio.service.ts exceeds 2200 LOC with mixed responsibilities",
+      "description": "The portfolio service in apps/api/src/app/portfolio/portfolio.service.ts contains 2220 lines of code handling multiple distinct responsibilities: portfolio calculations, data aggregation, holdings management, and performance analytics. This violates single responsibility principle and makes the module difficult to test, maintain, and extend.",
+      "category": "architecture",
+      "severity": "critical",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 2220,
+          "snippet": "Service handles portfolio calculations, data aggregation, holdings management, performance analytics, and more"
+        }
+      ],
+      "suggested_fix": "Split into domain-specific services: PortfolioCalculationService, PortfolioHoldingsService, PortfolioPerformanceService, PortfolioAggregationService",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ddbbc27b",
+      "title": "God module: admin.service.ts exceeds 900 LOC with disparate concerns",
+      "description": "The admin service (apps/api/src/app/admin/admin.service.ts) contains 938 lines handling user management, data cleanup, market data operations, import processing, and analytics. This mixes administrative, data management, and processing logic.",
+      "category": "architecture",
+      "severity": "critical",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/admin/admin.service.ts",
+          "line_start": 1,
+          "line_end": 938,
+          "snippet": "Service handles user admin operations, data cleanup, market data management, imports, and analytics"
+        }
+      ],
+      "suggested_fix": "Split into AdminUserService, AdminDataCleanupService, AdminMarketDataService, AdminAnalyticsService",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5bdf0461",
+      "title": "God module: data-provider.service.ts exceeds 800 LOC with multiple provider implementations",
+      "description": "The data-provider service (apps/api/src/services/data-provider/data-provider.service.ts) contains 866 lines and manages the orchestration logic for multiple external data providers (AlphaVantage, Yahoo Finance, CoinGecko, etc.). It acts as a facade but lacks proper abstraction.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider/data-provider.service.ts",
+          "line_start": 1,
+          "line_end": 866,
+          "snippet": "Orchestrates multiple data provider implementations with complex routing logic"
+        }
+      ],
+      "suggested_fix": "Create a DataProviderRegistry/Factory pattern and move provider-specific logic to individual provider services",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-46793959",
+      "title": "God module: user.service.ts exceeds 700 LOC with mixed user concerns",
+      "description": "The user service (apps/api/src/app/user/user.service.ts) contains 733 lines handling user profile management, settings, preferences, and related operations. Should be split by domain responsibility.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/user/user.service.ts",
+          "line_start": 1,
+          "line_end": 733,
+          "snippet": "Handles user profile, settings, preferences, and various user-related operations"
+        }
+      ],
+      "suggested_fix": "Split into UserProfileService, UserSettingsService, UserPreferencesService",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fad4d675",
+      "title": "God module: helper.ts in libs/common contains 476 LOC of unrelated utility functions",
+      "description": "The helper.ts file (libs/common/src/lib/helper.ts) contains 476 lines of general-purpose utility functions covering date manipulation, formatting, validation, and data transformation. This creates a dumping ground for utilities.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib/helper.ts",
+          "line_start": 1,
+          "line_end": 476,
+          "snippet": "Contains unrelated utility functions for dates, formatting, validation, and transformations"
+        }
+      ],
+      "suggested_fix": "Split into: date-helper.ts, format-helper.ts, validation-helper.ts, data-transform-helper.ts",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fc188998",
+      "title": "God module: personal-finance-tools.ts exceeds 1100 LOC with complex calculations",
+      "description": "The personal-finance-tools.ts (libs/common/src/lib/personal-finance-tools.ts) contains 1145 lines with multiple financial calculation algorithms (FIRE, retirement, tax-loss harvesting). These calculations should be in separate, testable modules.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib/personal-finance-tools.ts",
+          "line_start": 1,
+          "line_end": 1145,
+          "snippet": "Multiple complex financial calculation algorithms mixed in single file"
+        }
+      ],
+      "suggested_fix": "Split into FireCalculator, RetirementCalculator, TaxLossHarvestingCalculator, etc.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1f132208",
+      "title": "Missing service layer abstraction in portfolio calculations",
+      "description": "The portfolio calculator (apps/api/src/app/portfolio/calculator/portfolio-calculator.ts) contains 1173 LOC with tightly coupled calculation logic. The factory pattern exists but doesn't provide clear abstraction for different calculation strategies.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/calculator/portfolio-calculator.ts",
+          "line_start": 1,
+          "line_end": 1173,
+          "snippet": "Complex portfolio calculation logic with ROAI, TWR, MWR strategies"
+        }
+      ],
+      "suggested_fix": "Create PortfolioCalculationStrategy interface and separate implementations for each strategy (ROAI, TWR, MWR, ROI)",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ff28e2ab",
+      "title": "Tight coupling between portfolio service and calculator components",
+      "description": "The portfolio.service.ts directly instantiates and uses portfolio-calculator without dependency injection for the calculator factory, creating tight coupling and making testing difficult.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Portfolio service instantiates calculator directly without abstraction"
+        }
+      ],
+      "suggested_fix": "Inject PortfolioCalculatorFactory as dependency and define clear interface for calculator operations",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-583ed754",
+      "title": "Missing abstraction for data provider implementations",
+      "description": "Multiple data provider services (yahoo-finance.service.ts, coingecko.service.ts, alpha-vantage.service.ts, etc.) exist but lack a consistent interface contract. Each implements different error handling and retry logic.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Multiple provider implementations with inconsistent interfaces and patterns"
+        }
+      ],
+      "suggested_fix": "Define strict DataProviderInterface and ensure all providers implement it consistently. Use Strategy pattern for provider selection.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-be1a3a07",
+      "title": "Configuration scattered across multiple locations",
+      "description": "Configuration values are found in: environment files, config.ts in libs/common, configuration.service.ts in API, and environment.ts in client. This creates inconsistency and makes configuration management difficult.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib/config.ts",
+          "line_start": 1,
+          "line_end": 268,
+          "snippet": "Configuration constants mixed with business logic"
+        },
+        {
+          "file_path": "apps/api/src/services/configuration/configuration.service.ts",
+          "line_start": 1,
+          "line_end": 116,
+          "snippet": "Runtime configuration management"
+        },
+        {
+          "file_path": "apps/api/src/environments/environment.ts",
+          "line_start": 1,
+          "line_end": 7,
+          "snippet": "Environment-specific configuration"
+        }
+      ],
+      "suggested_fix": "Centralize configuration in a single ConfigurationService with clear separation: build-time (environment files) and runtime (ConfigService)",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-b3fa2270",
+      "title": "Missing repository/data access layer abstraction",
+      "description": "Services directly use Prisma client without a repository pattern. Changes to data access patterns require modifying multiple service files. No data access abstraction layer exists.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Direct Prisma calls without repository abstraction"
+        }
+      ],
+      "suggested_fix": "Create repository classes for each domain entity (PortfolioRepository, UserRepository, OrderRepository) to abstract data access",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-73e9c8cd",
+      "title": "Inconsistent error handling patterns across modules",
+      "description": "Error handling varies significantly: some services throw custom errors, others return null/undefined, some use try-catch blocks inconsistently. Data provider errors use specific error classes but other services don't.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider/errors",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Custom error classes exist only for data providers"
+        }
+      ],
+      "suggested_fix": "Define ApplicationError hierarchy and use consistently across all services. Create specific error types for each domain.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-06211d57",
+      "title": "High coupling between API routes and services",
+      "description": "Controllers directly instantiate and call multiple services with business logic validation occurring in controllers. Routes should delegate validation to service layer.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.controller.ts",
+          "line_start": 1,
+          "line_end": 675,
+          "snippet": "Controller contains business logic validation and complex service orchestration"
+        }
+      ],
+      "suggested_fix": "Move validation and orchestration logic to service layer. Controllers should only handle HTTP concerns.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-0fc90fed",
+      "title": "Missing clear domain boundaries between modules",
+      "description": "Portfolio, Order, Account, and Holding domains have unclear boundaries. Multiple services handle overlapping concerns (portfolio.service handles holdings, order.service, holdings are in portfolio calculations).",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app/portfolio/portfolio.service.ts",
+          "line_start": 1,
+          "line_end": 100,
+          "snippet": "Portfolio service manages holdings, orders, and accounts without clear boundaries"
+        }
+      ],
+      "suggested_fix": "Define clear domain boundaries: Portfolio (aggregate root) -> Holdings -> Orders -> Accounts. Use explicit interfaces for inter-domain communication.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-affa27c4",
+      "title": "Complex event listener dependencies without clear propagation model",
+      "description": "Asset and Portfolio change events have listeners (asset-profile-changed.listener.ts, portfolio-changed.listener.ts) but the event propagation model is unclear. Changes in one aggregate may trigger cascading updates without clear dependency tracking.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/events/portfolio-changed.listener.ts",
+          "line_start": 1,
+          "line_end": 23,
+          "snippet": "Event listener with unclear scope of impact"
+        },
+        {
+          "file_path": "apps/api/src/events/asset-profile-changed.listener.ts",
+          "line_start": 1,
+          "line_end": 61,
+          "snippet": "Asset change listener may trigger portfolio recalculations"
+        }
+      ],
+      "suggested_fix": "Document event propagation model explicitly. Consider using saga pattern for complex cross-aggregate transactions.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d5e7bc93",
+      "title": "UI library mixes component library with business logic services",
+      "description": "The libs/ui library (libs/ui/src/lib) contains both reusable UI components and business logic services (data.service.ts, admin.service.ts). UI library should only contain presentational components.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/ui/src/lib/services/data.service.ts",
+          "line_start": 1,
+          "line_end": 883,
+          "snippet": "Business logic service in UI library (883 LOC)"
+        },
+        {
+          "file_path": "libs/ui/src/lib/services/admin.service.ts",
+          "line_start": 1,
+          "line_end": 286,
+          "snippet": "Admin business logic in UI library (286 LOC)"
+        }
+      ],
+      "suggested_fix": "Move data.service.ts and admin.service.ts to apps/client or create separate business-logic library. UI library should only export components.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e2b68fd9",
+      "title": "Inconsistent module organization between API and client",
+      "description": "API uses feature-based modules (portfolio, account, order, etc.) while client uses page-based organization with nested component directories. Makes feature tracking and shared patterns unclear.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/app",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Feature-based module organization"
+        },
+        {
+          "file_path": "apps/client/src/app/pages",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Page-based organization without clear feature boundaries"
+        }
+      ],
+      "suggested_fix": "Align client organization with API: create feature-based modules (portfolio-feature, account-feature, etc.) containing pages, components, services.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-fa72b7d9",
+      "title": "Missing abstraction layer for external API integrations",
+      "description": "Multiple external data providers (AlphaVantage, Yahoo Finance, CoinGecko) are integrated directly into services without circuit breaker, retry, or rate limiting abstractions. Makes resilience patterns scattered.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "apps/api/src/services/data-provider/alpha-vantage/alpha-vantage.service.ts",
+          "line_start": 1,
+          "line_end": 142,
+          "snippet": "Direct HTTP calls to external API without abstraction"
+        }
+      ],
+      "suggested_fix": "Create HttpClient abstraction layer with retry, circuit breaker, rate limiting, and timeout patterns. Use decorator or strategy pattern for resilience.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-dbc88b3a",
+      "title": "Common library mixes DTOs, utilities, types, and configurations",
+      "description": "libs/common contains DTOs (40+ files), types (20+ files), utilities, configurations, and interfaces all at the same level. This creates a dumping ground without clear organization.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "libs/common/src/lib",
+          "line_start": 1,
+          "line_end": 1,
+          "snippet": "Mixed concerns: DTOs, types, utils, config, interfaces without subdomain organization"
+        }
+      ],
+      "suggested_fix": "Reorganize libs/common by domain: /portfolio (DTOs, types, interfaces), /user, /order, etc. Move utilities to /shared/utils with subdirectories by concern.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 48,
+  "coupling_assessment": "The codebase exhibits significant coupling issues across multiple dimensions: (1) Horizontal coupling - multiple god modules (portfolio.service, admin.service, data-provider.service) create bottlenecks; (2) Vertical coupling - controllers depend on multiple service implementations without abstraction; (3) Library coupling - UI library improperly contains business logic services; (4) Data coupling - direct Prisma usage bypasses repository abstraction. The event-driven architecture adds coupling complexity without clear propagation models. Backend and frontend lack consistent architectural patterns, making changes in one area unpredictable.",
+  "layering_assessment": "The codebase lacks a proper layering architecture: Missing repository/persistence abstraction layer - services directly use Prisma. Missing domain/business logic abstraction - calculations and complex logic are tightly coupled to services. Missing API gateway/service facade - controllers directly orchestrate multiple services. Missing configuration abstraction - config scattered across environment files and services. The UI library contains business logic that should be in a separate layer. While NestJS modules provide structural boundaries, the internal organization within modules doesn't follow layering principles. Data flow is unclear between layers.",
+  "summary": "The codebase has 48/100 structural coherence score due to several critical architectural issues: (1) Three god modules exceeding 700+ LOC (portfolio, admin, data-provider services) violate single responsibility; (2) Missing clear abstraction layers (repository pattern, data access abstraction); (3) Inconsistent error handling patterns; (4) Configuration scattered across multiple locations; (5) Business logic mixed into UI library; (6) Unclear domain boundaries between portfolio, orders, accounts, and holdings; (7) High coupling between controllers and services; (8) Inconsistent module organization between backend (feature-based) and frontend (page-based). The event-driven architecture adds complexity without clear event propagation documentation. Immediate refactoring needed: split god modules, implement repository pattern, establish clear domain boundaries, consolidate configuration, separate UI from business logic, and create consistent abstraction layers across API and client."
+}

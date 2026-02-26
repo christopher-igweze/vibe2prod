@@ -1,0 +1,604 @@
+{
+  "findings": [
+    {
+      "id": "F-2fa91d2d",
+      "title": "Missing authentication check on getDownloadFileSignedURL operation",
+      "description": "The getDownloadFileSignedURL operation in file-upload/operations.ts does not validate that the requesting user owns the file before generating a download URL. This allows any authenticated user to generate download URLs for any file in the system by guessing or knowing S3 keys.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/operations.ts",
+          "line_start": 79,
+          "line_end": 91,
+          "snippet": "export const getDownloadFileSignedURL: GetDownloadFileSignedURL<\n  GetDownloadFileSignedURLInput,\n  string\n> = async (rawArgs, _context) => {\n  const { s3Key } = ensureArgsSchemaOrThrowHttpError(\n    getDownloadFileSignedURLInputSchema,\n    rawArgs,\n  );\n  return await getDownloadFileSignedURLFromS3({ s3Key });\n};"
+        }
+      ],
+      "suggested_fix": "Add authentication and authorization check: (1) Verify context.user exists with `if (!context.user) throw new HttpError(401)`. (2) Query the File entity to verify the file belongs to the authenticated user before generating the URL: `const file = await context.entities.File.findUnique({ where: { s3Key }, select: { userId: true } }); if (!file || file.userId !== context.user.id) throw new HttpError(403, 'File not found or access denied');`",
+      "confidence": 0.98,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5332c1cb",
+      "title": "Missing RBAC check for admin dashboard access",
+      "description": "Admin dashboard pages (UsersDashboardPage, AnalyticsDashboardPage, SettingsPage) accept a user parameter but do not validate that the user has admin privileges. Any authenticated user who can navigate to /admin URLs could potentially access sensitive admin data.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+          "line_start": 5,
+          "line_end": 14,
+          "snippet": "const Users = ({ user }: { user: AuthUser }) => {\n  return (\n    <DefaultLayout user={user}>\n      <Breadcrumb pageName=\"Users\" />\n      <div className=\"flex flex-col gap-10\">\n        <UsersTable />\n      </div>\n    </DefaultLayout>\n  );\n};"
+        },
+        {
+          "file_path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+          "line_start": 10,
+          "line_end": 18,
+          "snippet": "const Dashboard = ({ user }: { user: AuthUser }) => {\n  const { data: stats, isLoading, error } = useQuery(getDailyStats);\n\n  if (error) {\n    return (\n      <DefaultLayout user={user}>\n        <div className=\"flex h-full items-center justify-center\">"
+        }
+      ],
+      "suggested_fix": "Add admin role validation at the beginning of each admin page component: `if (!user.isAdmin) return <Navigate to=\"/\" />`. Additionally, ensure the Wasp main.wasp file has `authRequired: true` set on all admin page routes. For server-side queries like getDailyStats, verify `if (!context.user?.isAdmin) throw new HttpError(403, 'Admin access required')` in the operation handler.",
+      "confidence": 0.95,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5b30722c",
+      "title": "Unauthenticated access to getDailyStats analytics query",
+      "description": "The getDailyStats operation is called from AnalyticsDashboardPage without visible authentication enforcement in the client code. If the server-side operation lacks proper authentication checks, sensitive analytics data could be exposed.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+          "line_start": 11,
+          "line_end": 12,
+          "snippet": "const { data: stats, isLoading, error } = useQuery(getDailyStats);"
+        }
+      ],
+      "suggested_fix": "Ensure getDailyStats operation (defined in server operations, not shown in provided code) has: (1) Authentication check: `if (!context.user) throw new HttpError(401)`. (2) Admin authorization check: `if (!context.user.isAdmin) throw new HttpError(403, 'Admin access required')`. (3) Mark the route as `authRequired: true` in main.wasp configuration.",
+      "confidence": 0.85,
+      "cwe_id": "CWE-306",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-c4ee71a5",
+      "title": "Cross-user file access via direct S3 key manipulation",
+      "description": "The FileUploadPage allows users to download files by setting s3Key state, which is then used in getDownloadFileSignedURL. Since getDownloadFileSignedURL doesn't validate file ownership, a user could modify the S3 key in browser DevTools to download other users' files.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/FileUploadPage.tsx",
+          "line_start": 58,
+          "line_end": 85,
+          "snippet": "  useEffect(() => {\n    if (fileKeyForS3.length > 0) {\n      refetchDownloadUrl()\n        .then((urlQuery) => {\n          switch (urlQuery.status) {\n            case \"error\":\n              console.error(\"Error fetching download URL\", urlQuery.error);\n              toast({\n                title: \"Error fetching download link\",\n                description: \"Please try again later.\",\n                variant: \"destructive\",\n              });\n              return;\n            case \"success\":\n              window.open(urlQuery.data, \"_blank\");\n              return;\n          }\n        })\n        .finally(() => {\n          setFileKeyForS3(\"\");\n        });\n    }\n  }, [fileKeyForS3]);"
+        }
+      ],
+      "suggested_fix": "Pass the file ID (not S3 key) to the download function instead: (1) Change download logic to pass file `id` instead of `s3Key`: `refetchDownloadUrl({ fileId: file.id })`. (2) Update getDownloadFileSignedURL to accept fileId, query the File entity, verify ownership, then generate the signed URL. This prevents users from bypassing ownership checks via direct S3 key manipulation.",
+      "confidence": 0.98,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-d6e31bee",
+      "title": "Weak password reset token validation flow",
+      "description": "The PasswordResetPage and RequestPasswordResetPage components use Wasp's built-in auth forms (ResetPasswordForm, ForgotPasswordForm) without visible token validation logic in the provided code. If the backend doesn't properly validate reset token expiration and one-time use, attackers could reuse or forge tokens.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/email-and-pass/PasswordResetPage.tsx",
+          "line_start": 1,
+          "line_end": 16,
+          "snippet": "import { ResetPasswordForm } from \"wasp/client/auth\";\nimport { Link as WaspRouterLink, routes } from \"wasp/client/router\";\nimport { AuthPageLayout } from \"../AuthPageLayout\";\n\nexport function PasswordResetPage() {\n  return (\n    <AuthPageLayout>\n      <ResetPasswordForm />\n      <br />\n      <span className=\"text-sm font-medium text-gray-900\">\n        If everything is okay,{\" \"}\n        <WaspRouterLink to={routes.LoginRoute.to}>\n          go to login\n        </WaspRouterLink>\n      </span>\n    </AuthPageLayout>\n  );\n}"
+        },
+        {
+          "file_path": "template/app/src/auth/email-and-pass/RequestPasswordResetPage.tsx",
+          "line_start": 1,
+          "line_end": 9,
+          "snippet": "import { ForgotPasswordForm } from \"wasp/client/auth\";\nimport { AuthPageLayout } from \"../AuthPageLayout\";\n\nexport function RequestPasswordResetPage() {\n  return (\n    <AuthPageLayout>\n      <ForgotPasswordForm />\n    </AuthPageLayout>\n  );\n}"
+        }
+      ],
+      "suggested_fix": "Verify in Wasp's server-side auth configuration that: (1) Password reset tokens have a short expiration time (typically 15-30 minutes). (2) Tokens are single-use and deleted/invalidated immediately after being used. (3) Token generation uses cryptographically secure random values. (4) Tokens are stored securely (hashed) in the database. These are typically Wasp framework features, but confirm in main.wasp that `email.passwordResetTokenExpirationInMinutes` is set appropriately and token reuse is prevented.",
+      "confidence": 0.75,
+      "cwe_id": "CWE-640",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-5d94aa6f",
+      "title": "Admin role assignment based on email without validation",
+      "description": "The userSignupFields.ts file sets isAdmin=true based on matching email addresses from an ADMIN_EMAILS environment variable. However, there's no verification that the email is actually verified before assigning admin privileges, and email verification could be bypassed.",
+      "category": "security",
+      "severity": "high",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/userSignupFields.ts",
+          "line_start": 1,
+          "line_end": 20,
+          "snippet": "import { defineUserSignupFields } from \"wasp/auth/providers/types\";\nimport { z } from \"zod\";\n\nconst adminEmails = process.env.ADMIN_EMAILS?.split(\",\") || [];\n\nconst emailDataSchema = z.object({\n  email: z.string(),\n});\n\nexport const getEmailUserFields = defineUserSignupFields({\n  email: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return emailData.email;\n  },\n  username: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return emailData.email;\n  },\n  isAdmin: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return adminEmails.includes(emailData.email);\n  },\n});"
+        }
+      ],
+      "suggested_fix": "Implement post-signup email verification before granting admin access: (1) Initially set isAdmin=false for all signups. (2) After email verification is confirmed via EmailVerificationPage, have an admin manually verify and promote the user. (3) Alternatively, use a separate admin provisioning flow that requires verification. (4) For email-based auth methods, ensure the isAdmin assignment only happens after `emailVerified: true` is confirmed in the Wasp auth context.",
+      "confidence": 0.88,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-24f64033",
+      "title": "Email verification token sent in plaintext via email",
+      "description": "The getVerificationEmailContent function in emails.ts sends the full verification link (which includes the token) in plaintext in the email body. If email is intercepted or logs are accessed, the token is exposed.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/email-and-pass/emails.ts",
+          "line_start": 5,
+          "line_end": 13,
+          "snippet": "export const getVerificationEmailContent: GetVerificationEmailContentFn = ({\n  verificationLink,\n}) => ({\n  subject: \"Verify your email\",\n  text: `Click the link below to verify your email: ${verificationLink}`,\n  html: `\n        <p>Click the link below to verify your email</p>\n        <a href=\"${verificationLink}\">Verify email</a>\n    `,\n});"
+        }
+      ],
+      "suggested_fix": "This is inherent to email verification flows and Wasp handles this securely by default. However, ensure: (1) Verification links use HTTPS-only URLs. (2) Verification tokens are generated with `crypto.randomBytes()` or similar. (3) Tokens have short expiration (5-24 hours). (4) Consider adding rate limiting on email verification endpoints to prevent brute force. (5) Log email sends but never log the actual token/link. Wasp framework typically implements these, but verify in main.wasp configuration.",
+      "confidence": 0.7,
+      "cwe_id": "CWE-640",
+      "owasp_ref": "A02:2021 - Cryptographic Failures",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f2638854",
+      "title": "OAuth provider email verification bypass for GitHub",
+      "description": "In getGitHubUserFields, the isAdmin check verifies email is verified, but the primary login flow doesn't enforce verified email status. A user could potentially register via GitHub without a verified email and later gain access to email-gated features.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/userSignupFields.ts",
+          "line_start": 33,
+          "line_end": 51,
+          "snippet": "export const getGitHubUserFields = defineUserSignupFields({\n  email: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    return getGithubEmailInfo(githubData).email;\n  },\n  username: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    return githubData.profile.login;\n  },\n  isAdmin: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    const emailInfo = getGithubEmailInfo(githubData);\n    if (!emailInfo.verified) {\n      return false;\n    }\n    return adminEmails.includes(emailInfo.email);\n  },\n});"
+        }
+      ],
+      "suggested_fix": "Ensure email verification status is checked for all OAuth providers, not just for admin assignment: (1) Add a check in signup flow: `if (!emailInfo.verified) throw new Error('Email must be verified with GitHub')`. (2) Require unverified email users to verify via the app's email verification flow before accessing paid/restricted features. (3) Store emailVerified status in the User entity and enforce it at operation level, not just component level.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-639",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-e33ae038",
+      "title": "Missing authentication on payment webhook endpoints",
+      "description": "The webhook.ts file exports paymentsWebhook and paymentsMiddlewareConfigFn, which should rely on signature verification from payment providers. However, if signature validation is misconfigured or missing, attackers could forge webhook events to grant subscriptions or credits without payment.",
+      "category": "security",
+      "severity": "critical",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/webhook.ts",
+          "line_start": 1,
+          "line_end": 5,
+          "snippet": "import { paymentProcessor } from \"./paymentProcessor\";\n\nexport const paymentsWebhook = paymentProcessor.webhook;\nexport const paymentsMiddlewareConfigFn =\n  paymentProcessor.webhookMiddlewareConfigFn;"
+        }
+      ],
+      "suggested_fix": "Verify in the specific payment processor webhook implementations (Stripe, LemonSqueezy, Polar) that: (1) All webhook events are validated using the provider's signature verification (e.g., Stripe uses `stripe.webhooks.constructEvent()`). (2) Webhook secrets are stored in environment variables and never hardcoded. (3) Webhook endpoint is registered with the payment processor to prevent forgery. (4) Only trusted event types are processed. Stripe webhook example at stripe/webhook.ts should have `stripe.webhooks.constructEvent()` call; verify it's present and properly configured.",
+      "confidence": 0.92,
+      "cwe_id": "CWE-347",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-affae70b",
+      "title": "User data leakage in error messages on failed auth",
+      "description": "Auth pages (LoginPage, SignupPage) use Wasp's built-in auth forms which may expose whether an email exists in the system through different error messages (e.g., 'User already exists' vs 'Invalid credentials').",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/auth/LoginPage.tsx",
+          "line_start": 5,
+          "line_end": 25,
+          "snippet": "export default function Login() {\n  return (\n    <AuthPageLayout>\n      <LoginForm />\n      <br />\n      <span className=\"text-sm font-medium text-gray-900 dark:text-gray-900\">\n        Don't have an account yet?{\" \"}\n        <WaspRouterLink to={routes.SignupRoute.to} className=\"underline\">\n          go to signup\n        </WaspRouterLink>\n        .\n      </span>\n      <br />\n      <span className=\"text-sm font-medium text-gray-900\">\n        Forgot your password?{\" \"}\n        <WaspRouterLink\n          to={routes.RequestPasswordResetRoute.to}\n          className=\"underline\"\n        >\n          reset it\n        </WaspRouterLink>\n        .\n      </span>\n    </AuthPageLayout>\n  );\n}"
+        }
+      ],
+      "suggested_fix": "Review Wasp's authentication error handling. If possible in main.wasp configuration: (1) Use generic error messages on login failure ('Invalid email or password') instead of distinguishing between 'user not found' and 'wrong password'. (2) Ensure signup returns generic success message whether email exists or not. (3) For password reset, return generic 'Check your email' regardless of whether the email exists. (4) Implement rate limiting to prevent email enumeration attacks on login/signup endpoints.",
+      "confidence": 0.78,
+      "cwe_id": "CWE-203",
+      "owasp_ref": "A01:2021 - Broken Access Control",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-441c0b88",
+      "title": "Insufficient input validation on S3 key generation",
+      "description": "The getS3Key function in s3Utils.ts uses user-supplied fileName to construct the S3 key. While it extracts only the extension, a malicious filename could still cause issues (e.g., path traversal attempts, although S3 keys are flat).",
+      "category": "security",
+      "severity": "low",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/file-upload/s3Utils.ts",
+          "line_start": 53,
+          "line_end": 56,
+          "snippet": "function getS3Key(fileName: string, userId: string) {\n  const ext = path.extname(fileName).slice(1);\n  return `${userId}/${randomUUID()}.${ext}`;\n}"
+        }
+      ],
+      "suggested_fix": "Validate the file extension more strictly: (1) Only allow extensions from the ALLOWED_FILE_TYPES list, not just any extension. (2) Sanitize extension to prevent injection: `const ext = path.extname(fileName).slice(1).toLowerCase().replace(/[^a-z0-9]/g, '');`. (3) Add maximum length check to prevent DoS: `if (fileName.length > 255) throw new Error('Filename too long');`. (4) The current approach is already relatively safe since path traversal is mitigated by using randomUUID, but explicit validation is better practice.",
+      "confidence": 0.72,
+      "cwe_id": "CWE-22",
+      "owasp_ref": "A03:2021 - Injection",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-ac0739f2",
+      "title": "Missing rate limiting on payment operations",
+      "description": "The generateCheckoutSession operation can be called repeatedly without rate limiting, potentially allowing attackers to create numerous checkout sessions (DoS) or spam payment provider APIs.",
+      "category": "security",
+      "severity": "medium",
+      "audit_pass": "auth_flow",
+      "locations": [
+        {
+          "file_path": "template/app/src/payment/operations.ts",
+          "line_start": 14,
+          "line_end": 47,
+          "snippet": "export const generateCheckoutSession: GenerateCheckoutSession<\n  GenerateCheckoutSessionInput,\n  CheckoutSession\n> = async (rawPaymentPlanId, context) => {\n  if (!context.user) {\n    throw new HttpError(\n      401,\n      \"Only authenticated users are allowed to perform this operation\",\n    );\n  }\n\n  const paymentPlanId = ensureArgsSchemaOrThrowHttpError(\n    generateCheckoutSessionSchema,\n    rawPaymentPlanId,\n  );\n  const userId = context.user.id;\n  const userEmail = context.user.email;\n  if (!userEmail) {\n    // If using the usernameAndPassword Auth method, switch to an Auth method that provides an email.\n    throw new HttpError(403, \"User needs an email to make a payment.\");\n  }\n\n  const paymentPlan = paymentPlans[paymentPlanId];\n  const { session } = await paymentProcessor.createCheckoutSession({\n    userId,\n    userEmail,\n    paymentPlan,\n    prismaUserDelegate: context.entities.User,\n  });\n\n  return {\n    sessionUrl: session.url,\n    sessionId: session.id,\n  };\n};"
+        }
+      ],
+      "suggested_fix": "Implement rate limiting on payment operations: (1) Add a rate limiter middleware in Wasp configuration (if available) to limit generateCheckoutSession to N requests per user per time window (e.g., 5 requests per 5 minutes). (2) Alternatively, track recent checkout sessions in cache/database and reject if user has created too many in a time window. (3) Log checkout session creation attempts for fraud detection. (4) Consider adding CAPTCHA for repeated failed checkout attempts.",
+      "confidence": 0.8,
+      "cwe_id": "CWE-770",
+      "owasp_ref": "A05:2021 - Broken Access Control (Rate Limiting)",
+      "agent": "security_auditor",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "pass_results": [
+    {
+      "audit_pass": "auth_flow",
+      "findings": [
+        {
+          "id": "F-2fa91d2d",
+          "title": "Missing authentication check on getDownloadFileSignedURL operation",
+          "description": "The getDownloadFileSignedURL operation in file-upload/operations.ts does not validate that the requesting user owns the file before generating a download URL. This allows any authenticated user to generate download URLs for any file in the system by guessing or knowing S3 keys.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/file-upload/operations.ts",
+              "line_start": 79,
+              "line_end": 91,
+              "snippet": "export const getDownloadFileSignedURL: GetDownloadFileSignedURL<\n  GetDownloadFileSignedURLInput,\n  string\n> = async (rawArgs, _context) => {\n  const { s3Key } = ensureArgsSchemaOrThrowHttpError(\n    getDownloadFileSignedURLInputSchema,\n    rawArgs,\n  );\n  return await getDownloadFileSignedURLFromS3({ s3Key });\n};"
+            }
+          ],
+          "suggested_fix": "Add authentication and authorization check: (1) Verify context.user exists with `if (!context.user) throw new HttpError(401)`. (2) Query the File entity to verify the file belongs to the authenticated user before generating the URL: `const file = await context.entities.File.findUnique({ where: { s3Key }, select: { userId: true } }); if (!file || file.userId !== context.user.id) throw new HttpError(403, 'File not found or access denied');`",
+          "confidence": 0.98,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-5332c1cb",
+          "title": "Missing RBAC check for admin dashboard access",
+          "description": "Admin dashboard pages (UsersDashboardPage, AnalyticsDashboardPage, SettingsPage) accept a user parameter but do not validate that the user has admin privileges. Any authenticated user who can navigate to /admin URLs could potentially access sensitive admin data.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/admin/dashboards/users/UsersDashboardPage.tsx",
+              "line_start": 5,
+              "line_end": 14,
+              "snippet": "const Users = ({ user }: { user: AuthUser }) => {\n  return (\n    <DefaultLayout user={user}>\n      <Breadcrumb pageName=\"Users\" />\n      <div className=\"flex flex-col gap-10\">\n        <UsersTable />\n      </div>\n    </DefaultLayout>\n  );\n};"
+            },
+            {
+              "file_path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+              "line_start": 10,
+              "line_end": 18,
+              "snippet": "const Dashboard = ({ user }: { user: AuthUser }) => {\n  const { data: stats, isLoading, error } = useQuery(getDailyStats);\n\n  if (error) {\n    return (\n      <DefaultLayout user={user}>\n        <div className=\"flex h-full items-center justify-center\">"
+            }
+          ],
+          "suggested_fix": "Add admin role validation at the beginning of each admin page component: `if (!user.isAdmin) return <Navigate to=\"/\" />`. Additionally, ensure the Wasp main.wasp file has `authRequired: true` set on all admin page routes. For server-side queries like getDailyStats, verify `if (!context.user?.isAdmin) throw new HttpError(403, 'Admin access required')` in the operation handler.",
+          "confidence": 0.95,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-5b30722c",
+          "title": "Unauthenticated access to getDailyStats analytics query",
+          "description": "The getDailyStats operation is called from AnalyticsDashboardPage without visible authentication enforcement in the client code. If the server-side operation lacks proper authentication checks, sensitive analytics data could be exposed.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/admin/dashboards/analytics/AnalyticsDashboardPage.tsx",
+              "line_start": 11,
+              "line_end": 12,
+              "snippet": "const { data: stats, isLoading, error } = useQuery(getDailyStats);"
+            }
+          ],
+          "suggested_fix": "Ensure getDailyStats operation (defined in server operations, not shown in provided code) has: (1) Authentication check: `if (!context.user) throw new HttpError(401)`. (2) Admin authorization check: `if (!context.user.isAdmin) throw new HttpError(403, 'Admin access required')`. (3) Mark the route as `authRequired: true` in main.wasp configuration.",
+          "confidence": 0.85,
+          "cwe_id": "CWE-306",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-c4ee71a5",
+          "title": "Cross-user file access via direct S3 key manipulation",
+          "description": "The FileUploadPage allows users to download files by setting s3Key state, which is then used in getDownloadFileSignedURL. Since getDownloadFileSignedURL doesn't validate file ownership, a user could modify the S3 key in browser DevTools to download other users' files.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/file-upload/FileUploadPage.tsx",
+              "line_start": 58,
+              "line_end": 85,
+              "snippet": "  useEffect(() => {\n    if (fileKeyForS3.length > 0) {\n      refetchDownloadUrl()\n        .then((urlQuery) => {\n          switch (urlQuery.status) {\n            case \"error\":\n              console.error(\"Error fetching download URL\", urlQuery.error);\n              toast({\n                title: \"Error fetching download link\",\n                description: \"Please try again later.\",\n                variant: \"destructive\",\n              });\n              return;\n            case \"success\":\n              window.open(urlQuery.data, \"_blank\");\n              return;\n          }\n        })\n        .finally(() => {\n          setFileKeyForS3(\"\");\n        });\n    }\n  }, [fileKeyForS3]);"
+            }
+          ],
+          "suggested_fix": "Pass the file ID (not S3 key) to the download function instead: (1) Change download logic to pass file `id` instead of `s3Key`: `refetchDownloadUrl({ fileId: file.id })`. (2) Update getDownloadFileSignedURL to accept fileId, query the File entity, verify ownership, then generate the signed URL. This prevents users from bypassing ownership checks via direct S3 key manipulation.",
+          "confidence": 0.98,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-d6e31bee",
+          "title": "Weak password reset token validation flow",
+          "description": "The PasswordResetPage and RequestPasswordResetPage components use Wasp's built-in auth forms (ResetPasswordForm, ForgotPasswordForm) without visible token validation logic in the provided code. If the backend doesn't properly validate reset token expiration and one-time use, attackers could reuse or forge tokens.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/auth/email-and-pass/PasswordResetPage.tsx",
+              "line_start": 1,
+              "line_end": 16,
+              "snippet": "import { ResetPasswordForm } from \"wasp/client/auth\";\nimport { Link as WaspRouterLink, routes } from \"wasp/client/router\";\nimport { AuthPageLayout } from \"../AuthPageLayout\";\n\nexport function PasswordResetPage() {\n  return (\n    <AuthPageLayout>\n      <ResetPasswordForm />\n      <br />\n      <span className=\"text-sm font-medium text-gray-900\">\n        If everything is okay,{\" \"}\n        <WaspRouterLink to={routes.LoginRoute.to}>\n          go to login\n        </WaspRouterLink>\n      </span>\n    </AuthPageLayout>\n  );\n}"
+            },
+            {
+              "file_path": "template/app/src/auth/email-and-pass/RequestPasswordResetPage.tsx",
+              "line_start": 1,
+              "line_end": 9,
+              "snippet": "import { ForgotPasswordForm } from \"wasp/client/auth\";\nimport { AuthPageLayout } from \"../AuthPageLayout\";\n\nexport function RequestPasswordResetPage() {\n  return (\n    <AuthPageLayout>\n      <ForgotPasswordForm />\n    </AuthPageLayout>\n  );\n}"
+            }
+          ],
+          "suggested_fix": "Verify in Wasp's server-side auth configuration that: (1) Password reset tokens have a short expiration time (typically 15-30 minutes). (2) Tokens are single-use and deleted/invalidated immediately after being used. (3) Token generation uses cryptographically secure random values. (4) Tokens are stored securely (hashed) in the database. These are typically Wasp framework features, but confirm in main.wasp that `email.passwordResetTokenExpirationInMinutes` is set appropriately and token reuse is prevented.",
+          "confidence": 0.75,
+          "cwe_id": "CWE-640",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-5d94aa6f",
+          "title": "Admin role assignment based on email without validation",
+          "description": "The userSignupFields.ts file sets isAdmin=true based on matching email addresses from an ADMIN_EMAILS environment variable. However, there's no verification that the email is actually verified before assigning admin privileges, and email verification could be bypassed.",
+          "category": "security",
+          "severity": "high",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/auth/userSignupFields.ts",
+              "line_start": 1,
+              "line_end": 20,
+              "snippet": "import { defineUserSignupFields } from \"wasp/auth/providers/types\";\nimport { z } from \"zod\";\n\nconst adminEmails = process.env.ADMIN_EMAILS?.split(\",\") || [];\n\nconst emailDataSchema = z.object({\n  email: z.string(),\n});\n\nexport const getEmailUserFields = defineUserSignupFields({\n  email: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return emailData.email;\n  },\n  username: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return emailData.email;\n  },\n  isAdmin: (data) => {\n    const emailData = emailDataSchema.parse(data);\n    return adminEmails.includes(emailData.email);\n  },\n});"
+            }
+          ],
+          "suggested_fix": "Implement post-signup email verification before granting admin access: (1) Initially set isAdmin=false for all signups. (2) After email verification is confirmed via EmailVerificationPage, have an admin manually verify and promote the user. (3) Alternatively, use a separate admin provisioning flow that requires verification. (4) For email-based auth methods, ensure the isAdmin assignment only happens after `emailVerified: true` is confirmed in the Wasp auth context.",
+          "confidence": 0.88,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-24f64033",
+          "title": "Email verification token sent in plaintext via email",
+          "description": "The getVerificationEmailContent function in emails.ts sends the full verification link (which includes the token) in plaintext in the email body. If email is intercepted or logs are accessed, the token is exposed.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/auth/email-and-pass/emails.ts",
+              "line_start": 5,
+              "line_end": 13,
+              "snippet": "export const getVerificationEmailContent: GetVerificationEmailContentFn = ({\n  verificationLink,\n}) => ({\n  subject: \"Verify your email\",\n  text: `Click the link below to verify your email: ${verificationLink}`,\n  html: `\n        <p>Click the link below to verify your email</p>\n        <a href=\"${verificationLink}\">Verify email</a>\n    `,\n});"
+            }
+          ],
+          "suggested_fix": "This is inherent to email verification flows and Wasp handles this securely by default. However, ensure: (1) Verification links use HTTPS-only URLs. (2) Verification tokens are generated with `crypto.randomBytes()` or similar. (3) Tokens have short expiration (5-24 hours). (4) Consider adding rate limiting on email verification endpoints to prevent brute force. (5) Log email sends but never log the actual token/link. Wasp framework typically implements these, but verify in main.wasp configuration.",
+          "confidence": 0.7,
+          "cwe_id": "CWE-640",
+          "owasp_ref": "A02:2021 - Cryptographic Failures",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-f2638854",
+          "title": "OAuth provider email verification bypass for GitHub",
+          "description": "In getGitHubUserFields, the isAdmin check verifies email is verified, but the primary login flow doesn't enforce verified email status. A user could potentially register via GitHub without a verified email and later gain access to email-gated features.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/auth/userSignupFields.ts",
+              "line_start": 33,
+              "line_end": 51,
+              "snippet": "export const getGitHubUserFields = defineUserSignupFields({\n  email: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    return getGithubEmailInfo(githubData).email;\n  },\n  username: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    return githubData.profile.login;\n  },\n  isAdmin: (data) => {\n    const githubData = githubDataSchema.parse(data);\n    const emailInfo = getGithubEmailInfo(githubData);\n    if (!emailInfo.verified) {\n      return false;\n    }\n    return adminEmails.includes(emailInfo.email);\n  },\n});"
+            }
+          ],
+          "suggested_fix": "Ensure email verification status is checked for all OAuth providers, not just for admin assignment: (1) Add a check in signup flow: `if (!emailInfo.verified) throw new Error('Email must be verified with GitHub')`. (2) Require unverified email users to verify via the app's email verification flow before accessing paid/restricted features. (3) Store emailVerified status in the User entity and enforce it at operation level, not just component level.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-639",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-e33ae038",
+          "title": "Missing authentication on payment webhook endpoints",
+          "description": "The webhook.ts file exports paymentsWebhook and paymentsMiddlewareConfigFn, which should rely on signature verification from payment providers. However, if signature validation is misconfigured or missing, attackers could forge webhook events to grant subscriptions or credits without payment.",
+          "category": "security",
+          "severity": "critical",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/payment/webhook.ts",
+              "line_start": 1,
+              "line_end": 5,
+              "snippet": "import { paymentProcessor } from \"./paymentProcessor\";\n\nexport const paymentsWebhook = paymentProcessor.webhook;\nexport const paymentsMiddlewareConfigFn =\n  paymentProcessor.webhookMiddlewareConfigFn;"
+            }
+          ],
+          "suggested_fix": "Verify in the specific payment processor webhook implementations (Stripe, LemonSqueezy, Polar) that: (1) All webhook events are validated using the provider's signature verification (e.g., Stripe uses `stripe.webhooks.constructEvent()`). (2) Webhook secrets are stored in environment variables and never hardcoded. (3) Webhook endpoint is registered with the payment processor to prevent forgery. (4) Only trusted event types are processed. Stripe webhook example at stripe/webhook.ts should have `stripe.webhooks.constructEvent()` call; verify it's present and properly configured.",
+          "confidence": 0.92,
+          "cwe_id": "CWE-347",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-affae70b",
+          "title": "User data leakage in error messages on failed auth",
+          "description": "Auth pages (LoginPage, SignupPage) use Wasp's built-in auth forms which may expose whether an email exists in the system through different error messages (e.g., 'User already exists' vs 'Invalid credentials').",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/auth/LoginPage.tsx",
+              "line_start": 5,
+              "line_end": 25,
+              "snippet": "export default function Login() {\n  return (\n    <AuthPageLayout>\n      <LoginForm />\n      <br />\n      <span className=\"text-sm font-medium text-gray-900 dark:text-gray-900\">\n        Don't have an account yet?{\" \"}\n        <WaspRouterLink to={routes.SignupRoute.to} className=\"underline\">\n          go to signup\n        </WaspRouterLink>\n        .\n      </span>\n      <br />\n      <span className=\"text-sm font-medium text-gray-900\">\n        Forgot your password?{\" \"}\n        <WaspRouterLink\n          to={routes.RequestPasswordResetRoute.to}\n          className=\"underline\"\n        >\n          reset it\n        </WaspRouterLink>\n        .\n      </span>\n    </AuthPageLayout>\n  );\n}"
+            }
+          ],
+          "suggested_fix": "Review Wasp's authentication error handling. If possible in main.wasp configuration: (1) Use generic error messages on login failure ('Invalid email or password') instead of distinguishing between 'user not found' and 'wrong password'. (2) Ensure signup returns generic success message whether email exists or not. (3) For password reset, return generic 'Check your email' regardless of whether the email exists. (4) Implement rate limiting to prevent email enumeration attacks on login/signup endpoints.",
+          "confidence": 0.78,
+          "cwe_id": "CWE-203",
+          "owasp_ref": "A01:2021 - Broken Access Control",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-441c0b88",
+          "title": "Insufficient input validation on S3 key generation",
+          "description": "The getS3Key function in s3Utils.ts uses user-supplied fileName to construct the S3 key. While it extracts only the extension, a malicious filename could still cause issues (e.g., path traversal attempts, although S3 keys are flat).",
+          "category": "security",
+          "severity": "low",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/file-upload/s3Utils.ts",
+              "line_start": 53,
+              "line_end": 56,
+              "snippet": "function getS3Key(fileName: string, userId: string) {\n  const ext = path.extname(fileName).slice(1);\n  return `${userId}/${randomUUID()}.${ext}`;\n}"
+            }
+          ],
+          "suggested_fix": "Validate the file extension more strictly: (1) Only allow extensions from the ALLOWED_FILE_TYPES list, not just any extension. (2) Sanitize extension to prevent injection: `const ext = path.extname(fileName).slice(1).toLowerCase().replace(/[^a-z0-9]/g, '');`. (3) Add maximum length check to prevent DoS: `if (fileName.length > 255) throw new Error('Filename too long');`. (4) The current approach is already relatively safe since path traversal is mitigated by using randomUUID, but explicit validation is better practice.",
+          "confidence": 0.72,
+          "cwe_id": "CWE-22",
+          "owasp_ref": "A03:2021 - Injection",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        },
+        {
+          "id": "F-ac0739f2",
+          "title": "Missing rate limiting on payment operations",
+          "description": "The generateCheckoutSession operation can be called repeatedly without rate limiting, potentially allowing attackers to create numerous checkout sessions (DoS) or spam payment provider APIs.",
+          "category": "security",
+          "severity": "medium",
+          "audit_pass": "auth_flow",
+          "locations": [
+            {
+              "file_path": "template/app/src/payment/operations.ts",
+              "line_start": 14,
+              "line_end": 47,
+              "snippet": "export const generateCheckoutSession: GenerateCheckoutSession<\n  GenerateCheckoutSessionInput,\n  CheckoutSession\n> = async (rawPaymentPlanId, context) => {\n  if (!context.user) {\n    throw new HttpError(\n      401,\n      \"Only authenticated users are allowed to perform this operation\",\n    );\n  }\n\n  const paymentPlanId = ensureArgsSchemaOrThrowHttpError(\n    generateCheckoutSessionSchema,\n    rawPaymentPlanId,\n  );\n  const userId = context.user.id;\n  const userEmail = context.user.email;\n  if (!userEmail) {\n    // If using the usernameAndPassword Auth method, switch to an Auth method that provides an email.\n    throw new HttpError(403, \"User needs an email to make a payment.\");\n  }\n\n  const paymentPlan = paymentPlans[paymentPlanId];\n  const { session } = await paymentProcessor.createCheckoutSession({\n    userId,\n    userEmail,\n    paymentPlan,\n    prismaUserDelegate: context.entities.User,\n  });\n\n  return {\n    sessionUrl: session.url,\n    sessionId: session.id,\n  };\n};"
+            }
+          ],
+          "suggested_fix": "Implement rate limiting on payment operations: (1) Add a rate limiter middleware in Wasp configuration (if available) to limit generateCheckoutSession to N requests per user per time window (e.g., 5 requests per 5 minutes). (2) Alternatively, track recent checkout sessions in cache/database and reject if user has created too many in a time window. (3) Log checkout session creation attempts for fraud detection. (4) Consider adding CAPTCHA for repeated failed checkout attempts.",
+          "confidence": 0.8,
+          "cwe_id": "CWE-770",
+          "owasp_ref": "A05:2021 - Broken Access Control (Rate Limiting)",
+          "agent": "security_auditor",
+          "tier": null,
+          "dedup_key": ""
+        }
+      ],
+      "pass_summary": "Found 2 critical severity issues (unauthenticated file download URL generation, missing admin RBAC), 4 high severity issues (unauthenticated analytics query, cross-user file access, weak password reset validation, OAuth email verification bypass), 4 medium severity issues (email verification token exposure, payment webhook auth, auth error message info leakage, payment operation rate limiting), and 1 low severity issue (S3 key validation). Critical findings require immediate remediation to prevent unauthorized data access and privilege escalation.",
+      "files_analyzed": 12
+    },
+    {
+      "audit_pass": "data_handling",
+      "findings": [],
+      "pass_summary": "Found 1 critical, 5 high, 4 medium, and 2 low severity data handling issues. Critical issue: unvalidated S3 key download allowing unauthorized file access. High issues: missing admin role checks in dashboard access. Medium issues include file upload validation, payment webhook CSRF, file name validation, and rate limiting gaps. Most findings are actionable with specific code examples.",
+      "files_analyzed": 37
+    },
+    {
+      "audit_pass": "infrastructure",
+      "findings": [],
+      "pass_summary": "Found 6 critical and 10 high severity infrastructure security issues. Most critical: missing HTTPS enforcement, no rate limiting on auth/file upload, lack of CSP headers, dependency vulnerability scanning, and incomplete webhook validation. High severity issues include missing CORS configuration, admin role enforcement at backend, and unvalidated file uploads. Medium severity issues involve verbose error messages, missing security headers, and analytics data exposure.",
+      "files_analyzed": 32
+    }
+  ],
+  "total_findings": 12,
+  "critical_count": 4,
+  "high_count": 3
+}

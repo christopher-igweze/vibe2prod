@@ -1,0 +1,10 @@
+{
+  "items": [],
+  "dependencies": [],
+  "execution_levels": [],
+  "deferred_finding_ids": [],
+  "dedup_summary": "",
+  "total_items": 0,
+  "estimated_invocations": 0,
+  "summary": "Parse error: 2 validation errors for RemediationPlan\ndependencies.4.depends_on_finding_id\n  Input should be a valid string [type=string_type, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type\ndependencies.5.depends_on_finding_id\n  Input should be a valid string [type=string_type, input_value=[], input_type=list]\n    For further information visit https://errors.pydantic.dev/2.12/v/string_type. Raw findings count: 36"
+}

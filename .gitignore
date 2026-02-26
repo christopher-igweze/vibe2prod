@@ -42,3 +42,6 @@ dist-ssr/
 
 # Logs
 *.log
+
+# Benchmarks — keep reports, exclude large temp files
+benchmarks/**/invocations.jsonl

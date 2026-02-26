@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORGE Discovery Report</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #1e293b; background: #fff; padding: 2rem; max-width: 960px; margin: 0 auto;
+        }
+        .header { text-align: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; }
+        .header h1 { font-size: 1.5rem; color: #0f172a; margin-bottom: 0.25rem; }
+        .header .subtitle { color: #64748b; font-size: 0.9rem; }
+        .meta { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; color: #64748b; font-size: 0.85rem; }
+        .sev-summary { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .sev-box { text-align: center; padding: 0.75rem 1.25rem; border-radius: 8px; min-width: 80px; }
+        .sev-box .num { font-size: 1.5rem; font-weight: 700; }
+        .sev-box .lbl { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .sev-box.critical { background: #fef2f2; color: #991b1b; }
+        .sev-box.high { background: #fff7ed; color: #9a3412; }
+        .sev-box.medium { background: #fefce8; color: #854d0e; }
+        .sev-box.low { background: #f0fdf4; color: #166534; }
+        .sev-box.info { background: #f0f9ff; color: #075985; }
+        h2 { font-size: 1.2rem; color: #0f172a; margin: 1.5rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        th { background: #f8fafc; font-weight: 600; }
+        .desc { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+        .loc { font-family: monospace; font-size: 0.8rem; color: #475569; max-width: 200px; word-break: break-all; }
+        .severity { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .severity.critical { background: #fef2f2; color: #991b1b; }
+        .severity.high { background: #fff7ed; color: #9a3412; }
+        .severity.medium { background: #fefce8; color: #854d0e; }
+        .severity.low { background: #f0fdf4; color: #166534; }
+        .severity.info { background: #f0f9ff; color: #075985; }
+        .tier { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; background: #f1f5f9; color: #475569; }
+        .plan-summary { color: #475569; margin-bottom: 0.75rem; line-height: 1.5; }
+        .footer { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 0.8rem; }
+        @media print {
+            body { padding: 1rem; }
+            .severity, .sev-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>FORGE Discovery Report</h1>
+        <div class="subtitle">Run ID: 85c99af7fad8 &bull; Generated: 2026-02-26 01:30 UTC</div>
+    </div>
+
+    <div class="meta">
+        <span>36 findings</span>
+        <span>266s runtime</span>
+        <span>$0.7710 cost</span>
+    </div>
+
+    <div class="sev-summary">
+        <div class="sev-box critical"><div class="num">2</div><div class="lbl">critical</div></div>
+<div class="sev-box high"><div class="num">10</div><div class="lbl">high</div></div>
+<div class="sev-box medium"><div class="num">17</div><div class="lbl">medium</div></div>
+<div class="sev-box low"><div class="num">7</div><div class="lbl">low</div></div>
+
+    </div>
+
+    <h2>All Findings</h2>
+    <table>
+        <thead><tr><th>Severity</th><th>Category</th><th>Finding</th><th>Location</th><th>Tier</th></tr></thead>
+        <tbody>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>API keys stored in user profiles without encryption at rest</strong>
+                <div class="desc">API keys for OpenAI, Anthropic, Azure, etc. are stored in the profiles table (profile.openai_api_key, profile.anthropic_api_key, etc.) without application-level encryption. Database compromise exposes all user API keys.</div>
+            </td>
+            <td class="loc">app/[locale]/setup/page.tsx:145</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity critical">critical</span></td>
+            <td>security</td>
+            <td>
+                <strong>No validation of custom model credentials in /api/chat/custom endpoint</strong>
+                <div class="desc">The custom model endpoint retrieves model credentials from database (customModel.api_key) without validating they belong to the requesting user. If a user can guess or enumerate model IDs, they could use other users' API keys.</div>
+            </td>
+            <td class="loc">app/api/chat/custom/route.ts:11</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>API keys exposed in server logs and error messages</strong>
+                <div class="desc">Error responses from API routes may inadvertently expose partial API key information or request details containing keys. Example in app/api/chat/openai/route.ts and similar routes.</div>
+            </td>
+            <td class="loc">app/api/chat/openai/route.ts:45</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No rate limiting on authentication endpoints</strong>
+                <div class="desc">Login, signup, and password reset endpoints (/api/username/available, signUp, signIn) have no rate limiting. Attackers can perform brute force attacks, credential stuffing, or password spray.</div>
+            </td>
+            <td class="loc">app/[locale]/login/page.tsx:34</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No HTTPS enforcement in auth callback redirect</strong>
+                <div class="desc">The password reset callback uses `headers().get('origin')` without validating it's HTTPS. A man-in-the-middle attack could capture the reset token from the redirect URL.</div>
+            </td>
+            <td class="loc">app/[locale]/login/page.tsx:78</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No validation of workspace user_id ownership before granting access</strong>
+                <div class="desc">The middleware and workspace layout check for session but do not explicitly validate that the user owns the workspace. Row-level security (RLS) policies must exist, but code does not verify them.</div>
+            </td>
+            <td class="loc">middleware.ts:15</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>security</td>
+            <td>
+                <strong>No authentication verification in protected API routes</strong>
+                <div class="desc">API routes like `/api/chat/openai`, `/api/retrieval/process`, etc. rely on `getServerProfile()` to implicitly verify authentication, but there is no explicit session/JWT validation before processing requests.</div>
+            </td>
+            <td class="loc">app/api/chat/openai/route.ts:8</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Sequential data fetching in workspace layout</strong>
+                <div class="desc">In app/[locale]/[workspaceid]/layout.tsx, the fetchWorkspaceData function (lines 82-160) makes 10+ sequential database calls to fetch different entity types. These could be parallelized with Promise.all to reduce loading time.</div>
+            </td>
+            <td class="loc">app/[locale]/[workspaceid]/layout.tsx:82</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Sequential tool execution in chat/tools route</strong>
+                <div class="desc">In app/api/chat/tools/route.ts, tool calls are executed sequentially in a for loop (lines 83-165). When multiple tools are called, each external API call (fetch) happens one after another. These could be parallelized.</div>
+            </td>
+            <td class="loc">app/api/chat/tools/route.ts:83</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Missing abstraction layer between API routes and database operations</strong>
+                <div class="desc">API routes (app/api/chat/*, app/api/retrieval/*) directly import and call database functions from db/ module. There is no service/repository pattern abstraction. Changes to database schema require modifications across multiple API routes, creating tight coupling and increasing bug risk.</div>
+            </td>
+            <td class="loc">app/api/chat/openai/route.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Tight coupling between chat UI and database operations via context</strong>
+                <div class="desc">The context.tsx (265 LOC) directly manages all entity CRUD operations (create, update, delete chats, messages, assistants, etc.). Components throughout the app directly call these methods. This couples UI rendering directly to database operations with no separation of concerns. Testing UI components requires mocking entire database layer.</div>
+            </td>
+            <td class="loc">context/context.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity high">high</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Workspace isolation not enforced at database layer - relies on application logic</strong>
+                <div class="desc">Workspace-scoped data access is implemented in components and API routes (checking workspace_id before queries) but not at database layer. If someone misses the check in one place, data leaks between workspaces. No row-level security (RLS) policies enforced in Supabase, no service layer validation before database access.</div>
+            </td>
+            <td class="loc">db/chats.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing authentication check on password reset endpoint</strong>
+                <div class="desc">The password reset handler in login page does not validate user email before sending reset email. An attacker can enumerate valid emails by checking which ones accept password reset requests.</div>
+            </td>
+            <td class="loc">app/[locale]/login/page.tsx:78</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Unprotected API endpoint - /api/username/available returns user existence information</strong>
+                <div class="desc">The /api/username/available endpoint allows any unauthenticated request to check if a username exists. While usernames may be semi-public, this endpoint should enforce rate limiting and authentication to prevent username enumeration attacks.</div>
+            </td>
+            <td class="loc">app/api/username/available/route.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Weak session validation in middleware - no user_id verification</strong>
+                <div class="desc">The middleware checks for session existence but does not validate the user_id is present or valid. A malformed session token could potentially bypass checks.</div>
+            </td>
+            <td class="loc">middleware.ts:6</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No explicit session expiry handling in protected pages</strong>
+                <div class="desc">Protected pages like /[workspaceid]/chat check for session using Supabase client-side, but there is no mechanism to refresh expired sessions or handle token rotation gracefully.</div>
+            </td>
+            <td class="loc">app/[locale]/[workspaceid]/layout.tsx:56</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing input validation on email in signup - weak email whitelist check</strong>
+                <div class="desc">The email domain/whitelist validation only checks exact string matches and splits by comma. No regex pattern matching or trimming of whitespace in individual domain entries. Malformed whitelist could allow unauthorized signups.</div>
+            </td>
+            <td class="loc">app/[locale]/login/page.tsx:61</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>security</td>
+            <td>
+                <strong>No explicit logout/session termination mechanism</strong>
+                <div class="desc">No logout functionality is visible in the codebase. Users have no way to explicitly terminate their sessions, only rely on token expiry. This violates session management best practices.</div>
+            </td>
+            <td class="loc">components/utility/profile-settings.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Sequential tool processing in chat/tools API route</strong>
+                <div class="desc">In app/api/chat/tools/route.ts, tools are processed sequentially in a for loop (lines 34-64). Each tool requires schema conversion via openapiToFunctions, which is an async operation. These could be parallelized using Promise.all for significant performance improvement.</div>
+            </td>
+            <td class="loc">app/api/chat/tools/route.ts:34</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>No pagination on retrieval queries</strong>
+                <div class="desc">In app/api/retrieval/retrieve/route.ts, the database queries for file items (lines 55-75) use a fixed sourceCount parameter but there's no pagination for the results returned to the client. Large result sets could cause memory issues.</div>
+            </td>
+            <td class="loc">app/api/retrieval/retrieve/route.ts:55</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Repeated profile fetch in every API route</strong>
+                <div class="desc">Multiple API routes (all in app/api/chat/*, app/api/retrieval/*) call getServerProfile() which fetches the user profile from the database on every request. This could be cached or optimized.</div>
+            </td>
+            <td class="loc">app/api/chat/openai/route.ts:15</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>No caching for model fetching</strong>
+                <div class="desc">lib/models/fetch-models.ts makes network calls to external APIs (OpenRouter, Ollama) every time fetchOpenRouterModels or fetchOllamaModels is called. These results could be cached.</div>
+            </td>
+            <td class="loc">lib/models/fetch-models.ts:40</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Middleware database call on every request</strong>
+                <div class="desc">In middleware.ts (lines 14-32), there's a database call to fetch the home workspace for authenticated users on every request. This could be optimized with caching.</div>
+            </td>
+            <td class="loc">middleware.ts:14</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Sequential setup page API calls</strong>
+                <div class="desc">In app/[locale]/setup/page.tsx, the useEffect makes sequential API calls (lines 52-75) to fetch hosted models and OpenRouter models. These could be parallelized.</div>
+            </td>
+            <td class="loc">app/[locale]/setup/page.tsx:52</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>God module: chat-components exceeds recommended size with mixed responsibilities</strong>
+                <div class="desc">The chat-components module contains 3200 LOC across 22 files with multiple concerns: UI rendering, state management, file handling, hooks, and helpers. The chat-helpers/index.ts file alone contains 511 LOC mixing unrelated utility functions. This violates single responsibility principle and makes testing and maintenance difficult.</div>
+            </td>
+            <td class="loc">components/chat/:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Inconsistent state management patterns across chat and sidebar components</strong>
+                <div class="desc">Chat state is managed via React Context (context-providers), hooks (use-chat-handler.tsx, use-chat-history.tsx), and local component state. Sidebar uses similar patterns but with different conventions. This creates confusion and makes refactoring state difficult. Some components lift state unnecessarily high (workspace-level) when they could be local.</div>
+            </td>
+            <td class="loc">context/context.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Sidebar component module has high complexity and mixed concerns</strong>
+                <div class="desc">sidebar-components contains 2800 LOC across 34 files handling multiple entity types (chats, assistants, models, prompts, files, folders, presets, tools, collections) with separate CRUD operations for each. The sidebar-update-item.tsx file is 680 LOC, and sidebar-data-list.tsx is 344 LOC. This creates a maintainability burden when adding new entity types.</div>
+            </td>
+            <td class="loc">components/sidebar/items/all/sidebar-update-item.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>API routes layer lacks consistent error handling and validation</strong>
+                <div class="desc">API routes across chat, retrieval, and assistants endpoints have inconsistent error handling patterns. Some routes validate input, others don't. Error responses vary in format. No centralized request validation or error boundary exists, making API contract unstable and client error handling inconsistent.</div>
+            </td>
+            <td class="loc">app/api/chat/openai/route.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity medium">medium</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Configuration values scattered across codebase without centralized config module</strong>
+                <div class="desc">Magic numbers and configuration strings are hardcoded in multiple files: API timeouts in chat routes, embedding limits in retrieval, token limits in chat-setting-limits.ts, model context windows in lib/models/. No single source of truth for configuration, making it difficult to adjust system parameters.</div>
+            </td>
+            <td class="loc">lib/chat-setting-limits.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Missing CSRF protection on server actions in login form</strong>
+                <div class="desc">The login page uses Next.js server actions (signIn, signUp, handleResetPassword) via formAction attributes. While Next.js provides built-in CSRF protection for server actions, there is no explicit validation of the action origin or explicit CSRF tokens.</div>
+            </td>
+            <td class="loc">app/[locale]/login/page.tsx:104</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>security</td>
+            <td>
+                <strong>Sensitive data exposure - environment variables accessible via /api/keys endpoint</strong>
+                <div class="desc">The `/api/keys` endpoint returns which API keys are configured from environment variables. This information could help attackers understand which services are in use and target them.</div>
+            </td>
+            <td class="loc">app/api/keys/route.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>No lazy loading for heavy components</strong>
+                <div class="desc">The Next.js app loads many components eagerly. Large components like ChatUI, message rendering components, and sidebar components could benefit from React.lazy() and dynamic imports.</div>
+            </td>
+            <td class="loc">app/[locale]/[workspaceid]/chat/page.tsx:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>performance</td>
+            <td>
+                <strong>Repeated embedding generation in file processing</strong>
+                <div class="desc">In app/api/retrieval/process/route.ts (lines 99-115), local embeddings are generated sequentially using Promise.all but could be optimized with better batching or using a more efficient embedding model configuration.</div>
+            </td>
+            <td class="loc">app/api/retrieval/process/route.ts:99</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Type definitions scattered across types/ directory without clear organizational structure</strong>
+                <div class="desc">The types/ directory has 19 files with minimal organization. Related types are split across files (chat.ts, chat-message.ts, chat-file.tsx). No clear dependency hierarchy between type files. Adding new entity types requires decisions about where to define types, leading to inconsistency.</div>
+            </td>
+            <td class="loc">types/index.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>Retrieval processing module has potential bottleneck with sequential file processing</strong>
+                <div class="desc">The retrieval-processing module (lib/retrieval/) handles file parsing and embedding sequentially. Files like PDF, DOCX, CSV are processed one at a time. The API route (app/api/retrieval/process) doesn't support batch processing. As file volumes grow, this becomes a performance bottleneck with no clear async processing queue or job management.</div>
+            </td>
+            <td class="loc">lib/retrieval/processing/index.ts:1</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><span class="severity low">low</span></td>
+            <td>architecture</td>
+            <td>
+                <strong>UI components library (ui-components) lacks semantic organization despite large size</strong>
+                <div class="desc">The components/ui/ directory contains 52 files of Radix UI wrapper components with no clear organization. Primitives (button, input, dialog) are mixed with composite components (chat-settings-form, advanced-settings) and utilities (with-tooltip, use-toast). This makes discovery difficult and increases chances of duplicating components.</div>
+            </td>
+            <td class="loc">components/ui/:1</td>
+            <td></td>
+        </tr></tbody>
+    </table>
+
+    
+
+    <div class="footer">
+        Generated by FORGE &mdash; Framework for Orchestrated Remediation &amp; Governance Engine<br>
+        &copy; 2026 Verstand AI
+    </div>
+</body>
+</html>

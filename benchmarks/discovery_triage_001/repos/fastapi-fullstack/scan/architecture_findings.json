@@ -1,0 +1,316 @@
+{
+  "findings": [
+    {
+      "id": "F-181ad702",
+      "title": "Backend API module lacks service layer abstraction",
+      "description": "The backend-api module (800 LOC) directly imports and uses CRUD operations from backend-models, creating tight coupling between routes and data access layer. Business logic is intermingled with HTTP request handling, violating separation of concerns. Routes in users.py, items.py, and login.py directly instantiate database sessions and call CRUD functions without a domain service layer to coordinate operations.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/app/api/routes/users.py",
+          "line_start": 1,
+          "line_end": 231,
+          "snippet": "Routes directly call crud.get_user, crud.create_user without service coordination"
+        },
+        {
+          "file_path": "backend/app/api/routes/login.py",
+          "line_start": 1,
+          "line_end": 123,
+          "snippet": "Auth logic mixed with route handlers, direct DB access in route context"
+        },
+        {
+          "file_path": "backend/app/api/routes/items.py",
+          "line_start": 1,
+          "line_end": 112,
+          "snippet": "Item CRUD operations called directly from route handlers"
+        }
+      ],
+      "suggested_fix": "Create service layer (e.g., UserService, ItemService, AuthService) in a new backend/app/services/ module. Move business logic, validation, and cross-cutting concerns into services. Routes should only handle HTTP concerns (request/response transformation) and delegate to services. This decouples routes from data layer and enables easier testing and reuse.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f76f4098",
+      "title": "Frontend components module is a god module with mixed responsibilities",
+      "description": "The frontend-components module (2500 LOC across 51 files) mixes UI presentation, business logic, API calls, and form handling in individual component files. Admin components (AddUser.tsx, EditUser.tsx) contain form validation, API mutations, and toast notifications. Items components do similar pattern. This violates single responsibility and makes components hard to test and reuse. No clear separation between container (smart) and presentational (dumb) components.",
+      "category": "architecture",
+      "severity": "high",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/components/Admin/AddUser.tsx",
+          "line_start": 1,
+          "line_end": 238,
+          "snippet": "Component combines form rendering, validation logic, API call handling, and state management"
+        },
+        {
+          "file_path": "frontend/src/components/Admin/EditUser.tsx",
+          "line_start": 1,
+          "line_end": 239,
+          "snippet": "Similar pattern: form UI + business logic + API integration + error handling"
+        },
+        {
+          "file_path": "frontend/src/components/Items/AddItem.tsx",
+          "line_start": 1,
+          "line_end": 144,
+          "snippet": "Item addition logic tightly coupled with React component"
+        }
+      ],
+      "suggested_fix": "Refactor components into: (1) Presentational components (UI only, no business logic), (2) Custom hooks for data fetching/mutations (useAddUser, useEditUser), (3) Custom hooks for form handling (useUserForm), (4) Container components that orchestrate hooks and pass props to presentational components. Extract validation logic into separate utility functions. Consider moving API-related logic to React Query mutation definitions in a hooks directory.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-41282ca1",
+      "title": "Missing abstraction between frontend routes and components",
+      "description": "Frontend route files (_layout/admin.tsx, _layout/items.tsx) directly render components that contain business logic and API calls. No proper page/container component pattern exists. Routes are tightly coupled to specific component implementations, making it difficult to swap implementations or create variations.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/routes/_layout/admin.tsx",
+          "line_start": 1,
+          "line_end": 73,
+          "snippet": "Route directly uses Admin/Items components"
+        },
+        {
+          "file_path": "frontend/src/routes/_layout/items.tsx",
+          "line_start": 1,
+          "line_end": 69,
+          "snippet": "Route directly uses Items components"
+        }
+      ],
+      "suggested_fix": "Create container/page components (e.g., AdminPage.tsx, ItemsPage.tsx) in a new frontend/src/pages/ directory. These containers orchestrate data fetching, state management, and component composition. Routes should reference page components, which then compose presentational components. This adds a clear abstraction layer and makes routes simpler.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-530c7b55",
+      "title": "Inconsistent client SDK usage across frontend",
+      "description": "The frontend-client module (450 LOC) provides generated OpenAPI client (sdk.gen.ts), but there's no consistent pattern for how components use it. Some components likely use openapi-fetch directly, others may use React Query with the client, creating inconsistent patterns. No centralized API client configuration or wrapper exists to standardize error handling, interceptors, or request/response transformation.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/client/sdk.gen.ts",
+          "line_start": 1,
+          "line_end": 468,
+          "snippet": "Generated client with no wrapper pattern visible in architecture"
+        },
+        {
+          "file_path": "frontend/src/client/core/OpenAPI.ts",
+          "line_start": 1,
+          "line_end": 57,
+          "snippet": "Core API configuration with no consistent usage pattern across components"
+        }
+      ],
+      "suggested_fix": "Create a custom API client hook or service wrapper (e.g., frontend/src/services/api.ts) that standardizes how the generated SDK is used. Define React Query hooks that wrap SDK calls with consistent error handling, loading states, and caching strategies. Document the pattern in a frontend API layer convention document.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1b296a34",
+      "title": "Backend models module mixes concerns: ORM models, CRUD, and utilities",
+      "description": "The backend-models module (600 LOC across 6 files) combines SQLAlchemy ORM definitions (models.py), CRUD operations (crud.py), general utilities (utils.py), data initialization (initial_data.py), and pre-start scripts in the root backend/app/ directory. This creates a dumping ground for loosely related code. Models should be separate from CRUD operations and utilities should be organized by domain.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/app/models.py",
+          "line_start": 1,
+          "line_end": 129,
+          "snippet": "ORM model definitions"
+        },
+        {
+          "file_path": "backend/app/crud.py",
+          "line_start": 1,
+          "line_end": 68,
+          "snippet": "CRUD operations mixed with models in single directory"
+        },
+        {
+          "file_path": "backend/app/utils.py",
+          "line_start": 1,
+          "line_end": 123,
+          "snippet": "Miscellaneous utilities scattered in root"
+        }
+      ],
+      "suggested_fix": "Reorganize backend/app/ to: (1) backend/app/schemas/ - Pydantic request/response schemas, (2) backend/app/models/ - SQLAlchemy ORM models organized by domain, (3) backend/app/repositories/ - CRUD operations (repository pattern), (4) backend/app/utils/ - utilities organized by function (date_utils.py, validation_utils.py), (5) backend/app/services/ - business logic layer. Consider placing pre-start scripts in backend/app/scripts/.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-aa5fada1",
+      "title": "Tight coupling between backend routes and dependency injection",
+      "description": "Backend routes depend on deps.py for injecting database sessions and current user. While FastAPI's dependency injection is a valid pattern, there's no abstraction for testability. The deps.py module (57 LOC) directly creates database sessions and validates tokens, but routes depend on specific dependency signatures. Changes to dependency resolution require updating route signatures.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/app/api/deps.py",
+          "line_start": 1,
+          "line_end": 57,
+          "snippet": "Dependency injection functions tightly coupled to route signatures"
+        },
+        {
+          "file_path": "backend/app/api/routes/users.py",
+          "line_start": 1,
+          "line_end": 50,
+          "snippet": "Routes import and depend on specific deps signatures"
+        }
+      ],
+      "suggested_fix": "Create an abstraction layer for dependencies (e.g., backend/app/api/dependencies.py or backend/app/di/ directory) that defines dependency interfaces and providers. Use dependency containers or context managers to manage lifecycle. This allows easier testing via mock dependencies and clearer dependency contracts.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-05cd41bc",
+      "title": "Hardcoded configuration scattered across backend-core and routes",
+      "description": "Backend configuration exists in backend/app/core/config.py (119 LOC), but there's evidence of potential hardcoded values in route handlers, security module, and database initialization. No single source of truth for feature flags, validation rules, or constants. Makes configuration-driven behavior difficult.",
+      "category": "architecture",
+      "severity": "medium",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "backend/app/core/config.py",
+          "line_start": 1,
+          "line_end": 119,
+          "snippet": "Centralized config but may have scattered overrides in routes"
+        },
+        {
+          "file_path": "backend/app/core/security.py",
+          "line_start": 1,
+          "line_end": 36,
+          "snippet": "JWT settings may be hardcoded rather than config-driven"
+        }
+      ],
+      "suggested_fix": "Audit all Python files for hardcoded values (timeouts, token expiry, page sizes, validation lengths). Move all configuration to backend/app/core/config.py with proper typing and validation using Pydantic Settings. Create environment-specific config overrides (dev.py, test.py, prod.py) if needed. Reference config in routes and services, never hardcode values.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-59f9860c",
+      "title": "Frontend hooks lack clear organizational boundaries",
+      "description": "Frontend-hooks module (150 LOC, 4 files) contains useAuth, useCustomToast, useMobile, useCopyToClipboard. These are mixed concerns - authentication state, UI notifications, responsive design detection, and clipboard utilities. As the frontend grows, this directory will become a dumping ground. No clear categorization by domain or concern.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/hooks/useAuth.ts",
+          "line_start": 1,
+          "line_end": 70,
+          "snippet": "Authentication logic"
+        },
+        {
+          "file_path": "frontend/src/hooks/useCustomToast.ts",
+          "line_start": 1,
+          "line_end": 19,
+          "snippet": "Toast notification helper"
+        },
+        {
+          "file_path": "frontend/src/hooks/useMobile.ts",
+          "line_start": 1,
+          "line_end": 19,
+          "snippet": "Responsive design detection"
+        }
+      ],
+      "suggested_fix": "Reorganize hooks into subdirectories by concern: frontend/src/hooks/auth/ (useAuth), frontend/src/hooks/ui/ (useCustomToast, useMobile), frontend/src/hooks/utils/ (useCopyToClipboard). As the app grows, add frontend/src/hooks/queries/ for React Query hooks, frontend/src/hooks/mutations/ for mutation hooks.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-1d15dced",
+      "title": "Frontend test utilities mixed with E2E tests",
+      "description": "Frontend-tests module (400 LOC) mixes Playwright E2E tests (login.spec.ts, admin.spec.ts) with utility functions (tests/utils/user.ts, mailcatcher.ts, random.ts). No clear separation between test specs and shared test infrastructure. As test count grows, this structure won't scale.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/tests/",
+          "line_start": 1,
+          "line_end": 400,
+          "snippet": "E2E tests mixed with utilities in same directory"
+        }
+      ],
+      "suggested_fix": "Reorganize as: frontend/tests/specs/ for test files, frontend/tests/fixtures/ for test data, frontend/tests/helpers/ for utility functions. Consider frontend/tests/api/ for API helper utilities (privateApi.ts), frontend/tests/services/ for higher-level test orchestration (mailcatcher interactions).",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    },
+    {
+      "id": "F-f687b337",
+      "title": "Missing interface definitions for frontend-backend contract",
+      "description": "While frontend-client contains generated OpenAPI types (types.gen.ts, schemas.gen.ts), there's no documented API contract layer or validation schema repository. Changes to backend API schemas require regeneration; no clear versioning or deprecation strategy. Frontend components assume API contract without explicit validation.",
+      "category": "architecture",
+      "severity": "low",
+      "audit_pass": null,
+      "locations": [
+        {
+          "file_path": "frontend/src/client/types.gen.ts",
+          "line_start": 1,
+          "line_end": 240,
+          "snippet": "Generated types without explicit documentation"
+        },
+        {
+          "file_path": "frontend/src/client/schemas.gen.ts",
+          "line_start": 1,
+          "line_end": 559,
+          "snippet": "Generated schemas"
+        }
+      ],
+      "suggested_fix": "Create a frontend/src/types/ directory with documented API contract interfaces that reference generated types. Document API assumptions and breaking change procedures. Consider creating a shared frontend/docs/api-contract.md file. Add API versioning to the backend (v1/v2) if major changes are anticipated. Establish a schema registry or OpenAPI versioning strategy.",
+      "confidence": 0.8,
+      "cwe_id": "",
+      "owasp_ref": "",
+      "agent": "architecture_reviewer",
+      "tier": null,
+      "dedup_key": ""
+    }
+  ],
+  "structural_coherence_score": 52,
+  "coupling_assessment": "High coupling between frontend routes and components due to mixed business logic in presentational layer. Backend API routes tightly coupled to CRUD layer without service abstraction. Frontend components tightly coupled to specific API client usage patterns. Dependencies are implicit rather than clearly defined. Mid-tier cross-cutting concerns (validation, error handling) scattered across modules rather than centralized.",
+  "layering_assessment": "Incomplete layering. Backend lacks service layer between API and data access; routes directly manipulate database. Frontend lacks container/page component layer between routes and presentational components. No consistent abstraction for API client usage. Test layers are mixed with implementation code. Overall 3-layer pattern attempted (API/UI, Business, Data) but poorly enforced with leaky abstractions and missing intermediate layers.",
+  "summary": "The codebase exhibits foundational architectural patterns but suffers from moderate structural issues. Primary concerns: (1) Missing service layer in backend creates tight coupling between routes and CRUD operations; (2) Frontend components are god modules mixing presentation, validation, and API logic; (3) No clear container/page component abstraction in frontend; (4) Backend models directory is a dumping ground for unrelated concerns; (5) Inconsistent patterns for API client usage across frontend. Test infrastructure is reasonably organized but mixes concerns. Overall, the architecture is functional but difficult to maintain and extend due to high coupling, scattered responsibilities, and incomplete layering. Recommend refactoring to introduce service layer on backend and container/hook abstractions on frontend."
+}

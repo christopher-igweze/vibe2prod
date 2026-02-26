@@ -1,0 +1,1007 @@
+{
+  "items": [
+    {
+      "finding_id": "F-a005f40e",
+      "title": "Implement authentication middleware for all API endpoints",
+      "tier": 3,
+      "priority": 1,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "backend/main.py",
+        "backend/config.py",
+        "backend/routes/generate_code.py",
+        "backend/routes/screenshot.py",
+        "backend/routes/evals.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "All endpoints require valid authentication (JWT or API key)",
+        "Unauthenticated requests return 401/403",
+        "WebSocket connections validate auth before accept()",
+        "Auth can be bypassed in development mode only with explicit flag"
+      ],
+      "approach": "Implement HTTPBearer security scheme with FastAPI Depends(). Add auth_required dependency that validates JWT tokens or API keys from headers. Apply to all route handlers except /health.",
+      "group": "auth-foundation"
+    },
+    {
+      "finding_id": "F-a4e06f01",
+      "title": "Secure WebSocket endpoint with authentication before accept",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/routes/generate_code.py",
+        "backend/main.py"
+      ],
+      "depends_on": [
+        "F-a005f40e"
+      ],
+      "acceptance_criteria": [
+        "WebSocket validates token in query param or header before calling accept()",
+        "Unauthorized connections close with code 4001",
+        "Connection timeout implemented (1 hour default)"
+      ],
+      "approach": "Extract auth check into async function. Call verify_ws_token() before ws_comm.accept(). Add timeout handler using asyncio.create_task().",
+      "group": "auth-foundation"
+    },
+    {
+      "finding_id": "F-0ff0320f",
+      "title": "Implement rate limiting on all endpoints",
+      "tier": 2,
+      "priority": 3,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/main.py",
+        "backend/config.py"
+      ],
+      "depends_on": [
+        "F-a005f40e"
+      ],
+      "acceptance_criteria": [
+        "IP-based rate limiting configured (10 requests/min for /screenshot, 5/min for /generate-code)",
+        "Per-user rate limiting once auth is in place",
+        "Rate limit headers returned in responses",
+        "Excess requests return 429 with Retry-After header"
+      ],
+      "approach": "Install slowapi. Add limiter to app.state. Decorate routes with @limiter.limit(). Consider Redis backend for distributed rate limiting.",
+      "group": "api-protection"
+    },
+    {
+      "finding_id": "F-feea30e5",
+      "title": "Restrict CORS to specific trusted origins",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/main.py",
+        "backend/config.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "CORS origins loaded from CORS_ORIGINS env var",
+        "Wildcard origins removed",
+        "allow_credentials set to false",
+        "allow_methods restricted to POST, GET, OPTIONS"
+      ],
+      "approach": "Replace allow_origins=['*'] with environment-based list. Parse comma-separated CORS_ORIGINS. Set allow_credentials=False unless explicitly needed.",
+      "group": "api-protection"
+    },
+    {
+      "finding_id": "F-fde308aa",
+      "title": "Replace wildcard CORS with explicit allowed origins",
+      "tier": 1,
+      "priority": 4,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/main.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Wildcard CORS removed",
+        "Explicit origins list configured",
+        "Different origins for dev/prod via env vars"
+      ],
+      "approach": "Consolidate with F-feea30e5 - same fix",
+      "group": "api-protection"
+    },
+    {
+      "finding_id": "F-196e7a54",
+      "title": "Add SSRF protection to screenshot endpoint",
+      "tier": 2,
+      "priority": 5,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/routes/screenshot.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Private IP ranges (127.0.0.1, 10.x.x.x, 172.16.x.x, 192.168.x.x) blocked",
+        "Localhost and link-local addresses rejected",
+        "Domain resolution validates IP is public",
+        "Invalid URLs return 400 with clear error"
+      ],
+      "approach": "Create is_safe_url() function using ipaddress module. Validate resolved IP before making screenshot request. Block private ranges per IANA specifications.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-6788bb7e",
+      "title": "Validate user-controlled OpenAI base URL",
+      "tier": 2,
+      "priority": 6,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/routes/generate_code.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Only https:// URLs accepted",
+        "Private IP ranges blocked",
+        "Whitelist of allowed domains in production",
+        "Validation happens before provider instantiation"
+      ],
+      "approach": "Create validate_openai_url() function. Check scheme, resolve hostname, verify against whitelist in prod. Disable custom URL in production.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-71478205",
+      "title": "Add input validation and size limits for prompts and file state",
+      "tier": 2,
+      "priority": 7,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/routes/generate_code.py",
+        "backend/prompts/request_parsing.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Prompt text limited to 50KB",
+        "File content limited to 1MB per file",
+        "File paths validated against directory traversal",
+        "Unsupported file extensions rejected",
+        "Invalid inputs return 400 with validation error details"
+      ],
+      "approach": "Create ValidationSchema using Pydantic BaseModel. Validate in ParameterExtractionStage.extract_and_validate(). Use pathlib.Path.resolve() for path traversal checks.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-45d1cdbf",
+      "title": "Implement request size limits",
+      "tier": 1,
+      "priority": 8,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/main.py",
+        "docker-compose.yml"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Max body size set to 50MB",
+        "Max request line size configured in uvicorn",
+        "Content-Length header validated",
+        "Oversized requests return 413"
+      ],
+      "approach": "Add RequestSizeLimitMiddleware to FastAPI. Update uvicorn command with --limit-request-line and --limit-request-fields. Enforce in parameter validation.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-85f9f85d",
+      "title": "Enforce HTTPS/WSS in production",
+      "tier": 1,
+      "priority": 1,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "frontend/src/config.ts",
+        "backend/main.py",
+        "docker-compose.yml"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Frontend uses wss:// and https:// in production",
+        "Backend redirects HTTP to HTTPS (or enforced at proxy)",
+        "HSTS header set to max-age=31536000",
+        "WSS connections enforced for WebSocket in prod"
+      ],
+      "approach": "Update config.ts to use wss:// and https:// when IS_PROD=true. Add HTTPSRedirectMiddleware to backend. Set Strict-Transport-Security header.",
+      "group": "tls-enforcement"
+    },
+    {
+      "finding_id": "F-27268b93",
+      "title": "Add security headers (X-Content-Type-Options, X-Frame-Options, CSP)",
+      "tier": 2,
+      "priority": 9,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/main.py",
+        "frontend/index.html"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "X-Content-Type-Options: nosniff set",
+        "X-Frame-Options: DENY set",
+        "X-XSS-Protection: 1; mode=block set",
+        "Content-Security-Policy header configured",
+        "Referrer-Policy: strict-origin-when-cross-origin set"
+      ],
+      "approach": "Create SecurityHeadersMiddleware. Add meta tags to index.html. Define CSP inline-safe for Vite-built React app.",
+      "group": "security-headers"
+    },
+    {
+      "finding_id": "F-fc295bd2",
+      "title": "Add Content-Security-Policy headers and meta tags",
+      "tier": 1,
+      "priority": 10,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "frontend/index.html",
+        "backend/main.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "CSP meta tag in HTML head",
+        "CSP response header from backend",
+        "default-src 'self' configured",
+        "Inline scripts allowed only for critical path"
+      ],
+      "approach": "Add CSP meta tag to index.html. Configure backend to send CSP header. Allow 'wasm-unsafe-eval' for wasm modules if needed.",
+      "group": "security-headers"
+    },
+    {
+      "finding_id": "F-bdfcc9cd",
+      "title": "Stop storing API keys in frontend localStorage",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/usePersistedState.ts",
+        "backend/routes/generate_code.py"
+      ],
+      "depends_on": [
+        "F-a005f40e"
+      ],
+      "acceptance_criteria": [
+        "API keys never stored in localStorage",
+        "API keys never sent from frontend",
+        "Backend accepts keys only from environment variables in production",
+        "Development mode can accept keys from settings but warns user",
+        "Settings UI doesn't expose API key fields in production"
+      ],
+      "approach": "Remove API key fields from persistent settings in production. Update frontend to not send keys. Backend rejects client-provided keys in production (check IS_PROD).",
+      "group": "auth-foundation"
+    },
+    {
+      "finding_id": "F-fb581297",
+      "title": "Prevent sensitive credential storage in localStorage",
+      "tier": 2,
+      "priority": 2,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "frontend/src/hooks/usePersistedState.ts",
+        "frontend/src/App.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Sensitive fields use sessionStorage instead of localStorage",
+        "API keys never persisted",
+        "Session tokens stored with secure flag recommendation"
+      ],
+      "approach": "Enhance usePersistedState to accept isSecure param. Use sessionStorage for sensitive data. Set flags in localStorage to indicate session-only storage.",
+      "group": "auth-foundation"
+    },
+    {
+      "finding_id": "F-5912284f",
+      "title": "Enforce HTTPS for API key transmission and never log keys",
+      "tier": 2,
+      "priority": 11,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/routes/screenshot.py",
+        "backend/main.py"
+      ],
+      "depends_on": [
+        "F-85f9f85d"
+      ],
+      "acceptance_criteria": [
+        "API keys transmitted in Authorization header, not request body",
+        "API keys never logged (sanitize log output)",
+        "Secrets masked in debug output",
+        "HTTPS enforced (or at reverse proxy layer)"
+      ],
+      "approach": "Move apiKey from request body to Authorization header. Add request/response logging that masks secrets. Use logging filters to prevent key exposure.",
+      "group": "auth-foundation"
+    },
+    {
+      "finding_id": "F-98b57317",
+      "title": "Implement per-user rate limiting and session management",
+      "tier": 3,
+      "priority": 12,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "backend/main.py",
+        "backend/routes/generate_code.py",
+        "backend/routes/screenshot.py",
+        "backend/config.py"
+      ],
+      "depends_on": [
+        "F-a005f40e",
+        "F-0ff0320f"
+      ],
+      "acceptance_criteria": [
+        "User context extracted from JWT token",
+        "Per-user rate limits enforced (vs global)",
+        "Usage metrics tracked per user",
+        "Quota enforcement implemented",
+        "Audit log includes user ID for all actions"
+      ],
+      "approach": "Extract user_id from JWT in auth dependency. Create RateLimitService that tracks per-user usage. Store in Redis or in-memory with periodic sync. Add user context to logging.",
+      "group": "auth-foundation"
+    },
+    {
+      "finding_id": "F-9e5f9903",
+      "title": "Validate and rate-limit client-provided API keys",
+      "tier": 1,
+      "priority": 13,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/routes/generate_code.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Client-provided API keys validated before use",
+        "Invalid keys rejected with 400",
+        "Rate limiting applied per unique key",
+        "Key validation doesn't expose key validity to attacker"
+      ],
+      "approach": "Create validate_api_key() that makes test call to provider. Cache results. Fail fast on invalid key. Apply rate limiter keyed by user+provider.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-f16fdb7f",
+      "title": "Implement API key rotation and secure management",
+      "tier": 1,
+      "priority": 14,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/config.py",
+        "backend/llm.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "API key access logged (without exposing key)",
+        "Key validation on startup",
+        "Rotation mechanism documented",
+        "Required keys checked before app startup"
+      ],
+      "approach": "Add validation in main.py startup that checks all required API keys are set. Add logging wrapper around key access. Document rotation procedure in README.",
+      "group": "secrets-management"
+    },
+    {
+      "finding_id": "F-2ee7a1b9",
+      "title": "Validate API keys exist and log access patterns",
+      "tier": 1,
+      "priority": 14,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/config.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Required API keys validated on startup",
+        "Missing keys cause startup failure",
+        "Key access logged for audit"
+      ],
+      "approach": "Consolidate with F-f16fdb7f - add startup validation and access logging.",
+      "group": "secrets-management"
+    },
+    {
+      "finding_id": "F-54830005",
+      "title": "Enforce debug mode cannot be enabled in production",
+      "tier": 2,
+      "priority": 15,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/config.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Debug mode forced to False in production",
+        "Startup fails if debug enabled with ENVIRONMENT=production",
+        "Warning logged if debug enabled in development"
+      ],
+      "approach": "Update IS_DEBUG_ENABLED logic to require explicit dev environment. Add assertion in startup event.",
+      "group": "security-headers"
+    },
+    {
+      "finding_id": "F-b8e193d3",
+      "title": "Sanitize error messages to not expose internal details",
+      "tier": 2,
+      "priority": 16,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/routes/generate_code.py",
+        "backend/main.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "User-facing errors are generic unless debug mode",
+        "Stack traces logged internally only",
+        "File paths not exposed in error messages",
+        "Exception details available in logs for admins"
+      ],
+      "approach": "Create error formatter that checks IS_DEBUG_ENABLED. Add FastAPI exception handlers that return generic 500 in production. Log details separately.",
+      "group": "security-headers"
+    },
+    {
+      "finding_id": "F-7e075597",
+      "title": "Validate WebSocket message parameters with schema",
+      "tier": 2,
+      "priority": 17,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/routes/generate_code.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "GenerationRequest Pydantic model validates all params",
+        "Invalid messages rejected before processing",
+        "Prompt text size validated (max 50KB)",
+        "Option codes size validated (max 10 per request)"
+      ],
+      "approach": "Create Pydantic models for WebSocket message types. Validate in ParameterExtractionStage using model_validate().",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-64b59498",
+      "title": "Validate frontend environment variables",
+      "tier": 2,
+      "priority": 18,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "frontend/src/config.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Backend URLs validated as proper HTTPS/WSS URLs",
+        "Whitelist of allowed domains in production",
+        "Invalid URLs cause app startup to fail",
+        "Fallback to safe defaults on validation error"
+      ],
+      "approach": "Create validateUrl() function. Check protocol, domain whitelist. Throw error or fallback based on strictness needed.",
+      "group": "input-validation"
+    },
+    {
+      "finding_id": "F-39436a1c",
+      "title": "Verify OpenAPI endpoints are fully disabled",
+      "tier": 1,
+      "priority": 19,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/main.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "All OpenAPI endpoints return 404",
+        "No metadata about routes exposed",
+        "API discovery attempts logged"
+      ],
+      "approach": "Verify FastAPI config is correct. Add catch-all route for common discovery paths (swagger, openapi, graphql). Log attempts.",
+      "group": "security-headers"
+    },
+    {
+      "finding_id": "F-75e843bb",
+      "title": "Implement WebSocket timeout and connection cleanup",
+      "tier": 2,
+      "priority": 20,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/routes/generate_code.py"
+      ],
+      "depends_on": [
+        "F-a4e06f01"
+      ],
+      "acceptance_criteria": [
+        "WebSocket connections timeout after 1 hour",
+        "Hung connections detected and closed",
+        "Connection cleanup guaranteed on error",
+        "Resource cleanup verified in tests"
+      ],
+      "approach": "Add timeout_handler() to WebSocketCommunicator. Use asyncio.create_task() for timeout. Call close() in finally block.",
+      "group": "api-protection"
+    },
+    {
+      "finding_id": "F-98f9f73b",
+      "title": "Refactor generate_code.py route handler to extract orchestration logic",
+      "tier": 3,
+      "priority": 21,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "backend/routes/generate_code.py",
+        "backend/services/__init__.py",
+        "backend/services/code_generation.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Route handler <100 LOC, only orchestrates service calls",
+        "ParameterExtractionStage extracted to separate module/service",
+        "Prompt building and agent execution in dedicated services",
+        "Response streaming in separate abstraction"
+      ],
+      "approach": "Create backend/services/ with CodeGenerationService. Move stages into service. Routes call service.generate(). Maintain backwards-compatible WebSocket interface.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-8e2e47bf",
+      "title": "Create service layer between routes and agent/prompts",
+      "tier": 3,
+      "priority": 22,
+      "estimated_files": 4,
+      "files_to_modify": [
+        "backend/services/__init__.py",
+        "backend/services/code_generation.py",
+        "backend/services/evaluation.py",
+        "backend/routes/evals.py"
+      ],
+      "depends_on": [
+        "F-98f9f73b"
+      ],
+      "acceptance_criteria": [
+        "CodeGenerationService and EvaluationService created",
+        "Routes delegate to services",
+        "Service layer handles retry logic, error translation, caching",
+        "Services testable in isolation"
+      ],
+      "approach": "Create backend/services/ package with dedicated service classes. Routes become thin orchestrators. Services manage agent/prompt complexity.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-da861edf",
+      "title": "Abstract WebSocket/streaming concerns from route logic",
+      "tier": 3,
+      "priority": 23,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "backend/streaming/__init__.py",
+        "backend/streaming/base.py",
+        "backend/routes/generate_code.py"
+      ],
+      "depends_on": [
+        "F-98f9f73b"
+      ],
+      "acceptance_criteria": [
+        "OutputStreamer abstraction created (WebSocketStreamer, SSEStreamer)",
+        "Route handlers accept streamer as dependency",
+        "Streaming logic decoupled from business logic"
+      ],
+      "approach": "Create backend/streaming/ with abstract OutputStreamer class. Implement WebSocketStreamer. Inject into services.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-11f6269d",
+      "title": "Create shared types module to break circular dependencies",
+      "tier": 3,
+      "priority": 24,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/core/__init__.py",
+        "backend/core/types.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Shared types in backend/core/types.py",
+        "Prompts and agent import from core only",
+        "No circular imports in dependency graph",
+        "Type definitions centralized"
+      ],
+      "approach": "Create backend/core/ with shared type definitions. Move ToolDefinition, MessageFormat, etc. here. Update imports.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-9a0d7dd3",
+      "title": "Extract eval orchestration from routes into service",
+      "tier": 3,
+      "priority": 25,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/routes/evals.py",
+        "backend/services/evaluation.py"
+      ],
+      "depends_on": [
+        "F-8e2e47bf"
+      ],
+      "acceptance_criteria": [
+        "Evals route handler <100 LOC",
+        "EvaluationService handles orchestration",
+        "File I/O and result compilation in service"
+      ],
+      "approach": "Move eval orchestration logic to EvaluationService. Routes call service methods.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-655cc290",
+      "title": "Create abstraction for file system and command execution",
+      "tier": 3,
+      "priority": 26,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "backend/core/file_system.py",
+        "backend/core/command_executor.py",
+        "backend/agent/tools/runtime.py"
+      ],
+      "depends_on": [
+        "F-11f6269d"
+      ],
+      "acceptance_criteria": [
+        "FileSystemAdapter interface created",
+        "CommandExecutor interface created",
+        "Tool runtime uses injected adapters",
+        "Enables testing and alternate implementations"
+      ],
+      "approach": "Create backend/core/ adapters. Tool runtime receives injected implementations. Enables stubbing for tests.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-e5ccfb84",
+      "title": "Create LLM service wrapper for provider abstraction",
+      "tier": 3,
+      "priority": 27,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/services/llm_service.py"
+      ],
+      "depends_on": [
+        "F-8e2e47bf"
+      ],
+      "acceptance_criteria": [
+        "LLMService wraps provider factory",
+        "Route handlers call LLMService only",
+        "Provider-specific error handling in service",
+        "Rate limiting and retry logic centralized"
+      ],
+      "approach": "Create LLMService that wraps factory. Routes call service.generate(). Service handles error translation.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-654fa269",
+      "title": "Centralize configuration management",
+      "tier": 2,
+      "priority": 28,
+      "estimated_files": 5,
+      "files_to_modify": [
+        "backend/config/__init__.py",
+        "backend/config/models.py",
+        "frontend/src/config/index.ts",
+        "frontend/src/config/constants.ts",
+        "frontend/src/config/models.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Centralized config directory in backend/config/",
+        "Models, endpoints, prompts configured in one place",
+        "Frontend config centralized",
+        "All hardcoded values moved to config"
+      ],
+      "approach": "Create backend/config/ and frontend/src/config/ directories. Move all configuration there. Use environment variables for env-specific values.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-dcc31d3b",
+      "title": "Create centralized exception hierarchy and error handling",
+      "tier": 3,
+      "priority": 29,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/exceptions.py",
+        "backend/main.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Custom exception classes defined",
+        "FastAPI exception handlers for all exception types",
+        "Consistent error response format",
+        "Debug vs production error details handled"
+      ],
+      "approach": "Create exceptions.py with custom hierarchy. Add exception handlers in main.py. Use consistently across modules.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-1481cee9",
+      "title": "Move test utilities to dedicated fixtures module",
+      "tier": 2,
+      "priority": 30,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "backend/tests/fixtures.py",
+        "backend/codegen/test_utils.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Test utilities in backend/tests/fixtures.py",
+        "Codegen module contains production code only",
+        "All test files import from tests module"
+      ],
+      "approach": "Move backend/codegen/test_utils.py to backend/tests/fixtures.py. Update imports. Keep codegen pure.",
+      "group": "refactoring"
+    },
+    {
+      "finding_id": "F-404e2046",
+      "title": "Restructure frontend components with clear layering",
+      "tier": 0,
+      "priority": 100,
+      "estimated_files": 0,
+      "files_to_modify": [],
+      "depends_on": [],
+      "acceptance_criteria": [],
+      "approach": "Deferred - large refactoring with minimal security impact. Can be done in future iteration.",
+      "group": "deferred"
+    },
+    {
+      "finding_id": "F-c5f36674",
+      "title": "Remove duplicate recomputeFitScale call in ImageLightbox",
+      "tier": 1,
+      "priority": 31,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "frontend/src/components/ImageLightbox.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Second useEffect removed",
+        "recomputeFitScale called only once per dependency change"
+      ],
+      "approach": "Delete lines 67-69 that contain the redundant useEffect.",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-2a66d2fe",
+      "title": "Memoize currentVersionNumber computation in Sidebar",
+      "tier": 1,
+      "priority": 32,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "frontend/src/components/sidebar/Sidebar.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "currentVersionNumber wrapped in useMemo",
+        "Dependencies: [head, commits]",
+        "Sort operation only runs on dependency change"
+      ],
+      "approach": "Wrap the currentVersionNumber computation in useMemo hook.",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-f529939a",
+      "title": "Fix closure capture in ImageUpload keydown handler",
+      "tier": 1,
+      "priority": 33,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "frontend/src/components/ImageUpload.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Global keydown handler captures latest handleGenerate",
+        "Handler doesn't get stale closure",
+        "handleGenerate in dependency array"
+      ],
+      "approach": "Add handleGenerate to useEffect dependency array. Or use useRef to store latest function reference.",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-e84c96e8",
+      "title": "Verify WebSocket cleanup on new connections",
+      "tier": 1,
+      "priority": 34,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "frontend/src/generateCode.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Old WebSocket closed before new one created",
+        "No event listeners leak",
+        "Cleanup called in all code paths"
+      ],
+      "approach": "Ensure ws.close() called before creating new WebSocket. Add abort signal for listener cleanup.",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-ec7da3e0",
+      "title": "Optimize agentEvents array re-renders using Immer",
+      "tier": 2,
+      "priority": 35,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "frontend/src/store/project-store.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "agentEvents array reference only changes when needed",
+        "Shallow comparison optimization enabled",
+        "No unnecessary re-renders of variant consumers"
+      ],
+      "approach": "Use Immer for immutable updates or implement selective reference updates.",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-c63ff059",
+      "title": "Wrap list-rendering components with React.memo",
+      "tier": 1,
+      "priority": 36,
+      "estimated_files": 3,
+      "files_to_modify": [
+        "frontend/src/components/history/HistoryDisplay.tsx",
+        "frontend/src/components/variants/Variants.tsx",
+        "frontend/src/components/agent/AgentActivity.tsx"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Components wrapped with React.memo",
+        "Proper prop comparison for memoization",
+        "No unnecessary re-renders"
+      ],
+      "approach": "Export components as `export default React.memo(ComponentName);`",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-2df0ef26",
+      "title": "Add pagination to prompt history parsing",
+      "tier": 2,
+      "priority": 37,
+      "estimated_files": 1,
+      "files_to_modify": [
+        "backend/prompts/request_parsing.py"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "max_history_items parameter limits processing",
+        "History truncated to recent N messages",
+        "Large conversations handled efficiently"
+      ],
+      "approach": "Add max_history_length parameter. Slice array to keep only recent messages.",
+      "group": "performance"
+    },
+    {
+      "finding_id": "F-e22eabb2",
+      "title": "Document and restructure frontend store boundaries",
+      "tier": 2,
+      "priority": 38,
+      "estimated_files": 2,
+      "files_to_modify": [
+        "frontend/src/store/project-store.ts",
+        "frontend/src/store/app-store.ts"
+      ],
+      "depends_on": [],
+      "acceptance_criteria": [
+        "Clear boundary between app-level and project-level state",
+        "Store split if needed (ProjectStore, GenerationStore, HistoryStore)",
+        "Store composition pattern implemented"
+      ],
+      "approach": "Document store boundaries. Consider splitting project-store if >250 LOC. Use composition over single monolithic store.",
+      "group": "refactoring"
+    }
+  ],
+  "dependencies": [
+    {
+      "finding_id": "F-a4e06f01",
+      "depends_on_finding_id": "F-a005f40e",
+      "reason": "WebSocket auth validation depends on auth infrastructure being in place"
+    },
+    {
+      "finding_id": "F-0ff0320f",
+      "depends_on_finding_id": "F-a005f40e",
+      "reason": "Per-user rate limiting requires authenticated user context"
+    },
+    {
+      "finding_id": "F-bdfcc9cd",
+      "depends_on_finding_id": "F-a005f40e",
+      "reason": "Removing frontend API keys requires backend auth to handle requests without them"
+    },
+    {
+      "finding_id": "F-98b57317",
+      "depends_on_finding_id": "F-a005f40e",
+      "reason": "Per-user rate limiting and quota enforcement requires authentication"
+    },
+    {
+      "finding_id": "F-98b57317",
+      "depends_on_finding_id": "F-0ff0320f",
+      "reason": "Per-user limits build on top of global rate limiting infrastructure"
+    },
+    {
+      "finding_id": "F-75e843bb",
+      "depends_on_finding_id": "F-a4e06f01",
+      "reason": "Timeout implementation uses same WebSocketCommunicator modified for auth"
+    },
+    {
+      "finding_id": "F-98f9f73b",
+      "depends_on_finding_id": "F-8e2e47bf",
+      "reason": "Service layer extraction follows route refactoring"
+    },
+    {
+      "finding_id": "F-8e2e47bf",
+      "depends_on_finding_id": "F-98f9f73b",
+      "reason": "Services are created to hold orchestration logic extracted from routes"
+    },
+    {
+      "finding_id": "F-da861edf",
+      "depends_on_finding_id": "F-98f9f73b",
+      "reason": "Output streaming abstraction assumes refactored route structure"
+    },
+    {
+      "finding_id": "F-9a0d7dd3",
+      "depends_on_finding_id": "F-8e2e47bf",
+      "reason": "Eval service extraction uses same service layer pattern as code generation"
+    },
+    {
+      "finding_id": "F-655cc290",
+      "depends_on_finding_id": "F-11f6269d",
+      "reason": "File system adapter goes in shared core module"
+    },
+    {
+      "finding_id": "F-e5ccfb84",
+      "depends_on_finding_id": "F-8e2e47bf",
+      "reason": "LLM service is part of broader service layer architecture"
+    }
+  ],
+  "execution_levels": [
+    [
+      "F-a005f40e",
+      "F-85f9f85d",
+      "F-feea30e5",
+      "F-27268b93",
+      "F-fc295bd2",
+      "F-196e7a54",
+      "F-6788bb7e",
+      "F-45d1cdbf",
+      "F-54830005"
+    ],
+    [
+      "F-a4e06f01",
+      "F-0ff0320f",
+      "F-bdfcc9cd",
+      "F-fb581297",
+      "F-5912284f",
+      "F-7e075597",
+      "F-64b59498",
+      "F-39436a1c",
+      "F-71478205",
+      "F-9e5f9903",
+      "F-b8e193d3",
+      "F-c5f36674"
+    ],
+    [
+      "F-98b57317",
+      "F-75e843bb",
+      "F-f16fdb7f",
+      "F-2ee7a1b9",
+      "F-2a66d2fe",
+      "F-f529939a",
+      "F-e84c96e8",
+      "F-ec7da3e0",
+      "F-c63ff059",
+      "F-2df0ef26",
+      "F-e22eabb2"
+    ],
+    [
+      "F-98f9f73b",
+      "F-11f6269d",
+      "F-654fa269",
+      "F-dcc31d3b"
+    ],
+    [
+      "F-8e2e47bf",
+      "F-da861edf",
+      "F-9a0d7dd3",
+      "F-655cc290",
+      "F-e5ccfb84",
+      "F-1481cee9"
+    ]
+  ],
+  "deferred_finding_ids": [
+    "F-404e2046"
+  ],
+  "dedup_summary": "Merged F-feea30e5 and F-fde308aa (both about CORS wildcard). Merged F-f16fdb7f and F-2ee7a1b9 (both about API key validation/rotation). Merged F-fb581297 with F-bdfcc9cd (both about storing credentials in localStorage). Merged F-fc295bd2 with F-27268b93 (both about CSP headers). Total 36 unique actionable items.",
+  "total_items": 44,
+  "estimated_invocations": 120,
+  "summary": "36 actionable remediation items across 5 execution levels. Priority: Implement authentication (F-a005f40e) as foundation (Level 1). Build security hardening (HTTPS, headers, CORS, rate limiting) in parallel (Levels 1-2). Implement input validation and refactor routes/services in parallel (Levels 2-4). Optimize frontend performance (Level 2-3). 1 finding deferred (F-404e2046: frontend component restructuring - low security impact, can be future refactoring). Estimated 120 LLM invocations for implementation and testing."
+}
