@@ -22,6 +22,20 @@ export default function SettingsPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  // Fetch GitHub connection status on mount
+  useEffect(() => {
+    async function fetchStatus() {
+      try {
+        const token = (await getToken()) ?? undefined;
+        const status = await apiFetch<GitHubStatus>("/api/github/status", { token });
+        setGithub(status);
+      } catch {
+        // Not connected or error — leave as null
+      }
+    }
+    fetchStatus();
+  }, [getToken]);
+
   // Check if we just returned from GitHub OAuth callback
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
