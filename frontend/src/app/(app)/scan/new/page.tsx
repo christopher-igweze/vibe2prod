@@ -108,25 +108,27 @@ export default function NewScanPage() {
     try {
       const token = await getToken();
 
-      const intake: ProjectIntake = {
-        project_origin: projectOrigin,
-        product_summary: productSummary,
-        target_users: targetUsers,
-        sensitive_data: sensitiveData.length > 0 ? sensitiveData : ["not_sure"],
-        must_not_break_flows: mustNotBreakFlows,
-        deployment_target: deploymentTarget,
-        scale_expectation: scaleExpectation,
-      };
-
       const body: {
         repo_url: string;
         branch?: string;
-        project_intake: ProjectIntake;
+        project_intake?: ProjectIntake;
         primer?: PrimerResult;
       } = {
         repo_url: repoUrl.trim(),
-        project_intake: intake,
       };
+
+      // Only send intake if user filled any fields
+      if (productSummary || targetUsers || deploymentTarget || scaleExpectation) {
+        body.project_intake = {
+          project_origin: projectOrigin,
+          product_summary: productSummary,
+          target_users: targetUsers,
+          sensitive_data: sensitiveData.length > 0 ? sensitiveData : ["not_sure"],
+          must_not_break_flows: mustNotBreakFlows,
+          deployment_target: deploymentTarget,
+          scale_expectation: scaleExpectation,
+        };
+      }
 
       if (branch) {
         body.branch = branch;
@@ -198,7 +200,6 @@ export default function NewScanPage() {
   const goToStep = (target: number) => {
     if (target === 2 && !repoUrl.trim()) return;
     if (target === 3) {
-      if (!isStep2Valid()) return;
       checkQuota();
     }
     setStep(target);
@@ -257,6 +258,7 @@ export default function NewScanPage() {
           suggestedFlows={suggestedFlows}
           onBack={() => setStep(1)}
           onContinue={() => goToStep(3)}
+          onSkip={() => goToStep(3)}
           isValid={isStep2Valid()}
         />
       )}
