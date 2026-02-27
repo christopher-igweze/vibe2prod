@@ -158,7 +158,7 @@ export interface AuditRequest {
   repo_url: string
   vibe_prompt?: string | null
   project_charter?: Record<string, unknown> | null
-  project_intake: ProjectIntake
+  project_intake?: ProjectIntake
   primer?: PrimerResult | null
 }
 

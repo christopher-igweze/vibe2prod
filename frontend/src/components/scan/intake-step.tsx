@@ -50,6 +50,7 @@ export interface IntakeStepProps {
   suggestedFlows: string[];
   onBack: () => void;
   onContinue: () => void;
+  onSkip: () => void;
   isValid: boolean;
 }
 
@@ -75,6 +76,7 @@ export function IntakeStep({
   suggestedFlows,
   onBack,
   onContinue,
+  onSkip,
   isValid,
 }: IntakeStepProps) {
   return (
@@ -285,14 +287,23 @@ export function IntakeStep({
             <ArrowLeft className="size-4 mr-1" />
             Back
           </Button>
-          <Button
-            onClick={onContinue}
-            disabled={!isValid}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            Review & Submit
-            <ArrowRight className="size-4 ml-1" />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={onSkip}
+              className="text-neutral-500 hover:text-neutral-300"
+            >
+              Skip for now
+            </Button>
+            <Button
+              onClick={onContinue}
+              disabled={!isValid}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              Review & Submit
+              <ArrowRight className="size-4 ml-1" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -30,15 +30,15 @@ class SensitiveDataType(str, Enum):
 
 
 class ProjectIntake(BaseModel):
-    """Required intake context for every audit request."""
+    """Intake context for audit request. All fields optional with defaults."""
 
-    project_origin: ProjectOrigin
-    product_summary: str = Field(min_length=3, max_length=800)
-    target_users: str = Field(min_length=2, max_length=400)
-    sensitive_data: list[SensitiveDataType] = Field(default_factory=list)
+    project_origin: ProjectOrigin = ProjectOrigin.inspired
+    product_summary: str = Field(default="Not provided", max_length=800)
+    target_users: str = Field(default="Not provided", max_length=400)
+    sensitive_data: list[SensitiveDataType] = Field(default_factory=lambda: [SensitiveDataType.not_sure])
     must_not_break_flows: list[str] = Field(default_factory=list, max_length=20)
-    deployment_target: str = Field(min_length=2, max_length=200)
-    scale_expectation: str = Field(min_length=2, max_length=200)
+    deployment_target: str = Field(default="Not provided", max_length=200)
+    scale_expectation: str = Field(default="Not provided", max_length=200)
 
 
 class PrimerResult(BaseModel):
@@ -58,7 +58,7 @@ class AuditRequest(BaseModel):
     branch: str | None = None  # If None, uses repo's default branch
     vibe_prompt: str | None = None
     project_charter: dict | None = None
-    project_intake: ProjectIntake
+    project_intake: ProjectIntake = Field(default_factory=ProjectIntake)
     primer: PrimerResult | None = None
 
 
