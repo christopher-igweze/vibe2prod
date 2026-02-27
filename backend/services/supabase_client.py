@@ -139,6 +139,21 @@ async def update_scan_status(scan_id: UUID, status: ScanStatus) -> None:
     ).execute()
 
 
+async def update_scan_with_discovery(
+    scan_id: UUID,
+    discovery_report: dict,
+) -> None:
+    """Store FORGE discovery report data in scan_reports.report_data."""
+    client = _client()
+    client.table("scan_reports").update(
+        {
+            "status": ScanStatus.completed.value,
+            "report_data": {"discovery_report": discovery_report},
+            "completed_at": datetime.now(timezone.utc).isoformat(),
+        }
+    ).eq("id", str(scan_id)).execute()
+
+
 async def save_report(
     scan_id: UUID,
     report: AuditReport,
@@ -279,6 +294,41 @@ async def clear_github_connection(*, user_id: str) -> None:
             "github_username": None,
         }
     ).eq("user_id", str(user_id)).execute()
+
+
+async def upsert_profile_from_clerk(
+    user_id: str,
+    email: str,
+    display_name: str | None = None,
+    avatar_url: str | None = None,
+    github_username: str | None = None,
+) -> None:
+    """Upsert a user profile from Clerk webhook data."""
+    client = _client()
+    data: dict = {
+        "user_id": user_id,
+        "email": email,
+        "display_name": display_name,
+        "avatar_url": avatar_url,
+    }
+    if github_username:
+        data["github_username"] = github_username
+
+    existing = (
+        client.table("profiles")
+        .select("user_id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    if existing.data:
+        # Update existing profile (don't overwrite fields with None)
+        update_data = {k: v for k, v in data.items() if v is not None and k != "user_id"}
+        if update_data:
+            client.table("profiles").update(update_data).eq("user_id", user_id).execute()
+    else:
+        # Insert new profile
+        client.table("profiles").insert(data).execute()
 
 
 async def save_org_onboarding(*, user_id: str, payload: dict) -> None:
@@ -722,6 +772,20 @@ async def update_fix_attempt(
     client.table("fix_attempts").update(update_data).eq(
         "id", str(fix_attempt_id)
     ).execute()
+
+
+async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
+    """Return recent scans for a user, newest first."""
+    client = _client()
+    row = (
+        client.table("scan_reports")
+        .select("id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,created_at,project_id")
+        .eq("user_id", str(user_id))
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return row.data or []
 
 
 async def get_scan_report(scan_id: UUID, user_id: str) -> dict | None:

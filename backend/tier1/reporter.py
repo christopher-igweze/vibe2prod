@@ -110,6 +110,7 @@ class Tier1Reporter:
                 "findings_total": len(actionable),
                 "by_severity": self._counts_by(actionable, "severity"),
                 "by_category": self._counts_by(actionable, "category"),
+                "by_actionability": self._counts_by(actionable, "actionability"),
             },
             "strengths": strengths,
             "execution_plan": execution_plan,
@@ -321,17 +322,22 @@ class Tier1Reporter:
         if not actionable_findings:
             lines.append("- No warnings or failures were detected.")
         else:
-            for idx, finding in enumerate(actionable_findings[:10], start=1):
-                hotspot = self._hotspot_context_for_finding(finding, git_metadata)
-                lines.append(
-                    f"### {idx}. {finding.check_id} — {finding.title} ({finding.severity.upper()} / {finding.status.upper()})"
-                )
-                lines.append(f"- Why this matters: {self._business_impact_for_finding(finding)}")
-                if hotspot:
-                    lines.append(f"- Change pattern: {hotspot}")
-                lines.append(f"- What we saw: {finding.description}")
-                lines.append(f"- Evidence: {self._format_evidence(finding)}")
-                lines.append(f"- Suggested fix: {finding.suggested_fix_stub}")
+            grouped = self._group_by_actionability(actionable_findings[:10])
+            idx = 0
+            for tier_label, tier_findings in grouped:
+                lines.append(f"\n### {tier_label}")
+                for finding in tier_findings:
+                    idx += 1
+                    hotspot = self._hotspot_context_for_finding(finding, git_metadata)
+                    lines.append(
+                        f"#### {idx}. {finding.check_id} — {finding.title} ({finding.severity.upper()} / {finding.status.upper()})"
+                    )
+                    lines.append(f"- Why this matters: {self._business_impact_for_finding(finding)}")
+                    if hotspot:
+                        lines.append(f"- Change pattern: {hotspot}")
+                    lines.append(f"- What we saw: {finding.description}")
+                    lines.append(f"- Evidence: {self._format_evidence(finding)}")
+                    lines.append(f"- Suggested fix: {finding.suggested_fix_stub}")
 
         lines.extend(["", "## Educational Guidance"])
         lines.extend(
@@ -406,6 +412,28 @@ class Tier1Reporter:
         )
 
         return "\n".join(lines)
+
+    @staticmethod
+    def _group_by_actionability(
+        findings: list[Tier1Finding],
+    ) -> list[tuple[str, list[Tier1Finding]]]:
+        """Group findings by actionability tier in priority order."""
+        _TIER_ORDER = ["must_fix", "should_fix", "consider", "informational"]
+        _TIER_LABELS = {
+            "must_fix": "Must Fix — fix before shipping",
+            "should_fix": "Should Fix — prioritize this sprint",
+            "consider": "Consider — valid but not urgent",
+            "informational": "Informational — noted for awareness",
+        }
+        buckets: dict[str, list[Tier1Finding]] = {t: [] for t in _TIER_ORDER}
+        for f in findings:
+            tier = f.actionability if f.actionability in buckets else "should_fix"
+            buckets[tier].append(f)
+        return [
+            (_TIER_LABELS.get(t, t), buckets[t])
+            for t in _TIER_ORDER
+            if buckets[t]
+        ]
 
     @staticmethod
     def _counts_by(findings: list[Tier1Finding], field: str) -> dict:
@@ -624,8 +652,9 @@ class Tier1Reporter:
             )
         else:
             for idx, finding in enumerate(actionable_findings[:8], start=1):
+                action_tag = f" ({finding.actionability})" if finding.actionability else ""
                 lines.append(
-                    f"{idx}) {finding.check_id} [{finding.severity.upper()} / {finding.status.upper()}] - {finding.title}"
+                    f"{idx}) {finding.check_id} [{finding.severity.upper()} / {finding.status.upper()}]{action_tag} - {finding.title}"
                 )
                 lines.append(f"   Why it matters: {self._business_impact_for_finding(finding)}")
                 lines.append(f"   Evidence: {self._format_evidence(finding)}")
@@ -823,8 +852,9 @@ class Tier1Reporter:
             _write_wrapped("- No warnings or failures were detected.", indent=12)
         else:
             for idx, finding in enumerate(actionable_findings[:8], start=1):
+                action_tag = f" [{finding.actionability}]" if finding.actionability else ""
                 _write_wrapped(
-                    f"{idx}. {finding.check_id} ({finding.severity.upper()} / {finding.status.upper()}): {finding.title}"
+                    f"{idx}. {finding.check_id} ({finding.severity.upper()} / {finding.status.upper()}){action_tag}: {finding.title}"
                 )
                 _write_wrapped(f"   Impact: {self._business_impact_for_finding(finding)}")
                 _write_wrapped(f"   Evidence: {self._format_evidence(finding)}")

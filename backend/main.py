@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
@@ -25,9 +25,10 @@ from api.routes import (
     primer,
     onboarding,
     github_oauth,
+    user,
     webhook,
+    webhook_clerk,
 )
-from config import settings
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,8 +41,6 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Vibe2Prod API starting up...")
-    if settings.tier1_enabled:
-        await audit.cleanup_tier1_expired()
     yield
     logger.info("Vibe2Prod API shutting down.")
 
@@ -64,7 +63,7 @@ app = FastAPI(
 # ------------------------------------------------------------------ #
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$|^https://(www\.)?vibe2prod\.com$|^https://.*\.ngrok-free\.app$|^https://.*\.ngrok-free\.dev$|^https://.*\.ngrok\.io$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,7 +90,9 @@ app.include_router(fix.router, prefix="/api", tags=["fix"])
 app.include_router(primer.router, prefix="/api", tags=["primer"])
 app.include_router(onboarding.router, prefix="/api", tags=["onboarding"])
 app.include_router(github_oauth.router, prefix="/api", tags=["github"])
+app.include_router(user.router, prefix="/api", tags=["user"])
 app.include_router(webhook.router, prefix="/api", tags=["webhook"])
+app.include_router(webhook_clerk.router, prefix="/api", tags=["webhook"])
 
 
 # ------------------------------------------------------------------ #
@@ -112,6 +113,20 @@ async def health():
 # ------------------------------------------------------------------ #
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    # Starlette BaseHTTPMiddleware wraps HTTPExceptions in ExceptionGroups.
+    # Unwrap them so FastAPI returns the correct status code.
+    if isinstance(exc, BaseExceptionGroup):
+        for inner in exc.exceptions:
+            if isinstance(inner, HTTPException):
+                return JSONResponse(
+                    status_code=inner.status_code,
+                    content={"detail": inner.detail},
+                )
+    if isinstance(exc, HTTPException):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail},
+        )
     logger.exception("Unhandled exception on %s %s", request.method, request.url)
     return JSONResponse(
         status_code=500,

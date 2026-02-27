@@ -12,6 +12,7 @@ from models.agent_log import AgentLogEntry, AgentName, LogLevel, SSEEventType
 from models.findings import AuditReport, Category, Finding, FindingSource, Severity
 from models.scan import PrimerResult
 from services.github import get_head_sha, get_repo_info, parse_repo_url
+from tier1.actionability import apply_tier1_actionability
 from tier1.indexer import DeterministicIndexer
 from tier1.reporter import Tier1Reporter
 from tier1.scanner import DeterministicScanner
@@ -107,6 +108,10 @@ class Tier1Orchestrator:
         )
         scan_ms = int((time.perf_counter() - scan_started_perf) * 1000)
 
+        # Apply actionability classification using project context
+        forge_ctx = self._build_forge_context()
+        apply_tier1_actionability(findings, forge_ctx)
+
         actionable = [f for f in findings if f.status in {"warn", "fail"}]
         score_summary = self._score(findings)
         index_json = index_payload.get("index_json") or {}
@@ -179,6 +184,15 @@ class Tier1Orchestrator:
             "artifact": artifact,
             "audit_report": audit_report,
         }
+
+    def _build_forge_context(self) -> dict:
+        """Build forge-compatible project context from intake."""
+        try:
+            from services.project_context import intake_to_forge_context
+            return intake_to_forge_context(self.project_intake)
+        except Exception:
+            logger.warning("Failed to build forge context (non-fatal)")
+            return {}
 
     @staticmethod
     def _score(findings: list) -> dict:

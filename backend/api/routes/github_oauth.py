@@ -248,3 +248,141 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
         detail={"code": "action_invalid", "message": "Unsupported GitHub OAuth action."},
     )
 
+
+@router.get("/github/repos")
+@limiter.limit(rate_limit_string())
+async def list_github_repos(request: Request, page: int = 1, per_page: int = 30):
+    """List the authenticated user's GitHub repositories."""
+    user_id: str = request.state.user_id
+    token = await db.get_github_access_token(user_id)
+    if not token:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "github_not_connected", "message": "GitHub is not connected."},
+        )
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.get(
+            "https://api.github.com/user/repos",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+            },
+            params={
+                "sort": "updated",
+                "direction": "desc",
+                "per_page": min(per_page, 100),
+                "page": page,
+                "type": "all",
+            },
+        )
+
+    if resp.status_code == 401:
+        raise HTTPException(
+            status_code=401,
+            detail={"code": "github_token_expired", "message": "GitHub token is invalid or expired. Reconnect in Settings."},
+        )
+    if resp.status_code >= 400:
+        raise HTTPException(status_code=502, detail={"code": "github_api_error", "message": "GitHub API error."})
+
+    repos = resp.json()
+    return [
+        {
+            "full_name": r["full_name"],
+            "name": r["name"],
+            "owner": r["owner"]["login"],
+            "private": r["private"],
+            "url": r["html_url"],
+            "description": r.get("description") or "",
+            "language": r.get("language") or "",
+            "updated_at": r.get("updated_at") or "",
+            "default_branch": r.get("default_branch", "main"),
+        }
+        for r in repos
+    ]
+
+
+@router.get("/github/repos/{owner}/{repo}/branches")
+@limiter.limit(rate_limit_string())
+async def list_repo_branches(
+    owner: str, repo: str, request: Request, page: int = 1, per_page: int = 30
+):
+    """List branches for a specific GitHub repository."""
+    user_id: str = request.state.user_id
+    token = await db.get_github_access_token(user_id)
+    if not token:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "github_not_connected", "message": "GitHub is not connected."},
+        )
+
+    async with httpx.AsyncClient(timeout=20) as client:
+        resp = await client.get(
+            f"https://api.github.com/repos/{owner}/{repo}/branches",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+            },
+            params={
+                "per_page": min(per_page, 100),
+                "page": page,
+            },
+        )
+
+    if resp.status_code == 401:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "code": "github_token_expired",
+                "message": "GitHub token is invalid or expired. Reconnect in Settings.",
+            },
+        )
+    if resp.status_code == 404:
+        raise HTTPException(
+            status_code=404,
+            detail={"code": "repo_not_found", "message": "Repository not found."},
+        )
+    if resp.status_code >= 400:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_api_error", "message": "GitHub API error."},
+        )
+
+    branches = resp.json()
+    return [
+        {
+            "name": b["name"],
+            "protected": b.get("protected", False),
+        }
+        for b in branches
+    ]
+
+
+@router.get("/github/status")
+async def github_connection_status(request: Request):
+    """Check if GitHub is connected for the current user."""
+    user_id: str = request.state.user_id
+    token = await db.get_github_access_token(user_id)
+    if not token:
+        return {"connected": False}
+
+    # Verify token is still valid
+    async with httpx.AsyncClient(timeout=10) as client:
+        resp = await client.get(
+            "https://api.github.com/user",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+            },
+        )
+
+    if resp.status_code != 200:
+        return {"connected": False, "error": "token_expired"}
+
+    data = resp.json()
+    return {
+        "connected": True,
+        "github_username": data.get("login"),
+        "avatar_url": data.get("avatar_url"),
+    }
+

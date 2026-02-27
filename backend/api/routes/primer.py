@@ -22,6 +22,7 @@ router = APIRouter()
 
 class PrimerRequest(BaseModel):
     repo_url: HttpUrl
+    branch: str | None = None  # If None, uses repo's default branch
 
 
 class PrimerResponse(BaseModel):
@@ -40,8 +41,9 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
 
     try:
         repo_info = await get_repo_info(owner, repo, github_token)
+        target_branch = request_body.branch or repo_info.default_branch
         repo_sha = await get_head_sha(
-            owner, repo, repo_info.default_branch, github_token
+            owner, repo, target_branch, github_token
         )
     except Exception as exc:
         logger.exception("Failed to resolve repo info for primer")
