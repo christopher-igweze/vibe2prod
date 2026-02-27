@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     clerk_jwks_url: str = ""  # e.g. https://your-app.clerk.accounts.dev/.well-known/jwks.json
     clerk_webhook_secret: str = ""
 
+    # --- E2E Testing ---
+    e2e_testing: bool = False
+
     # --- Rate Limiting ---
     rate_limit_per_minute: int = 10
 
