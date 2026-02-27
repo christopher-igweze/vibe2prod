@@ -1,4 +1,22 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        - NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+        - NEXT_PUBLIC_CLERK_SIGN_IN_URL=${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-/sign-in}
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-}
+        - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:-}
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
   api:
     build: ./backend
     ports:
@@ -6,8 +24,35 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - DEBUG=true
-    volumes:
-      - ./backend:/app
+      - FORGE_ENABLED=true
+      - FORGE_AGENTFIELD_URL=http://forge:8004
+    depends_on:
+      forge:
+        condition: service_healthy
     restart: unless-stopped
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+
+  forge:
+    build:
+      context: ../forge-engine
+    ports:
+      - "8004:8004"
+    environment:
+      - FORGE_PORT=8004
+      - FORGE_HOST=0.0.0.0
+      - FORGE_NODE_ID=forge-engine
+      - FORGE_HEALTH_PORT=8005
+    env_file:
+      - ./forge.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8005/health')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
