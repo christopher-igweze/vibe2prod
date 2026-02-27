@@ -43,5 +43,10 @@ dist-ssr/
 # Logs
 *.log
 
-# Benchmarks — keep reports, exclude large temp files
+# Benchmarks — generated scan/report artifacts (can be regenerated, often dehydrated by macOS)
 benchmarks/**/invocations.jsonl
+benchmarks/**/repos/
+benchmarks/**/hive/
+benchmarks/**/scan/
+benchmarks/**/report/
+benchmarks/**/telemetry/
