@@ -118,7 +118,7 @@ async def _poll_until_complete(
         if elapsed % 30 == 0:
             logger.info("FORGE execution %s: status=%s (%ds)", execution_id, status, elapsed)
 
-        if status in ("completed", "failed", "aborted"):
+        if status in ("completed", "succeeded", "failed", "aborted"):
             return result
 
     return {"status": "timeout", "error": f"Timed out after {timeout}s"}
@@ -266,7 +266,7 @@ def _parse_forge_result(execution_id: str, raw: dict) -> ForgeRunResult:
         execution_id=execution_id,
         forge_run_id=output.get("forge_run_id", ""),
         status=status,
-        success=output.get("success", status == "completed"),
+        success=output.get("success", status in ("completed", "succeeded")),
         summary=output.get("summary", ""),
         error=raw.get("error", output.get("error", "")),
         total_findings=output.get("total_findings", 0),
