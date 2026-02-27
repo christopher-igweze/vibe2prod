@@ -124,12 +124,20 @@ async def _poll_until_complete(
     return {"status": "timeout", "error": f"Timed out after {timeout}s"}
 
 
+def _authenticated_url(repo_url: str, token: str | None) -> str:
+    """Inject a GitHub token into the clone URL for private repo access."""
+    if token and "github.com" in repo_url:
+        return repo_url.replace("https://github.com/", f"https://x-access-token:{token}@github.com/")
+    return repo_url
+
+
 # ── Public API ────────────────────────────────────────────────────────
 
 
 async def trigger_forge_scan(
     repo_url: str,
     *,
+    github_token: str | None = None,
     model_override: str | None = None,
     timeout: int = _SCAN_TIMEOUT,
     agentfield_url_override: str | None = None,
@@ -151,9 +159,11 @@ async def trigger_forge_scan(
     if project_context:
         config["project_context"] = project_context
 
+    clone_url = _authenticated_url(repo_url, github_token)
+
     payload = {
         "input": {
-            "repo_url": repo_url,
+            "repo_url": clone_url,
             "config": config,
         }
     }
