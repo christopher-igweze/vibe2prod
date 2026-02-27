@@ -51,6 +51,11 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
         ):
             return await call_next(request)
 
+        # E2E testing bypass: skip JWT verification and use a synthetic user_id
+        if settings.e2e_testing:
+            request.state.user_id = "e2e_test_user"
+            return await call_next(request)
+
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
             return JSONResponse(
