@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 
 from config import settings
 from services import supabase_client as db
+from tier1.patterns import PatternLibrary, read_dependency_names
 
 logger = logging.getLogger(__name__)
 
@@ -176,6 +177,11 @@ class DeterministicIndexer:
                 "blocking_sync": [],
             }
 
+            # Load vulnerability pattern library for regex signal collection
+            pattern_library = PatternLibrary.load_default()
+            for pattern in pattern_library.all():
+                signals[f"pattern:{pattern.slug}"] = []
+
             has_ci = False
             has_tests = False
             has_env_example = False
@@ -232,6 +238,10 @@ class DeterministicIndexer:
                 _collect_env_signals(rel_path, data, signals)
                 _collect_error_logging_signals(rel_path, data, signals)
                 _collect_sync_blocking_signals(rel_path, data, signals)
+                _collect_pattern_signals(rel_path, data, signals, pattern_library)
+
+            # Post-loop: collect dependency names for pattern evaluation
+            dependency_names = read_dependency_names(repo_dir)
 
             linter_probes = _run_linter_probes(repo_dir)
 
@@ -249,6 +259,7 @@ class DeterministicIndexer:
                     "manifests_present": sorted(manifests_present),
                     "lockfiles_present": sorted(lockfiles_present),
                     "git_metadata": _collect_git_metadata(repo_dir),
+                    "dependency_names": dependency_names,
                 },
                 "linter_probes": linter_probes,
             }
@@ -457,6 +468,33 @@ def _collect_sync_blocking_signals(file_path: str, content: str, signals: dict[s
         for name, pattern in SYNC_BLOCKING_PATTERNS:
             if pattern.search(line):
                 _add_signal(signals["blocking_sync"], file_path, line_no, line, name)
+
+
+def _collect_pattern_signals(
+    file_path: str, content: str, signals: dict[str, list[dict]], library: PatternLibrary
+) -> None:
+    """Run regex-type signals from the vulnerability pattern library against file content."""
+    for pattern in library.all():
+        bucket_key = f"pattern:{pattern.slug}"
+        if bucket_key not in signals:
+            continue
+        for signal in pattern.signals:
+            if signal.signal_type != "regex":
+                continue
+            for regex_str in signal.patterns:
+                try:
+                    compiled = re.compile(regex_str, re.IGNORECASE)
+                except re.error:
+                    continue
+                for line_no, line in _line_iter(content):
+                    if compiled.search(line):
+                        _add_signal(
+                            signals[bucket_key],
+                            file_path,
+                            line_no,
+                            line,
+                            signal.description or regex_str[:80],
+                        )
 
 
 def _run_linter_probes(repo_dir: Path) -> list[dict]:

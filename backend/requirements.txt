@@ -10,4 +10,6 @@ daytona>=0.143.0,<1.0.0
 # OpenHands SDK/CLI package (Python 3.12 only).
 openhands>=1.12.1,<2.0.0
 PyJWT[crypto]>=2.10.0,<3.0.0
+cryptography>=44.0.0,<45.0.0
+svix>=1.45.0,<2.0.0
 slowapi>=0.1.9,<1.0.0
