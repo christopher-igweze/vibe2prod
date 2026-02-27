@@ -36,6 +36,7 @@ async def _run_forge_audit(
     scan_id: UUID,
     repo_url: str,
     project_context: dict | None = None,
+    github_token: str | None = None,
 ) -> None:
     """Background task that runs FORGE discovery scan and stores results."""
     from services.forge_bridge import trigger_forge_scan
@@ -60,6 +61,7 @@ async def _run_forge_audit(
 
         result = await trigger_forge_scan(
             repo_url,
+            github_token=github_token,
             project_context=project_context,
         )
 
@@ -187,6 +189,7 @@ async def start_audit(
             scan_id,
             str(request_body.repo_url),
             project_context,
+            github_token,
         )
 
         return AuditResponse(
