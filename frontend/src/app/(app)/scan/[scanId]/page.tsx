@@ -65,11 +65,7 @@ export default function ScanProgressPage() {
 
     async function poll() {
       try {
-        const token = await getToken()
-        if (!token) {
-          router.push("/dashboard")
-          return
-        }
+        const token = (await getToken()) ?? undefined
         const data = await apiFetch<ScanPoll>(`/api/user/scans/${scanId}`, {
           token,
         })
