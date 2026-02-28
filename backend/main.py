@@ -49,8 +49,7 @@ app = FastAPI(
     title="Vibe2Prod API",
     description=(
         "AI-powered code audit and production-hardening API. "
-        "Tier 1 deterministic scanning (free) with FORGE engine "
-        "integration for AI-driven remediation."
+        "FORGE engine integration for AI-driven discovery and remediation."
     ),
     version="2.0.0",
     lifespan=lifespan,

@@ -4,9 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-Vibe2Prod is a FastAPI backend that audits AI-generated codebases and hardens them for production. Two tiers:
-- **Tier 1 (Free):** Deterministic scanner — no LLM cost, indexes repo via GitHub API, runs 15 static checks, generates an LLM-assisted report
-- **FORGE (Paid):** 12-agent AI remediation engine in a separate repo (`christopher-igweze/forge-engine`), called via HTTP through `services/forge_bridge.py`
+Vibe2Prod is a FastAPI backend + Next.js frontend that audits AI-generated codebases and hardens them for production.
+- **FORGE Engine:** 12-agent AI discovery and remediation engine in a separate repo (`christopher-igweze/forge-engine`), called via HTTP through `services/forge_bridge.py`
 
 ## Commands
 
@@ -40,13 +39,6 @@ backend/
     middleware/
       auth.py          → Supabase JWT verification (skips PUBLIC_PATHS and /api/webhook/)
       rate_limit.py    → slowapi rate limiter
-  tier1/
-    orchestrator.py    → Tier1Orchestrator: index → scan → report pipeline
-    indexer.py         → DeterministicIndexer: clones via GitHub API, builds file/LOC index
-    scanner.py         → DeterministicScanner: 15 static checks, no LLM
-    reporter.py        → Tier1Reporter: LLM-assisted report generation via OpenRouter
-    contracts.py       → Tier1QuotaStatus and shared types
-    quota.py           → Monthly usage caps (3 projects, 10 reports, 50k LOC)
   services/
     supabase_client.py → All DB operations (scans, projects, indexes, quotas, artifacts)
     forge_bridge.py    → HTTP bridge to FORGE engine via AgentField async API
@@ -64,9 +56,9 @@ benchmarks/
 
 **Request flow:** Client → CORS → SlowAPI rate limit → SupabaseAuthMiddleware (JWT) → Route handler
 
-**Tier 1 pipeline:** `POST /api/audit` (tier1_only=true) → `Tier1Orchestrator.run()` → DeterministicIndexer (GitHub API clone, index with TTL) → DeterministicScanner (15 checks) → Tier1Reporter (OpenRouter LLM call) → Supabase artifact storage → SSE streaming via `/api/status/{scan_id}`
+**FORGE discovery:** `POST /api/audit` → `forge_bridge.trigger_forge_scan()` → HTTP POST to AgentField → poll for completion → parse ForgeRunResult → store discovery report in Supabase → SSE streaming via `/api/status/{scan_id}`
 
-**FORGE integration:** `POST /api/audit` (tier1_only=false) or `POST /api/fix` → `forge_bridge.trigger_forge_remediate()` → HTTP POST to AgentField → poll for completion → parse ForgeRunResult. The `/api/fix` route is fully wired: it validates the scan, triggers FORGE remediation in a `BackgroundTask`, stores results in Supabase, and updates scan status. FORGE is currently disabled (`FORGE_ENABLED=false`).
+**FORGE remediation:** `POST /api/fix` → `forge_bridge.trigger_forge_remediate()` → HTTP POST to AgentField → poll for completion → parse ForgeRunResult. Validates the scan, triggers FORGE remediation in a `BackgroundTask`, stores results in Supabase, and updates scan status.
 
 **Config is strict:** `config.py` uses Pydantic BaseSettings with implicit `extra="forbid"`. Any env var in `.env` not declared in Settings will crash the app. When adding new env vars, add them to both `config.py` and `.env.example`. FORGE-specific config fields include `forge_node_id` and `agentfield_api_key` (in addition to existing `forge_enabled`, `forge_agentfield_url`, `forge_default_model`).
 

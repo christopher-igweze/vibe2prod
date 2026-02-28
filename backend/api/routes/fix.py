@@ -8,7 +8,7 @@ When FORGE is enabled, this route:
 
 The background task:
 1. Marks the fix_attempt as running
-2. Calls trigger_forge_remediate() with the repo_url and tier1 findings
+2. Calls trigger_forge_remediate() with the repo_url and scan findings
 3. Stores FORGE results back in fix_attempt row
 4. Updates action_item.fix_status based on success/failure
 """
@@ -38,7 +38,7 @@ async def _run_forge_fix(
     fix_attempt_id: UUID,
     action_item_id: UUID,
     repo_url: str,
-    tier1_findings: list[dict] | None,
+    scan_findings: list[dict] | None,
 ) -> None:
     """Background task that runs FORGE remediation and stores results."""
     try:
@@ -47,7 +47,7 @@ async def _run_forge_fix(
 
         result = await trigger_forge_remediate(
             repo_url=repo_url,
-            tier1_findings=tier1_findings,
+            scan_findings=scan_findings,
         )
 
         if result.success:
@@ -150,12 +150,12 @@ async def trigger_fix(
 
     repo_url = project["repo_url"]
 
-    # Pull tier1 findings from the scan report to enrich FORGE context
+    # Pull discovery findings from the scan report to enrich FORGE context
     scan_report_id = UUID(action_item["scan_report_id"])
     scan_report = await db.get_scan_report(scan_report_id, user_id)
-    tier1_findings = None
+    scan_findings = None
     if scan_report and isinstance(scan_report.get("report_data"), dict):
-        tier1_findings = scan_report["report_data"].get("findings")
+        scan_findings = scan_report["report_data"].get("findings")
 
     fix_attempt_id = await db.create_fix_attempt(
         action_item_id=request_body.action_item_id,
@@ -168,7 +168,7 @@ async def trigger_fix(
         fix_attempt_id,
         request_body.action_item_id,
         repo_url,
-        tier1_findings,
+        scan_findings,
     )
 
     return FixResponse(

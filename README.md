@@ -12,7 +12,6 @@ vibe2prod/
 │   ├── api/
 │   │   ├── routes/          # 7 core route modules
 │   │   └── middleware/      # Auth (Supabase JWT), rate limiting
-│   ├── tier1/               # Free deterministic scanner (no LLM cost)
 │   ├── sandbox/             # Daytona SDK — ephemeral container management
 │   ├── services/            # Supabase, GitHub, OpenRouter, FORGE bridge
 │   └── models/              # Pydantic data models
@@ -22,12 +21,12 @@ vibe2prod/
 └── docker-compose.yml
 ```
 
-## Two Execution Tiers
+## FORGE Discovery & Remediation
 
-| Tier | What | Cost | How |
-|------|------|------|-----|
-| **Free (Tier 1)** | Deterministic code scan — security, quality, architecture | $0 | `POST /api/audit` with `tier1_only=true` |
-| **Pro (FORGE)** | 12-agent AI remediation — finds AND fixes issues | $2-5/run | FORGE engine via AgentField in Daytona sandbox |
+| Feature | What | How |
+|---------|------|-----|
+| **Discovery** | 12-agent AI audit — security, quality, architecture, performance | `POST /api/audit` → FORGE engine via AgentField |
+| **Remediation** | AI-driven code fixes with PR generation | `POST /api/fix` → FORGE engine via AgentField |
 
 ## Quick Start
 
@@ -47,7 +46,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `POST` | `/api/audit` | Start a code audit (Tier 1 or FORGE) |
+| `POST` | `/api/audit` | Start a FORGE discovery scan |
 | `GET` | `/api/status/{scan_id}` | SSE stream of audit progress |
 | `POST` | `/api/fix` | Trigger FORGE remediation (BackgroundTask, stores results in Supabase) |
 | `POST` | `/api/github/oauth/callback` | GitHub OAuth flow |

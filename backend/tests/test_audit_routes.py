@@ -83,7 +83,7 @@ class AuditRouteTests(unittest.TestCase):
             "api.routes.audit.db.get_project_by_repo_url", new=AsyncMock(return_value=None)
         ), patch(
             "api.routes.audit.db.get_active_project_count",
-            new=AsyncMock(return_value=audit.settings.tier1_project_cap),
+            new=AsyncMock(return_value=audit.settings.project_cap),
         ):
             resp = self.client.post("/api/audit", json=self._payload())
 
