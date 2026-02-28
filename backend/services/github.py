@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 import httpx
+
+_GITHUB_HOSTS = {"github.com", "www.github.com"}
+_VALID_SEGMENT = re.compile(r"^[a-zA-Z0-9._-]+$")
 
 
 @dataclass
@@ -19,12 +23,21 @@ class RepoInfo:
 
 
 async def parse_repo_url(url: str) -> tuple[str, str]:
-    """Extract (owner, repo) from a GitHub URL."""
+    """Extract (owner, repo) from a GitHub URL with validation."""
+    parsed = urlparse(str(url))
+    if parsed.hostname and parsed.hostname not in _GITHUB_HOSTS:
+        raise ValueError(f"Only github.com URLs are supported, got: {parsed.hostname}")
+
     pattern = r"github\.com[/:](?P<owner>[^/]+)/(?P<repo>[^/.]+)"
     m = re.search(pattern, str(url))
     if not m:
         raise ValueError(f"Cannot parse GitHub repo from URL: {url}")
-    return m.group("owner"), m.group("repo")
+
+    owner, repo = m.group("owner"), m.group("repo")
+    if not _VALID_SEGMENT.match(owner) or not _VALID_SEGMENT.match(repo):
+        raise ValueError(f"Invalid characters in owner or repo name: {owner}/{repo}")
+
+    return owner, repo
 
 
 async def get_repo_info(
