@@ -83,6 +83,8 @@ class Settings(BaseSettings):
     forge_runtime: str = "open_code"
     forge_max_inner_retries: int = 3
     forge_max_outer_replans: int = 1
+    forge_poll_interval_seconds: int = 10
+    forge_remediate_timeout_seconds: int = 2700
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
