@@ -80,7 +80,13 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
     failure_reason: str | None = None
 
     try:
-        await sandbox_mgr.provision(scan_id, repo_info.clone_url)
+        clone_url = repo_info.clone_url
+        if github_token and "github.com" in clone_url:
+            clone_url = clone_url.replace(
+                "https://github.com/",
+                f"https://x-access-token:{github_token}@github.com/",
+            )
+        await sandbox_mgr.provision(scan_id, clone_url)
         tree = await sandbox_mgr.exec(
             scan_id,
             "find . -type f -not -path './.git/*' -not -path './node_modules/*' | head -350 | sort",
