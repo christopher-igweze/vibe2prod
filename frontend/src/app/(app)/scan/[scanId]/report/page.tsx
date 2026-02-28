@@ -130,7 +130,7 @@ export default function ReportPage() {
       </Link>
 
       {/* Header */}
-      <ReportHeader report={report} repoName={scan.repo_name} />
+      <ReportHeader report={report} repoName={scan.repo_name} scanId={scanId} />
 
       {/* Severity Summary */}
       <SeveritySummary breakdown={report.severity_breakdown} />
