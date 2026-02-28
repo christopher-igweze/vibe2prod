@@ -172,26 +172,40 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
     )
 
 
+_FLOW_PATTERNS: dict[str, list[str]] = {
+    "Authentication and sign-in journey": ["clerk", "next-auth", "auth", "jwt"],
+    "Payment checkout and webhook flow": ["stripe", "checkout", "webhook"],
+    "Dashboard data load and refresh flow": ["dashboard", "analytics", "report"],
+    "Primary API request/response flow": ["/api/", "fastapi", "express", "trpc"],
+    "Database write/read consistency flow": ["supabase", "postgres", "prisma", "typeorm"],
+}
+
+
 def _suggest_flows(primer_json: dict) -> list[str]:
     tree = "\n".join(primer_json.get("file_tree_sample") or [])
     deps = " ".join(primer_json.get("dependency_sample") or [])
     scripts = " ".join(primer_json.get("npm_scripts") or [])
     haystack = f"{tree}\n{deps}\n{scripts}".lower()
 
-    suggestions: list[str] = []
-    if any(x in haystack for x in ["clerk", "next-auth", "auth", "jwt"]):
-        suggestions.append("Authentication and sign-in journey")
-    if any(x in haystack for x in ["stripe", "checkout", "webhook"]):
-        suggestions.append("Payment checkout and webhook flow")
-    if any(x in haystack for x in ["dashboard", "analytics", "report"]):
-        suggestions.append("Dashboard data load and refresh flow")
-    if any(x in haystack for x in ["/api/", "fastapi", "express", "trpc"]):
-        suggestions.append("Primary API request/response flow")
-    if any(x in haystack for x in ["supabase", "postgres", "prisma", "typeorm"]):
-        suggestions.append("Database write/read consistency flow")
+    suggestions = [
+        label for label, keywords in _FLOW_PATTERNS.items()
+        if any(kw in haystack for kw in keywords)
+    ]
     if not suggestions:
         suggestions.append("Core user journey from entry to successful outcome")
     return suggestions[:5]
+
+
+_SUMMARIZE_PROMPT_TEMPLATE = (
+    "You are Agent_Primer. Summarize this repository context in 4 short bullets:\n"
+    "1) likely product purpose\n"
+    "2) likely core user flows\n"
+    "3) likely deployment/runtime shape\n"
+    "4) top immediate audit risk areas\n"
+    "Keep it concise and factual.\n\n"
+    "Repository data (JSON):\n"
+    "{repo_json}"
+)
 
 
 async def _summarize(primer_json: dict) -> str:
@@ -201,16 +215,7 @@ async def _summarize(primer_json: dict) -> str:
         k: v[:150] if isinstance(v, list) else v
         for k, v in primer_json.items()
     }
-    prompt = (
-        "You are Agent_Primer. Summarize this repository context in 4 short bullets:\n"
-        "1) likely product purpose\n"
-        "2) likely core user flows\n"
-        "3) likely deployment/runtime shape\n"
-        "4) top immediate audit risk areas\n"
-        "Keep it concise and factual.\n\n"
-        "Repository data (JSON):\n"
-        f"{json.dumps(trimmed)}"
-    )
+    prompt = _SUMMARIZE_PROMPT_TEMPLATE.format(repo_json=json.dumps(trimmed))
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             resp = await client.post(
