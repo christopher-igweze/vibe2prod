@@ -114,6 +114,7 @@ class SandboxManager:
 
         image = (
             Image.debian_slim("3.12")
+            .run_commands("apt-get update && apt-get install -y --no-install-recommends git build-essential && rm -rf /var/lib/apt/lists/*")
             .pip_install([forge_source])
             .workdir("/home/daytona")
         )
