@@ -127,7 +127,7 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
         summary = await _summarize(primer_json)
         confidence = 85
     except Exception as exc:
-        failure_reason = str(exc)
+        failure_reason = f"{type(exc).__name__}: primer extraction incomplete"
         logger.exception("Primer generation failed")
         primer_json = {
             "repo_full_name": repo_info.full_name,
@@ -141,7 +141,10 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
         )
         confidence = 35
     finally:
-        await sandbox_mgr.destroy(scan_id)
+        try:
+            await sandbox_mgr.destroy(scan_id)
+        except Exception:
+            logger.exception("Failed to destroy sandbox for primer scan %s", scan_id)
 
     primer = PrimerResult(
         primer_json=primer_json,
