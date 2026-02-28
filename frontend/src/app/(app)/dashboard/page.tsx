@@ -5,10 +5,23 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
+import { Download, Trash2, Loader2 } from "lucide-react";
 import { apiFetch } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import type { DiscoveryReport } from "@/lib/api/types";
 
 interface ScanSummary {
   id: string;
@@ -18,11 +31,35 @@ interface ScanSummary {
   created_at: string;
 }
 
+interface ScanDetail {
+  id: string;
+  report_data?: {
+    discovery_report?: DiscoveryReport;
+  };
+}
+
+function downloadReportJson(report: DiscoveryReport, repoName: string) {
+  const slug = (repoName || "repo").replace(/\//g, "-");
+  const date = new Date().toISOString().slice(0, 10);
+  const filename = `forge-report-${slug}-${date}.json`;
+  const blob = new Blob([JSON.stringify(report, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function DashboardPage() {
   const { getToken } = useAuth();
   const [scans, setScans] = useState<ScanSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -38,6 +75,37 @@ export default function DashboardPage() {
     }
     load();
   }, [getToken]);
+
+  async function handleDownload(scan: ScanSummary) {
+    setDownloadingId(scan.id);
+    try {
+      const token = (await getToken()) ?? undefined;
+      const detail = await apiFetch<ScanDetail>(
+        `/api/user/scans/${scan.id}`,
+        { token },
+      );
+      const report = detail.report_data?.discovery_report;
+      if (report) {
+        downloadReportJson(report, scan.repo_name || scan.repo_url);
+      }
+    } finally {
+      setDownloadingId(null);
+    }
+  }
+
+  async function handleDelete(scanId: string) {
+    setDeletingId(scanId);
+    try {
+      const token = (await getToken()) ?? undefined;
+      await apiFetch(`/api/user/scans/${scanId}`, {
+        method: "DELETE",
+        token,
+      });
+      setScans((prev) => prev.filter((s) => s.id !== scanId));
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -85,18 +153,80 @@ export default function DashboardPage() {
         <div className="space-y-3">
           <h2 className="text-lg font-semibold">Recent Scans</h2>
           {scans.map((scan) => (
-            <Link
+            <Card
               key={scan.id}
-              href={scan.status === "completed" ? `/scan/${scan.id}/report` : `/scan/${scan.id}`}
+              className="bg-neutral-900 border-neutral-800 p-4 hover:border-neutral-700 transition-colors"
             >
-              <Card className="bg-neutral-900 border-neutral-800 p-4 hover:border-neutral-700 transition-colors cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{scan.repo_name || scan.repo_url}</p>
+              <div className="flex items-center justify-between gap-3">
+                <Link
+                  href={scan.status === "completed" ? `/scan/${scan.id}/report` : `/scan/${scan.id}`}
+                  className="flex-1 min-w-0"
+                >
+                  <div className="cursor-pointer">
+                    <p className="font-medium truncate">{scan.repo_name || scan.repo_url}</p>
                     <p className="text-xs text-neutral-500 mt-1">
                       {new Date(scan.created_at).toLocaleDateString()}
                     </p>
                   </div>
+                </Link>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {scan.status === "completed" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-neutral-400 hover:text-neutral-200"
+                      disabled={downloadingId === scan.id}
+                      onClick={() => handleDownload(scan)}
+                    >
+                      {downloadingId === scan.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Download className="size-4" />
+                      )}
+                    </Button>
+                  )}
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-neutral-500 hover:text-red-400"
+                        disabled={deletingId === scan.id}
+                      >
+                        {deletingId === scan.id ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="size-4" />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-neutral-900 border-neutral-800">
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this scan?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-neutral-400">
+                          This will permanently delete the scan for{" "}
+                          <span className="font-medium text-neutral-300">
+                            {scan.repo_name || scan.repo_url}
+                          </span>
+                          . This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel className="border-neutral-700">
+                          Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(scan.id)}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
                   <Badge
                     variant={
                       scan.status === "completed"
@@ -109,8 +239,8 @@ export default function DashboardPage() {
                     {scan.status}
                   </Badge>
                 </div>
-              </Card>
-            </Link>
+              </div>
+            </Card>
           ))}
         </div>
       )}
