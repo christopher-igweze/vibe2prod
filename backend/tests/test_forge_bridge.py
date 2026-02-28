@@ -1,11 +1,13 @@
-"""Unit tests for services/forge_bridge.py — FORGE HTTP bridge."""
+"""Unit tests for services/forge_bridge.py — FORGE bridge."""
 
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import unittest
-import urllib.error
+from types import SimpleNamespace
+from uuid import uuid4
 from unittest.mock import patch, MagicMock, AsyncMock
 
 os.environ.setdefault("SUPABASE_URL", "http://localhost")
@@ -15,10 +17,10 @@ os.environ.setdefault("OPENROUTER_API_KEY", "test")
 os.environ.setdefault("DAYTONA_API_KEY", "test")
 
 from services.forge_bridge import (
-    ForgeRunResult,
     trigger_forge_scan,
     trigger_forge_remediate,
     _parse_forge_result,
+    _parse_sandbox_result,
     _extract_readiness_score,
 )
 
@@ -107,58 +109,113 @@ class ExtractReadinessScoreTests(unittest.TestCase):
         self.assertEqual(_extract_readiness_score({"readiness_report": "bad"}), 0)
 
 
+class ParseSandboxResultTests(unittest.TestCase):
+    """Tests for _parse_sandbox_result — parses CLI JSON stdout."""
+
+    def test_clean_json(self) -> None:
+        data = {"forge_run_id": "run-1", "success": True, "total_findings": 5,
+                "discovery_report": {"items": []}, "readiness_report": {"overall_score": 72}}
+        result = _parse_sandbox_result("exec-1", json.dumps(data))
+        self.assertTrue(result.success)
+        self.assertEqual(result.total_findings, 5)
+        self.assertEqual(result.readiness_score, 72)
+        self.assertEqual(result.status, "completed")
+
+    def test_prefixed_stdout(self) -> None:
+        """CLI prints 'Scanning /path...' before JSON."""
+        data = {"forge_run_id": "run-2", "success": True}
+        stdout = f"Scanning /home/daytona/repo...\n{json.dumps(data)}"
+        result = _parse_sandbox_result("exec-2", stdout)
+        self.assertTrue(result.success)
+        self.assertEqual(result.forge_run_id, "run-2")
+
+    def test_empty_stdout(self) -> None:
+        result = _parse_sandbox_result("exec-3", "")
+        self.assertFalse(result.success)
+        self.assertEqual(result.status, "failed")
+        self.assertIn("no output", result.error)
+
+    def test_garbled_output(self) -> None:
+        result = _parse_sandbox_result("exec-4", "not json at all")
+        self.assertFalse(result.success)
+        self.assertEqual(result.status, "failed")
+        self.assertIn("Could not parse", result.error)
+
+
 class TriggerForgeScanTests(unittest.TestCase):
-    """Tests for trigger_forge_scan with mocked HTTP."""
+    """Tests for trigger_forge_scan with mocked SandboxManager."""
 
-    def test_posts_correct_payload(self) -> None:
-        mock_post = MagicMock(return_value={"execution_id": "exec-1"})
-        mock_get = MagicMock(return_value={
-            "status": "completed",
-            "output": {"forge_run_id": "run-1", "success": True},
-        })
+    def _mock_manager(self, stdout: str = '{"success": true}', exit_code: int = 0, stderr: str = ""):
+        """Build a mock SandboxManager for sandbox-based scan tests."""
+        mgr = MagicMock()
+        mgr.provision_forge = AsyncMock()
+        mgr.exec = AsyncMock(return_value=SimpleNamespace(
+            stdout=stdout, stderr=stderr, exit_code=exit_code,
+        ))
+        mgr.destroy = AsyncMock()
+        return mgr
 
-        with patch("services.forge_bridge._http_post", mock_post), \
-             patch("services.forge_bridge._http_get", mock_get), \
-             patch("services.forge_bridge.asyncio.sleep", new=AsyncMock()):
+    def test_successful_scan(self) -> None:
+        scan_id = uuid4()
+        data = json.dumps({"forge_run_id": "r1", "success": True, "total_findings": 3})
+        mgr = self._mock_manager(stdout=f"Scanning /repo...\n{data}")
+
+        with patch("services.forge_bridge.SandboxManager", return_value=mgr):
             result = asyncio.run(trigger_forge_scan(
-                repo_url="https://github.com/user/repo",
-                agentfield_url_override="http://test:8080",
-                timeout=10,
+                "https://github.com/user/repo", scan_id=scan_id,
             ))
 
         self.assertTrue(result.success)
-        call_args = mock_post.call_args
-        self.assertIn(".scan", call_args[0][0])
-        payload = call_args[0][1]
-        self.assertEqual(payload["input"]["repo_url"], "https://github.com/user/repo")
-        self.assertEqual(payload["input"]["config"]["mode"], "discovery")
-        self.assertTrue(payload["input"]["config"]["dry_run"])
+        self.assertEqual(result.total_findings, 3)
+        mgr.provision_forge.assert_awaited_once()
+        mgr.destroy.assert_awaited_once_with(scan_id)
 
-    def test_http_failure_returns_error(self) -> None:
-        mock_post = MagicMock(side_effect=urllib.error.URLError("Connection refused"))
+    def test_nonzero_exit_returns_error(self) -> None:
+        scan_id = uuid4()
+        mgr = self._mock_manager(exit_code=1, stderr="ModuleNotFoundError: forge")
 
-        with patch("services.forge_bridge._http_post", mock_post):
+        with patch("services.forge_bridge.SandboxManager", return_value=mgr):
             result = asyncio.run(trigger_forge_scan(
-                repo_url="https://github.com/user/repo",
-                agentfield_url_override="http://test:8080",
+                "https://github.com/user/repo", scan_id=scan_id,
+            ))
+
+        self.assertFalse(result.success)
+        self.assertEqual(result.status, "failed")
+        self.assertIn("exit 1", result.error)
+        mgr.destroy.assert_awaited_once_with(scan_id)
+
+    def test_provision_failure_returns_error(self) -> None:
+        scan_id = uuid4()
+        mgr = self._mock_manager()
+        mgr.provision_forge = AsyncMock(side_effect=RuntimeError("Daytona down"))
+
+        with patch("services.forge_bridge.SandboxManager", return_value=mgr):
+            result = asyncio.run(trigger_forge_scan(
+                "https://github.com/user/repo", scan_id=scan_id,
             ))
 
         self.assertFalse(result.success)
         self.assertEqual(result.status, "error")
-        self.assertIn("Failed to trigger FORGE", result.error)
+        self.assertIn("Sandbox execution failed", result.error)
+        mgr.destroy.assert_awaited_once_with(scan_id)
 
-    def test_no_execution_id_returns_error(self) -> None:
-        mock_post = MagicMock(return_value={"message": "ok but no id"})
+    def test_sandbox_always_destroyed(self) -> None:
+        """Sandbox is destroyed even if exec raises."""
+        scan_id = uuid4()
+        mgr = self._mock_manager()
+        mgr.exec = AsyncMock(side_effect=Exception("timeout"))
 
-        with patch("services.forge_bridge._http_post", mock_post):
+        with patch("services.forge_bridge.SandboxManager", return_value=mgr):
             result = asyncio.run(trigger_forge_scan(
-                repo_url="https://github.com/user/repo",
-                agentfield_url_override="http://test:8080",
+                "https://github.com/user/repo", scan_id=scan_id,
             ))
 
         self.assertFalse(result.success)
-        self.assertEqual(result.status, "error")
-        self.assertIn("No execution_id", result.error)
+        mgr.destroy.assert_awaited_once_with(scan_id)
+
+    def test_scan_id_required(self) -> None:
+        with self.assertRaises(ValueError):
+            asyncio.run(trigger_forge_scan("https://github.com/user/repo"))
 
 
 class TriggerForgeRemediateTests(unittest.TestCase):
