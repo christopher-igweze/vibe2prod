@@ -79,14 +79,15 @@ async def _event_generator(scan_id: UUID):
 @limiter.limit(rate_limit_string())
 async def stream_status(scan_id: UUID, request: Request):
     """Stream audit events for a given scan via SSE."""
-    if scan_id not in event_buses:
-        raise HTTPException(status_code=404, detail="Scan not found")
-
-    # Verify the requesting user owns this scan
+    # Auth check FIRST to prevent IDOR — don't leak scan existence to
+    # unauthorized users by checking event_buses before ownership.
     user_id: str = request.state.user_id
     scan = await db.get_scan_report(scan_id, user_id)
     if not scan:
-        raise HTTPException(status_code=403, detail="Not authorized to view this scan")
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    if scan_id not in event_buses:
+        raise HTTPException(status_code=404, detail="Scan not found")
 
     return EventSourceResponse(
         _event_generator(scan_id),
