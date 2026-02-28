@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     github_oauth_state_ttl_minutes: int = 15
     github_oauth_state_secret: str | None = None
     github_webhook_secret: str | None = None
+    github_oauth_allowed_redirect_origins: str = ""  # Comma-separated, e.g. "https://vibe2prod.com,http://localhost:3000"
     webhook_replay_window_seconds: int = 600
 
     # --- Daytona (sandbox) ---
