@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 from uuid import UUID, uuid4
 
+import httpx
 from fastapi import APIRouter, BackgroundTasks, Request, HTTPException
 
 from api.middleware.rate_limit import limiter, rate_limit_string
@@ -97,17 +98,20 @@ async def _run_forge_audit(
                 )
             )
             await db.update_scan_status(scan_id, ScanStatus.failed)
-    except Exception:
+    except Exception as exc:
         logger.exception("FORGE audit background task failed for scan %s", scan_id)
         emit(
             AgentLogEntry(
                 event_type=SSEEventType.scan_error,
                 agent=AgentName.orchestrator,
-                message="FORGE discovery scan failed unexpectedly.",
+                message=f"FORGE discovery scan failed: {type(exc).__name__}",
                 level=LogLevel.error,
             )
         )
-        await db.update_scan_status(scan_id, ScanStatus.failed)
+        try:
+            await db.update_scan_status(scan_id, ScanStatus.failed)
+        except Exception:
+            logger.exception("Failed to update scan status after error for scan %s", scan_id)
 
 
 async def _preflight(
@@ -199,6 +203,15 @@ async def start_audit(
         )
     except HTTPException:
         raise
+    except ValueError as exc:
+        logger.warning("Validation error in start_audit: %s", exc)
+        raise HTTPException(status_code=400, detail=str(exc))
+    except httpx.TimeoutException:
+        logger.warning("Timeout during start_audit preflight")
+        raise HTTPException(status_code=504, detail="Upstream request timed out")
+    except httpx.HTTPError as exc:
+        logger.warning("HTTP error during start_audit preflight: %s", exc)
+        raise HTTPException(status_code=502, detail="Upstream service error")
     except Exception:
         logger.exception("Failed to create scan report row")
         raise HTTPException(status_code=500, detail="Failed to create scan")
