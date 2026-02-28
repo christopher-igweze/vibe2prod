@@ -89,6 +89,72 @@ class SandboxManager:
         logger.info("Sandbox ready for scan %s", scan_id)
         return session
 
+    async def provision_forge(
+        self,
+        scan_id: UUID,
+        clone_url: str,
+        *,
+        openrouter_api_key: str,
+        github_token: str | None = None,
+    ) -> SandboxSession:
+        """Spin up an isolated sandbox for a FORGE discovery scan.
+
+        Installs the FORGE engine, clones the repo, and locks down
+        network egress to only the hosts FORGE needs (LLM API, PyPI,
+        GitHub for cloning).
+        """
+        logger.info("Provisioning FORGE sandbox for scan %s", scan_id)
+
+        forge_source = settings.forge_package_source
+        if github_token and "github.com" in forge_source:
+            forge_source = forge_source.replace(
+                "https://github.com/",
+                f"https://x-access-token:{github_token}@github.com/",
+            )
+
+        image = (
+            Image.debian_slim("3.12")
+            .pip_install([forge_source])
+            .workdir("/home/daytona")
+        )
+
+        env_vars = {
+            "SCAN_ID": str(scan_id),
+            "OPENROUTER_API_KEY": openrouter_api_key,
+        }
+
+        sandbox = self._daytona.create(
+            CreateSandboxFromImageParams(
+                image=image,
+                resources=Resources(
+                    cpu=settings.forge_sandbox_cpu,
+                    memory=settings.forge_sandbox_memory_gb,
+                    disk=settings.forge_sandbox_disk_gb,
+                ),
+                auto_stop_interval=settings.forge_sandbox_timeout_minutes,
+                ephemeral=True,
+                labels={"scan_id": str(scan_id), "type": "forge"},
+                env_vars=env_vars,
+                network_block_all=True,
+                network_allow_list=(
+                    "openrouter.ai,"
+                    "github.com,"
+                    "pypi.org,"
+                    "files.pythonhosted.org"
+                ),
+            ),
+        )
+
+        repo_path = "/home/daytona/repo"
+        sandbox.git.clone(clone_url, repo_path)
+
+        session = SandboxSession(
+            scan_id=scan_id, sandbox=sandbox, repo_path=repo_path
+        )
+        self._sessions[scan_id] = session
+        logger.info("FORGE sandbox ready for scan %s", scan_id)
+        return session
+
     async def exec(
         self, scan_id: UUID, command: str, cwd: str | None = None, timeout: int = 120
     ) -> CommandResult:
