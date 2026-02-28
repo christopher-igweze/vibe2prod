@@ -1,15 +1,54 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@clerk/nextjs"
+import { Download, Trash2, Loader2 } from "lucide-react"
+
 import type { DiscoveryReport } from "@/lib/api/types"
+import { apiFetch } from "@/lib/api/client"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { formatDuration, formatCost } from "./report-utils"
 
 interface ReportHeaderProps {
   report: DiscoveryReport
   repoName?: string
+  scanId: string
 }
 
-export function ReportHeader({ report, repoName }: ReportHeaderProps) {
+function downloadJson(report: DiscoveryReport, repoName?: string) {
+  const slug = (repoName || "repo").replace(/\//g, "-")
+  const date = new Date().toISOString().slice(0, 10)
+  const filename = `forge-report-${slug}-${date}.json`
+
+  const blob = new Blob([JSON.stringify(report, null, 2)], {
+    type: "application/json",
+  })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+export function ReportHeader({ report, repoName, scanId }: ReportHeaderProps) {
+  const router = useRouter()
+  const { getToken } = useAuth()
+  const [deleting, setDeleting] = useState(false)
+
   const truncatedRunId = report.run_id.slice(0, 12)
   const formattedDate = new Date(report.generated_at).toLocaleString("en-US", {
     year: "numeric",
@@ -18,6 +57,20 @@ export function ReportHeader({ report, repoName }: ReportHeaderProps) {
     hour: "2-digit",
     minute: "2-digit",
   })
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const token = (await getToken()) ?? undefined
+      await apiFetch(`/api/user/scans/${scanId}`, {
+        method: "DELETE",
+        token,
+      })
+      router.push("/dashboard")
+    } catch {
+      setDeleting(false)
+    }
+  }
 
   return (
     <div className="text-center space-y-4">
@@ -58,6 +111,57 @@ export function ReportHeader({ report, repoName }: ReportHeaderProps) {
             {report.primary_language}
           </Badge>
         )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          onClick={() => downloadJson(report, repoName)}
+        >
+          <Download className="size-4 mr-1.5" />
+          Download JSON
+        </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-neutral-700 text-red-400 hover:text-red-300 hover:border-red-700"
+              disabled={deleting}
+            >
+              {deleting ? (
+                <Loader2 className="size-4 mr-1.5 animate-spin" />
+              ) : (
+                <Trash2 className="size-4 mr-1.5" />
+              )}
+              Delete Scan
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-neutral-900 border-neutral-800">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this scan?</AlertDialogTitle>
+              <AlertDialogDescription className="text-neutral-400">
+                This will permanently delete the scan report and all associated
+                data. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="border-neutral-700">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )
