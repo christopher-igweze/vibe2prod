@@ -1,15 +1,18 @@
-"""FORGE bridge — triggers FORGE remediation via AgentField control plane.
+"""FORGE bridge — triggers FORGE scans and remediation.
 
-This is the integration layer that the vibe2prod backend uses
-to trigger FORGE engine runs via AgentField HTTP API.
+Discovery scans run inside isolated Daytona sandboxes.
+Remediation runs go through AgentField control plane.
 
 Usage:
     from services.forge_bridge import trigger_forge_scan, trigger_forge_remediate
 
-    # Discovery only
-    result = await trigger_forge_scan(repo_url="https://github.com/user/repo")
+    # Discovery (runs in Daytona sandbox)
+    result = await trigger_forge_scan(
+        scan_id=scan_id,
+        repo_url="https://github.com/user/repo",
+    )
 
-    # Full remediation
+    # Full remediation (via AgentField)
     result = await trigger_forge_remediate(
         repo_url="https://github.com/user/repo",
         scan_findings=scan_result.findings,
@@ -25,13 +28,14 @@ import urllib.request
 import urllib.error
 from dataclasses import dataclass, field
 from typing import Any, Sequence
+from uuid import UUID
 
 from config import settings
+from sandbox.manager import SandboxManager
 
 logger = logging.getLogger(__name__)
 
 _POLL_INTERVAL = 10  # seconds
-_SCAN_TIMEOUT = 600  # 10 minutes for discovery
 _REMEDIATE_TIMEOUT = 2700  # 45 minutes for full remediation
 
 
@@ -137,39 +141,111 @@ def _authenticated_url(repo_url: str, token: str | None) -> str:
 async def trigger_forge_scan(
     repo_url: str,
     *,
+    scan_id: UUID | None = None,
     github_token: str | None = None,
     model_override: str | None = None,
-    timeout: int = _SCAN_TIMEOUT,
-    agentfield_url_override: str | None = None,
+    timeout: int | None = None,
     project_context: dict | None = None,
 ) -> ForgeRunResult:
-    """Trigger a FORGE discovery scan (no fixes applied).
+    """Run a FORGE discovery scan inside an isolated Daytona sandbox.
+
+    Provisions a fresh sandbox, installs FORGE, clones the repo,
+    runs ``vibe2prod scan --json``, parses the result, and tears
+    down the sandbox.
 
     Returns a ForgeRunResult with findings and readiness score.
     """
-    agentfield_url = agentfield_url_override or settings.forge_agentfield_url
-    api_key = settings.agentfield_api_key
+    if scan_id is None:
+        raise ValueError("scan_id is required for sandbox-based discovery")
 
-    config: dict[str, Any] = {
-        "mode": "discovery",
-        "dry_run": True,
-    }
-    if model_override:
-        config["models"] = {"default": model_override}
-    if project_context:
-        config["project_context"] = project_context
-
+    exec_timeout = timeout or settings.forge_sandbox_exec_timeout
     clone_url = _authenticated_url(repo_url, github_token)
 
-    payload = {
-        "input": {
-            "repo_url": clone_url,
-            "config": config,
-        }
-    }
+    mgr = SandboxManager()
+    try:
+        await mgr.provision_forge(
+            scan_id,
+            clone_url,
+            openrouter_api_key=settings.openrouter_api_key,
+            github_token=github_token,
+        )
 
-    return await _trigger_forge(
-        agentfield_url, api_key, "scan", payload, timeout,
+        cmd = "vibe2prod scan /home/daytona/repo --json"
+        if model_override:
+            cmd += f" --model {model_override}"
+
+        result = await mgr.exec(scan_id, cmd, cwd="/home/daytona", timeout=exec_timeout)
+
+        if result.exit_code != 0:
+            logger.error(
+                "FORGE scan exited %d for scan %s: %s",
+                result.exit_code, scan_id, result.stderr[:500],
+            )
+            return ForgeRunResult(
+                execution_id=str(scan_id),
+                status="failed",
+                error=f"FORGE scan failed (exit {result.exit_code}): {result.stderr[:500]}",
+            )
+
+        return _parse_sandbox_result(str(scan_id), result.stdout)
+
+    except Exception as e:
+        logger.exception("FORGE sandbox scan failed for %s", scan_id)
+        return ForgeRunResult(
+            execution_id=str(scan_id),
+            status="error",
+            error=f"Sandbox execution failed: {e}",
+        )
+    finally:
+        await mgr.destroy(scan_id)
+
+
+def _parse_sandbox_result(execution_id: str, stdout: str) -> ForgeRunResult:
+    """Parse FORGE CLI JSON output from sandbox stdout.
+
+    The CLI prints ``Scanning <path>...`` before the JSON blob.
+    We try json.loads on the full output first; if that fails we
+    locate the first ``{`` and parse from there.
+    """
+    text = stdout.strip()
+    if not text:
+        return ForgeRunResult(
+            execution_id=execution_id,
+            status="failed",
+            error="FORGE produced no output",
+        )
+
+    data: dict | None = None
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        brace = text.find("{")
+        if brace >= 0:
+            try:
+                data = json.loads(text[brace:])
+            except json.JSONDecodeError:
+                pass
+
+    if data is None:
+        return ForgeRunResult(
+            execution_id=execution_id,
+            status="failed",
+            error=f"Could not parse FORGE output as JSON: {text[:300]}",
+        )
+
+    return ForgeRunResult(
+        execution_id=execution_id,
+        forge_run_id=data.get("forge_run_id", ""),
+        status="completed",
+        success=data.get("success", True),
+        summary=data.get("summary", ""),
+        error=data.get("error", ""),
+        total_findings=data.get("total_findings", 0),
+        findings_fixed=data.get("findings_fixed", 0),
+        findings_deferred=data.get("findings_deferred", 0),
+        readiness_score=_extract_readiness_score(data),
+        raw_result=data,
+        discovery_report=data.get("discovery_report") or {},
     )
 
 

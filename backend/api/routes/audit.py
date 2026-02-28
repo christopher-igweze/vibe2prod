@@ -61,6 +61,7 @@ async def _run_forge_audit(
 
         result = await trigger_forge_scan(
             repo_url,
+            scan_id=scan_id,
             github_token=github_token,
             project_context=project_context,
         )
