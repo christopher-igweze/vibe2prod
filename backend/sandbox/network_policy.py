@@ -14,6 +14,7 @@ DEFAULT_ALLOWED_HOST_SUFFIXES: tuple[str, ...] = (
     "files.pythonhosted.org",
     "deb.debian.org",
     "security.debian.org",
+    "openrouter.ai",
 )
 
 _URL_PATTERN = re.compile(r"https?://([a-zA-Z0-9._-]+)")
