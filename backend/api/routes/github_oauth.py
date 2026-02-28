@@ -123,18 +123,23 @@ async def _exchange_code_for_access_token(
     state: str,
 ) -> str:
     _ensure_oauth_configured()
-    async with httpx.AsyncClient(timeout=20) as client:
-        resp = await client.post(
-            "https://github.com/login/oauth/access_token",
-            headers={"Accept": "application/json"},
-            json={
-                "client_id": settings.github_client_id,
-                "client_secret": settings.github_client_secret,
-                "code": code,
-                "redirect_uri": redirect_uri,
-                "state": state,
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.post(
+                "https://github.com/login/oauth/access_token",
+                headers={"Accept": "application/json"},
+                json={
+                    "client_id": settings.github_client_id,
+                    "client_secret": settings.github_client_secret,
+                    "code": code,
+                    "redirect_uri": redirect_uri,
+                    "state": state,
+                },
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub OAuth request timed out."})
+    except httpx.ConnectError:
+        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
     if resp.status_code >= 400:
         raise HTTPException(
             status_code=502,
@@ -159,14 +164,19 @@ async def _exchange_code_for_access_token(
 
 
 async def _fetch_github_profile(access_token: str) -> tuple[str | None, str | None]:
-    async with httpx.AsyncClient(timeout=20) as client:
-        resp = await client.get(
-            "https://api.github.com/user",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {access_token}",
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.get(
+                "https://api.github.com/user",
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {access_token}",
+                },
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub profile request timed out."})
+    except httpx.ConnectError:
+        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
     if resp.status_code >= 400:
         raise HTTPException(
             status_code=502,
@@ -282,21 +292,26 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
             detail={"code": "github_not_connected", "message": "GitHub is not connected."},
         )
 
-    async with httpx.AsyncClient(timeout=20) as client:
-        resp = await client.get(
-            "https://api.github.com/user/repos",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {token}",
-            },
-            params={
-                "sort": "updated",
-                "direction": "desc",
-                "per_page": min(per_page, 100),
-                "page": page,
-                "type": "all",
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.get(
+                "https://api.github.com/user/repos",
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                },
+                params={
+                    "sort": "updated",
+                    "direction": "desc",
+                    "per_page": min(per_page, 100),
+                    "page": page,
+                    "type": "all",
+                },
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub API request timed out."})
+    except httpx.ConnectError:
+        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
 
     if resp.status_code == 401:
         raise HTTPException(
@@ -337,18 +352,23 @@ async def list_repo_branches(
             detail={"code": "github_not_connected", "message": "GitHub is not connected."},
         )
 
-    async with httpx.AsyncClient(timeout=20) as client:
-        resp = await client.get(
-            f"https://api.github.com/repos/{owner}/{repo}/branches",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {token}",
-            },
-            params={
-                "per_page": min(per_page, 100),
-                "page": page,
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.get(
+                f"https://api.github.com/repos/{owner}/{repo}/branches",
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                },
+                params={
+                    "per_page": min(per_page, 100),
+                    "page": page,
+                },
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub API request timed out."})
+    except httpx.ConnectError:
+        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
 
     if resp.status_code == 401:
         raise HTTPException(
@@ -388,14 +408,17 @@ async def github_connection_status(request: Request):
         return {"connected": False}
 
     # Verify token is still valid
-    async with httpx.AsyncClient(timeout=10) as client:
-        resp = await client.get(
-            "https://api.github.com/user",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "Authorization": f"Bearer {token}",
-            },
-        )
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                "https://api.github.com/user",
+                headers={
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                },
+            )
+    except (httpx.TimeoutException, httpx.ConnectError):
+        return {"connected": False, "error": "github_unreachable"}
 
     if resp.status_code != 200:
         return {"connected": False, "error": "token_expired"}
