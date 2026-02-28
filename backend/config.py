@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     daytona_api_url: str = "https://app.daytona.io/api"
     daytona_target: str | None = None
 
+    # --- LLM Models ---
+    model_scanner: str = "google/gemini-2.0-flash-001"
+
     # --- LLM Runtime Limits ---
     llm_max_output_tokens: int = 4096
 
