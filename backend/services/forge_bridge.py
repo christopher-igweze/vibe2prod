@@ -6,13 +6,13 @@ to trigger FORGE engine runs via AgentField HTTP API.
 Usage:
     from services.forge_bridge import trigger_forge_scan, trigger_forge_remediate
 
-    # Discovery only (free tier)
+    # Discovery only
     result = await trigger_forge_scan(repo_url="https://github.com/user/repo")
 
     # Full remediation
     result = await trigger_forge_remediate(
         repo_url="https://github.com/user/repo",
-        tier1_findings=scan_result.findings,
+        scan_findings=scan_result.findings,
     )
 """
 
@@ -175,7 +175,7 @@ async def trigger_forge_scan(
 
 async def trigger_forge_remediate(
     repo_url: str,
-    tier1_findings: Sequence[Any] | None = None,
+    scan_findings: Sequence[Any] | None = None,
     *,
     mode: str = "full",
     model_override: str | None = None,
@@ -188,7 +188,7 @@ async def trigger_forge_remediate(
 
     Args:
         repo_url: GitHub repository URL.
-        tier1_findings: Optional pre-existing Tier 1 scan findings.
+        scan_findings: Optional pre-existing scan findings.
         mode: "full", "discovery", or "remediation".
         model_override: Override default model for all agents.
         timeout: Max wait time in seconds.
@@ -205,19 +205,19 @@ async def trigger_forge_remediate(
     if project_context:
         config["project_context"] = project_context
 
-    # Convert tier1 findings to dicts if they're model objects
-    t1_dicts = None
-    if tier1_findings:
-        t1_dicts = [
+    # Convert scan findings to dicts if they're model objects
+    finding_dicts = None
+    if scan_findings:
+        finding_dicts = [
             f.model_dump() if hasattr(f, "model_dump") else dict(f)
-            for f in tier1_findings
+            for f in scan_findings
         ]
 
     payload = {
         "input": {
             "repo_url": repo_url,
             "config": config,
-            "tier1_findings": t1_dicts,
+            "scan_findings": finding_dicts,
         }
     }
 

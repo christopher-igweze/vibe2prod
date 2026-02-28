@@ -124,13 +124,13 @@ async def _preflight(
     existing_project = await db.get_project_by_repo_url(user_id, str(request_body.repo_url))
     project_count = await db.get_active_project_count(user_id)
 
-    if existing_project is None and project_count >= settings.tier1_project_cap:
+    if existing_project is None and project_count >= settings.project_cap:
         raise _limit_exception(
             "limit_projects_exceeded",
             "Project limit reached.",
             {
                 "project_count": project_count,
-                "project_limit": settings.tier1_project_cap,
+                "project_limit": settings.project_cap,
             },
         )
 
@@ -212,5 +212,5 @@ async def get_limits(request: Request) -> dict:
     return {
         "tier": "forge",
         "project_count": project_count,
-        "project_limit": settings.tier1_project_cap,
+        "project_limit": settings.project_cap,
     }

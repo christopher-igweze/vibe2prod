@@ -46,14 +46,8 @@ class Settings(BaseSettings):
     sandbox_memory_gb: int = 4
     sandbox_disk_gb: int = 8
 
-    # --- Tier 1 (Free) ---
-    tier1_enabled: bool = True
-    tier1_assistant_model: str = "google/gemini-2.5-flash-lite"
-    tier1_loc_cap: int = 50000
-    tier1_monthly_report_cap: int = 10
-    tier1_project_cap: int = 3
-    tier1_index_ttl_days: int = 30
-    tier1_report_ttl_days: int = 7
+    # --- Project Limits ---
+    project_cap: int = 3
 
     # --- Clerk Auth ---
     clerk_jwks_url: str = ""  # e.g. https://your-app.clerk.accounts.dev/.well-known/jwks.json

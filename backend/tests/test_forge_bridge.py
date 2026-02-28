@@ -164,7 +164,7 @@ class TriggerForgeScanTests(unittest.TestCase):
 class TriggerForgeRemediateTests(unittest.TestCase):
     """Tests for trigger_forge_remediate with mocked HTTP."""
 
-    def test_includes_tier1_findings(self) -> None:
+    def test_includes_scan_findings(self) -> None:
         mock_post = MagicMock(return_value={"execution_id": "exec-2"})
         mock_get = MagicMock(return_value={
             "status": "completed",
@@ -181,7 +181,7 @@ class TriggerForgeRemediateTests(unittest.TestCase):
              patch("services.forge_bridge.asyncio.sleep", new=AsyncMock()):
             result = asyncio.run(trigger_forge_remediate(
                 repo_url="https://github.com/user/repo",
-                tier1_findings=findings,
+                scan_findings=findings,
                 agentfield_url_override="http://test:8080",
                 timeout=10,
             ))
@@ -189,7 +189,7 @@ class TriggerForgeRemediateTests(unittest.TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.findings_fixed, 2)
         payload = mock_post.call_args[0][1]
-        self.assertEqual(payload["input"]["tier1_findings"], findings)
+        self.assertEqual(payload["input"]["scan_findings"], findings)
 
     def test_mode_defaults_to_full(self) -> None:
         mock_post = MagicMock(return_value={"execution_id": "exec-3"})
