@@ -30,10 +30,10 @@ class WebhookResponse(BaseModel):
 
 def _webhook_not_configured() -> HTTPException:
     return HTTPException(
-        status_code=503,
+        status_code=401,
         detail={
-            "code": "webhook_not_configured",
-            "message": "GitHub webhook secret is not configured.",
+            "code": "webhook_unauthorized",
+            "message": "Webhook authentication failed.",
         },
     )
 
@@ -113,6 +113,7 @@ async def github_webhook(request: Request) -> WebhookResponse:
             if isinstance(raw_action, str):
                 action = raw_action
     except Exception:
+        logger.warning("Failed to parse webhook JSON for delivery=%s", delivery_id)
         payload = None
 
     logger.info(

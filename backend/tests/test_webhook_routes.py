@@ -73,6 +73,21 @@ class WebhookRouteTests(unittest.TestCase):
         self.assertEqual(second.json()["detail"]["code"], "webhook_replay_detected")
 
 
+    def test_unconfigured_secret_returns_401(self) -> None:
+        with patch.object(webhook.settings, "github_webhook_secret", None):
+            resp = self.client.post(
+                "/api/webhook/github",
+                content=b'{"action":"opened"}',
+                headers={
+                    "X-GitHub-Delivery": "delivery-unconfig",
+                    "X-GitHub-Event": "push",
+                    "X-Hub-Signature-256": "sha256=anything",
+                },
+            )
+        self.assertEqual(resp.status_code, 401)
+        self.assertEqual(resp.json()["detail"]["code"], "webhook_unauthorized")
+
+
 if __name__ == "__main__":
     unittest.main()
 
