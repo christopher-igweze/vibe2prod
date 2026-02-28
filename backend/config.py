@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import logging
+
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import Field, model_validator
 
 
 class Settings(BaseSettings):
@@ -79,6 +81,17 @@ class Settings(BaseSettings):
     forge_max_outer_replans: int = 1
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    @model_validator(mode="after")
+    def _normalize_optional_secrets(self) -> "Settings":
+        """Coerce empty-string secrets to None and warn about missing webhook secret."""
+        if self.github_webhook_secret is not None and not self.github_webhook_secret.strip():
+            self.github_webhook_secret = None
+        if self.github_webhook_secret is None:
+            logging.getLogger(__name__).warning(
+                "GITHUB_WEBHOOK_SECRET is empty — webhook endpoint will return 503"
+            )
+        return self
 
 
 settings = Settings()
