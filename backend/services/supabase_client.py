@@ -139,17 +139,55 @@ async def update_scan_status(scan_id: UUID, status: ScanStatus) -> None:
     ).execute()
 
 
+def _compute_scores_from_discovery(discovery_report: dict) -> dict[str, int]:
+    """Derive health/security/reliability/scalability scores from findings.
+
+    Starts each dimension at 100 and deducts based on finding severity.
+    Maps FORGE categories → frontend score dimensions:
+      security → security_score
+      quality + architecture → health_score
+      reliability → reliability_score
+      performance → scalability_score
+    """
+    severity_weights = {"critical": 15, "high": 8, "medium": 4, "low": 1, "info": 0}
+    category_map: dict[str, str] = {
+        "security": "security_score",
+        "quality": "health_score",
+        "architecture": "health_score",
+        "reliability": "reliability_score",
+        "performance": "scalability_score",
+    }
+
+    deductions: dict[str, int] = {
+        "health_score": 0,
+        "security_score": 0,
+        "reliability_score": 0,
+        "scalability_score": 0,
+    }
+
+    for finding in discovery_report.get("findings", []):
+        severity = finding.get("severity", "medium")
+        category = finding.get("category", "quality")
+        weight = severity_weights.get(severity, 4)
+        score_key = category_map.get(category, "health_score")
+        deductions[score_key] += weight
+
+    return {k: max(0, 100 - v) for k, v in deductions.items()}
+
+
 async def update_scan_with_discovery(
     scan_id: UUID,
     discovery_report: dict,
 ) -> None:
-    """Store FORGE discovery report data in scan_reports.report_data."""
+    """Store FORGE discovery report data and computed scores."""
+    scores = _compute_scores_from_discovery(discovery_report)
     client = _client()
     client.table("scan_reports").update(
         {
             "status": ScanStatus.completed.value,
             "report_data": {"discovery_report": discovery_report},
             "completed_at": datetime.now(timezone.utc).isoformat(),
+            **scores,
         }
     ).eq("id", str(scan_id)).execute()
 
