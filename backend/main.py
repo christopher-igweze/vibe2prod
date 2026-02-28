@@ -7,6 +7,7 @@ Start with:
 from __future__ import annotations
 
 import logging
+import re as _re
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -127,6 +128,21 @@ async def health():
 
 
 # ------------------------------------------------------------------ #
+# URL sanitization for logging
+# ------------------------------------------------------------------ #
+_SENSITIVE_PARAM = _re.compile(
+    r"(token|key|secret|password|jwt|bearer|access_token|refresh_token)"
+    r"=([^\s&]+)",
+    _re.IGNORECASE,
+)
+
+
+def _sanitize_url(url: object) -> str:
+    """Redact sensitive query parameters from URLs before logging."""
+    return _SENSITIVE_PARAM.sub(r"\1=***", str(url))
+
+
+# ------------------------------------------------------------------ #
 # Global error handler
 # ------------------------------------------------------------------ #
 @app.exception_handler(Exception)
@@ -145,7 +161,7 @@ async def global_exception_handler(request: Request, exc: Exception):
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
-    logger.exception("Unhandled exception on %s %s", request.method, request.url)
+    logger.exception("Unhandled exception on %s %s", request.method, _sanitize_url(request.url))
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
