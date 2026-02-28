@@ -83,8 +83,14 @@ async def _run_forge_fix(
         logger.exception(
             "FORGE fix background task failed for fix_attempt %s", fix_attempt_id
         )
-        await db.update_fix_attempt(fix_attempt_id, status="failed")
-        await db.update_action_item_fix_status(action_item_id, "open")
+        try:
+            await db.update_fix_attempt(fix_attempt_id, status="failed")
+            await db.update_action_item_fix_status(action_item_id, "open")
+        except Exception:
+            logger.exception(
+                "Failed to update DB after fix failure for fix_attempt %s",
+                fix_attempt_id,
+            )
 
 
 @router.post("/fix", response_model=FixResponse)
