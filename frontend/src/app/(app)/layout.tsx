@@ -6,7 +6,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-neutral-950">
       <nav className="border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-3">
-          <Link href="/dashboard" className="text-lg font-bold tracking-tight">
+          <Link href="/" className="text-lg font-bold tracking-tight">
             <span className="text-emerald-400">Vibe</span>
             <span className="text-neutral-100">2Prod</span>
           </Link>
