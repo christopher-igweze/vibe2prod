@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 from typing import Literal
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 import httpx
 import jwt
@@ -59,6 +59,26 @@ def _state_secret() -> str:
 def _ensure_oauth_configured() -> None:
     if not settings.github_client_id or not settings.github_client_secret:
         raise _oauth_not_configured()
+
+
+def _validate_redirect_uri(redirect_uri: str) -> None:
+    """Ensure redirect_uri origin is in the allowlist (skips if no allowlist configured)."""
+    allowed_raw = settings.github_oauth_allowed_redirect_origins
+    if not allowed_raw:
+        return
+    allowed = {o.strip().rstrip("/") for o in allowed_raw.split(",") if o.strip()}
+    parsed = urlparse(redirect_uri)
+    origin = f"{parsed.scheme}://{parsed.hostname}"
+    if parsed.port:
+        origin += f":{parsed.port}"
+    if origin not in allowed:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "redirect_uri_not_allowed",
+                "message": "The redirect_uri origin is not in the allowed list.",
+            },
+        )
 
 
 def _encode_state(user_id: str, redirect_uri: str) -> str:
@@ -175,6 +195,7 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
                 detail={"code": "redirect_uri_required", "message": "redirect_uri is required."},
             )
         _ensure_oauth_configured()
+        _validate_redirect_uri(request_body.redirect_uri)
         state = _encode_state(user_id=user_id, redirect_uri=request_body.redirect_uri)
         query = urlencode(
             {
