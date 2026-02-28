@@ -5,7 +5,9 @@ from __future__ import annotations
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, Field, HttpUrl
+import json
+
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 
 class ScanStatus(str, Enum):
@@ -51,6 +53,21 @@ class PrimerResult(BaseModel):
     failure_reason: str | None = None
 
 
+_MAX_CHARTER_BYTES = 10_240  # 10 KB
+_MAX_CHARTER_DEPTH = 5
+
+
+def _check_depth(obj: object, current: int = 0) -> None:
+    if current > _MAX_CHARTER_DEPTH:
+        raise ValueError(f"project_charter exceeds maximum nesting depth of {_MAX_CHARTER_DEPTH}")
+    if isinstance(obj, dict):
+        for v in obj.values():
+            _check_depth(v, current + 1)
+    elif isinstance(obj, list):
+        for item in obj:
+            _check_depth(item, current + 1)
+
+
 class AuditRequest(BaseModel):
     """Incoming request to start an audit."""
 
@@ -60,6 +77,17 @@ class AuditRequest(BaseModel):
     project_charter: dict | None = None
     project_intake: ProjectIntake = Field(default_factory=ProjectIntake)
     primer: PrimerResult | None = None
+
+    @field_validator("project_charter")
+    @classmethod
+    def validate_project_charter(cls, v: dict | None) -> dict | None:
+        if v is None:
+            return v
+        serialized = json.dumps(v)
+        if len(serialized.encode()) > _MAX_CHARTER_BYTES:
+            raise ValueError(f"project_charter exceeds maximum size of {_MAX_CHARTER_BYTES} bytes")
+        _check_depth(v)
+        return v
 
 
 class AuditResponse(BaseModel):
