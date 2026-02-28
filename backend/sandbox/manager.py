@@ -181,7 +181,7 @@ class SandboxManager:
             logger.warning("download_file failed for %s: %s; falling back to cat", path, exc)
             result = await self.exec(scan_id, f"cat {path}", cwd="/home/daytona", timeout=120)
             if result.exit_code != 0:
-                raise RuntimeError(f"Failed to read file via fallback cat: {path}")
+                raise RuntimeError(f"Failed to read file via fallback cat: {path}") from exc
             return result.stdout
 
     async def upload_file(self, scan_id: UUID, path: str, content: bytes) -> None:
@@ -199,13 +199,15 @@ class SandboxManager:
         )
         return result.stdout
 
-    async def destroy(self, scan_id: UUID) -> None:
-        """Tear down the sandbox for a scan."""
+    async def destroy(self, scan_id: UUID) -> bool:
+        """Tear down the sandbox for a scan. Returns True if destroyed successfully."""
         session = self._sessions.pop(scan_id, None)
         if session is None:
-            return
+            return False
         try:
             session.sandbox.delete()
             logger.info("Sandbox destroyed for scan %s", scan_id)
+            return True
         except Exception:
             logger.exception("Failed to destroy sandbox for scan %s", scan_id)
+            return False
