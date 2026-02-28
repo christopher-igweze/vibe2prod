@@ -804,6 +804,23 @@ async def get_scan_report(scan_id: UUID, user_id: str) -> dict | None:
     return row.data[0]
 
 
+async def delete_scan_report(scan_id: UUID, user_id: str) -> bool:
+    """Delete a scan report scoped to the requesting user.
+
+    CASCADE foreign keys handle child rows (action_items, fix_attempts, etc.).
+    Returns True if a row was deleted, False if not found.
+    """
+    client = _client()
+    result = (
+        client.table("scan_reports")
+        .delete()
+        .eq("id", str(scan_id))
+        .eq("user_id", str(user_id))
+        .execute()
+    )
+    return bool(result.data)
+
+
 async def get_project(project_id: UUID) -> dict | None:
     """Fetch a project row by ID."""
     client = _client()
