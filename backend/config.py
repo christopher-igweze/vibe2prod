@@ -59,6 +59,9 @@ class Settings(BaseSettings):
     # --- E2E Testing ---
     e2e_testing: bool = False
 
+    # --- CORS ---
+    cors_allowed_origins: str = ""  # Comma-separated explicit origins for production
+
     # --- Rate Limiting ---
     rate_limit_per_minute: int = 10
 

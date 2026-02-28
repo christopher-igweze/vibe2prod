@@ -18,6 +18,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from api.middleware.auth import SupabaseAuthMiddleware
 from api.middleware.rate_limit import limiter
+from config import settings
 from api.routes import (
     audit,
     status,
@@ -60,13 +61,31 @@ app = FastAPI(
 # ------------------------------------------------------------------ #
 # CORS
 # ------------------------------------------------------------------ #
-app.add_middleware(
-    CORSMiddleware,
-    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|^https://.*\.vercel\.app$|^https://(www\.)?vibe2prod\.com$|^https://.*\.verstandai\.site$|^https://.*\.ngrok-free\.app$|^https://.*\.ngrok-free\.dev$|^https://.*\.ngrok\.io$",
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+_cors_origins = [o.strip() for o in settings.cors_allowed_origins.split(",") if o.strip()]
+
+if _cors_origins:
+    # Production: explicit origin allowlist
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
+else:
+    # Development fallback: regex-based matching
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=(
+            r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+            r"|^https://.*\.vercel\.app$"
+            r"|^https://(www\.)?vibe2prod\.com$"
+            r"|^https://.*\.verstandai\.site$"
+        ),
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
 # ------------------------------------------------------------------ #
 # Rate limiting
