@@ -123,6 +123,10 @@ class SandboxManager:
             "OPENROUTER_API_KEY": openrouter_api_key,
         }
 
+        # NOTE: Daytona network_allow_list only supports CIDR IP ranges,
+        # not domain names. Since FORGE needs CDN-backed services
+        # (OpenRouter, GitHub, PyPI) with dynamic IPs, we rely on
+        # ephemeral containers + command-level NetworkPolicy for safety.
         sandbox = self._daytona.create(
             CreateSandboxFromImageParams(
                 image=image,
@@ -135,13 +139,6 @@ class SandboxManager:
                 ephemeral=True,
                 labels={"scan_id": str(scan_id), "type": "forge"},
                 env_vars=env_vars,
-                network_block_all=True,
-                network_allow_list=(
-                    "openrouter.ai,"
-                    "github.com,"
-                    "pypi.org,"
-                    "files.pythonhosted.org"
-                ),
             ),
         )
 
