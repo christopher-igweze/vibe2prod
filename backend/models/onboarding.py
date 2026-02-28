@@ -58,4 +58,4 @@ class OrgOnboardingPayload(BaseModel):
     acquisition_source: AcquisitionSource
     acquisition_other: str | None = None
     coding_agent_provider: CodingAgentProvider
-    coding_agent_model: str = Field(min_length=1, max_length=200)
+    coding_agent_model: str = Field(min_length=1, max_length=200, pattern=r"^[a-zA-Z0-9/_.\-:]+$")
