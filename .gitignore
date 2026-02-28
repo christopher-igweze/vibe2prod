@@ -43,6 +43,9 @@ dist-ssr/
 # Logs
 *.log
 
+# Strategy docs — competitive intelligence, not committed
+doc/strategy/
+
 # Benchmarks — generated scan/report artifacts (can be regenerated, often dehydrated by macOS)
 benchmarks/**/invocations.jsonl
 benchmarks/**/repos/
