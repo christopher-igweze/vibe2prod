@@ -68,13 +68,21 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
         try:
             jwks = _get_jwks_client()
             if jwks:
-                # Clerk RS256 verification via JWKS
+                # Clerk RS256 verification via JWKS + issuer validation
                 signing_key = jwks.get_signing_key_from_jwt(token)
+                issuer = settings.clerk_issuer or (
+                    settings.clerk_jwks_url.removesuffix("/.well-known/jwks.json")
+                    if settings.clerk_jwks_url else None
+                )
+                decode_opts: dict = {"verify_aud": False}
+                if not issuer:
+                    decode_opts["verify_iss"] = False
                 payload = jwt.decode(
                     token,
                     signing_key.key,
                     algorithms=["RS256"],
-                    options={"verify_aud": False},
+                    issuer=issuer or None,
+                    options=decode_opts,
                 )
             else:
                 # Legacy Supabase HS256 fallback

@@ -51,6 +51,7 @@ class Settings(BaseSettings):
 
     # --- Clerk Auth ---
     clerk_jwks_url: str = ""  # e.g. https://your-app.clerk.accounts.dev/.well-known/jwks.json
+    clerk_issuer: str = ""    # e.g. https://your-app.clerk.accounts.dev — derived from jwks_url if empty
     clerk_webhook_secret: str = ""
 
     # --- E2E Testing ---
