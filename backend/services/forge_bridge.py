@@ -35,8 +35,6 @@ from sandbox.manager import SandboxManager
 
 logger = logging.getLogger(__name__)
 
-_POLL_INTERVAL = 10  # seconds
-_REMEDIATE_TIMEOUT = 2700  # 45 minutes for full remediation
 
 
 @dataclass
@@ -101,10 +99,12 @@ async def _poll_until_complete(
     agentfield_url: str,
     execution_id: str,
     api_key: str = "",
-    timeout: int = _REMEDIATE_TIMEOUT,
-    poll_interval: int = _POLL_INTERVAL,
+    timeout: int | None = None,
+    poll_interval: int | None = None,
 ) -> dict:
     """Poll AgentField for execution completion."""
+    timeout = timeout or settings.forge_remediate_timeout_seconds
+    poll_interval = poll_interval or settings.forge_poll_interval_seconds
     url = f"{agentfield_url}/api/v1/executions/{execution_id}"
     elapsed = 0
 
@@ -255,7 +255,7 @@ async def trigger_forge_remediate(
     *,
     mode: str = "full",
     model_override: str | None = None,
-    timeout: int = _REMEDIATE_TIMEOUT,
+    timeout: int | None = None,
     agentfield_url_override: str | None = None,
     github_token: str | None = None,
     project_context: dict | None = None,
@@ -298,7 +298,8 @@ async def trigger_forge_remediate(
     }
 
     return await _trigger_forge(
-        agentfield_url, api_key, "remediate", payload, timeout,
+        agentfield_url, api_key, "remediate", payload,
+        timeout or settings.forge_remediate_timeout_seconds,
     )
 
 
