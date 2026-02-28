@@ -5,6 +5,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from fastapi import APIRouter, Request, HTTPException
+from fastapi.responses import Response
 
 from api.middleware.rate_limit import limiter, rate_limit_string
 from services import supabase_client as db
@@ -51,3 +52,14 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
             scan["repo_name"] = project.get("repo_name", "")
 
     return scan
+
+
+@router.delete("/user/scans/{scan_id}", status_code=204)
+@limiter.limit(rate_limit_string())
+async def delete_scan(scan_id: UUID, request: Request) -> Response:
+    """Delete a scan report and all associated data."""
+    user_id: str = request.state.user_id
+    deleted = await db.delete_scan_report(scan_id, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Scan not found")
+    return Response(status_code=204)
