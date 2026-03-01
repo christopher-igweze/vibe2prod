@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 export const dynamic = "force-dynamic";
 
@@ -19,18 +20,28 @@ function HeroSection() {
           prioritized for your project stage.
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
-          <Link
-            href="/sign-up"
-            className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
-          >
-            Get Started Free
-          </Link>
-          <Link
-            href="/sign-in"
-            className="rounded-lg border border-neutral-700 px-6 py-3 text-base font-semibold text-neutral-300 hover:border-neutral-500 hover:text-neutral-100 transition-colors"
-          >
-            Sign In
-          </Link>
+          <SignedOut>
+            <Link
+              href="/sign-up"
+              className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
+            >
+              Get Started Free
+            </Link>
+            <Link
+              href="/sign-in"
+              className="rounded-lg border border-neutral-700 px-6 py-3 text-base font-semibold text-neutral-300 hover:border-neutral-500 hover:text-neutral-100 transition-colors"
+            >
+              Sign In
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
+            >
+              Go to Dashboard
+            </Link>
+          </SignedIn>
         </div>
       </div>
     </section>
@@ -166,18 +177,28 @@ function Footer() {
           &copy; {new Date().getFullYear()} Vibe2Prod. All rights reserved.
         </div>
         <div className="flex items-center gap-6">
-          <Link
-            href="/sign-in"
-            className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/sign-up"
-            className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
-          >
-            Get Started
-          </Link>
+          <SignedOut>
+            <Link
+              href="/sign-in"
+              className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/sign-up"
+              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+            >
+              Get Started
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+            >
+              Dashboard
+            </Link>
+          </SignedIn>
         </div>
       </div>
     </footer>
@@ -195,18 +216,28 @@ export default function LandingPage() {
             <span className="text-neutral-100">2Prod</span>
           </span>
           <div className="flex items-center gap-4">
-            <Link
-              href="/sign-in"
-              className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
-            >
-              Get Started
-            </Link>
+            <SignedOut>
+              <Link
+                href="/sign-in"
+                className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/sign-up"
+                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
+              >
+                Get Started
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link
+                href="/dashboard"
+                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
+              >
+                Dashboard
+              </Link>
+            </SignedIn>
           </div>
         </div>
       </nav>
