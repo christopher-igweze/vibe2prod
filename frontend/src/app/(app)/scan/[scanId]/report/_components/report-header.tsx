@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
-import { Download, Trash2, Loader2 } from "lucide-react"
+import { Download, Trash2, Loader2, Copy, Check } from "lucide-react"
 
 import type { DiscoveryReport } from "@/lib/api/types"
 import { apiFetch } from "@/lib/api/client"
@@ -48,6 +48,7 @@ export function ReportHeader({ report, repoName, scanId }: ReportHeaderProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const [deleting, setDeleting] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const truncatedRunId = report.run_id.slice(0, 12)
   const formattedDate = new Date(report.generated_at).toLocaleString("en-US", {
@@ -57,6 +58,16 @@ export function ReportHeader({ report, repoName, scanId }: ReportHeaderProps) {
     hour: "2-digit",
     minute: "2-digit",
   })
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(report, null, 2))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API unavailable
+    }
+  }
 
   async function handleDelete() {
     setDeleting(true)
@@ -123,6 +134,20 @@ export function ReportHeader({ report, repoName, scanId }: ReportHeaderProps) {
         >
           <Download className="size-4 mr-1.5" />
           Download JSON
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          onClick={handleCopy}
+        >
+          {copied ? (
+            <Check className="size-4 mr-1.5 text-emerald-400" />
+          ) : (
+            <Copy className="size-4 mr-1.5" />
+          )}
+          {copied ? "Copied!" : "Copy Report"}
         </Button>
 
         <AlertDialog>
