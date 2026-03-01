@@ -31,6 +31,10 @@ export interface DiscoveryFinding {
   agent: string
   tier: number
   dedup_key: string
+  actionability?: Actionability
+  intent_signal?: string
+  pattern_id?: string
+  data_flow?: string
 }
 
 export interface RemediationItem {

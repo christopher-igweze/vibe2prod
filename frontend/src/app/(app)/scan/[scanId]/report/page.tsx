@@ -9,7 +9,7 @@ import Link from "next/link"
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
-import type { DiscoveryReport } from "@/lib/api/types"
+import type { DiscoveryFinding, DiscoveryReport, Severity } from "@/lib/api/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 
@@ -102,6 +102,20 @@ export default function ReportPage() {
 
   const report = scan.report_data?.discovery_report
 
+  // Split findings: actionable vs intentional/informational
+  const actionableFindings = report?.findings.filter(
+    (f) => f.intent_signal !== "intentional" && f.actionability !== "informational"
+  ) ?? []
+  const intentionalFindings = report?.findings.filter(
+    (f) => f.intent_signal === "intentional" || f.actionability === "informational"
+  ) ?? []
+
+  // Recompute severity counts from actionable findings only
+  const adjustedSeverity: Record<Severity, number> = { critical: 0, high: 0, medium: 0, low: 0 }
+  for (const f of actionableFindings) {
+    if (f.severity in adjustedSeverity) adjustedSeverity[f.severity]++
+  }
+
   if (!report) {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
@@ -130,22 +144,33 @@ export default function ReportPage() {
       </Link>
 
       {/* Header */}
-      <ReportHeader report={report} repoName={scan.repo_name} scanId={scanId} />
+      <ReportHeader
+        report={report}
+        repoName={scan.repo_name}
+        scanId={scanId}
+        actionableCount={actionableFindings.length}
+      />
 
-      {/* Severity Summary */}
-      <SeveritySummary breakdown={report.severity_breakdown} />
+      {/* Severity Summary — only actionable findings */}
+      <SeveritySummary
+        breakdown={adjustedSeverity}
+        actionabilitySummary={report.actionability_summary}
+      />
 
       {/* Architecture Context */}
       {report.codebase_map && (
         <ArchitectureContext
           map={report.codebase_map}
-          findings={report.findings}
+          findings={actionableFindings}
         />
       )}
 
-      {/* Findings Table */}
+      {/* Findings Table — grouped by actionability */}
       {report.findings.length > 0 && (
-        <FindingsTable findings={report.findings} />
+        <FindingsTable
+          actionableFindings={actionableFindings}
+          intentionalFindings={intentionalFindings}
+        />
       )}
 
       {/* Remediation Plan */}
@@ -154,7 +179,7 @@ export default function ReportPage() {
       )}
 
       {/* Empty state */}
-      {report.findings.length === 0 && (
+      {actionableFindings.length === 0 && intentionalFindings.length === 0 && (
         <Card className="bg-neutral-900 border-neutral-800 p-12 text-center">
           <p className="text-neutral-400">No findings detected. Your codebase looks clean!</p>
         </Card>
