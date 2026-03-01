@@ -16,8 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-
 import { RepoSelector } from "@/components/scan/repo-selector";
 
 // ---------------------------------------------------------------------------
@@ -258,18 +256,6 @@ export function RepoStep({
                   </div>
                 )}
 
-                {primerResult.confidence > 0 && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <span className="text-xs text-neutral-500">Confidence</span>
-                    <Progress
-                      value={primerResult.confidence}
-                      className="flex-1 h-1.5 bg-neutral-800"
-                    />
-                    <span className="text-xs text-neutral-400">
-                      {primerResult.confidence}%
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
