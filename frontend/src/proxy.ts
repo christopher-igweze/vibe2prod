@@ -12,7 +12,7 @@ const isProtectedRoute = createRouteMatcher([
 // protected routes.
 const isE2ETesting = process.env.E2E_TESTING === "true";
 
-export default clerkMiddleware(async (auth, req) => {
+export const proxy = clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req) && !isE2ETesting) {
     await auth.protect();
   }
