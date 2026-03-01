@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { Download, Trash2, Loader2 } from "lucide-react";
+import { Download, Trash2, Loader2, Copy, Check } from "lucide-react";
 import { apiFetch } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -60,6 +60,8 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -90,6 +92,27 @@ export default function DashboardPage() {
       }
     } finally {
       setDownloadingId(null);
+    }
+  }
+
+  async function handleCopy(scan: ScanSummary) {
+    setCopyingId(scan.id);
+    try {
+      const token = (await getToken()) ?? undefined;
+      const detail = await apiFetch<ScanDetail>(
+        `/api/user/scans/${scan.id}`,
+        { token },
+      );
+      const report = detail.report_data?.discovery_report;
+      if (report) {
+        await navigator.clipboard.writeText(JSON.stringify(report, null, 2));
+        setCopiedId(scan.id);
+        setTimeout(() => setCopiedId(null), 2000);
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setCopyingId(null);
     }
   }
 
@@ -171,6 +194,24 @@ export default function DashboardPage() {
                 </Link>
 
                 <div className="flex items-center gap-2 shrink-0">
+                  {scan.status === "completed" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-neutral-400 hover:text-neutral-200"
+                      disabled={copyingId === scan.id}
+                      onClick={() => handleCopy(scan)}
+                    >
+                      {copyingId === scan.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : copiedId === scan.id ? (
+                        <Check className="size-4 text-emerald-400" />
+                      ) : (
+                        <Copy className="size-4" />
+                      )}
+                    </Button>
+                  )}
+
                   {scan.status === "completed" && (
                     <Button
                       variant="ghost"
