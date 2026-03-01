@@ -1,4 +1,38 @@
-import type { Severity } from "@/lib/api/types"
+import type { Actionability, Severity } from "@/lib/api/types"
+
+export const ACTIONABILITY_CONFIG: Record<
+  Actionability,
+  { label: string; bg: string; text: string; border: string }
+> = {
+  must_fix: {
+    label: "Must Fix",
+    bg: "bg-red-500/10",
+    text: "text-red-400",
+    border: "border-red-500/20",
+  },
+  should_fix: {
+    label: "Should Fix",
+    bg: "bg-orange-500/10",
+    text: "text-orange-400",
+    border: "border-orange-500/20",
+  },
+  consider: {
+    label: "Consider",
+    bg: "bg-yellow-500/10",
+    text: "text-yellow-400",
+    border: "border-yellow-500/20",
+  },
+  informational: {
+    label: "Informational",
+    bg: "bg-neutral-500/10",
+    text: "text-neutral-500",
+    border: "border-neutral-500/20",
+  },
+}
+
+export function actionabilityClasses(actionability: Actionability) {
+  return ACTIONABILITY_CONFIG[actionability] ?? ACTIONABILITY_CONFIG.consider
+}
 
 export const SEVERITY_CONFIG: Record<
   Severity,

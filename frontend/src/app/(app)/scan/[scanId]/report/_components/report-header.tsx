@@ -26,6 +26,7 @@ interface ReportHeaderProps {
   report: DiscoveryReport
   repoName?: string
   scanId: string
+  actionableCount?: number
 }
 
 function downloadJson(report: DiscoveryReport, repoName?: string) {
@@ -44,7 +45,7 @@ function downloadJson(report: DiscoveryReport, repoName?: string) {
   URL.revokeObjectURL(url)
 }
 
-export function ReportHeader({ report, repoName, scanId }: ReportHeaderProps) {
+export function ReportHeader({ report, repoName, scanId, actionableCount }: ReportHeaderProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const [deleting, setDeleting] = useState(false)
@@ -101,7 +102,7 @@ export function ReportHeader({ report, repoName, scanId }: ReportHeaderProps) {
 
       <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
         <Badge variant="outline" className="border-neutral-700 text-neutral-300">
-          {report.total_findings} findings
+          {actionableCount ?? report.total_findings} actionable findings
         </Badge>
         <Badge variant="outline" className="border-neutral-700 text-neutral-300">
           {report.loc_total.toLocaleString()} LOC

@@ -1,100 +1,212 @@
 "use client"
 
 import { useState } from "react"
-import type { DiscoveryFinding, Severity } from "@/lib/api/types"
+import { ChevronDown, ChevronRight, Eye, EyeOff } from "lucide-react"
+import type { Actionability, DiscoveryFinding, Severity } from "@/lib/api/types"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { severityClasses, CATEGORY_LABELS } from "./report-utils"
+import { severityClasses, actionabilityClasses, CATEGORY_LABELS } from "./report-utils"
 
 const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low"]
+const ACTIONABILITY_ORDER: Actionability[] = ["must_fix", "should_fix", "consider"]
 
-interface FindingsTableProps {
-  findings: DiscoveryFinding[]
-}
-
-export function FindingsTable({ findings }: FindingsTableProps) {
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
-
-  const sorted = [...findings].sort((a, b) => {
+function sortFindings(findings: DiscoveryFinding[]) {
+  return [...findings].sort((a, b) => {
     const ai = SEVERITY_ORDER.indexOf(a.severity)
     const bi = SEVERITY_ORDER.indexOf(b.severity)
     if (ai !== bi) return ai - bi
-    return a.tier - b.tier
+    return (a.tier ?? 2) - (b.tier ?? 2)
   })
+}
+
+interface FindingsTableProps {
+  actionableFindings: DiscoveryFinding[]
+  intentionalFindings: DiscoveryFinding[]
+}
+
+export function FindingsTable({ actionableFindings, intentionalFindings }: FindingsTableProps) {
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
+    new Set(["consider"]) // consider collapsed by default
+  )
+  const [showIntentional, setShowIntentional] = useState(false)
+
+  // Group actionable findings by actionability
+  const groups: Record<string, DiscoveryFinding[]> = {}
+  for (const a of ACTIONABILITY_ORDER) {
+    groups[a] = []
+  }
+  for (const f of actionableFindings) {
+    const key = f.actionability ?? "consider"
+    if (!groups[key]) groups[key] = []
+    groups[key].push(f)
+  }
 
   function toggleRow(id: string) {
     setExpandedIds((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  function toggleGroup(group: string) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev)
+      next.has(group) ? next.delete(group) : next.add(group)
       return next
     })
   }
 
   return (
-    <Card className="bg-neutral-900 border-neutral-800 p-5">
-      <h2 className="text-lg font-semibold text-neutral-100 mb-4">
-        All Findings ({findings.length})
-      </h2>
+    <div className="space-y-4">
+      {/* Actionable findings grouped by actionability */}
+      {ACTIONABILITY_ORDER.map((level) => {
+        const findings = groups[level] ?? []
+        if (findings.length === 0) return null
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
-              <th className="text-left py-2 pr-3 w-20">Severity</th>
-              <th className="text-left py-2 pr-3">Title</th>
-              <th className="text-left py-2 pr-3 w-28">Category</th>
-              <th className="text-left py-2 pr-3 w-48">Locations</th>
-              <th className="text-left py-2 w-24">Agent</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((finding) => {
-              const sev = severityClasses(finding.severity)
-              const isExpanded = expandedIds.has(finding.id)
+        const cfg = actionabilityClasses(level)
+        const isCollapsed = collapsedGroups.has(level)
+        const sorted = sortFindings(findings)
 
-              return (
-                <FindingRows
-                  key={finding.id}
-                  finding={finding}
-                  sev={sev}
-                  isExpanded={isExpanded}
-                  onToggle={() => toggleRow(finding.id)}
-                />
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-    </Card>
+        return (
+          <Card key={level} className="bg-neutral-900 border-neutral-800 overflow-hidden">
+            {/* Group header */}
+            <button
+              className={`w-full flex items-center gap-3 px-5 py-3 border-b ${cfg.border} hover:bg-neutral-800/30 transition-colors`}
+              onClick={() => toggleGroup(level)}
+            >
+              {isCollapsed ? (
+                <ChevronRight className={`size-4 ${cfg.text}`} />
+              ) : (
+                <ChevronDown className={`size-4 ${cfg.text}`} />
+              )}
+              <Badge className={`${cfg.bg} ${cfg.text} ${cfg.border} border text-xs px-2 py-0`}>
+                {cfg.label}
+              </Badge>
+              <span className="text-sm text-neutral-400">
+                {findings.length} {findings.length === 1 ? "finding" : "findings"}
+              </span>
+            </button>
+
+            {/* Findings table */}
+            {!isCollapsed && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
+                      <th className="text-left py-2 pl-5 pr-3 w-20">Severity</th>
+                      <th className="text-left py-2 pr-3">Title</th>
+                      <th className="text-left py-2 pr-3 w-28">Category</th>
+                      <th className="text-left py-2 pr-3 w-48">Locations</th>
+                      <th className="text-left py-2 pr-5 w-24">Agent</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sorted.map((finding) => (
+                      <FindingRow
+                        key={finding.id}
+                        finding={finding}
+                        isExpanded={expandedIds.has(finding.id)}
+                        onToggle={() => toggleRow(finding.id)}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Card>
+        )
+      })}
+
+      {/* Intentional / Informational — collapsed by default */}
+      {intentionalFindings.length > 0 && (
+        <Card className="bg-neutral-900/50 border-neutral-800/60">
+          <button
+            className="w-full flex items-center gap-3 px-5 py-3 hover:bg-neutral-800/20 transition-colors"
+            onClick={() => setShowIntentional((v) => !v)}
+          >
+            {showIntentional ? (
+              <EyeOff className="size-4 text-neutral-600" />
+            ) : (
+              <Eye className="size-4 text-neutral-600" />
+            )}
+            <span className="text-sm text-neutral-500">
+              {intentionalFindings.length} intentional {intentionalFindings.length === 1 ? "pattern" : "patterns"} hidden
+            </span>
+            <span className="text-xs text-neutral-600 ml-auto">
+              {showIntentional ? "Click to hide" : "Click to show"}
+            </span>
+          </button>
+
+          {showIntentional && (
+            <div className="overflow-x-auto border-t border-neutral-800/40">
+              <table className="w-full text-sm opacity-60">
+                <thead>
+                  <tr className="border-b border-neutral-800/30 text-neutral-600 text-xs">
+                    <th className="text-left py-2 pl-5 pr-3 w-20">Severity</th>
+                    <th className="text-left py-2 pr-3">Title</th>
+                    <th className="text-left py-2 pr-3 w-28">Category</th>
+                    <th className="text-left py-2 pr-3 w-48">Locations</th>
+                    <th className="text-left py-2 pr-5 w-24">Agent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortFindings(intentionalFindings).map((finding) => (
+                    <FindingRow
+                      key={finding.id}
+                      finding={finding}
+                      isExpanded={expandedIds.has(finding.id)}
+                      onToggle={() => toggleRow(finding.id)}
+                      muted
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* Empty state for actionable */}
+      {actionableFindings.length === 0 && intentionalFindings.length > 0 && (
+        <Card className="bg-neutral-900 border-neutral-800 p-8 text-center">
+          <p className="text-neutral-400 text-sm">
+            No actionable findings — all {intentionalFindings.length} detected patterns appear intentional.
+          </p>
+        </Card>
+      )}
+    </div>
   )
 }
 
-interface FindingRowsProps {
+/* ── Individual finding row ─────────────────────────────────────── */
+
+interface FindingRowProps {
   finding: DiscoveryFinding
-  sev: { label: string; bg: string; text: string; border: string }
   isExpanded: boolean
   onToggle: () => void
+  muted?: boolean
 }
 
-function FindingRows({ finding, sev, isExpanded, onToggle }: FindingRowsProps) {
+function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
+  const sev = severityClasses(finding.severity)
+  const textColor = muted ? "text-neutral-500" : "text-neutral-200"
+
   return (
     <>
       <tr
         className="border-b border-neutral-800/50 cursor-pointer hover:bg-neutral-800/30 transition-colors"
         onClick={onToggle}
       >
-        <td className="py-2.5 pr-3">
+        <td className="py-2.5 pl-5 pr-3">
           <Badge
-            className={`${sev.bg} ${sev.text} ${sev.border} border text-[10px] px-1.5 py-0`}
+            className={`${sev.bg} ${sev.text} ${sev.border} border text-[10px] px-1.5 py-0 ${muted ? "opacity-50" : ""}`}
           >
             {sev.label}
           </Badge>
         </td>
-        <td className="py-2.5 pr-3 text-neutral-200">{finding.title}</td>
+        <td className={`py-2.5 pr-3 ${textColor}`}>{finding.title}</td>
         <td className="py-2.5 pr-3 text-neutral-400 text-xs">
           {CATEGORY_LABELS[finding.category] ?? finding.category}
         </td>
@@ -113,13 +225,37 @@ function FindingRows({ finding, sev, isExpanded, onToggle }: FindingRowsProps) {
             )}
           </div>
         </td>
-        <td className="py-2.5 text-xs text-neutral-500">{finding.agent}</td>
+        <td className="py-2.5 pr-5 text-xs text-neutral-500">{finding.agent}</td>
       </tr>
 
       {isExpanded && (
         <tr className="border-b border-neutral-800/50">
-          <td colSpan={5} className="px-4 py-4 bg-neutral-950/40">
+          <td colSpan={5} className="px-5 py-4 bg-neutral-950/40">
             <div className="space-y-4">
+              {/* Intent signal badge */}
+              {finding.intent_signal && (
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={
+                      finding.intent_signal === "intentional"
+                        ? "border-neutral-600 text-neutral-500 text-xs"
+                        : "border-neutral-700 text-neutral-400 text-xs"
+                    }
+                  >
+                    Intent: {finding.intent_signal}
+                  </Badge>
+                  {finding.actionability && (
+                    <Badge
+                      variant="outline"
+                      className="border-neutral-700 text-neutral-400 text-xs"
+                    >
+                      {finding.actionability.replace("_", " ")}
+                    </Badge>
+                  )}
+                </div>
+              )}
+
               {/* Description */}
               <div>
                 <h4 className="text-xs font-medium text-neutral-500 mb-1">Description</h4>
@@ -161,6 +297,14 @@ function FindingRows({ finding, sev, isExpanded, onToggle }: FindingRowsProps) {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Data flow */}
+              {finding.data_flow && (
+                <div>
+                  <h4 className="text-xs font-medium text-neutral-500 mb-1">Data Flow</h4>
+                  <p className="text-xs text-neutral-400 font-mono">{finding.data_flow}</p>
                 </div>
               )}
 
