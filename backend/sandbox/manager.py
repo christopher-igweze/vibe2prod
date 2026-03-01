@@ -8,9 +8,11 @@ Sandboxes auto-delete after ``sandbox_timeout_minutes`` of inactivity.
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 from uuid import UUID
 
+import httpx
 from daytona import (
     Daytona,
     DaytonaConfig,
@@ -24,6 +26,43 @@ from config import settings
 from sandbox.executor import CommandResult, SandboxExecutor
 
 logger = logging.getLogger(__name__)
+
+
+async def _resolve_forge_sha(
+    forge_source: str, github_token: str | None
+) -> str | None:
+    """Resolve latest commit SHA from the forge-engine GitHub repo.
+
+    Used to bust Daytona's 24hr declarative image cache — appending
+    ``@<sha>`` to the pip install URL makes the image spec unique
+    whenever a new commit is pushed.
+
+    Returns a 7-char short SHA, or None on any failure (graceful fallback).
+    """
+    if "github.com" not in forge_source or not github_token:
+        return None
+
+    m = re.search(r"github\.com/([^/]+)/([^/.]+)", forge_source)
+    if not m:
+        return None
+
+    owner, repo = m.group(1), m.group(2)
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            resp = await client.get(
+                f"https://api.github.com/repos/{owner}/{repo}/commits/main",
+                headers={
+                    "Accept": "application/vnd.github.v3+json",
+                    "Authorization": f"token {github_token}",
+                },
+            )
+            resp.raise_for_status()
+            sha = resp.json()["sha"][:7]
+            logger.info("Resolved forge-engine SHA: %s", sha)
+            return sha
+    except Exception:
+        logger.warning("Failed to resolve forge-engine SHA; using unpinned URL", exc_info=True)
+        return None
 
 
 @dataclass
@@ -106,6 +145,12 @@ class SandboxManager:
         logger.info("Provisioning FORGE sandbox for scan %s", scan_id)
 
         forge_source = settings.forge_package_source
+
+        # Pin to latest commit SHA so Daytona rebuilds the image on new pushes.
+        sha = await _resolve_forge_sha(forge_source, github_token)
+        if sha and "@" not in forge_source:
+            forge_source = f"{forge_source}@{sha}"
+
         if github_token and "github.com" in forge_source:
             forge_source = forge_source.replace(
                 "https://github.com/",
