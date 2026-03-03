@@ -613,7 +613,11 @@ async def create_scan_fix_attempt(
     project_id: UUID,
     user_id: str,
 ) -> UUID:
-    """Insert a fix_attempts row for a scan-level remediation and return its ID."""
+    """Insert a fix_attempts row for a scan-level remediation and return its ID.
+
+    NOTE: Requires ``scan_report_id`` column in fix_attempts table.
+    A migration is needed before this function will work.
+    """
     client = _client()
     row = (
         client.table("fix_attempts")
@@ -631,36 +635,48 @@ async def create_scan_fix_attempt(
 
 
 async def get_active_scan_fix_attempt(scan_id: UUID) -> dict | None:
-    """Return the active (pending/running) fix_attempt for a scan, if any."""
-    client = _client()
-    row = (
-        client.table("fix_attempts")
-        .select("*")
-        .eq("scan_report_id", str(scan_id))
-        .in_("status", ["pending", "running"])
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    if not row.data:
+    """Return the active (pending/running) fix_attempt for a scan, if any.
+
+    Returns None if the scan_report_id column hasn't been migrated yet.
+    """
+    try:
+        client = _client()
+        row = (
+            client.table("fix_attempts")
+            .select("*")
+            .eq("scan_report_id", str(scan_id))
+            .in_("status", ["pending", "running"])
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if not row.data:
+            return None
+        return row.data[0]
+    except Exception:
         return None
-    return row.data[0]
 
 
 async def get_latest_scan_fix_attempt(scan_id: UUID) -> dict | None:
-    """Return the most recent fix_attempt for a scan."""
-    client = _client()
-    row = (
-        client.table("fix_attempts")
-        .select("*")
-        .eq("scan_report_id", str(scan_id))
-        .order("created_at", desc=True)
-        .limit(1)
-        .execute()
-    )
-    if not row.data:
+    """Return the most recent fix_attempt for a scan.
+
+    Returns None if the scan_report_id column hasn't been migrated yet.
+    """
+    try:
+        client = _client()
+        row = (
+            client.table("fix_attempts")
+            .select("*")
+            .eq("scan_report_id", str(scan_id))
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if not row.data:
+            return None
+        return row.data[0]
+    except Exception:
         return None
-    return row.data[0]
 
 
 async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
