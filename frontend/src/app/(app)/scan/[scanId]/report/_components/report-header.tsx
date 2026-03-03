@@ -3,9 +3,10 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
-import { Download, Trash2, Loader2, Copy, Check } from "lucide-react"
+import Link from "next/link"
+import { Download, Trash2, Loader2, Copy, Check, Wrench } from "lucide-react"
 
-import type { DiscoveryReport } from "@/lib/api/types"
+import type { DiscoveryReport, FixResponse } from "@/lib/api/types"
 import { apiFetch } from "@/lib/api/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ interface ReportHeaderProps {
   repoName?: string
   scanId: string
   actionableCount?: number
+  fixAttemptStatus?: 'pending' | 'running' | 'success' | 'failed' | null
 }
 
 function downloadJson(report: DiscoveryReport, repoName?: string) {
@@ -45,11 +47,12 @@ function downloadJson(report: DiscoveryReport, repoName?: string) {
   URL.revokeObjectURL(url)
 }
 
-export function ReportHeader({ report, repoName, scanId, actionableCount }: ReportHeaderProps) {
+export function ReportHeader({ report, repoName, scanId, actionableCount, fixAttemptStatus }: ReportHeaderProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const [deleting, setDeleting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [fixing, setFixing] = useState(false)
 
   const truncatedRunId = report.run_id.slice(0, 12)
   const formattedDate = new Date(report.generated_at).toLocaleString("en-US", {
@@ -67,6 +70,20 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
       setTimeout(() => setCopied(false), 2000)
     } catch {
       // Clipboard API unavailable
+    }
+  }
+
+  async function handleFix() {
+    setFixing(true)
+    try {
+      const token = (await getToken()) ?? undefined
+      await apiFetch<FixResponse>(`/api/fix-scan/${scanId}`, {
+        method: "POST",
+        token,
+      })
+      router.push(`/scan/${scanId}/remediation`)
+    } catch {
+      setFixing(false)
     }
   }
 
@@ -88,8 +105,30 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
     <div className="text-center space-y-4">
       <div>
         <h1 className="text-3xl font-bold text-neutral-100">
-          FORGE Discovery Report
+          FORGE Report
         </h1>
+
+        {/* Phase badges */}
+        <div className="flex items-center justify-center gap-2 mt-3">
+          <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+            Discovery ✓
+          </Badge>
+          {fixAttemptStatus === 'running' && (
+            <Badge className="bg-yellow-500/15 text-yellow-400 border-yellow-500/30">
+              Remediation ⏳
+            </Badge>
+          )}
+          {fixAttemptStatus === 'success' && (
+            <>
+              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+                Remediation ✓
+              </Badge>
+              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+                Validation ✓
+              </Badge>
+            </>
+          )}
+        </div>
         {repoName && (
           <p className="text-neutral-400 text-base mt-1">{repoName}</p>
         )}
@@ -127,6 +166,20 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
 
       {/* Actions */}
       <div className="flex items-center justify-center gap-2">
+        <Button
+          size="sm"
+          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+          onClick={handleFix}
+          disabled={fixing || fixAttemptStatus === 'running' || fixAttemptStatus === 'pending'}
+        >
+          {fixing ? (
+            <Loader2 className="size-4 mr-1.5 animate-spin" />
+          ) : (
+            <Wrench className="size-4 mr-1.5" />
+          )}
+          Fix with FORGE
+        </Button>
+
         <Button
           variant="outline"
           size="sm"
@@ -189,6 +242,15 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {fixAttemptStatus === 'success' && (
+        <Link
+          href={`/scan/${scanId}/remediation/results`}
+          className="text-emerald-400 hover:text-emerald-300 text-sm underline"
+        >
+          View Remediation Results →
+        </Link>
+      )}
     </div>
   )
 }
