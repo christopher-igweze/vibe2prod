@@ -4,9 +4,10 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
-import { Download, Trash2, Loader2, Copy, Check, Wrench } from "lucide-react"
+import { Download, FileText, Printer, Trash2, Loader2, Copy, Check, Wrench } from "lucide-react"
 
 import type { DiscoveryReport, FixResponse } from "@/lib/api/types"
+import { reportToMarkdown } from "@/lib/report/to-markdown"
 import { apiFetch } from "@/lib/api/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,6 +40,21 @@ function downloadJson(report: DiscoveryReport, repoName?: string) {
   const blob = new Blob([JSON.stringify(report, null, 2)], {
     type: "application/json",
   })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function downloadMarkdown(report: DiscoveryReport, repoName?: string) {
+  const slug = (repoName || "repo").replace(/\//g, "-")
+  const date = new Date().toISOString().slice(0, 10)
+  const filename = `forge-report-${slug}-${date}.md`
+
+  const md = reportToMarkdown(report, repoName)
+  const blob = new Blob([md], { type: "text/markdown" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
   a.href = url
@@ -187,7 +203,27 @@ export function ReportHeader({ report, repoName, scanId, actionableCount, fixAtt
           onClick={() => downloadJson(report, repoName)}
         >
           <Download className="size-4 mr-1.5" />
-          Download JSON
+          JSON
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          onClick={() => downloadMarkdown(report, repoName)}
+        >
+          <FileText className="size-4 mr-1.5" />
+          Markdown
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          onClick={() => window.print()}
+        >
+          <Printer className="size-4 mr-1.5" />
+          Save as PDF
         </Button>
 
         <Button
