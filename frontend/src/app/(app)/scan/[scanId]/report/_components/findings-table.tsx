@@ -1,14 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { ChevronDown, ChevronRight, Eye, EyeOff } from "lucide-react"
-import type { Actionability, DiscoveryFinding, Severity } from "@/lib/api/types"
+import type { Actionability, Category, DiscoveryFinding, Severity } from "@/lib/api/types"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { severityClasses, actionabilityClasses, CATEGORY_LABELS } from "./report-utils"
+import { severityClasses, actionabilityClasses, CATEGORY_LABELS, SEVERITY_CONFIG } from "./report-utils"
 
 const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low"]
 const ACTIONABILITY_ORDER: Actionability[] = ["must_fix", "should_fix", "consider"]
+const ALL_CATEGORIES: Category[] = ["security", "architecture", "quality", "reliability", "performance"]
 
 function sortFindings(findings: DiscoveryFinding[]) {
   return [...findings].sort((a, b) => {
@@ -31,12 +32,45 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
   )
   const [showIntentional, setShowIntentional] = useState(false)
 
-  // Group actionable findings by actionability
+  // Filter state — all active by default
+  const [severityFilter, setSeverityFilter] = useState<Set<Severity>>(
+    () => new Set(SEVERITY_ORDER)
+  )
+  const [categoryFilter, setCategoryFilter] = useState<Set<Category>>(
+    () => new Set(ALL_CATEGORIES)
+  )
+
+  function toggleSeverity(s: Severity) {
+    setSeverityFilter((prev) => {
+      const next = new Set(prev)
+      next.has(s) ? next.delete(s) : next.add(s)
+      return next
+    })
+  }
+
+  function toggleCategory(c: Category) {
+    setCategoryFilter((prev) => {
+      const next = new Set(prev)
+      next.has(c) ? next.delete(c) : next.add(c)
+      return next
+    })
+  }
+
+  // Apply filters
+  const filteredActionable = useMemo(
+    () =>
+      actionableFindings.filter(
+        (f) => severityFilter.has(f.severity) && categoryFilter.has(f.category)
+      ),
+    [actionableFindings, severityFilter, categoryFilter]
+  )
+
+  // Group filtered actionable findings by actionability
   const groups: Record<string, DiscoveryFinding[]> = {}
   for (const a of ACTIONABILITY_ORDER) {
     groups[a] = []
   }
-  for (const f of actionableFindings) {
+  for (const f of filteredActionable) {
     const key = f.actionability ?? "consider"
     if (!groups[key]) groups[key] = []
     groups[key].push(f)
@@ -60,6 +94,48 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
 
   return (
     <div className="space-y-4">
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2 px-1">
+        {/* Severity filters */}
+        {SEVERITY_ORDER.map((s) => {
+          const cfg = SEVERITY_CONFIG[s]
+          const active = severityFilter.has(s)
+          return (
+            <button
+              key={s}
+              onClick={() => toggleSeverity(s)}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border transition-colors ${
+                active
+                  ? `${cfg.bg} ${cfg.text} ${cfg.border}`
+                  : "bg-neutral-900 text-neutral-600 border-neutral-800"
+              }`}
+            >
+              {cfg.label}
+            </button>
+          )
+        })}
+
+        <span className="w-px h-4 bg-neutral-800" />
+
+        {/* Category filters */}
+        {ALL_CATEGORIES.map((c) => {
+          const active = categoryFilter.has(c)
+          return (
+            <button
+              key={c}
+              onClick={() => toggleCategory(c)}
+              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border transition-colors ${
+                active
+                  ? "bg-neutral-800 text-neutral-200 border-neutral-700"
+                  : "bg-neutral-900 text-neutral-600 border-neutral-800"
+              }`}
+            >
+              {CATEGORY_LABELS[c] ?? c}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Actionable findings grouped by actionability */}
       {ACTIONABILITY_ORDER.map((level) => {
         const findings = groups[level] ?? []
