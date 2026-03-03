@@ -319,6 +319,10 @@ class ScanFixRouteTests(unittest.TestCase):
                 "findings_deferred": 2,
                 "readiness_score": 85,
                 "summary": "Fixed 5 of 7 findings",
+                "readiness_report": {"overall_score": 85, "category_scores": []},
+                "agent_invocations": 42,
+                "cost_usd": 1.23,
+                "duration_seconds": 280.5,
             },
         }
         with patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
@@ -335,7 +339,43 @@ class ScanFixRouteTests(unittest.TestCase):
         self.assertEqual(body["readiness_score"], 85)
         self.assertEqual(body["pr_url"], "https://github.com/octocat/Hello-World/pull/42")
         self.assertEqual(body["summary"], "Fixed 5 of 7 findings")
-        self.assertEqual(body["duration_seconds"], 300.0)
+        self.assertEqual(body["duration_seconds"], 280.5)
+        self.assertEqual(body["readiness_report"], {"overall_score": 85, "category_scores": []})
+        self.assertEqual(body["agent_invocations"], 42)
+        self.assertEqual(body["cost_usd"], 1.23)
+        self.assertIsNone(body["error"])
+
+    def test_scan_fix_status_failed_returns_error(self) -> None:
+        scan_id = uuid4()
+        fix_id = uuid4()
+        scan = {"id": str(scan_id), "status": "completed", "project_id": str(uuid4())}
+        attempt = {
+            "id": str(fix_id),
+            "status": "failed",
+            "pr_url": None,
+            "started_at": "2026-03-01T10:00:00+00:00",
+            "completed_at": "2026-03-01T10:02:00+00:00",
+            "agent_logs": {
+                "error": "FORGE remediation timed out",
+                "status": "failed",
+                "summary": "Remediation failed after 2 retries",
+                "total_findings": 7,
+                "findings_fixed": 0,
+                "findings_deferred": 0,
+            },
+        }
+        with patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
+             patch("api.routes.fix.db.get_latest_scan_fix_attempt", new=AsyncMock(return_value=attempt)):
+            resp = self.client.get(f"/api/fix-scan/{scan_id}/status")
+
+        self.assertEqual(resp.status_code, 200)
+        body = resp.json()
+        self.assertEqual(body["status"], "failed")
+        self.assertEqual(body["error"], "FORGE remediation timed out")
+        self.assertEqual(body["summary"], "Remediation failed after 2 retries")
+        self.assertEqual(body["findings_fixed"], 0)
+        self.assertIsNone(body["readiness_report"])
+        self.assertIsNone(body["agent_invocations"])
 
     def test_scan_fix_status_running_no_duration(self) -> None:
         scan_id = uuid4()

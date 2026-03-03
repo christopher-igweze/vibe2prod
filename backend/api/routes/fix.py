@@ -65,6 +65,10 @@ async def _run_forge_fix(
                     "findings_fixed": result.findings_fixed,
                     "findings_deferred": result.findings_deferred,
                     "readiness_score": result.readiness_score,
+                    "readiness_report": result.readiness_report,
+                    "agent_invocations": result.agent_invocations,
+                    "cost_usd": result.cost_usd,
+                    "duration_seconds": result.duration_seconds,
                 },
             )
             await db.update_action_item_fix_status(action_item_id, "fixed")
@@ -77,6 +81,10 @@ async def _run_forge_fix(
                     "execution_id": result.execution_id,
                     "error": result.error,
                     "status": result.status,
+                    "summary": result.summary,
+                    "total_findings": result.total_findings,
+                    "findings_fixed": result.findings_fixed,
+                    "findings_deferred": result.findings_deferred,
                 },
             )
             await db.update_action_item_fix_status(action_item_id, "open")
@@ -223,6 +231,10 @@ async def _run_scan_forge_fix(
                     "findings_fixed": result.findings_fixed,
                     "findings_deferred": result.findings_deferred,
                     "readiness_score": result.readiness_score,
+                    "readiness_report": result.readiness_report,
+                    "agent_invocations": result.agent_invocations,
+                    "cost_usd": result.cost_usd,
+                    "duration_seconds": result.duration_seconds,
                 },
             )
         else:
@@ -234,6 +246,10 @@ async def _run_scan_forge_fix(
                     "execution_id": result.execution_id,
                     "error": result.error,
                     "status": result.status,
+                    "summary": result.summary,
+                    "total_findings": result.total_findings,
+                    "findings_fixed": result.findings_fixed,
+                    "findings_deferred": result.findings_deferred,
                 },
             )
 
@@ -382,19 +398,20 @@ async def get_scan_fix_status(
     # Extract details from agent_logs if available
     logs = attempt.get("agent_logs") or {}
 
-    # Compute duration if both timestamps exist
-    duration_seconds = None
-    started_at = attempt.get("started_at")
-    completed_at = attempt.get("completed_at")
-    if started_at and completed_at:
-        from datetime import datetime, timezone
+    # Prefer FORGE-reported duration, fall back to timestamp diff
+    duration_seconds = logs.get("duration_seconds")
+    if duration_seconds is None:
+        started_at = attempt.get("started_at")
+        completed_at = attempt.get("completed_at")
+        if started_at and completed_at:
+            from datetime import datetime, timezone
 
-        try:
-            t_start = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
-            t_end = datetime.fromisoformat(completed_at.replace("Z", "+00:00"))
-            duration_seconds = (t_end - t_start).total_seconds()
-        except (ValueError, TypeError):
-            pass
+            try:
+                t_start = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+                t_end = datetime.fromisoformat(completed_at.replace("Z", "+00:00"))
+                duration_seconds = (t_end - t_start).total_seconds()
+            except (ValueError, TypeError):
+                pass
 
     return ScanFixStatusResponse(
         fix_attempt_id=UUID(attempt["id"]),
@@ -407,4 +424,7 @@ async def get_scan_fix_status(
         summary=logs.get("summary"),
         cost_usd=logs.get("cost_usd"),
         duration_seconds=duration_seconds,
+        readiness_report=logs.get("readiness_report"),
+        agent_invocations=logs.get("agent_invocations"),
+        error=logs.get("error"),
     )
