@@ -267,3 +267,51 @@ export interface RemediationResult {
   pr_url: string | null
   summary: string
 }
+
+// ── FORGE Remediation Report types (matches forge-engine schemas) ────
+
+export interface ForgeCategoryScore {
+  name: string
+  score: number      // 0-100
+  weight: number
+  details: string
+}
+
+export interface ForgeDebtItem {
+  title: string
+  description: string
+  severity: Severity
+  category: string
+  source_finding_id: string
+  reason_deferred: string
+}
+
+export interface ForgeReadinessReport {
+  overall_score: number
+  category_scores: ForgeCategoryScore[]
+  findings_total: number
+  findings_fixed: number
+  findings_deferred: number
+  debt_items: ForgeDebtItem[]
+  summary: string
+  recommendations: string[]
+  investor_summary: string
+}
+
+// ── ScanFixStatus (matches GET /api/fix-scan/{scanId}/status) ────
+
+export interface ScanFixStatus {
+  fix_attempt_id: string
+  scan_id: string
+  status: 'pending' | 'running' | 'success' | 'failed'
+  findings_fixed: number | null
+  findings_deferred: number | null
+  readiness_score: number | null
+  pr_url: string | null
+  summary: string | null
+  cost_usd: number | null
+  duration_seconds: number | null
+  readiness_report: ForgeReadinessReport | null
+  agent_invocations: number | null
+  error: string | null
+}
