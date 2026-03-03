@@ -289,9 +289,11 @@ async def trigger_forge_remediate(
             for f in scan_findings
         ]
 
+    clone_url = _authenticated_url(repo_url, github_token)
+
     payload = {
         "input": {
-            "repo_url": repo_url,
+            "repo_url": clone_url,
             "config": config,
             "scan_findings": finding_dicts,
         }

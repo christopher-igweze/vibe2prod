@@ -39,6 +39,7 @@ async def _run_forge_fix(
     action_item_id: UUID,
     repo_url: str,
     scan_findings: list[dict] | None,
+    github_token: str | None = None,
 ) -> None:
     """Background task that runs FORGE remediation and stores results."""
     try:
@@ -48,6 +49,7 @@ async def _run_forge_fix(
         result = await trigger_forge_remediate(
             repo_url=repo_url,
             scan_findings=scan_findings,
+            github_token=github_token,
         )
 
         if result.success:
@@ -155,6 +157,7 @@ async def trigger_fix(
         )
 
     repo_url = project["repo_url"]
+    github_token = await db.get_github_access_token(user_id)
 
     # Pull discovery findings from the scan report to enrich FORGE context
     scan_report_id = UUID(action_item["scan_report_id"])
@@ -175,6 +178,7 @@ async def trigger_fix(
         request_body.action_item_id,
         repo_url,
         scan_findings,
+        github_token,
     )
 
     return FixResponse(
@@ -194,6 +198,7 @@ async def _run_scan_forge_fix(
     scan_id: UUID,
     repo_url: str,
     scan_findings: list[dict] | None,
+    github_token: str | None = None,
 ) -> None:
     """Background task that runs FORGE remediation for an entire scan."""
     try:
@@ -202,6 +207,7 @@ async def _run_scan_forge_fix(
         result = await trigger_forge_remediate(
             repo_url=repo_url,
             scan_findings=scan_findings,
+            github_token=github_token,
         )
 
         if result.success:
@@ -308,6 +314,7 @@ async def trigger_scan_fix(
         )
 
     repo_url = project["repo_url"]
+    github_token = await db.get_github_access_token(user_id)
 
     # Extract findings from scan report data
     scan_findings = None
@@ -332,6 +339,7 @@ async def trigger_scan_fix(
         scan_id,
         repo_url,
         scan_findings,
+        github_token,
     )
 
     return ScanFixResponse(
