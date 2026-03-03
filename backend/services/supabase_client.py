@@ -588,6 +588,62 @@ async def update_fix_attempt(
     ).execute()
 
 
+async def create_scan_fix_attempt(
+    *,
+    scan_id: UUID,
+    project_id: UUID,
+    user_id: str,
+) -> UUID:
+    """Insert a fix_attempts row for a scan-level remediation and return its ID."""
+    client = _client()
+    row = (
+        client.table("fix_attempts")
+        .insert(
+            {
+                "scan_report_id": str(scan_id),
+                "project_id": str(project_id),
+                "user_id": str(user_id),
+                "status": "pending",
+            }
+        )
+        .execute()
+    )
+    return UUID(row.data[0]["id"])
+
+
+async def get_active_scan_fix_attempt(scan_id: UUID) -> dict | None:
+    """Return the active (pending/running) fix_attempt for a scan, if any."""
+    client = _client()
+    row = (
+        client.table("fix_attempts")
+        .select("*")
+        .eq("scan_report_id", str(scan_id))
+        .in_("status", ["pending", "running"])
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None
+    return row.data[0]
+
+
+async def get_latest_scan_fix_attempt(scan_id: UUID) -> dict | None:
+    """Return the most recent fix_attempt for a scan."""
+    client = _client()
+    row = (
+        client.table("fix_attempts")
+        .select("*")
+        .eq("scan_report_id", str(scan_id))
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None
+    return row.data[0]
+
+
 async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
     """Return recent scans for a user, newest first."""
     client = _client()

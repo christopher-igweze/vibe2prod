@@ -112,3 +112,26 @@ class FixResponse(BaseModel):
     fix_attempt_id: UUID
     status: str = "pending"
     message: str = "Fix queued. Stream progress via /api/status/{scan_id}."
+
+
+class ScanFixResponse(BaseModel):
+    """Immediate response when scan-level remediation is triggered."""
+
+    fix_attempt_id: UUID
+    status: str = "pending"
+    message: str = "Remediation started"
+
+
+class ScanFixStatusResponse(BaseModel):
+    """Status response for a scan-level fix attempt."""
+
+    fix_attempt_id: UUID
+    scan_id: UUID
+    status: str
+    findings_fixed: int | None = None
+    findings_deferred: int | None = None
+    readiness_score: int | None = None
+    pr_url: str | None = None
+    summary: str | None = None
+    cost_usd: float | None = None
+    duration_seconds: float | None = None

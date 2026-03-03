@@ -21,7 +21,7 @@ from uuid import UUID
 from fastapi import APIRouter, BackgroundTasks, Request, HTTPException
 
 from config import settings
-from models.scan import FixRequest, FixResponse
+from models.scan import FixRequest, FixResponse, ScanFixResponse, ScanFixStatusResponse
 from api.middleware.rate_limit import limiter, rate_limit_string
 from services import supabase_client as db
 
@@ -181,4 +181,222 @@ async def trigger_fix(
         fix_attempt_id=fix_attempt_id,
         status="pending",
         message="FORGE remediation queued. The fix is being processed.",
+    )
+
+
+# ------------------------------------------------------------------ #
+# Scan-level remediation
+# ------------------------------------------------------------------ #
+
+
+async def _run_scan_forge_fix(
+    fix_attempt_id: UUID,
+    scan_id: UUID,
+    repo_url: str,
+    scan_findings: list[dict] | None,
+) -> None:
+    """Background task that runs FORGE remediation for an entire scan."""
+    try:
+        await db.update_fix_attempt(fix_attempt_id, status="running")
+
+        result = await trigger_forge_remediate(
+            repo_url=repo_url,
+            scan_findings=scan_findings,
+        )
+
+        if result.success:
+            await db.update_fix_attempt(
+                fix_attempt_id,
+                status="success",
+                pr_url=result.pr_url or None,
+                agent_logs={
+                    "forge_run_id": result.forge_run_id,
+                    "execution_id": result.execution_id,
+                    "summary": result.summary,
+                    "total_findings": result.total_findings,
+                    "findings_fixed": result.findings_fixed,
+                    "findings_deferred": result.findings_deferred,
+                    "readiness_score": result.readiness_score,
+                },
+            )
+        else:
+            await db.update_fix_attempt(
+                fix_attempt_id,
+                status="failed",
+                agent_logs={
+                    "forge_run_id": result.forge_run_id,
+                    "execution_id": result.execution_id,
+                    "error": result.error,
+                    "status": result.status,
+                },
+            )
+
+    except Exception:
+        logger.exception(
+            "FORGE scan-level fix failed for fix_attempt %s", fix_attempt_id
+        )
+        try:
+            await db.update_fix_attempt(fix_attempt_id, status="failed")
+        except Exception:
+            logger.exception(
+                "Failed to update DB after scan fix failure for fix_attempt %s",
+                fix_attempt_id,
+            )
+
+
+@router.post("/fix-scan/{scan_id}", response_model=ScanFixResponse)
+@limiter.limit(rate_limit_string())
+async def trigger_scan_fix(
+    scan_id: UUID,
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> ScanFixResponse:
+    """Trigger FORGE remediation for an entire scan.
+
+    Looks up the scan, verifies ownership and status, checks for active
+    fix attempts, then kicks off FORGE remediation as a background task.
+    """
+    user_id: str = request.state.user_id
+
+    if not settings.forge_enabled:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "forge_disabled",
+                "message": "Auto-fix is not currently available. FORGE engine is disabled.",
+            },
+        )
+
+    scan = await db.get_scan_report(scan_id, user_id)
+    if not scan:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "scan_not_found",
+                "message": "Scan not found or does not belong to this user.",
+            },
+        )
+
+    if scan.get("status") != "completed":
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "scan_not_completed",
+                "message": "Scan must be completed before remediation can start.",
+            },
+        )
+
+    active = await db.get_active_scan_fix_attempt(scan_id)
+    if active:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "fix_already_in_progress",
+                "message": "A fix is already in progress for this scan.",
+            },
+        )
+
+    project_id = UUID(scan["project_id"])
+    project = await db.get_project(project_id)
+    if not project:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "project_not_found",
+                "message": "Parent project not found.",
+            },
+        )
+
+    repo_url = project["repo_url"]
+
+    # Extract findings from scan report data
+    scan_findings = None
+    report_data = scan.get("report_data")
+    if isinstance(report_data, dict):
+        # Try top-level findings first, then nested discovery_report
+        scan_findings = report_data.get("findings")
+        if scan_findings is None:
+            dr = report_data.get("discovery_report")
+            if isinstance(dr, dict):
+                scan_findings = dr.get("findings")
+
+    fix_attempt_id = await db.create_scan_fix_attempt(
+        scan_id=scan_id,
+        project_id=project_id,
+        user_id=user_id,
+    )
+
+    background_tasks.add_task(
+        _run_scan_forge_fix,
+        fix_attempt_id,
+        scan_id,
+        repo_url,
+        scan_findings,
+    )
+
+    return ScanFixResponse(
+        fix_attempt_id=fix_attempt_id,
+        status="pending",
+        message="Remediation started",
+    )
+
+
+@router.get("/fix-scan/{scan_id}/status", response_model=ScanFixStatusResponse)
+@limiter.limit(rate_limit_string())
+async def get_scan_fix_status(
+    scan_id: UUID,
+    request: Request,
+) -> ScanFixStatusResponse:
+    """Poll the status of the latest fix attempt for a scan."""
+    user_id: str = request.state.user_id
+
+    # Verify the scan belongs to the user
+    scan = await db.get_scan_report(scan_id, user_id)
+    if not scan:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "scan_not_found",
+                "message": "Scan not found or does not belong to this user.",
+            },
+        )
+
+    attempt = await db.get_latest_scan_fix_attempt(scan_id)
+    if not attempt:
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "code": "no_fix_attempt",
+                "message": "No fix attempt found for this scan.",
+            },
+        )
+
+    # Extract details from agent_logs if available
+    logs = attempt.get("agent_logs") or {}
+
+    # Compute duration if both timestamps exist
+    duration_seconds = None
+    started_at = attempt.get("started_at")
+    completed_at = attempt.get("completed_at")
+    if started_at and completed_at:
+        from datetime import datetime, timezone
+
+        try:
+            t_start = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
+            t_end = datetime.fromisoformat(completed_at.replace("Z", "+00:00"))
+            duration_seconds = (t_end - t_start).total_seconds()
+        except (ValueError, TypeError):
+            pass
+
+    return ScanFixStatusResponse(
+        fix_attempt_id=UUID(attempt["id"]),
+        scan_id=scan_id,
+        status=attempt["status"],
+        findings_fixed=logs.get("findings_fixed"),
+        findings_deferred=logs.get("findings_deferred"),
+        readiness_score=logs.get("readiness_score"),
+        pr_url=attempt.get("pr_url"),
+        summary=logs.get("summary"),
+        cost_usd=logs.get("cost_usd"),
+        duration_seconds=duration_seconds,
     )
