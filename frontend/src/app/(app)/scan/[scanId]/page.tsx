@@ -119,6 +119,16 @@ export default function ScanProgressPage() {
                 setError((parsed.message as string) || "Scan failed")
                 break
 
+              case "heartbeat":
+                // Backend is polling DB on our behalf — scan is still running
+                break
+
+              case "timeout":
+                // SSE stream timed out — fall back to polling
+                setSseConnected(false)
+                startPolling()
+                break
+
               default:
                 // Handle status events from the proxy
                 if (parsed.status === "completed") {
@@ -127,6 +137,7 @@ export default function ScanProgressPage() {
                   router.push(`/scan/${scanId}/report`)
                 } else if (parsed.status === "failed") {
                   setScan({ id: scanId, status: "failed" })
+                  setError((parsed.message as string) || "Scan failed")
                 }
                 break
             }
@@ -155,11 +166,14 @@ export default function ScanProgressPage() {
       intervalRef.current = setInterval(poll, 4000)
     }
 
+    let pollFailures = 0
+
     async function poll() {
       try {
         const token = (await getToken()) ?? undefined
         const data = await apiFetch<ScanPoll>(`/api/user/scans/${scanId}`, { token })
         if (cancelled) return
+        pollFailures = 0
         setScan(data)
 
         if (data.status === "completed") {
@@ -170,11 +184,16 @@ export default function ScanProgressPage() {
 
         if (data.status === "failed") {
           if (intervalRef.current) clearInterval(intervalRef.current)
+          setError("Scan failed")
         }
       } catch {
         if (cancelled) return
-        setError("Failed to load scan status")
-        if (intervalRef.current) clearInterval(intervalRef.current)
+        pollFailures++
+        // Only show error after 5 consecutive failures (~20s)
+        if (pollFailures >= 5) {
+          setError("Failed to load scan status")
+          if (intervalRef.current) clearInterval(intervalRef.current)
+        }
       }
     }
 
@@ -286,7 +305,7 @@ export default function ScanProgressPage() {
           <CardContent className="flex items-start gap-3 py-4">
             <AlertCircle className="mt-0.5 size-5 text-red-400 shrink-0" />
             <div className="space-y-2">
-              <p className="text-sm text-red-300">Scan failed unexpectedly. Please try again.</p>
+              <p className="text-sm text-red-300">{error || "Scan failed unexpectedly. Please try again."}</p>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/dashboard">
                   <ArrowLeft className="size-4" />
