@@ -1,0 +1,136 @@
+@media print {
+  /* ── Reset to white background for PDF readability ── */
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  /* ── A4 page setup ── */
+  @page {
+    size: A4;
+    margin: 1.5cm 2cm;
+  }
+
+  /* ── Hide navigation, buttons, interactive elements ── */
+  nav,
+  footer,
+  [data-print-hide],
+  button,
+  [role="button"],
+  .cl-userButton-root {
+    display: none !important;
+  }
+
+  /* ── Override dark theme colors ── */
+  * {
+    color: black !important;
+    background: transparent !important;
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* ── Card and badge styling for print ── */
+  [data-slot="card"],
+  .border-neutral-800 {
+    border: 1px solid #d1d5db !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  [data-slot="badge"],
+  .rounded-full {
+    border: 1px solid #9ca3af !important;
+    padding: 0.1rem 0.4rem !important;
+  }
+
+  /* ── Code blocks ── */
+  pre,
+  code {
+    font-family: "Courier New", Courier, monospace !important;
+    font-size: 10pt !important;
+    border: 1px solid #d1d5db !important;
+    padding: 0.25rem !important;
+    white-space: pre-wrap !important;
+    word-break: break-all !important;
+  }
+
+  /* ── Force-expand collapsed details ── */
+  details {
+    open: initial;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+
+  details > summary::marker,
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] > *,
+  details > * {
+    display: block !important;
+  }
+
+  /* ── Page break rules ── */
+  h1 {
+    break-after: avoid;
+  }
+
+  h2,
+  h3 {
+    break-after: avoid;
+    margin-top: 1rem;
+  }
+
+  /* Major sections get page breaks */
+  [data-print-section] {
+    break-before: page;
+  }
+
+  /* Don't break inside findings */
+  [data-print-finding] {
+    break-inside: avoid;
+  }
+
+  /* ── FORGE branding header ── */
+  body::before {
+    content: "FORGE Engine Report — Vibe2Prod";
+    display: block;
+    font-size: 10pt;
+    color: #6b7280 !important;
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ── Links: show URL ── */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #6b7280 !important;
+  }
+
+  a[href^="#"]::after,
+  a[href^="javascript"]::after {
+    content: "";
+  }
+
+  /* ── Ensure content fills page width ── */
+  .max-w-5xl,
+  .max-w-6xl,
+  .max-w-2xl {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* ── Hide the markdown preview tab if visible ── */
+  [data-slot="tabs-list"] {
+    display: none !important;
+  }
+}
