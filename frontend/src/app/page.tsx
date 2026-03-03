@@ -1,25 +1,30 @@
 import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { Search, Wrench, ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 function HeroSection() {
   return (
-    <section className="pt-24 pb-16 text-center">
-      <div className="mx-auto max-w-3xl px-6">
-        <div className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-sm text-emerald-400 mb-8">
-          Free for early adopters — 5 scans included
+    <section className="relative pt-24 pb-16 text-center overflow-hidden">
+      {/* Gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950 to-emerald-950/20 pointer-events-none" />
+      {/* Soft glow behind heading */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="relative mx-auto max-w-3xl px-6">
+        <div className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-sm text-emerald-400 mb-8 animate-fade-in-up">
+          The only AI audit that fixes what it finds
         </div>
-        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">
-          Ship AI Code{" "}
-          <span className="text-emerald-400">With Confidence</span>
+        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl animate-fade-in-up-delay-1">
+          Discover. <span className="text-emerald-400">Fix.</span> Ship.
         </h1>
-        <p className="mt-6 text-lg text-neutral-400 max-w-2xl mx-auto">
-          Your AI wrote the code. Vibe2Prod tells you if it&apos;s ready for production.
-          Get actionable security, reliability, and scalability findings —
-          prioritized for your project stage.
+        <p className="mt-6 text-lg text-neutral-400 max-w-2xl mx-auto animate-fade-in-up-delay-2">
+          Your AI wrote the code. Vibe2Prod audits it, auto-fixes critical
+          issues, and validates the result&nbsp;&mdash; 12 specialized agents,
+          zero manual triage.
         </p>
-        <div className="mt-10 flex items-center justify-center gap-4">
+        <div className="mt-10 flex items-center justify-center gap-4 animate-fade-in-up-delay-3">
           <SignedOut>
             <Link
               href="/sign-up"
@@ -49,42 +54,45 @@ function HeroSection() {
 }
 
 function FeaturesSection() {
-  const features = [
+  const phases = [
     {
-      title: "Paste. Scan. Ship.",
+      title: "Discover",
       description:
-        "Drop a GitHub URL, fill in your project context, and get a full audit in minutes. No setup, no CI integration required.",
-      icon: "🔍",
+        "12 AI agents analyze security, architecture, reliability, and quality. Context-aware findings classified by actionability, not just severity.",
+      icon: Search,
+      delay: "animate-fade-in-up-delay-1",
     },
     {
-      title: "Context-Aware Prioritization",
+      title: "Fix",
       description:
-        "Findings are classified as Must Fix, Should Fix, Consider, or Informational — calibrated to your project stage (MVP vs Enterprise).",
-      icon: "🎯",
+        "FORGE\u2019s 3-loop remediation engine auto-fixes critical issues, generates tests, and handles escalation. No manual patching.",
+      icon: Wrench,
+      delay: "animate-fade-in-up-delay-2",
     },
     {
-      title: "Downloadable Reports",
+      title: "Validate",
       description:
-        "Get your audit as a rendered web report, downloadable Markdown for your coding agent, or a PDF for stakeholders.",
-      icon: "📊",
+        "Integration validator confirms fixes don\u2019t break functionality. Get a Production Readiness Score (0\u2013100) before you ship.",
+      icon: ShieldCheck,
+      delay: "animate-fade-in-up-delay-3",
     },
   ];
 
   return (
     <section className="py-20 border-t border-neutral-800">
       <div className="mx-auto max-w-5xl px-6">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          How It Works
+        <h2 className="text-3xl font-bold text-center mb-12 animate-fade-in-up">
+          The Full Pipeline
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
-          {features.map((feature) => (
+          {phases.map((phase) => (
             <div
-              key={feature.title}
-              className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6"
+              key={phase.title}
+              className={`group rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-[0_0_24px_-6px_rgba(16,185,129,0.15)] ${phase.delay}`}
             >
-              <div className="text-3xl mb-4">{feature.icon}</div>
-              <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-neutral-400">{feature.description}</p>
+              <phase.icon className="h-8 w-8 text-emerald-400 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">{phase.title}</h3>
+              <p className="text-sm text-neutral-400">{phase.description}</p>
             </div>
           ))}
         </div>
@@ -98,22 +106,22 @@ function ActionabilitySection() {
     {
       label: "Must Fix",
       color: "text-red-400 bg-red-500/10 border-red-500/20",
-      description: "Exploitable vulnerabilities — fix before shipping",
+      description: "Exploitable vulnerabilities \u2014 fix before shipping",
     },
     {
       label: "Should Fix",
       color: "text-orange-400 bg-orange-500/10 border-orange-500/20",
-      description: "Real issues — prioritize this sprint",
+      description: "Real issues \u2014 prioritize this sprint",
     },
     {
       label: "Consider",
       color: "text-yellow-400 bg-yellow-500/10 border-yellow-500/20",
-      description: "Valid observations — address when convenient",
+      description: "Valid observations \u2014 address when convenient",
     },
     {
       label: "Informational",
       color: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-      description: "Noted for awareness — no action needed",
+      description: "Noted for awareness \u2014 no action needed",
     },
   ];
 
@@ -121,7 +129,8 @@ function ActionabilitySection() {
     <section className="py-20 border-t border-neutral-800">
       <div className="mx-auto max-w-4xl px-6">
         <h2 className="text-3xl font-bold text-center mb-4">
-          Not Just Severity — <span className="text-emerald-400">Actionability</span>
+          Not Just Severity &mdash;{" "}
+          <span className="text-emerald-400">Actionability</span>
         </h2>
         <p className="text-center text-neutral-400 mb-12 max-w-2xl mx-auto">
           Every finding is classified by what you should actually do about it,
@@ -143,12 +152,48 @@ function ActionabilitySection() {
   );
 }
 
+function ComparisonSection() {
+  return (
+    <section className="py-20 border-t border-neutral-800">
+      <div className="mx-auto max-w-4xl px-6">
+        <h2 className="text-3xl font-bold text-center mb-12">
+          Why Not Just Another Scanner?
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Detection Tools */}
+          <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
+            <h3 className="text-lg font-semibold mb-1">Detection Tools</h3>
+            <p className="text-sm text-neutral-500 mb-4">
+              CodeRabbit, Greptile, Snyk
+            </p>
+            <p className="text-sm text-neutral-400">
+              Find problems. Generate reports. Leave you to fix everything.
+            </p>
+          </div>
+
+          {/* Vibe2Prod FORGE */}
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6">
+            <h3 className="text-lg font-semibold text-emerald-400 mb-1">
+              Vibe2Prod FORGE
+            </h3>
+            <p className="text-sm text-neutral-500 mb-4">&nbsp;</p>
+            <p className="text-sm text-neutral-300">
+              Find problems. Auto-fix them. Validate the result. Ship
+              production-ready code.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function StatsSection() {
   const stats = [
-    { value: "15+", label: "Static Checks" },
-    { value: "3", label: "Vulnerability Patterns" },
-    { value: "< 2 min", label: "Average Scan Time" },
-    { value: "4", label: "Actionability Tiers" },
+    { value: "12", label: "Specialized AI Agents" },
+    { value: "3", label: "Control Loops" },
+    { value: "0\u2013100", label: "Production Readiness Score" },
+    { value: "Auto-Fix", label: "Not Just Reports" },
   ];
 
   return (
@@ -245,6 +290,7 @@ export default function LandingPage() {
       <HeroSection />
       <FeaturesSection />
       <ActionabilitySection />
+      <ComparisonSection />
       <StatsSection />
       <Footer />
     </div>
