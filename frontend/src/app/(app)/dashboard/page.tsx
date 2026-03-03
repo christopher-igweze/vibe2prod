@@ -7,9 +7,11 @@ import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Download, Trash2, Loader2, Copy, Check } from "lucide-react";
 import { apiFetch } from "@/lib/api/client";
+import type { QuotaLimits } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,13 +64,18 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [quota, setQuota] = useState<QuotaLimits | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const token = (await getToken()) ?? undefined;
-        const s = await apiFetch<ScanSummary[]>("/api/user/scans", { token }).catch(() => [] as ScanSummary[]);
+        const [s, q] = await Promise.all([
+          apiFetch<ScanSummary[]>("/api/user/scans", { token }).catch(() => [] as ScanSummary[]),
+          apiFetch<QuotaLimits>("/api/limits", { token }).catch(() => null),
+        ]);
         setScans(s);
+        if (q) setQuota(q);
       } catch {
         setError("Failed to load dashboard data");
       } finally {
@@ -153,6 +160,35 @@ export default function DashboardPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Quota indicator */}
+      {quota && (
+        <Card className="bg-neutral-900 border-neutral-800 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-neutral-300">
+              Scan Quota:{" "}
+              <span className="font-semibold text-neutral-100">
+                {quota.project_count} of {quota.project_limit}
+              </span>{" "}
+              used
+            </span>
+            <Badge
+              variant="outline"
+              className="border-emerald-500/30 text-emerald-400 text-xs capitalize"
+            >
+              {quota.tier}
+            </Badge>
+          </div>
+          <Progress
+            value={
+              quota.project_limit > 0
+                ? (quota.project_count / quota.project_limit) * 100
+                : 0
+            }
+            className="h-2 bg-neutral-800"
+          />
+        </Card>
+      )}
 
       {error && (
         <Card className="border-red-500/50 bg-red-950/20 p-4">
