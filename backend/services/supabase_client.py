@@ -139,6 +139,25 @@ async def update_scan_status(scan_id: UUID, status: ScanStatus) -> None:
     ).execute()
 
 
+async def fail_orphaned_scans() -> int:
+    """Mark any scans stuck in 'pending' or 'scanning' as 'failed'.
+
+    Called on app startup — if the server just booted, no background tasks
+    can be running for these scans, so they're orphaned from a previous
+    container lifecycle.
+
+    Returns the number of scans marked as failed.
+    """
+    client = _client()
+    result = (
+        client.table("scan_reports")
+        .update({"status": ScanStatus.failed.value})
+        .in_("status", [ScanStatus.pending.value, ScanStatus.scanning.value])
+        .execute()
+    )
+    return len(result.data) if result.data else 0
+
+
 def _compute_scores_from_discovery(discovery_report: dict) -> dict[str, int]:
     """Derive health/security/reliability/scalability scores from findings.
 

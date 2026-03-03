@@ -43,6 +43,18 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Vibe2Prod API starting up...")
+
+    # Mark scans orphaned by a previous container lifecycle as failed.
+    # If we just booted, no background tasks can be running for them.
+    try:
+        from services import supabase_client as db
+
+        count = await db.fail_orphaned_scans()
+        if count:
+            logger.warning("Marked %d orphaned scan(s) as failed on startup.", count)
+    except Exception:
+        logger.exception("Failed to clean up orphaned scans on startup.")
+
     yield
     logger.info("Vibe2Prod API shutting down.")
 
