@@ -52,9 +52,6 @@ class Settings(BaseSettings):
     sandbox_memory_gb: int = 4
     sandbox_disk_gb: int = 8
 
-    # --- Project Limits ---
-    project_cap: int = 3
-
     # --- Clerk Auth ---
     clerk_jwks_url: str = ""  # e.g. https://your-app.clerk.accounts.dev/.well-known/jwks.json
     clerk_issuer: str = ""    # e.g. https://your-app.clerk.accounts.dev — derived from jwks_url if empty

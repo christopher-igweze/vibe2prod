@@ -182,12 +182,6 @@ export interface PrimerResult {
   failure_reason: string | null
 }
 
-export interface QuotaLimits {
-  tier: string
-  project_count: number
-  project_limit: number
-}
-
 // Mirrors backend/api/routes/primer.py PrimerResponse
 export interface PrimerResponse {
   project_id: string

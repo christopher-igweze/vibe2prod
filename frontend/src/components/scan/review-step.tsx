@@ -10,14 +10,12 @@ import {
 
 import type {
   PrimerResult,
-  QuotaLimits,
   ProjectOrigin,
   SensitiveDataType,
 } from "@/lib/api/types";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -34,9 +32,6 @@ export interface ReviewStepProps {
   mustNotBreakFlows: string[];
   deploymentTarget: string;
   scaleExpectation: string;
-  quotaChecking: boolean;
-  quota: QuotaLimits | null;
-  quotaError: string | null;
   submitting: boolean;
   submitError: string | null;
   onEditRepo: () => void;
@@ -60,9 +55,6 @@ export function ReviewStep({
   mustNotBreakFlows,
   deploymentTarget,
   scaleExpectation,
-  quotaChecking,
-  quota,
-  quotaError,
   submitting,
   submitError,
   onEditRepo,
@@ -182,36 +174,6 @@ export function ReviewStep({
             </div>
           </div>
 
-          {/* Quota info */}
-          {quotaChecking && (
-            <div className="flex items-center gap-2 text-sm text-neutral-400">
-              <Loader2 className="size-4 animate-spin" />
-              Checking scan quota...
-            </div>
-          )}
-
-          {quota && !quotaError && (
-            <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-neutral-400">Projects</span>
-                <span className="text-sm font-medium text-neutral-200">
-                  {quota.project_count} / {quota.project_limit}
-                </span>
-              </div>
-              <Progress
-                value={(quota.project_count / quota.project_limit) * 100}
-                className="mt-2 h-1.5 bg-neutral-800"
-              />
-            </div>
-          )}
-
-          {quotaError && (
-            <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-start gap-3">
-              <AlertTriangle className="size-5 text-red-400 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-300">{quotaError}</p>
-            </div>
-          )}
-
           {submitError && (
             <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-start gap-3">
               <AlertTriangle className="size-5 text-red-400 shrink-0 mt-0.5" />
@@ -231,10 +193,7 @@ export function ReviewStep({
             </Button>
             <Button
               onClick={onSubmit}
-              disabled={
-                submitting ||
-                (quota !== null && quota.project_count >= quota.project_limit)
-              }
+              disabled={submitting}
               className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-32"
             >
               {submitting ? (

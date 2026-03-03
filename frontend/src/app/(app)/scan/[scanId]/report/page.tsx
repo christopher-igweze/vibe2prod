@@ -6,11 +6,10 @@ import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
-import { ArrowLeft, Loader2, AlertCircle, Copy, Check, ChevronDown, ChevronUp } from "lucide-react"
+import { ArrowLeft, Loader2, AlertCircle, Copy, Check } from "lucide-react"
 
 import { apiFetch, ApiError } from "@/lib/api/client"
-import "./print.css"
-import type { DiscoveryFinding, DiscoveryReport, Severity } from "@/lib/api/types"
+import type { DiscoveryReport, Severity } from "@/lib/api/types"
 import { reportToMarkdown } from "@/lib/report/to-markdown"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -21,7 +20,6 @@ import { SeveritySummary } from "./_components/severity-summary"
 import { ArchitectureContext } from "./_components/architecture-context"
 import { FindingsTable } from "./_components/findings-table"
 import { RemediationPlan } from "./_components/remediation-plan"
-import { formatDuration, formatCost } from "./_components/report-utils"
 
 /* ---------- types ---------- */
 
@@ -53,7 +51,6 @@ export default function ReportPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [mdCopied, setMdCopied] = useState(false)
-  const [methodologyOpen, setMethodologyOpen] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -247,69 +244,6 @@ export default function ReportPage() {
             </Card>
           )}
 
-          {/* Analysis Methodology */}
-          <Card className="bg-neutral-900 border-neutral-800 overflow-hidden">
-            <button
-              className="w-full flex items-center justify-between px-5 py-3 hover:bg-neutral-800/30 transition-colors"
-              onClick={() => setMethodologyOpen((v) => !v)}
-            >
-              <span className="text-sm font-medium text-neutral-400">Analysis Methodology</span>
-              {methodologyOpen ? (
-                <ChevronUp className="size-4 text-neutral-500" />
-              ) : (
-                <ChevronDown className="size-4 text-neutral-500" />
-              )}
-            </button>
-
-            {methodologyOpen && (
-              <div className="border-t border-neutral-800 px-5 py-4 space-y-4">
-                {/* Scan meta */}
-                <div className="flex flex-wrap gap-4 text-xs text-neutral-500">
-                  {report.duration_seconds > 0 && (
-                    <span>Duration: {formatDuration(report.duration_seconds)}</span>
-                  )}
-                  {report.cost_usd > 0 && (
-                    <span>Cost: {formatCost(report.cost_usd)}</span>
-                  )}
-                </div>
-
-                {/* Agent table */}
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
-                        <th className="text-left py-2 pr-4">Phase</th>
-                        <th className="text-left py-2 pr-4">Agent</th>
-                        <th className="text-left py-2">Role</th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-neutral-400 text-xs">
-                      {[
-                        ["Discovery", "Codebase Analyst", "Maps modules, dependencies, data flows"],
-                        ["Discovery", "Security Auditor", "Multi-pass security analysis"],
-                        ["Discovery", "Quality Auditor", "Error handling, code patterns"],
-                        ["Discovery", "Architecture Reviewer", "Structural coherence"],
-                        ["Triage", "Classifier", "Tier assignment (0-3)"],
-                        ["Triage", "Fix Strategist", "Remediation plan"],
-                        ["Remediation", "Coder (Tier 2)", "Scoped fixes (1-3 files)"],
-                        ["Remediation", "Coder (Tier 3)", "Architectural fixes (5-15 files)"],
-                        ["Remediation", "Test Generator", "Writes tests for fixes"],
-                        ["Remediation", "Code Reviewer", "Reviews fix quality"],
-                        ["Validation", "Integration Validator", "Regression testing"],
-                        ["Validation", "Debt Tracker", "Production Readiness Score"],
-                      ].map(([phase, agent, role], i) => (
-                        <tr key={i} className="border-b border-neutral-800/50">
-                          <td className="py-1.5 pr-4 text-neutral-500">{phase}</td>
-                          <td className="py-1.5 pr-4 text-neutral-300">{agent}</td>
-                          <td className="py-1.5">{role}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </Card>
         </TabsContent>
 
         <TabsContent value="markdown" className="mt-4">

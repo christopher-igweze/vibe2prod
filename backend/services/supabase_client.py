@@ -81,18 +81,6 @@ async def get_project_by_repo_url(user_id: str, repo_url: str) -> dict | None:
     return row.data[0]
 
 
-async def get_active_project_count(user_id: str) -> int:
-    """Count projects currently tracked by a user."""
-    client = _client()
-    resp = (
-        client.table("projects")
-        .select("id", count="exact")
-        .eq("user_id", str(user_id))
-        .execute()
-    )
-    return int(resp.count or 0)
-
-
 # ------------------------------------------------------------------ #
 # Scan reports
 # ------------------------------------------------------------------ #
