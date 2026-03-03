@@ -27,12 +27,6 @@ export const MOCK_PRIMER_RESPONSE = {
   suggested_flows: ["Type checking", "Assertion validation"],
 };
 
-export const MOCK_QUOTA = {
-  tier: "forge",
-  project_count: 0,
-  project_limit: 3,
-};
-
 export const MOCK_AUDIT_RESPONSE = {
   scan_id: "scan_test_abc123",
   status: "pending",
@@ -197,11 +191,6 @@ export async function setupHappyPathMocks(page: Page) {
   // Primer analysis
   await page.route("**/api/primer", (route) =>
     route.fulfill({ json: MOCK_PRIMER_RESPONSE }),
-  );
-
-  // Quota check
-  await page.route("**/api/limits", (route) =>
-    route.fulfill({ json: MOCK_QUOTA }),
   );
 
   // Audit submission

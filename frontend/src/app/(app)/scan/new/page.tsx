@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
@@ -10,7 +10,6 @@ import { apiFetch, ApiError } from "@/lib/api/client";
 import type {
   PrimerResult,
   AuditResponse,
-  QuotaLimits,
   ProjectOrigin,
   SensitiveDataType,
   ProjectIntake,
@@ -52,9 +51,6 @@ export default function NewScanPage() {
   // Step 3: Submit
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [quotaChecking, setQuotaChecking] = useState(false);
-  const [quota, setQuota] = useState<QuotaLimits | null>(null);
-  const [quotaError, setQuotaError] = useState<string | null>(null);
 
   // Onboarding modal
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -78,28 +74,8 @@ export default function NewScanPage() {
   };
 
   // ---------------------------------------------------------------------------
-  // Step 3: Check quota + submit
+  // Step 3: Submit
   // ---------------------------------------------------------------------------
-
-  const checkQuota = useCallback(async () => {
-    setQuotaChecking(true);
-    setQuotaError(null);
-    try {
-      const token = await getToken();
-      const limits = await apiFetch<QuotaLimits>("/api/limits", {
-        token: token ?? undefined,
-      });
-      setQuota(limits);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 403) {
-        setQuotaError("Unable to check quota. Please ensure you are onboarded.");
-      } else {
-        setQuotaError("Could not check scan limits. Try submitting anyway.");
-      }
-    } finally {
-      setQuotaChecking(false);
-    }
-  }, [getToken]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
@@ -165,13 +141,9 @@ export default function NewScanPage() {
             return;
           }
 
-          if (code === "limit_projects_exceeded") {
-            setSubmitError("You have reached the free tier project limit.");
-          } else {
-            setSubmitError(
-              (detail as { message?: string })?.message || err.detail || "Access denied"
-            );
-          }
+          setSubmitError(
+            (detail as { message?: string })?.message || err.detail || "Access denied"
+          );
         } else if (err.status === 429) {
           setSubmitError("Rate limited. Please wait a moment and try again.");
         } else {
@@ -199,9 +171,6 @@ export default function NewScanPage() {
 
   const goToStep = (target: number) => {
     if (target === 2 && !repoUrl.trim()) return;
-    if (target === 3) {
-      checkQuota();
-    }
     setStep(target);
   };
 
@@ -276,9 +245,6 @@ export default function NewScanPage() {
           mustNotBreakFlows={mustNotBreakFlows}
           deploymentTarget={deploymentTarget}
           scaleExpectation={scaleExpectation}
-          quotaChecking={quotaChecking}
-          quota={quota}
-          quotaError={quotaError}
           submitting={submitting}
           submitError={submitError}
           onEditRepo={() => setStep(1)}

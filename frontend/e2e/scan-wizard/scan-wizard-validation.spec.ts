@@ -42,33 +42,6 @@ test.describe("Scan Wizard - Validation", () => {
     ).toBeDisabled();
   });
 
-  test("prevents submission when project limit is reached", async ({
-    authedPage: page,
-  }) => {
-    // Override quota mock to show exhausted quota
-    await page.route("**/api/limits", (route) =>
-      route.fulfill({
-        json: { tier: "forge", project_count: 3, project_limit: 3 },
-      }),
-    );
-
-    await page.goto("/scan/new");
-
-    await page
-      .locator("#repo-url")
-      .fill("https://github.com/sindresorhus/is");
-    await page.getByRole("button", { name: "Continue" }).click();
-
-    // Skip intake
-    await page.getByRole("button", { name: "Skip for now" }).click();
-
-    // Step 3 — Start Audit should be disabled because 3/3
-    await expect(page.getByText("3 / 3")).toBeVisible({ timeout: 5000 });
-    await expect(
-      page.getByRole("button", { name: "Start Audit" }),
-    ).toBeDisabled();
-  });
-
   test("shows error when audit submission returns 403", async ({
     authedPage: page,
   }) => {
@@ -77,8 +50,8 @@ test.describe("Scan Wizard - Validation", () => {
         status: 403,
         json: {
           detail: JSON.stringify({
-            code: "limit_projects_exceeded",
-            message: "Project limit reached",
+            code: "access_denied",
+            message: "Access denied",
           }),
         },
       }),
@@ -96,7 +69,7 @@ test.describe("Scan Wizard - Validation", () => {
     await page.getByRole("button", { name: "Start Audit" }).click();
 
     await expect(
-      page.getByText("free tier project limit"),
+      page.getByText("Access denied"),
     ).toBeVisible({ timeout: 5000 });
   });
 

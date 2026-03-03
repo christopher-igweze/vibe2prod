@@ -8,6 +8,7 @@ import { Download, FileText, Printer, Trash2, Loader2, Copy, Check, Wrench } fro
 
 import type { DiscoveryReport, FixResponse } from "@/lib/api/types"
 import { reportToMarkdown } from "@/lib/report/to-markdown"
+import { openPdfReport } from "@/lib/report/to-pdf-html"
 import { apiFetch } from "@/lib/api/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -220,7 +221,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount, fixAtt
           variant="outline"
           size="sm"
           className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
-          onClick={() => window.print()}
+          onClick={() => openPdfReport(report, repoName)}
         >
           <Printer className="size-4 mr-1.5" />
           Save as PDF
