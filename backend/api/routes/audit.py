@@ -6,6 +6,7 @@ The discovery report is stored in scan_reports.report_data JSONB.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from uuid import UUID, uuid4
 
@@ -112,6 +113,12 @@ async def _run_forge_audit(
             await db.update_scan_status(scan_id, ScanStatus.failed)
         except Exception:
             logger.exception("Failed to update scan status after error for scan %s", scan_id)
+    finally:
+        # Give SSE clients a grace period to read the terminal event,
+        # then clean up the event bus to prevent unbounded memory growth.
+        await asyncio.sleep(30)
+        event_buses.pop(scan_id, None)
+        logger.debug("Cleaned up event bus for scan %s", scan_id)
 
 
 async def _preflight(
