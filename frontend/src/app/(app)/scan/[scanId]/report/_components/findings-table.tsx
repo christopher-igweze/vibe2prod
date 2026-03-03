@@ -232,9 +232,14 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
         <tr className="border-b border-neutral-800/50">
           <td colSpan={5} className="px-5 py-4 bg-neutral-950/40">
             <div className="space-y-4">
-              {/* Intent signal badge */}
-              {finding.intent_signal && (
-                <div className="flex items-center gap-2">
+              {/* Pattern ID + Intent signal badges */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {finding.pattern_id && (
+                  <Badge variant="outline" className="font-mono text-xs border-neutral-700 text-neutral-400">
+                    {finding.pattern_id}
+                  </Badge>
+                )}
+                {finding.intent_signal && (
                   <Badge
                     variant="outline"
                     className={
@@ -245,16 +250,16 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
                   >
                     Intent: {finding.intent_signal}
                   </Badge>
-                  {finding.actionability && (
-                    <Badge
-                      variant="outline"
-                      className="border-neutral-700 text-neutral-400 text-xs"
-                    >
-                      {finding.actionability.replace("_", " ")}
-                    </Badge>
-                  )}
-                </div>
-              )}
+                )}
+                {finding.actionability && (
+                  <Badge
+                    variant="outline"
+                    className="border-neutral-700 text-neutral-400 text-xs"
+                  >
+                    {finding.actionability.replace("_", " ")}
+                  </Badge>
+                )}
+              </div>
 
               {/* Description */}
               <div>
