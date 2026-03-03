@@ -17,77 +17,16 @@ import {
   CheckCircle2,
   Clock,
   Zap,
-  DollarSign,
-  ShieldCheck,
   ListChecks,
 } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
-import type { ProductionReadinessReport, DebtItem } from "@/lib/api/types"
+import type { ScanFixStatus } from "@/lib/api/types"
+import { openRemediationPdfReport } from "@/lib/report/remediation-to-pdf-html"
 import { ScoreGauge } from "@/components/score-gauge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-
-/* ---------- types ---------- */
-
-interface ScanFixStatus {
-  fix_attempt_id: string
-  scan_id: string
-  status: "pending" | "running" | "success" | "failed"
-  findings_fixed: number | null
-  findings_deferred: number | null
-  readiness_score: number | null
-  pr_url: string | null
-  summary: string | null
-  cost_usd: number | null
-  duration_seconds: number | null
-}
-
-/* ---------- mock data ---------- */
-
-const MOCK_READINESS: ProductionReadinessReport = {
-  overall_score: 78,
-  category_scores: [
-    { category: "Security", score: 82, max_score: 100, findings_count: 12, fixed_count: 10 },
-    { category: "Error Handling", score: 71, max_score: 100, findings_count: 8, fixed_count: 6 },
-    { category: "Test Coverage", score: 65, max_score: 100, findings_count: 5, fixed_count: 3 },
-    { category: "Architecture", score: 88, max_score: 100, findings_count: 4, fixed_count: 4 },
-    { category: "Performance", score: 75, max_score: 100, findings_count: 3, fixed_count: 2 },
-    { category: "Documentation", score: 60, max_score: 100, findings_count: 3, fixed_count: 1 },
-  ],
-  recommendations: [
-    "Add rate limiting to all public API endpoints",
-    "Implement centralized error boundary for React components",
-    "Add database migration versioning",
-  ],
-  debt_items: [
-    {
-      severity: "medium" as DebtItem["severity"],
-      title: "Missing input validation on /api/users",
-      description: "User input is not validated before database insertion",
-      source_finding_id: "F-001",
-    },
-    {
-      severity: "low" as DebtItem["severity"],
-      title: "Inconsistent error response format",
-      description: "Some endpoints return plain text errors instead of JSON",
-      source_finding_id: "F-015",
-    },
-  ],
-  investor_summary:
-    "This codebase has been hardened from a score of 45 to 78 out of 100. Critical security vulnerabilities were remediated, including SQL injection and exposed API keys. Architecture improvements resolved circular dependencies. 80% of identified issues have been auto-fixed and validated.",
-}
-
-const MOCK_VALIDATION = {
-  passed: true,
-  tests_run: 42,
-  tests_passed: 40,
-  tests_failed: 2,
-}
-
-const MOCK_AGENT_INVOCATIONS = 87
+import { Card, CardContent } from "@/components/ui/card"
 
 /* ---------- helpers ---------- */
 
@@ -177,8 +116,8 @@ export default function RemediationResultsPage() {
         )
         setStatus(data)
 
-        // If not completed, redirect to progress page
-        if (data.status !== "success") {
+        // If still running or pending, redirect to progress page
+        if (data.status === "pending" || data.status === "running") {
           router.push(`/scan/${scanId}/remediation`)
           return
         }
@@ -213,12 +152,12 @@ export default function RemediationResultsPage() {
     )
   }
 
-  // Use mock data for rich fields; merge with real status data where available
-  const readiness = MOCK_READINESS
-  const overallScore = status.readiness_score ?? readiness.overall_score
+  const readiness = status.readiness_report
+  const overallScore = status.readiness_score ?? readiness?.overall_score ?? 0
   const findingsFixed = status.findings_fixed ?? 0
   const findingsDeferred = status.findings_deferred ?? 0
   const totalFindings = findingsFixed + findingsDeferred
+  const isFailed = status.status === "failed"
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-16">
@@ -243,64 +182,71 @@ export default function RemediationResultsPage() {
             <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
               Discovery ✓
             </Badge>
-            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
-              Remediation ✓
-            </Badge>
-            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
-              Validation ✓
-            </Badge>
+            {isFailed ? (
+              <Badge className="bg-red-500/15 text-red-400 border-red-500/30">
+                Remediation ✗
+              </Badge>
+            ) : (
+              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+                Remediation ✓
+              </Badge>
+            )}
           </div>
         </div>
 
         <ScoreGauge score={overallScore} label="Production Readiness" size={180} />
 
-        <p className="text-neutral-400 text-sm max-w-2xl mx-auto leading-relaxed">
-          {readiness.investor_summary}
+        <p className={`text-sm max-w-2xl mx-auto leading-relaxed ${isFailed ? "text-red-400" : "text-neutral-400"}`}>
+          {isFailed
+            ? (status.error || status.summary || "Remediation failed.")
+            : (readiness?.investor_summary || status.summary || "")}
         </p>
       </div>
 
       {/* ── Category Breakdown ── */}
-      <div>
-        <h2 className="text-lg font-semibold text-neutral-100 mb-4">
-          Category Breakdown
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {readiness.category_scores.map((cat) => (
-            <Card
-              key={cat.category}
-              className="bg-neutral-900 border-neutral-800"
-            >
-              <CardContent className="py-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-neutral-200">
-                    {cat.category}
-                  </span>
-                  <span className="text-sm font-mono text-neutral-400">
-                    {cat.score}/{cat.max_score}
-                  </span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-neutral-800 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${scoreBarColor(cat.score)}`}
-                    style={{ width: `${(cat.score / cat.max_score) * 100}%` }}
-                  />
-                </div>
-                <p className="text-xs text-neutral-500">
-                  {cat.findings_count} findings → {cat.fixed_count} fixed
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+      {readiness?.category_scores && readiness.category_scores.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-neutral-100 mb-4">
+            Category Breakdown
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {readiness.category_scores.map((cat) => (
+              <Card
+                key={cat.name}
+                className="bg-neutral-900 border-neutral-800"
+              >
+                <CardContent className="py-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-neutral-200">
+                      {cat.name}
+                    </span>
+                    <span className="text-sm font-mono text-neutral-400">
+                      {cat.score}/100
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-neutral-800 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${scoreBarColor(cat.score)}`}
+                      style={{ width: `${cat.score}%` }}
+                    />
+                  </div>
+                  {cat.details && (
+                    <p className="text-xs text-neutral-500">{cat.details}</p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Remediation Stats ── */}
       <div>
         <h2 className="text-lg font-semibold text-neutral-100 mb-4">
           Remediation Stats
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Before / After */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {/* Findings */}
           <Card className="bg-neutral-900 border-neutral-800">
             <CardContent className="py-4 text-center space-y-1">
               <ListChecks className="size-5 text-neutral-400 mx-auto" />
@@ -322,7 +268,7 @@ export default function RemediationResultsPage() {
               <Zap className="size-5 text-neutral-400 mx-auto" />
               <p className="text-xs text-neutral-500">Agent Invocations</p>
               <p className="text-lg font-bold text-neutral-200">
-                {MOCK_AGENT_INVOCATIONS}
+                {status.agent_invocations ?? "--"}
               </p>
             </CardContent>
           </Card>
@@ -337,26 +283,6 @@ export default function RemediationResultsPage() {
               </p>
               <p className="text-xs text-neutral-500">
                 {formatCost(status.cost_usd)}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Validation */}
-          <Card className="bg-neutral-900 border-neutral-800">
-            <CardContent className="py-4 text-center space-y-1">
-              <ShieldCheck className="size-5 text-neutral-400 mx-auto" />
-              <p className="text-xs text-neutral-500">Validation</p>
-              {MOCK_VALIDATION.passed ? (
-                <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
-                  Passed
-                </Badge>
-              ) : (
-                <Badge className="bg-red-500/15 text-red-400 border-red-500/30">
-                  Failed
-                </Badge>
-              )}
-              <p className="text-xs text-neutral-500">
-                {MOCK_VALIDATION.tests_passed}/{MOCK_VALIDATION.tests_run} tests passed
               </p>
             </CardContent>
           </Card>
@@ -383,7 +309,7 @@ export default function RemediationResultsPage() {
         </CollapsibleSection>
 
         {/* Deferred / Debt Items */}
-        {readiness.debt_items.length > 0 && (
+        {readiness?.debt_items && readiness.debt_items.length > 0 && (
           <CollapsibleSection title={`Deferred Items (${readiness.debt_items.length})`}>
             <div className="space-y-3">
               {readiness.debt_items.map((item, i) => (
@@ -401,6 +327,11 @@ export default function RemediationResultsPage() {
                     <p className="text-xs text-neutral-500 mt-0.5">
                       {item.description}
                     </p>
+                    {item.reason_deferred && (
+                      <p className="text-xs text-neutral-600 mt-0.5">
+                        Deferred: {item.reason_deferred}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -409,7 +340,7 @@ export default function RemediationResultsPage() {
         )}
 
         {/* Recommendations */}
-        {readiness.recommendations.length > 0 && (
+        {readiness?.recommendations && readiness.recommendations.length > 0 && (
           <CollapsibleSection title="Recommendations">
             <ul className="space-y-2">
               {readiness.recommendations.map((rec, i) => (
@@ -444,7 +375,7 @@ export default function RemediationResultsPage() {
         <Button
           variant="outline"
           className="border-neutral-700 text-neutral-300"
-          disabled
+          onClick={() => openRemediationPdfReport(status)}
         >
           <Download className="size-4 mr-1.5" />
           Download Report
