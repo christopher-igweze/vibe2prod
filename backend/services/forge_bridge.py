@@ -54,6 +54,10 @@ class ForgeRunResult:
     pr_url: str = ""
     raw_result: dict = field(default_factory=dict)
     discovery_report: dict = field(default_factory=dict)
+    readiness_report: dict = field(default_factory=dict)
+    agent_invocations: int = 0
+    cost_usd: float = 0.0
+    duration_seconds: float = 0.0
 
 
 # ── HTTP helpers (sync, stdlib — no external deps) ────────────────────
@@ -246,6 +250,10 @@ def _parse_sandbox_result(execution_id: str, stdout: str) -> ForgeRunResult:
         readiness_score=_extract_readiness_score(data),
         raw_result=data,
         discovery_report=data.get("discovery_report") or {},
+        readiness_report=data.get("readiness_report") or {},
+        agent_invocations=data.get("agent_invocations", 0),
+        cost_usd=data.get("cost_usd", 0.0),
+        duration_seconds=data.get("duration_seconds", 0.0),
     )
 
 
@@ -365,6 +373,10 @@ def _parse_forge_result(execution_id: str, raw: dict) -> ForgeRunResult:
         pr_url=output.get("pr_url", ""),
         raw_result=raw,
         discovery_report=output.get("discovery_report") or {},
+        readiness_report=output.get("readiness_report") or {},
+        agent_invocations=output.get("agent_invocations", 0),
+        cost_usd=output.get("cost_usd", 0.0),
+        duration_seconds=output.get("duration_seconds", 0.0),
     )
 
 

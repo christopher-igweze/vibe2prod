@@ -135,3 +135,6 @@ class ScanFixStatusResponse(BaseModel):
     summary: str | None = None
     cost_usd: float | None = None
     duration_seconds: float | None = None
+    readiness_report: dict | None = None
+    agent_invocations: int | None = None
+    error: str | None = None
