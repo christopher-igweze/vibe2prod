@@ -113,6 +113,7 @@ class FixRouteTests(unittest.TestCase):
              patch("api.routes.fix.db.get_action_item", new=AsyncMock(return_value=action_item)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan_report)), \
+             patch("api.routes.fix.db.get_github_access_token", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.create_fix_attempt", new=AsyncMock(return_value=fix_id)), \
              patch("api.routes.fix._run_forge_fix", new=AsyncMock()):
             resp = self.client.post(
@@ -148,6 +149,7 @@ class FixRouteTests(unittest.TestCase):
              patch("api.routes.fix.db.get_action_item", new=AsyncMock(return_value=action_item)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=None)), \
+             patch("api.routes.fix.db.get_github_access_token", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.create_fix_attempt", new=AsyncMock(return_value=fix_id)), \
              patch("api.routes.fix._run_forge_fix", new=AsyncMock()):
             resp = self.client.post(
@@ -245,6 +247,7 @@ class ScanFixRouteTests(unittest.TestCase):
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
              patch("api.routes.fix.db.get_active_scan_fix_attempt", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
+             patch("api.routes.fix.db.get_github_access_token", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.create_scan_fix_attempt", new=AsyncMock(return_value=fix_id)), \
              patch("api.routes.fix._run_scan_forge_fix", new=AsyncMock()):
             resp = self.client.post(f"/api/fix-scan/{scan_id}")
@@ -276,6 +279,7 @@ class ScanFixRouteTests(unittest.TestCase):
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
              patch("api.routes.fix.db.get_active_scan_fix_attempt", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
+             patch("api.routes.fix.db.get_github_access_token", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.create_scan_fix_attempt", new=AsyncMock(return_value=fix_id)), \
              patch("api.routes.fix._run_scan_forge_fix", new=AsyncMock()):
             resp = self.client.post(f"/api/fix-scan/{scan_id}")
