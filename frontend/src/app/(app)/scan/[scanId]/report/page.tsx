@@ -2,17 +2,19 @@
 
 export const dynamic = "force-dynamic"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
-import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Loader2, AlertCircle, Copy, Check } from "lucide-react"
 
 import { apiFetch, ApiError } from "@/lib/api/client"
 import "./print.css"
 import type { DiscoveryFinding, DiscoveryReport, Severity } from "@/lib/api/types"
+import { reportToMarkdown } from "@/lib/report/to-markdown"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import { ReportHeader } from "./_components/report-header"
 import { SeveritySummary } from "./_components/severity-summary"
@@ -49,6 +51,7 @@ export default function ReportPage() {
   const [fixAttemptStatus, setFixAttemptStatus] = useState<FixStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [mdCopied, setMdCopied] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -154,6 +157,23 @@ export default function ReportPage() {
     )
   }
 
+  /* ---------- markdown preview ---------- */
+
+  const markdown = useMemo(
+    () => reportToMarkdown(report, scan.repo_name),
+    [report, scan.repo_name],
+  )
+
+  async function handleCopyMarkdown() {
+    try {
+      await navigator.clipboard.writeText(markdown)
+      setMdCopied(true)
+      setTimeout(() => setMdCopied(false), 2000)
+    } catch {
+      // Clipboard API unavailable
+    }
+  }
+
   /* ---------- render report ---------- */
 
   return (
@@ -174,39 +194,80 @@ export default function ReportPage() {
         fixAttemptStatus={fixAttemptStatus}
       />
 
-      {/* Severity Summary — only actionable findings */}
-      <SeveritySummary
-        breakdown={adjustedSeverity}
-        actionabilitySummary={report.actionability_summary}
-      />
+      {/* Tabbed content: Report / Markdown */}
+      <Tabs defaultValue="report">
+        <TabsList className="bg-neutral-900 border border-neutral-800">
+          <TabsTrigger
+            value="report"
+            className="data-[state=active]:bg-neutral-800 data-[state=active]:text-neutral-100 text-neutral-400"
+          >
+            Report
+          </TabsTrigger>
+          <TabsTrigger
+            value="markdown"
+            className="data-[state=active]:bg-neutral-800 data-[state=active]:text-neutral-100 text-neutral-400"
+          >
+            Markdown
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Architecture Context */}
-      {report.codebase_map && (
-        <ArchitectureContext
-          map={report.codebase_map}
-          findings={actionableFindings}
-        />
-      )}
+        <TabsContent value="report" className="space-y-6 mt-4">
+          {/* Severity Summary — only actionable findings */}
+          <SeveritySummary
+            breakdown={adjustedSeverity}
+            actionabilitySummary={report.actionability_summary}
+          />
 
-      {/* Findings Table — grouped by actionability */}
-      {report.findings.length > 0 && (
-        <FindingsTable
-          actionableFindings={actionableFindings}
-          intentionalFindings={intentionalFindings}
-        />
-      )}
+          {/* Architecture Context */}
+          {report.codebase_map && (
+            <ArchitectureContext
+              map={report.codebase_map}
+              findings={actionableFindings}
+            />
+          )}
 
-      {/* Remediation Plan */}
-      {report.remediation_plan && report.remediation_plan.items.length > 0 && (
-        <RemediationPlan plan={report.remediation_plan} />
-      )}
+          {/* Findings Table — grouped by actionability */}
+          {report.findings.length > 0 && (
+            <FindingsTable
+              actionableFindings={actionableFindings}
+              intentionalFindings={intentionalFindings}
+            />
+          )}
 
-      {/* Empty state */}
-      {actionableFindings.length === 0 && intentionalFindings.length === 0 && (
-        <Card className="bg-neutral-900 border-neutral-800 p-12 text-center">
-          <p className="text-neutral-400">No findings detected. Your codebase looks clean!</p>
-        </Card>
-      )}
+          {/* Remediation Plan */}
+          {report.remediation_plan && report.remediation_plan.items.length > 0 && (
+            <RemediationPlan plan={report.remediation_plan} />
+          )}
+
+          {/* Empty state */}
+          {actionableFindings.length === 0 && intentionalFindings.length === 0 && (
+            <Card className="bg-neutral-900 border-neutral-800 p-12 text-center">
+              <p className="text-neutral-400">No findings detected. Your codebase looks clean!</p>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="markdown" className="mt-4">
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="absolute top-3 right-3 border-neutral-700 text-neutral-300 hover:text-neutral-100 z-10"
+              onClick={handleCopyMarkdown}
+            >
+              {mdCopied ? (
+                <Check className="size-4 mr-1.5 text-emerald-400" />
+              ) : (
+                <Copy className="size-4 mr-1.5" />
+              )}
+              {mdCopied ? "Copied!" : "Copy Markdown"}
+            </Button>
+            <pre className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 pt-14 overflow-auto max-h-[80vh] font-mono text-sm text-neutral-300 whitespace-pre-wrap">
+              {markdown}
+            </pre>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
