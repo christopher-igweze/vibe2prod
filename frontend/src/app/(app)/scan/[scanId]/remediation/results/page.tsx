@@ -18,10 +18,12 @@ import {
   Clock,
   Zap,
   ListChecks,
+  RotateCcw,
+  Search,
 } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
-import type { ScanFixStatus } from "@/lib/api/types"
+import type { ScanFixStatus, FixResponse } from "@/lib/api/types"
 import { openRemediationPdfReport } from "@/lib/report/remediation-to-pdf-html"
 import { ScoreGauge } from "@/components/score-gauge"
 import { Badge } from "@/components/ui/badge"
@@ -105,6 +107,21 @@ export default function RemediationResultsPage() {
   const [status, setStatus] = useState<ScanFixStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState(false)
+
+  async function handleRetryRemediation() {
+    setRetrying(true)
+    try {
+      const token = (await getToken()) ?? undefined
+      await apiFetch<FixResponse>(`/api/fix-scan/${scanId}`, {
+        method: "POST",
+        token,
+      })
+      router.push(`/scan/${scanId}/remediation`)
+    } catch {
+      setRetrying(false)
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -355,7 +372,24 @@ export default function RemediationResultsPage() {
       </div>
 
       {/* ── Actions ── */}
-      <div className="flex items-center justify-center gap-3 pt-4">
+      <div className="flex items-center justify-center gap-3 pt-4 flex-wrap">
+        {/* Retry Remediation — always available */}
+        <Button
+          className={isFailed
+            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+            : "border-neutral-700 text-neutral-300"}
+          variant={isFailed ? "default" : "outline"}
+          onClick={handleRetryRemediation}
+          disabled={retrying}
+        >
+          {retrying ? (
+            <Loader2 className="size-4 mr-1.5 animate-spin" />
+          ) : (
+            <RotateCcw className="size-4 mr-1.5" />
+          )}
+          {isFailed ? "Retry Remediation" : "Re-run Remediation"}
+        </Button>
+
         {status.pr_url && (
           <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
             <a href={status.pr_url} target="_blank" rel="noopener noreferrer">
@@ -368,7 +402,7 @@ export default function RemediationResultsPage() {
         <Button variant="outline" className="border-neutral-700" asChild>
           <Link href={`/scan/${scanId}/report`}>
             <ArrowLeft className="size-4 mr-1.5" />
-            Back to Discovery Report
+            Discovery Report
           </Link>
         </Button>
 
@@ -379,6 +413,14 @@ export default function RemediationResultsPage() {
         >
           <Download className="size-4 mr-1.5" />
           Download Report
+        </Button>
+
+        {/* New Scan — go back to dashboard */}
+        <Button variant="outline" className="border-neutral-700 text-neutral-300" asChild>
+          <Link href="/dashboard">
+            <Search className="size-4 mr-1.5" />
+            New Scan
+          </Link>
         </Button>
       </div>
     </div>

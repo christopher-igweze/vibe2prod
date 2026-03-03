@@ -6,9 +6,10 @@ import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
-import { Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Loader2, AlertCircle, ArrowLeft, CheckCircle2, RotateCcw } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
+import type { FixResponse } from "@/lib/api/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -80,7 +81,26 @@ export default function RemediationProgressPage() {
 
   const [status, setStatus] = useState<ScanFixStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState(false)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  async function handleRetry() {
+    setRetrying(true)
+    try {
+      const token = (await getToken()) ?? undefined
+      await apiFetch<FixResponse>(`/api/fix-scan/${scanId}`, {
+        method: "POST",
+        token,
+      })
+      // Reset state and restart polling
+      setStatus(null)
+      setError(null)
+      setRetrying(false)
+    } catch {
+      setRetrying(false)
+      setError("Failed to retry remediation.")
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -95,14 +115,10 @@ export default function RemediationProgressPage() {
         if (cancelled) return
         setStatus(data)
 
-        if (data.status === "success") {
+        if (data.status === "success" || data.status === "failed") {
           if (intervalRef.current) clearInterval(intervalRef.current)
           router.push(`/scan/${scanId}/remediation/results`)
           return
-        }
-
-        if (data.status === "failed") {
-          if (intervalRef.current) clearInterval(intervalRef.current)
         }
       } catch {
         if (cancelled) return
@@ -122,7 +138,6 @@ export default function RemediationProgressPage() {
 
   const isRunning =
     !status || status.status === "pending" || status.status === "running"
-  const isFailed = status?.status === "failed"
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -154,26 +169,6 @@ export default function RemediationProgressPage() {
         </div>
       )}
 
-      {/* Failed state */}
-      {isFailed && (
-        <Card className="border border-red-500/20 bg-red-500/5">
-          <CardContent className="flex items-start gap-3 py-4">
-            <AlertCircle className="mt-0.5 size-5 text-red-400 shrink-0" />
-            <div className="space-y-2">
-              <p className="text-sm text-red-300">
-                {status?.summary || "Remediation failed unexpectedly. Please try again."}
-              </p>
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/scan/${scanId}/report`}>
-                  <ArrowLeft className="size-4" />
-                  Back to Report
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Error loading */}
       {error && (
         <Card className="border border-red-500/20 bg-red-500/5">
@@ -181,12 +176,27 @@ export default function RemediationProgressPage() {
             <AlertCircle className="mt-0.5 size-5 text-red-400 shrink-0" />
             <div className="space-y-2">
               <p className="text-sm text-red-300">{error}</p>
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/scan/${scanId}/report`}>
-                  <ArrowLeft className="size-4" />
-                  Back to Report
-                </Link>
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={handleRetry}
+                  disabled={retrying}
+                >
+                  {retrying ? (
+                    <Loader2 className="size-4 mr-1 animate-spin" />
+                  ) : (
+                    <RotateCcw className="size-4 mr-1" />
+                  )}
+                  Retry
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/scan/${scanId}/report`}>
+                    <ArrowLeft className="size-4 mr-1" />
+                    Back to Report
+                  </Link>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
