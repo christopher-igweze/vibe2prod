@@ -217,3 +217,59 @@ export interface OrgOnboardingPayload {
   coding_agent_provider: CodingAgentProvider
   coding_agent_model: string
 }
+
+// ── FORGE Fix / Remediation types ────────────────────────────────
+
+export interface FixResponse {
+  fix_attempt_id: string
+  status: string
+  message: string
+}
+
+export interface CategoryScore {
+  category: string
+  score: number
+  max_score: number
+  findings_count: number
+  fixed_count: number
+}
+
+export interface DebtItem {
+  severity: Severity
+  title: string
+  description: string
+  source_finding_id: string
+}
+
+export interface ProductionReadinessReport {
+  overall_score: number
+  category_scores: CategoryScore[]
+  recommendations: string[]
+  debt_items: DebtItem[]
+  investor_summary: string
+}
+
+export interface ValidationResult {
+  passed: boolean
+  tests_run: number
+  tests_passed: number
+  tests_failed: number
+  regressions_detected: number
+  new_issues_introduced: number
+  summary: string
+}
+
+export interface RemediationResult {
+  fix_attempt_id: string
+  status: 'pending' | 'running' | 'success' | 'failed'
+  forge_run_id: string
+  findings_fixed: number
+  findings_deferred: number
+  agent_invocations: number
+  cost_usd: number
+  duration_seconds: number
+  readiness_report: ProductionReadinessReport
+  validation: ValidationResult
+  pr_url: string | null
+  summary: string
+}
