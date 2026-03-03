@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     forge_sandbox_memory_gb: int = 4
     forge_sandbox_disk_gb: int = 10
     forge_sandbox_timeout_minutes: int = 20
-    forge_sandbox_exec_timeout: int = 600
+    forge_sandbox_exec_timeout: int = 900
     forge_package_source: str = "vibe2prod"
 
     # --- FORGE Engine ---
