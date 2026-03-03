@@ -87,6 +87,28 @@ export default function ReportPage() {
     load()
   }, [scanId, getToken])
 
+  const report = scan?.report_data?.discovery_report ?? null
+
+  // useMemo must be called unconditionally (React rules of hooks)
+  const markdown = useMemo(
+    () => (report ? reportToMarkdown(report, scan?.repo_name) : ""),
+    [report, scan?.repo_name],
+  )
+
+  // Split findings: actionable vs intentional/informational
+  const actionableFindings = report?.findings.filter(
+    (f) => f.intent_signal !== "intentional" && f.actionability !== "informational"
+  ) ?? []
+  const intentionalFindings = report?.findings.filter(
+    (f) => f.intent_signal === "intentional" || f.actionability === "informational"
+  ) ?? []
+
+  // Recompute severity counts from actionable findings only
+  const adjustedSeverity: Record<Severity, number> = { critical: 0, high: 0, medium: 0, low: 0 }
+  for (const f of actionableFindings) {
+    if (f.severity in adjustedSeverity) adjustedSeverity[f.severity]++
+  }
+
   /* ---------- loading / error states ---------- */
 
   if (loading) {
@@ -127,22 +149,6 @@ export default function ReportPage() {
     )
   }
 
-  const report = scan.report_data?.discovery_report
-
-  // Split findings: actionable vs intentional/informational
-  const actionableFindings = report?.findings.filter(
-    (f) => f.intent_signal !== "intentional" && f.actionability !== "informational"
-  ) ?? []
-  const intentionalFindings = report?.findings.filter(
-    (f) => f.intent_signal === "intentional" || f.actionability === "informational"
-  ) ?? []
-
-  // Recompute severity counts from actionable findings only
-  const adjustedSeverity: Record<Severity, number> = { critical: 0, high: 0, medium: 0, low: 0 }
-  for (const f of actionableFindings) {
-    if (f.severity in adjustedSeverity) adjustedSeverity[f.severity]++
-  }
-
   if (!report) {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
@@ -158,13 +164,6 @@ export default function ReportPage() {
       </div>
     )
   }
-
-  /* ---------- markdown preview ---------- */
-
-  const markdown = useMemo(
-    () => reportToMarkdown(report, scan.repo_name),
-    [report, scan.repo_name],
-  )
 
   async function handleCopyMarkdown() {
     try {
