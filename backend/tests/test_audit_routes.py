@@ -76,20 +76,6 @@ class AuditRouteTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 403)
         self.assertEqual(resp.json()["detail"]["code"], "onboarding_required")
 
-    def test_project_cap_blocks_new_project(self) -> None:
-        with patch(
-            "api.routes.audit.db.get_github_access_token", new=AsyncMock(return_value=None)
-        ), patch("api.routes.audit.db.is_onboarding_complete", new=AsyncMock(return_value=True)), patch(
-            "api.routes.audit.db.get_project_by_repo_url", new=AsyncMock(return_value=None)
-        ), patch(
-            "api.routes.audit.db.get_active_project_count",
-            new=AsyncMock(return_value=audit.settings.project_cap),
-        ):
-            resp = self.client.post("/api/audit", json=self._payload())
-
-        self.assertEqual(resp.status_code, 403)
-        self.assertEqual(resp.json()["detail"]["code"], "limit_projects_exceeded")
-
     def test_start_audit_dispatches_forge_scan(self) -> None:
         project_id = uuid4()
         repo_info = SimpleNamespace(
@@ -106,8 +92,6 @@ class AuditRouteTests(unittest.TestCase):
         ), patch("api.routes.audit.db.is_onboarding_complete", new=AsyncMock(return_value=True)), patch(
             "api.routes.audit.db.get_project_by_repo_url", new=AsyncMock(return_value=existing_project)
         ), patch(
-            "api.routes.audit.db.get_active_project_count", new=AsyncMock(return_value=1)
-        ), patch(
             "api.routes.audit.parse_repo_url", new=AsyncMock(return_value=("octocat", "Hello-World"))
         ), patch("api.routes.audit.get_repo_info", new=AsyncMock(return_value=repo_info)), patch(
             "api.routes.audit.db.create_scan_report", new=AsyncMock(return_value=uuid4())
@@ -119,17 +103,7 @@ class AuditRouteTests(unittest.TestCase):
         self.assertEqual(body["tier"], "forge")
         self.assertIn("scan_id", body)
 
-    def test_limits_endpoint_returns_project_count(self) -> None:
-        with patch(
-            "api.routes.audit.db.get_active_project_count", new=AsyncMock(return_value=2)
-        ):
-            resp = self.client.get("/api/limits")
 
-        self.assertEqual(resp.status_code, 200)
-        body = resp.json()
-        self.assertEqual(body["tier"], "forge")
-        self.assertEqual(body["project_count"], 2)
-        self.assertIn("project_limit", body)
 
 
 if __name__ == "__main__":

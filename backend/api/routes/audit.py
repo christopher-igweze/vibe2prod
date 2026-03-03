@@ -15,7 +15,6 @@ from fastapi import APIRouter, BackgroundTasks, Request, HTTPException
 
 from api.middleware.rate_limit import limiter, rate_limit_string
 from api.routes._sse import event_buses
-from config import settings
 from models.agent_log import AgentLogEntry, AgentName, LogLevel, SSEEventType
 from models.scan import AuditRequest, AuditResponse, ScanStatus
 from services import supabase_client as db
@@ -134,17 +133,6 @@ async def _preflight(
         )
 
     existing_project = await db.get_project_by_repo_url(user_id, str(request_body.repo_url))
-    project_count = await db.get_active_project_count(user_id)
-
-    if existing_project is None and project_count >= settings.project_cap:
-        raise _limit_exception(
-            "limit_projects_exceeded",
-            "Project limit reached.",
-            {
-                "project_count": project_count,
-                "project_limit": settings.project_cap,
-            },
-        )
 
     owner, repo = await parse_repo_url(str(request_body.repo_url))
     repo_info = await get_repo_info(owner, repo, github_token)
@@ -224,14 +212,3 @@ async def start_audit(
         raise HTTPException(status_code=500, detail="Failed to create scan")
 
 
-@router.get("/limits")
-async def get_limits(request: Request) -> dict:
-    """Return project limits and current usage."""
-    user_id: str = request.state.user_id
-    project_count = await db.get_active_project_count(user_id)
-
-    return {
-        "tier": "forge",
-        "project_count": project_count,
-        "project_limit": settings.project_cap,
-    }
