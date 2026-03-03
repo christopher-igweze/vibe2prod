@@ -9,6 +9,7 @@ import Link from "next/link"
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
 
 import { apiFetch, ApiError } from "@/lib/api/client"
+import "./print.css"
 import type { DiscoveryFinding, DiscoveryReport, Severity } from "@/lib/api/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
