@@ -152,6 +152,9 @@ class TriggerForgeScanTests(unittest.TestCase):
         mgr.exec = AsyncMock(return_value=SimpleNamespace(
             stdout=stdout, stderr=stderr, exit_code=exit_code,
         ))
+        mgr.exec_streaming = AsyncMock(return_value=SimpleNamespace(
+            stdout=stdout, stderr=stderr, exit_code=exit_code,
+        ))
         mgr.destroy = AsyncMock()
         return mgr
 
@@ -203,7 +206,7 @@ class TriggerForgeScanTests(unittest.TestCase):
         """Sandbox is destroyed even if exec raises."""
         scan_id = uuid4()
         mgr = self._mock_manager()
-        mgr.exec = AsyncMock(side_effect=Exception("timeout"))
+        mgr.exec_streaming = AsyncMock(side_effect=Exception("timeout"))
 
         with patch("services.forge_bridge.SandboxManager", return_value=mgr):
             result = asyncio.run(trigger_forge_scan(

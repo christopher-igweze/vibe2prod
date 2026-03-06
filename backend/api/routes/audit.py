@@ -65,6 +65,7 @@ async def _run_forge_audit(
             scan_id=scan_id,
             github_token=github_token,
             project_context=project_context,
+            emit=emit,
         )
 
         if result.success and result.discovery_report:
