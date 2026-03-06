@@ -18,6 +18,7 @@ import { apiFetch } from "@/lib/api/client"
 import { connectSSE } from "@/lib/api/sse"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 /* ---------- types ---------- */
 
@@ -36,6 +37,12 @@ const STAGES: Record<Phase, StageInfo> = {
 
 const PHASE_ORDER: Phase[] = ["connecting", "discovery", "triage"]
 
+interface LogEntry {
+  message: string
+  timestamp: Date
+  type: "start" | "log" | "complete" | "error"
+}
+
 interface ScanPoll {
   id: string
   status: "pending" | "scanning" | "completed" | "failed"
@@ -51,10 +58,12 @@ export default function ScanProgressPage() {
 
   const [phase, setPhase] = useState<Phase>("connecting")
   const [latestMessage, setLatestMessage] = useState<string>("Initializing scan...")
+  const [logs, setLogs] = useState<LogEntry[]>([])
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const disconnectRef = useRef<(() => void) | null>(null)
   const fallbackRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const logEndRef = useRef<HTMLDivElement>(null)
 
   // Determine phase from FORGE log message
   const inferPhase = useCallback((message: string): Phase | null => {
@@ -96,6 +105,10 @@ export default function ScanProgressPage() {
   }, [getToken, scanId, router])
 
   useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [logs])
+
+  useEffect(() => {
     let cancelled = false
 
     async function connect() {
@@ -117,7 +130,16 @@ export default function ScanProgressPage() {
               case "agent_log":
               case "agent_complete": {
                 const msg = data.message || ""
-                if (msg) setLatestMessage(msg)
+                if (msg) {
+                  setLatestMessage(msg)
+                  setLogs(prev => [...prev, {
+                    message: msg,
+                    timestamp: new Date(),
+                    type: event.event === "agent_start" ? "start"
+                        : event.event === "agent_complete" ? "complete"
+                        : "log",
+                  }])
+                }
                 const newPhase = inferPhase(msg)
                 if (newPhase) setPhase(newPhase)
                 break
@@ -125,13 +147,22 @@ export default function ScanProgressPage() {
               case "scan_complete":
                 setDone(true)
                 setLatestMessage(data.message || "Scan complete!")
-                // Short delay to show completion before redirect
+                setLogs(prev => [...prev, {
+                  message: data.message || "Scan complete!",
+                  timestamp: new Date(),
+                  type: "complete",
+                }])
                 setTimeout(() => {
                   if (!cancelled) router.push(`/scan/${scanId}/report`)
                 }, 1500)
                 break
               case "scan_error":
                 setError(data.message || "Scan failed unexpectedly.")
+                setLogs(prev => [...prev, {
+                  message: data.message || "Scan failed unexpectedly.",
+                  timestamp: new Date(),
+                  type: "error",
+                }])
                 break
               case "heartbeat":
                 // Keep-alive from backend — no action needed
@@ -226,7 +257,7 @@ export default function ScanProgressPage() {
                       {stage.label}
                     </p>
                     {isActive && (
-                      <p className="text-xs text-neutral-400 truncate mt-0.5">
+                      <p className="text-xs text-neutral-400 mt-0.5">
                         {latestMessage}
                       </p>
                     )}
@@ -240,6 +271,38 @@ export default function ScanProgressPage() {
               )
             })}
           </div>
+
+          {/* Live log feed */}
+          {logs.length > 0 && (
+            <Card className="w-full max-w-md border border-neutral-800 bg-neutral-900/50">
+              <CardContent className="p-0">
+                <ScrollArea className="h-48">
+                  <div className="p-4 space-y-2">
+                    {logs.map((log, i) => (
+                      <div key={i} className="flex items-start gap-3 text-xs">
+                        <span className="text-neutral-600 font-mono shrink-0 pt-0.5">
+                          {log.timestamp.toLocaleTimeString()}
+                        </span>
+                        {log.type === "complete" ? (
+                          <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        ) : log.type === "start" ? (
+                          <Circle className="size-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        ) : log.type === "error" ? (
+                          <AlertCircle className="size-3.5 text-red-400 shrink-0 mt-0.5" />
+                        ) : (
+                          <Circle className="size-3.5 text-neutral-600 shrink-0 mt-0.5" />
+                        )}
+                        <span className={log.type === "error" ? "text-red-300" : "text-neutral-300"}>
+                          {log.message}
+                        </span>
+                      </div>
+                    ))}
+                    <div ref={logEndRef} />
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
