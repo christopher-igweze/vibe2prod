@@ -7,6 +7,7 @@ Sandboxes auto-delete after ``sandbox_timeout_minutes`` of inactivity.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from dataclasses import dataclass
@@ -21,6 +22,7 @@ from daytona import (
     Resources,
     Sandbox,
 )
+from daytona.common.errors import DaytonaError
 
 from config import settings
 from sandbox.executor import CommandResult, SandboxExecutor
@@ -74,6 +76,10 @@ class SandboxSession:
     repo_path: str = "/home/daytona/repo"
 
 
+_SANDBOX_MAX_RETRIES = 3
+_SANDBOX_RETRY_EXCEPTIONS = (DaytonaError, httpx.TimeoutException, httpx.ConnectError, ConnectionError)
+
+
 class SandboxManager:
     """Creates, manages, and tears down Daytona sandboxes."""
 
@@ -103,20 +109,32 @@ class SandboxManager:
             .workdir("/home/daytona")
         )
 
-        sandbox = self._daytona.create(
-            CreateSandboxFromImageParams(
-                image=image,
-                resources=Resources(
-                    cpu=settings.sandbox_cpu,
-                    memory=settings.sandbox_memory_gb,
-                    disk=settings.sandbox_disk_gb,
-                ),
-                auto_stop_interval=settings.sandbox_timeout_minutes,
-                ephemeral=True,
-                labels={"scan_id": str(scan_id)},
-                env_vars={"SCAN_ID": str(scan_id)},
+        params = CreateSandboxFromImageParams(
+            image=image,
+            resources=Resources(
+                cpu=settings.sandbox_cpu,
+                memory=settings.sandbox_memory_gb,
+                disk=settings.sandbox_disk_gb,
             ),
+            auto_stop_interval=settings.sandbox_timeout_minutes,
+            ephemeral=True,
+            labels={"scan_id": str(scan_id)},
+            env_vars={"SCAN_ID": str(scan_id)},
         )
+
+        for attempt in range(1, _SANDBOX_MAX_RETRIES + 1):
+            try:
+                sandbox = self._daytona.create(params)
+                break
+            except _SANDBOX_RETRY_EXCEPTIONS as exc:
+                if attempt == _SANDBOX_MAX_RETRIES:
+                    raise
+                delay = 5 * attempt
+                logger.warning(
+                    "Sandbox creation attempt %d/%d failed for scan %s: %s — retrying in %ds",
+                    attempt, _SANDBOX_MAX_RETRIES, scan_id, exc, delay,
+                )
+                await asyncio.sleep(delay)
 
         repo_path = "/home/daytona/repo"
         sandbox.git.clone(clone_url, repo_path)
@@ -173,20 +191,32 @@ class SandboxManager:
         # not domain names. Since FORGE needs CDN-backed services
         # (OpenRouter, GitHub, PyPI) with dynamic IPs, we rely on
         # ephemeral containers + command-level NetworkPolicy for safety.
-        sandbox = self._daytona.create(
-            CreateSandboxFromImageParams(
-                image=image,
-                resources=Resources(
-                    cpu=settings.forge_sandbox_cpu,
-                    memory=settings.forge_sandbox_memory_gb,
-                    disk=settings.forge_sandbox_disk_gb,
-                ),
-                auto_stop_interval=settings.forge_sandbox_timeout_minutes,
-                ephemeral=True,
-                labels={"scan_id": str(scan_id), "type": "forge"},
-                env_vars=env_vars,
+        params = CreateSandboxFromImageParams(
+            image=image,
+            resources=Resources(
+                cpu=settings.forge_sandbox_cpu,
+                memory=settings.forge_sandbox_memory_gb,
+                disk=settings.forge_sandbox_disk_gb,
             ),
+            auto_stop_interval=settings.forge_sandbox_timeout_minutes,
+            ephemeral=True,
+            labels={"scan_id": str(scan_id), "type": "forge"},
+            env_vars=env_vars,
         )
+
+        for attempt in range(1, _SANDBOX_MAX_RETRIES + 1):
+            try:
+                sandbox = self._daytona.create(params)
+                break
+            except _SANDBOX_RETRY_EXCEPTIONS as exc:
+                if attempt == _SANDBOX_MAX_RETRIES:
+                    raise
+                delay = 5 * attempt
+                logger.warning(
+                    "FORGE sandbox creation attempt %d/%d failed for scan %s: %s — retrying in %ds",
+                    attempt, _SANDBOX_MAX_RETRIES, scan_id, exc, delay,
+                )
+                await asyncio.sleep(delay)
 
         repo_path = "/home/daytona/repo"
         sandbox.git.clone(clone_url, repo_path)
