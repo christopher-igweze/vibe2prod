@@ -21,7 +21,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 /* ---------- types ---------- */
 
-type Phase = "connecting" | "discovery" | "triage" | "remediation" | "validation"
+type Phase = "connecting" | "discovery" | "triage"
 
 interface StageInfo {
   label: string
@@ -32,11 +32,9 @@ const STAGES: Record<Phase, StageInfo> = {
   connecting: { label: "Connecting", description: "Setting up scan environment" },
   discovery: { label: "Discovery", description: "Analyzing codebase structure and security" },
   triage: { label: "Triage", description: "Classifying and prioritizing findings" },
-  remediation: { label: "Remediation", description: "Applying fixes to identified issues" },
-  validation: { label: "Validation", description: "Verifying fixes and scoring readiness" },
 }
 
-const PHASE_ORDER: Phase[] = ["connecting", "discovery", "triage", "remediation", "validation"]
+const PHASE_ORDER: Phase[] = ["connecting", "discovery", "triage"]
 
 interface ScanPoll {
   id: string
@@ -63,8 +61,6 @@ export default function ScanProgressPage() {
     const lower = message.toLowerCase()
     if (lower.includes("discovery")) return "discovery"
     if (lower.includes("triage")) return "triage"
-    if (lower.includes("remediation") || lower.includes("coder") || lower.includes("agent 7") || lower.includes("agent 8")) return "remediation"
-    if (lower.includes("validation") || lower.includes("agent 11") || lower.includes("agent 12")) return "validation"
     if (lower.includes("agent 1") || lower.includes("agent 2") || lower.includes("agent 3") || lower.includes("agent 4")) return "discovery"
     if (lower.includes("agent 5") || lower.includes("agent 6")) return "triage"
     return null
@@ -128,7 +124,6 @@ export default function ScanProgressPage() {
               }
               case "scan_complete":
                 setDone(true)
-                setPhase("validation")
                 setLatestMessage(data.message || "Scan complete!")
                 // Short delay to show completion before redirect
                 setTimeout(() => {
