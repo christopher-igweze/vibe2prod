@@ -83,6 +83,7 @@ class Settings(BaseSettings):
     forge_default_model: str = "minimax/minimax-m2.5"
     forge_poll_interval_seconds: int = 10
     forge_remediate_timeout_seconds: int = 2700
+    forge_webhook_base_url: str = ""  # Public URL of backend, e.g. https://api.vibe2prod.com
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
