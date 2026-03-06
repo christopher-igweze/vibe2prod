@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import uuid
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from daytona import Sandbox, SessionExecuteRequest
+from daytona import Sandbox
 
 from sandbox.network_policy import DEFAULT_POLICY, NetworkPolicy
 
 logger = logging.getLogger(__name__)
+
+_LOG_FILE = "/tmp/forge_stderr.log"
 
 
 @dataclass
@@ -72,73 +73,92 @@ class SandboxExecutor:
         command: str,
         cwd: str,
         timeout: int = 900,
-        on_stdout: Callable[[str], None] | None = None,
+        on_output: Callable[[str], None] | None = None,
     ) -> CommandResult:
-        """Execute a long-running command with real-time stdout streaming.
+        """Execute a command with real-time log streaming via file polling.
 
-        Uses the Daytona session API to run the command asynchronously and
-        stream logs via WebSocket. Each stdout chunk is passed to ``on_stdout``.
+        Runs the command with stderr redirected to a log file, then polls
+        that file in parallel for new lines and passes them to ``on_output``.
+        Uses the proven ``process.exec()`` for the actual execution.
         """
         self._policy.validate_command(command)
 
-        session_id = f"forge-{uuid.uuid4().hex[:8]}"
-        full_cmd = f"cd {cwd} && {command}"
-        stdout_lines: list[str] = []
-        stderr_lines: list[str] = []
+        # Redirect stderr to a log file so we can tail it in parallel.
+        wrapped_cmd = f"{command} 2>{_LOG_FILE}"
 
+        # Clear any stale log file
+        sandbox.process.exec(f"rm -f {_LOG_FILE} && touch {_LOG_FILE}", cwd=cwd, timeout=10)
+
+        # Run the command in a thread (proven reliable path)
+        exec_future = asyncio.to_thread(
+            sandbox.process.exec,
+            wrapped_cmd,
+            cwd=cwd,
+            timeout=timeout,
+        )
+
+        # Poll the log file for new lines while the command runs
+        last_offset = 0
+
+        async def _tail_logs() -> None:
+            nonlocal last_offset
+            while True:
+                await asyncio.sleep(2)
+                try:
+                    tail_resp = sandbox.process.exec(
+                        f"tail -c +{last_offset + 1} {_LOG_FILE}",
+                        cwd="/tmp",
+                        timeout=10,
+                    )
+                    chunk = tail_resp.result or ""
+                    if chunk and on_output:
+                        last_offset += len(chunk.encode("utf-8", errors="replace"))
+                        for line in chunk.splitlines():
+                            line = line.strip()
+                            if line:
+                                on_output(line)
+                except Exception:
+                    pass  # Log file might not exist yet or sandbox is busy
+
+        tail_task = asyncio.create_task(_tail_logs())
+
+        outer_timeout = max(30, int(timeout) + 30)
         try:
-            await asyncio.to_thread(sandbox.process.create_session, session_id)
+            resp = await asyncio.wait_for(exec_future, timeout=outer_timeout)
+        except asyncio.TimeoutError as exc:
+            tail_task.cancel()
+            raise RuntimeError(
+                f"Sandbox exec response timeout after {outer_timeout}s for command: {command[:120]}"
+            ) from exc
 
-            resp = await asyncio.to_thread(
-                sandbox.process.execute_session_command,
-                session_id,
-                SessionExecuteRequest(command=full_cmd, run_async=True),
+        # Stop tailing and do one final read to catch remaining lines
+        tail_task.cancel()
+        try:
+            final_resp = sandbox.process.exec(
+                f"tail -c +{last_offset + 1} {_LOG_FILE}",
+                cwd="/tmp",
+                timeout=10,
             )
-            cmd_id = resp.cmd_id
+            final_chunk = final_resp.result or ""
+            if final_chunk and on_output:
+                for line in final_chunk.splitlines():
+                    line = line.strip()
+                    if line:
+                        on_output(line)
+        except Exception:
+            pass
 
-            def _on_stdout(chunk: str) -> None:
-                stdout_lines.append(chunk)
-                if on_stdout:
-                    for line in chunk.splitlines():
-                        line = line.strip()
-                        if line:
-                            on_stdout(line)
+        # Read full stderr for the result
+        stderr = ""
+        try:
+            stderr_resp = sandbox.process.exec(f"cat {_LOG_FILE}", cwd="/tmp", timeout=10)
+            stderr = stderr_resp.result or ""
+        except Exception:
+            pass
 
-            def _on_stderr(chunk: str) -> None:
-                stderr_lines.append(chunk)
-
-            # Stream logs — this blocks until the command finishes or the
-            # WebSocket closes. Run in a thread to respect our timeout.
-            try:
-                await asyncio.wait_for(
-                    asyncio.to_thread(
-                        sandbox.process.get_session_command_logs_async,
-                        session_id,
-                        cmd_id,
-                        on_stdout=_on_stdout,
-                        on_stderr=_on_stderr,
-                    ),
-                    timeout=timeout + 30,
-                )
-            except asyncio.TimeoutError as exc:
-                raise RuntimeError(
-                    f"Streaming exec timeout after {timeout}s for command: {command[:120]}"
-                ) from exc
-
-            # Get final exit code
-            cmd_status = await asyncio.to_thread(
-                sandbox.process.get_session_command, session_id, cmd_id
-            )
-
-            return CommandResult(
-                command=command,
-                exit_code=cmd_status.exit_code if cmd_status.exit_code is not None else 1,
-                stdout="".join(stdout_lines),
-                stderr="".join(stderr_lines),
-            )
-        finally:
-            try:
-                await asyncio.to_thread(sandbox.process.delete_session, session_id)
-            except Exception:
-                logger.debug("Failed to delete session %s (may already be gone)", session_id)
-
+        return CommandResult(
+            command=command,
+            exit_code=resp.exit_code,
+            stdout=resp.result or "",
+            stderr=stderr,
+        )

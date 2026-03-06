@@ -182,9 +182,10 @@ async def trigger_forge_scan(
         if model_override:
             cmd += f" --model {model_override}"
 
-        on_stdout = make_line_handler(emit) if emit else None
+        on_log = make_line_handler(emit) if emit else None
         result = await mgr.exec_streaming(
-            scan_id, cmd, cwd="/home/daytona", timeout=exec_timeout, on_stdout=on_stdout,
+            scan_id, cmd, cwd="/home/daytona", timeout=exec_timeout,
+            on_output=on_log,
         )
 
         if result.exit_code != 0:
@@ -230,10 +231,12 @@ def _parse_sandbox_result(execution_id: str, stdout: str) -> ForgeRunResult:
     try:
         data = json.loads(text)
     except json.JSONDecodeError:
-        brace = text.find("{")
-        if brace >= 0:
+        # Extract JSON between first '{' and last '}'
+        brace_start = text.find("{")
+        brace_end = text.rfind("}")
+        if brace_start >= 0 and brace_end > brace_start:
             try:
-                data = json.loads(text[brace:])
+                data = json.loads(text[brace_start : brace_end + 1])
             except json.JSONDecodeError:
                 pass
 

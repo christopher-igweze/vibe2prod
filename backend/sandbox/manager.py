@@ -260,9 +260,9 @@ class SandboxManager:
         command: str,
         cwd: str | None = None,
         timeout: int = 900,
-        on_stdout: Callable[[str], None] | None = None,
+        on_output: Callable[[str], None] | None = None,
     ) -> CommandResult:
-        """Execute a command with real-time stdout streaming."""
+        """Execute a command with real-time log streaming."""
         session = self._sessions.get(scan_id)
         if session is None:
             raise RuntimeError(f"No sandbox session for scan {scan_id}")
@@ -273,7 +273,7 @@ class SandboxManager:
             command=command,
             cwd=work_dir,
             timeout=timeout,
-            on_stdout=on_stdout,
+            on_output=on_output,
         )
 
     async def read_file(self, scan_id: UUID, path: str) -> str:
