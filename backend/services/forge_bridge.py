@@ -167,6 +167,7 @@ async def trigger_forge_scan(
         raise ValueError("scan_id is required for sandbox-based discovery")
 
     exec_timeout = timeout or settings.forge_sandbox_exec_timeout
+    model_override = model_override or settings.forge_default_model
     clone_url = _authenticated_url(repo_url, github_token)
 
     mgr = SandboxManager()

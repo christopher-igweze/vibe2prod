@@ -81,9 +81,6 @@ class Settings(BaseSettings):
     forge_node_id: str = "forge-engine"
     agentfield_api_key: str = ""
     forge_default_model: str = "minimax/minimax-m2.5"
-    forge_runtime: str = "open_code"
-    forge_max_inner_retries: int = 3
-    forge_max_outer_replans: int = 1
     forge_poll_interval_seconds: int = 10
     forge_remediate_timeout_seconds: int = 2700
 
