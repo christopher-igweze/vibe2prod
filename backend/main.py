@@ -30,6 +30,7 @@ from api.routes import (
     user,
     webhook,
     webhook_clerk,
+    webhook_forge,
 )
 
 logging.basicConfig(
@@ -124,6 +125,7 @@ app.include_router(github_oauth.router, prefix="/api", tags=["github"])
 app.include_router(user.router, prefix="/api", tags=["user"])
 app.include_router(webhook.router, prefix="/api", tags=["webhook"])
 app.include_router(webhook_clerk.router, prefix="/api", tags=["webhook"])
+app.include_router(webhook_forge.router, prefix="/api/webhook", tags=["webhook-forge"])
 
 
 # ------------------------------------------------------------------ #

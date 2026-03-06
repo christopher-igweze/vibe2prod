@@ -155,6 +155,8 @@ class SandboxManager:
         *,
         openrouter_api_key: str,
         github_token: str | None = None,
+        webhook_url: str = "",
+        webhook_token: str = "",
     ) -> SandboxSession:
         """Spin up an isolated sandbox for a FORGE discovery scan.
 
@@ -196,6 +198,11 @@ class SandboxManager:
             "SCAN_ID": str(scan_id),
             "OPENROUTER_API_KEY": openrouter_api_key,
         }
+
+        if webhook_url:
+            env_vars["FORGE_WEBHOOK_URL"] = webhook_url
+            env_vars["FORGE_WEBHOOK_TOKEN"] = webhook_token
+            env_vars["FORGE_WEBHOOK_SCAN_ID"] = str(scan_id)
 
         # NOTE: Daytona network_allow_list only supports CIDR IP ranges,
         # not domain names. Since FORGE needs CDN-backed services
