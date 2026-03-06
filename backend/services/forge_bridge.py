@@ -33,7 +33,6 @@ from uuid import UUID
 
 from config import settings
 from models.agent_log import AgentLogEntry
-from sandbox.forge_log_parser import make_line_handler
 from sandbox.manager import SandboxManager
 
 logger = logging.getLogger(__name__)
@@ -183,10 +182,8 @@ async def trigger_forge_scan(
         if model_override:
             cmd += f" --model {model_override}"
 
-        on_log = make_line_handler(emit) if emit else None
-        result = await mgr.exec_streaming(
+        result = await mgr.exec(
             scan_id, cmd, cwd="/home/daytona", timeout=exec_timeout,
-            on_output=on_log,
         )
 
         if result.exit_code != 0:
