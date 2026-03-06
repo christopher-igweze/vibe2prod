@@ -153,6 +153,8 @@ async def trigger_forge_scan(
     timeout: int | None = None,
     project_context: dict | None = None,
     emit: Callable[[AgentLogEntry], None] | None = None,
+    webhook_url: str = "",
+    webhook_token: str = "",
 ) -> ForgeRunResult:
     """Run a FORGE discovery scan inside an isolated Daytona sandbox.
 
@@ -176,6 +178,8 @@ async def trigger_forge_scan(
             clone_url,
             openrouter_api_key=settings.openrouter_api_key,
             github_token=github_token,
+            webhook_url=webhook_url,
+            webhook_token=webhook_token,
         )
 
         cmd = "vibe2prod scan /home/daytona/repo --json"

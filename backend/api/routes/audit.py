@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import secrets
 from uuid import UUID, uuid4
 
 import httpx
@@ -17,6 +18,8 @@ from api.middleware.rate_limit import limiter, rate_limit_string
 from api.routes._sse import event_buses
 from models.agent_log import AgentLogEntry, AgentName, LogLevel, SSEEventType
 from models.scan import AuditRequest, AuditResponse, ScanStatus
+from api.routes.webhook_forge import register_scan_token, unregister_scan_token
+from config import settings
 from services import supabase_client as db
 from services.github import get_repo_info, parse_repo_url
 
@@ -48,6 +51,16 @@ async def _run_forge_audit(
         if bus is not None:
             bus.append(entry)
 
+    # Generate per-scan webhook token and URL
+    webhook_token = secrets.token_urlsafe(32)
+    webhook_url = (
+        f"{settings.forge_webhook_base_url}/api/webhook/forge"
+        if settings.forge_webhook_base_url
+        else ""
+    )
+    if webhook_url:
+        register_scan_token(scan_id, webhook_token)
+
     try:
         await db.update_scan_status(scan_id, ScanStatus.scanning)
 
@@ -66,6 +79,8 @@ async def _run_forge_audit(
             github_token=github_token,
             project_context=project_context,
             emit=emit,
+            webhook_url=webhook_url,
+            webhook_token=webhook_token,
         )
 
         if result.success and result.discovery_report:
@@ -118,6 +133,7 @@ async def _run_forge_audit(
         # then clean up the event bus to prevent unbounded memory growth.
         await asyncio.sleep(30)
         event_buses.pop(scan_id, None)
+        unregister_scan_token(scan_id)
         logger.debug("Cleaned up event bus for scan %s", scan_id)
 
 
