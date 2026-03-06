@@ -73,6 +73,7 @@ class Settings(BaseSettings):
     forge_sandbox_timeout_minutes: int = 20
     forge_sandbox_exec_timeout: int = 900
     forge_package_source: str = "vibe2prod"
+    forge_deploy_token: str | None = None  # GitHub PAT for private forge-engine repo access
 
     # --- FORGE Engine ---
     forge_enabled: bool = False
