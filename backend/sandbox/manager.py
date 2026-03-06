@@ -25,6 +25,8 @@ from daytona import (
 from daytona.common.errors import DaytonaError
 
 from config import settings
+from collections.abc import Callable
+
 from sandbox.executor import CommandResult, SandboxExecutor
 
 logger = logging.getLogger(__name__)
@@ -250,6 +252,28 @@ class SandboxManager:
             command=command,
             cwd=work_dir,
             timeout=timeout,
+        )
+
+    async def exec_streaming(
+        self,
+        scan_id: UUID,
+        command: str,
+        cwd: str | None = None,
+        timeout: int = 900,
+        on_stdout: Callable[[str], None] | None = None,
+    ) -> CommandResult:
+        """Execute a command with real-time stdout streaming."""
+        session = self._sessions.get(scan_id)
+        if session is None:
+            raise RuntimeError(f"No sandbox session for scan {scan_id}")
+
+        work_dir = cwd or session.repo_path
+        return await self._executor.execute_streaming(
+            sandbox=session.sandbox,
+            command=command,
+            cwd=work_dir,
+            timeout=timeout,
+            on_stdout=on_stdout,
         )
 
     async def read_file(self, scan_id: UUID, path: str) -> str:
