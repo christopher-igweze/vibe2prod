@@ -164,12 +164,20 @@ class SandboxManager:
 
         forge_source = settings.forge_package_source
 
+        # Use dedicated deploy token (not the user's OAuth token) for private repo access.
+        deploy_token = settings.forge_deploy_token
+
         # Pin to latest commit SHA so Daytona rebuilds the image on new pushes.
-        sha = await _resolve_forge_sha(forge_source, github_token)
+        sha = await _resolve_forge_sha(forge_source, deploy_token or github_token)
         if sha and "@" not in forge_source:
             forge_source = f"{forge_source}@{sha}"
 
-        if github_token and "github.com" in forge_source:
+        if deploy_token and "github.com" in forge_source:
+            forge_source = forge_source.replace(
+                "https://github.com/",
+                f"https://x-access-token:{deploy_token}@github.com/",
+            )
+        elif github_token and "github.com" in forge_source:
             forge_source = forge_source.replace(
                 "https://github.com/",
                 f"https://x-access-token:{github_token}@github.com/",
