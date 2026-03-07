@@ -32,7 +32,7 @@ from typing import Any, Sequence
 from uuid import UUID
 
 from config import settings
-from models.agent_log import AgentLogEntry
+from models.agent_log import AgentLogEntry, AgentName, LogLevel, SSEEventType
 from sandbox.manager import SandboxManager
 
 logger = logging.getLogger(__name__)
@@ -186,8 +186,19 @@ async def trigger_forge_scan(
         if model_override:
             cmd += f" --model {model_override}"
 
-        result = await mgr.exec(
+        def _on_output(line: str) -> None:
+            logger.info("FORGE [%s]: %s", scan_id, line)
+            if emit:
+                emit(AgentLogEntry(
+                    event_type=SSEEventType.agent_log,
+                    agent=AgentName.orchestrator,
+                    message=line,
+                    level=LogLevel.info,
+                ))
+
+        result = await mgr.exec_streaming(
             scan_id, cmd, cwd="/home/daytona", timeout=exec_timeout,
+            on_output=_on_output,
         )
 
         if result.exit_code != 0:
