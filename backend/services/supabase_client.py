@@ -120,9 +120,17 @@ async def create_scan_report(
     return UUID(row.data[0]["id"])
 
 
-async def update_scan_status(scan_id: UUID, status: ScanStatus) -> None:
+async def update_scan_status(
+    scan_id: UUID,
+    status: ScanStatus,
+    *,
+    failure_reason: str | None = None,
+) -> None:
+    update: dict = {"status": status.value}
+    if failure_reason is not None:
+        update["failure_reason"] = failure_reason
     client = _client()
-    client.table("scan_reports").update({"status": status.value}).eq(
+    client.table("scan_reports").update(update).eq(
         "id", str(scan_id)
     ).execute()
 

@@ -14,8 +14,6 @@ from dataclasses import dataclass
 from uuid import UUID
 
 import httpx
-from urllib.parse import urlparse
-
 from daytona import (
     Daytona,
     DaytonaConfig,
@@ -30,7 +28,6 @@ from config import settings
 from collections.abc import Callable
 
 from sandbox.executor import CommandResult, SandboxExecutor
-from sandbox.network_policy import NetworkPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -102,17 +99,7 @@ class SandboxManager:
         )
         self._daytona = Daytona(config)
         self._sessions: dict[UUID, SandboxSession] = {}
-
-        # Allow the webhook callback host through the network policy
-        extra_hosts: list[str] = []
-        webhook_base = settings.forge_webhook_base_url
-        if webhook_base:
-            parsed = urlparse(webhook_base)
-            if parsed.hostname:
-                extra_hosts.append(parsed.hostname)
-
-        policy = NetworkPolicy.with_extra_hosts(extra_hosts) if extra_hosts else None
-        self._executor = SandboxExecutor(policy=policy)
+        self._executor = SandboxExecutor()
 
     async def provision(self, scan_id: UUID, clone_url: str) -> SandboxSession:
         """Spin up a sandbox, clone the repo, and return a session handle."""
@@ -168,8 +155,6 @@ class SandboxManager:
         *,
         openrouter_api_key: str,
         github_token: str | None = None,
-        webhook_url: str = "",
-        webhook_token: str = "",
     ) -> SandboxSession:
         """Spin up an isolated sandbox for a FORGE discovery scan.
 
@@ -211,11 +196,6 @@ class SandboxManager:
             "SCAN_ID": str(scan_id),
             "OPENROUTER_API_KEY": openrouter_api_key,
         }
-
-        if webhook_url:
-            env_vars["FORGE_WEBHOOK_URL"] = webhook_url
-            env_vars["FORGE_WEBHOOK_TOKEN"] = webhook_token
-            env_vars["FORGE_WEBHOOK_SCAN_ID"] = str(scan_id)
 
         # NOTE: Daytona network_allow_list only supports CIDR IP ranges,
         # not domain names. Since FORGE needs CDN-backed services

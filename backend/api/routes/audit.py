@@ -6,19 +6,14 @@ The discovery report is stored in scan_reports.report_data JSONB.
 
 from __future__ import annotations
 
-import asyncio
 import logging
-import secrets
 from uuid import UUID, uuid4
 
 import httpx
 from fastapi import APIRouter, BackgroundTasks, Request, HTTPException
 
 from api.middleware.rate_limit import limiter, rate_limit_string
-from api.routes._sse import event_buses
-from models.agent_log import AgentLogEntry, AgentName, LogLevel, SSEEventType
 from models.scan import AuditRequest, AuditResponse, ScanStatus
-from api.routes.webhook_forge import register_scan_token, unregister_scan_token
 from config import settings
 from services import supabase_client as db
 from services.github import get_repo_info, parse_repo_url
@@ -45,42 +40,14 @@ async def _run_forge_audit(
     """Background task that runs FORGE discovery scan and stores results."""
     from services.forge_bridge import trigger_forge_scan
 
-    bus = event_buses.get(scan_id)
-
-    def emit(entry: AgentLogEntry) -> None:
-        if bus is not None:
-            bus.append(entry)
-
-    # Generate per-scan webhook token and URL
-    webhook_token = secrets.token_urlsafe(32)
-    webhook_url = (
-        f"{settings.forge_webhook_base_url}/api/webhook/forge"
-        if settings.forge_webhook_base_url
-        else ""
-    )
-    if webhook_url:
-        register_scan_token(scan_id, webhook_token)
-
     try:
         await db.update_scan_status(scan_id, ScanStatus.scanning)
-
-        emit(
-            AgentLogEntry(
-                event_type=SSEEventType.agent_start,
-                agent=AgentName.orchestrator,
-                message="Starting FORGE discovery scan.",
-                level=LogLevel.info,
-            )
-        )
 
         result = await trigger_forge_scan(
             repo_url,
             scan_id=scan_id,
             github_token=github_token,
             project_context=project_context,
-            emit=emit,
-            webhook_url=webhook_url,
-            webhook_token=webhook_token,
         )
 
         if result.success and result.discovery_report:
@@ -88,53 +55,22 @@ async def _run_forge_audit(
                 scan_id=scan_id,
                 discovery_report=result.discovery_report,
             )
-
-            total = result.discovery_report.get("total_findings", 0)
-            emit(
-                AgentLogEntry(
-                    event_type=SSEEventType.scan_complete,
-                    agent=AgentName.orchestrator,
-                    message=f"FORGE discovery complete. {total} findings.",
-                    level=LogLevel.success,
-                    data={
-                        "findings_count": total,
-                        "report_artifact_available": True,
-                    },
-                )
-            )
         else:
             error_msg = result.error or "FORGE discovery scan failed."
             logger.error("FORGE audit failed for scan %s: %s", scan_id, error_msg)
-            emit(
-                AgentLogEntry(
-                    event_type=SSEEventType.scan_error,
-                    agent=AgentName.orchestrator,
-                    message=error_msg,
-                    level=LogLevel.error,
-                )
+            await db.update_scan_status(
+                scan_id, ScanStatus.failed, failure_reason=error_msg
             )
-            await db.update_scan_status(scan_id, ScanStatus.failed)
     except Exception as exc:
         logger.exception("FORGE audit background task failed for scan %s", scan_id)
-        emit(
-            AgentLogEntry(
-                event_type=SSEEventType.scan_error,
-                agent=AgentName.orchestrator,
-                message=f"FORGE discovery scan failed: {type(exc).__name__}",
-                level=LogLevel.error,
-            )
-        )
         try:
-            await db.update_scan_status(scan_id, ScanStatus.failed)
+            await db.update_scan_status(
+                scan_id,
+                ScanStatus.failed,
+                failure_reason=f"{type(exc).__name__}: {exc}",
+            )
         except Exception:
             logger.exception("Failed to update scan status after error for scan %s", scan_id)
-    finally:
-        # Give SSE clients a grace period to read the terminal event,
-        # then clean up the event bus to prevent unbounded memory growth.
-        await asyncio.sleep(30)
-        event_buses.pop(scan_id, None)
-        unregister_scan_token(scan_id)
-        logger.debug("Cleaned up event bus for scan %s", scan_id)
 
 
 async def _preflight(
@@ -170,8 +106,6 @@ async def start_audit(
     """Accept a GitHub URL and kick off a FORGE discovery scan."""
     user_id: str = request.state.user_id
     scan_id = uuid4()
-
-    event_buses[scan_id] = []
 
     try:
         github_token = await db.get_github_access_token(user_id)
@@ -227,5 +161,3 @@ async def start_audit(
     except Exception:
         logger.exception("Failed to create scan report row")
         raise HTTPException(status_code=500, detail="Failed to create scan")
-
-
