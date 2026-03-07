@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
@@ -15,14 +15,12 @@ import {
 } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
-import { connectSSE } from "@/lib/api/sse"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
 
 /* ---------- types ---------- */
 
-type Phase = "connecting" | "discovery" | "triage"
+type Phase = "connecting" | "scanning" | "complete"
 
 interface StageInfo {
   label: string
@@ -31,21 +29,16 @@ interface StageInfo {
 
 const STAGES: Record<Phase, StageInfo> = {
   connecting: { label: "Connecting", description: "Setting up scan environment" },
-  discovery: { label: "Discovery", description: "Analyzing codebase structure and security" },
-  triage: { label: "Triage", description: "Classifying and prioritizing findings" },
+  scanning: { label: "Scanning", description: "Analyzing codebase structure and security" },
+  complete: { label: "Complete", description: "Scan finished" },
 }
 
-const PHASE_ORDER: Phase[] = ["connecting", "discovery", "triage"]
-
-interface LogEntry {
-  message: string
-  timestamp: Date
-  type: "start" | "log" | "complete" | "error"
-}
+const PHASE_ORDER: Phase[] = ["connecting", "scanning", "complete"]
 
 interface ScanPoll {
   id: string
   status: "pending" | "scanning" | "completed" | "failed"
+  failure_reason?: string | null
 }
 
 /* ---------- component ---------- */
@@ -57,27 +50,12 @@ export default function ScanProgressPage() {
   const scanId = params.scanId
 
   const [phase, setPhase] = useState<Phase>("connecting")
-  const [latestMessage, setLatestMessage] = useState<string>("Initializing scan...")
-  const [logs, setLogs] = useState<LogEntry[]>([])
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
-  const disconnectRef = useRef<(() => void) | null>(null)
-  const fallbackRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const logEndRef = useRef<HTMLDivElement>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Determine phase from FORGE log message
-  const inferPhase = useCallback((message: string): Phase | null => {
-    const lower = message.toLowerCase()
-    if (lower.includes("discovery")) return "discovery"
-    if (lower.includes("triage")) return "triage"
-    if (lower.includes("agent 1") || lower.includes("agent 2") || lower.includes("agent 3") || lower.includes("agent 4")) return "discovery"
-    if (lower.includes("agent 5") || lower.includes("agent 6")) return "triage"
-    return null
-  }, [])
-
-  // Fallback to polling if SSE fails
-  const startFallbackPolling = useCallback(() => {
-    if (fallbackRef.current) return
+  useEffect(() => {
+    let cancelled = false
     let failures = 0
 
     const poll = async () => {
@@ -85,113 +63,42 @@ export default function ScanProgressPage() {
         const token = (await getToken()) ?? undefined
         const data = await apiFetch<ScanPoll>(`/api/user/scans/${scanId}`, { token })
         failures = 0
-        if (data.status === "completed") {
-          if (fallbackRef.current) clearInterval(fallbackRef.current)
-          router.push(`/scan/${scanId}/report`)
+
+        if (cancelled) return
+
+        if (data.status === "scanning") {
+          setPhase("scanning")
+        } else if (data.status === "completed") {
+          setPhase("complete")
+          setDone(true)
+          if (pollRef.current) clearInterval(pollRef.current)
+          setTimeout(() => {
+            if (!cancelled) router.push(`/scan/${scanId}/report`)
+          }, 1500)
         } else if (data.status === "failed") {
-          if (fallbackRef.current) clearInterval(fallbackRef.current)
-          setError("Scan failed. Please try again from the dashboard.")
+          if (pollRef.current) clearInterval(pollRef.current)
+          setError(
+            data.failure_reason || "Scan failed. Please try again from the dashboard."
+          )
         }
       } catch {
         failures++
         if (failures >= 5) {
           setError("Lost connection to server. Please refresh the page.")
-          if (fallbackRef.current) clearInterval(fallbackRef.current)
+          if (pollRef.current) clearInterval(pollRef.current)
         }
       }
     }
 
-    fallbackRef.current = setInterval(poll, 5000)
-  }, [getToken, scanId, router])
-
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [logs])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function connect() {
-      const token = (await getToken()) ?? ""
-      if (cancelled) return
-
-      const disconnect = connectSSE(
-        scanId,
-        token,
-        // onEvent
-        (event) => {
-          if (cancelled) return
-
-          try {
-            const data = JSON.parse(event.data)
-
-            switch (event.event) {
-              case "agent_start":
-              case "agent_log":
-              case "agent_complete": {
-                const msg = data.message || ""
-                if (msg) {
-                  setLatestMessage(msg)
-                  setLogs(prev => [...prev, {
-                    message: msg,
-                    timestamp: new Date(),
-                    type: event.event === "agent_start" ? "start"
-                        : event.event === "agent_complete" ? "complete"
-                        : "log",
-                  }])
-                }
-                const newPhase = inferPhase(msg)
-                if (newPhase) setPhase(newPhase)
-                break
-              }
-              case "scan_complete":
-                setDone(true)
-                setLatestMessage(data.message || "Scan complete!")
-                setLogs(prev => [...prev, {
-                  message: data.message || "Scan complete!",
-                  timestamp: new Date(),
-                  type: "complete",
-                }])
-                setTimeout(() => {
-                  if (!cancelled) router.push(`/scan/${scanId}/report`)
-                }, 1500)
-                break
-              case "scan_error":
-                setError(data.message || "Scan failed unexpectedly.")
-                setLogs(prev => [...prev, {
-                  message: data.message || "Scan failed unexpectedly.",
-                  timestamp: new Date(),
-                  type: "error",
-                }])
-                break
-              case "heartbeat":
-                // Keep-alive from backend — no action needed
-                break
-            }
-          } catch {
-            // Malformed data — ignore
-          }
-        },
-        // onError
-        (err) => {
-          if (cancelled) return
-          // SSE connection failed — fall back to polling
-          console.warn("SSE connection failed, falling back to polling:", err.message)
-          startFallbackPolling()
-        },
-      )
-
-      disconnectRef.current = disconnect
-    }
-
-    connect()
+    // Poll immediately, then every 5 seconds
+    poll()
+    pollRef.current = setInterval(poll, 5000)
 
     return () => {
       cancelled = true
-      disconnectRef.current?.()
-      if (fallbackRef.current) clearInterval(fallbackRef.current)
+      if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [scanId, getToken, router, inferPhase, startFallbackPolling])
+  }, [scanId, getToken, router])
 
   const currentIndex = PHASE_ORDER.indexOf(phase)
 
@@ -218,11 +125,10 @@ export default function ScanProgressPage() {
 
           {/* Stage indicators */}
           <div className="w-full max-w-md space-y-3">
-            {PHASE_ORDER.map((p, i) => {
+            {PHASE_ORDER.filter((p) => p !== "complete").map((p, i) => {
               const stage = STAGES[p]
               const isActive = i === currentIndex
               const isComplete = i < currentIndex
-              const isPending = i > currentIndex
 
               return (
                 <div
@@ -241,7 +147,7 @@ export default function ScanProgressPage() {
                   {isActive && (
                     <Loader2 className="size-5 text-emerald-400 animate-spin shrink-0" />
                   )}
-                  {isPending && (
+                  {!isActive && !isComplete && (
                     <Circle className="size-5 text-neutral-600 shrink-0" />
                   )}
                   <div className="min-w-0 flex-1">
@@ -256,53 +162,14 @@ export default function ScanProgressPage() {
                     >
                       {stage.label}
                     </p>
-                    {isActive && (
-                      <p className="text-xs text-neutral-400 mt-0.5">
-                        {latestMessage}
-                      </p>
-                    )}
-                    {!isActive && (
-                      <p className="text-xs text-neutral-500 mt-0.5">
-                        {stage.description}
-                      </p>
-                    )}
+                    <p className={`text-xs mt-0.5 ${isActive ? "text-neutral-400" : "text-neutral-500"}`}>
+                      {stage.description}
+                    </p>
                   </div>
                 </div>
               )
             })}
           </div>
-
-          {/* Live log feed */}
-          {logs.length > 0 && (
-            <Card className="w-full max-w-md border border-neutral-800 bg-neutral-900/50">
-              <CardContent className="p-0">
-                <ScrollArea className="h-48">
-                  <div className="p-4 space-y-2">
-                    {logs.map((log, i) => (
-                      <div key={i} className="flex items-start gap-3 text-xs">
-                        <span className="text-neutral-600 font-mono shrink-0 pt-0.5">
-                          {log.timestamp.toLocaleTimeString()}
-                        </span>
-                        {log.type === "complete" ? (
-                          <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                        ) : log.type === "start" ? (
-                          <Circle className="size-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                        ) : log.type === "error" ? (
-                          <AlertCircle className="size-3.5 text-red-400 shrink-0 mt-0.5" />
-                        ) : (
-                          <Circle className="size-3.5 text-neutral-600 shrink-0 mt-0.5" />
-                        )}
-                        <span className={log.type === "error" ? "text-red-300" : "text-neutral-300"}>
-                          {log.message}
-                        </span>
-                      </div>
-                    ))}
-                    <div ref={logEndRef} />
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          )}
         </div>
       )}
 
