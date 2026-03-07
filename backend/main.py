@@ -22,7 +22,6 @@ from api.middleware.rate_limit import limiter
 from config import settings
 from api.routes import (
     audit,
-    status,
     fix,
     primer,
     onboarding,
@@ -30,7 +29,6 @@ from api.routes import (
     user,
     webhook,
     webhook_clerk,
-    webhook_forge,
 )
 
 logging.basicConfig(
@@ -117,7 +115,6 @@ app.add_middleware(SupabaseAuthMiddleware)
 # Routers
 # ------------------------------------------------------------------ #
 app.include_router(audit.router, prefix="/api", tags=["audit"])
-app.include_router(status.router, prefix="/api", tags=["streaming"])
 app.include_router(fix.router, prefix="/api", tags=["fix"])
 app.include_router(primer.router, prefix="/api", tags=["primer"])
 app.include_router(onboarding.router, prefix="/api", tags=["onboarding"])
@@ -125,7 +122,6 @@ app.include_router(github_oauth.router, prefix="/api", tags=["github"])
 app.include_router(user.router, prefix="/api", tags=["user"])
 app.include_router(webhook.router, prefix="/api", tags=["webhook"])
 app.include_router(webhook_clerk.router, prefix="/api", tags=["webhook"])
-app.include_router(webhook_forge.router, prefix="/api/webhook", tags=["webhook-forge"])
 
 
 # ------------------------------------------------------------------ #

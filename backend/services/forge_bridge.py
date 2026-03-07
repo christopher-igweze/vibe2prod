@@ -26,13 +26,11 @@ import json
 import logging
 import urllib.request
 import urllib.error
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, Sequence
 from uuid import UUID
 
 from config import settings
-from models.agent_log import AgentLogEntry, AgentName, LogLevel, SSEEventType
 from sandbox.manager import SandboxManager
 
 logger = logging.getLogger(__name__)
@@ -152,9 +150,6 @@ async def trigger_forge_scan(
     model_override: str | None = None,
     timeout: int | None = None,
     project_context: dict | None = None,
-    emit: Callable[[AgentLogEntry], None] | None = None,
-    webhook_url: str = "",
-    webhook_token: str = "",
 ) -> ForgeRunResult:
     """Run a FORGE discovery scan inside an isolated Daytona sandbox.
 
@@ -178,23 +173,7 @@ async def trigger_forge_scan(
             clone_url,
             openrouter_api_key=settings.openrouter_api_key,
             github_token=github_token,
-            webhook_url=webhook_url,
-            webhook_token=webhook_token,
         )
-
-        # Diagnostic: test webhook connectivity from inside the sandbox (non-fatal)
-        if webhook_url:
-            try:
-                health_url = webhook_url.rsplit("/api/", 1)[0] + "/health"
-                probe = await mgr.exec(
-                    scan_id,
-                    f'python3 -c "import urllib.request, json; r=urllib.request.urlopen(\'{health_url}\', timeout=5); print(r.status, r.read().decode()[:100])" 2>&1 || echo "WEBHOOK_PROBE_FAILED"',
-                    cwd="/home/daytona",
-                    timeout=15,
-                )
-                logger.info("Webhook probe [%s]: %s", scan_id, probe.stdout.strip()[:200])
-            except Exception:
-                logger.warning("Webhook probe failed for scan %s (non-fatal, continuing)", scan_id)
 
         cmd = "vibe2prod scan /home/daytona/repo --json"
         if model_override:
@@ -202,13 +181,6 @@ async def trigger_forge_scan(
 
         def _on_output(line: str) -> None:
             logger.info("FORGE [%s]: %s", scan_id, line)
-            if emit:
-                emit(AgentLogEntry(
-                    event_type=SSEEventType.agent_log,
-                    agent=AgentName.orchestrator,
-                    message=line,
-                    level=LogLevel.info,
-                ))
 
         result = await mgr.exec_streaming(
             scan_id, cmd, cwd="/home/daytona", timeout=exec_timeout,
