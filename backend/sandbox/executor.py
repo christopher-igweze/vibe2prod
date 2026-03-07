@@ -8,6 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from daytona import Sandbox
+from daytona.common.errors import DaytonaError
 
 from sandbox.network_policy import DEFAULT_POLICY, NetworkPolicy
 
@@ -130,6 +131,12 @@ class SandboxExecutor:
             raise RuntimeError(
                 f"Sandbox exec response timeout after {outer_timeout}s for command: {command[:120]}"
             ) from exc
+        except DaytonaError as exc:
+            tail_task.cancel()
+            status = getattr(exc, "status_code", None)
+            detail = f"DaytonaError (HTTP {status}): {exc}" if status else f"DaytonaError: {exc}"
+            logger.error("Sandbox command failed: %s | command: %s", detail, command[:120])
+            raise RuntimeError(detail) from exc
 
         # Stop tailing and do one final read to catch remaining lines
         tail_task.cancel()

@@ -30,6 +30,8 @@ from dataclasses import dataclass, field
 from typing import Any, Sequence
 from uuid import UUID
 
+from daytona.common.errors import DaytonaError
+
 from config import settings
 from sandbox.manager import SandboxManager
 
@@ -200,12 +202,21 @@ async def trigger_forge_scan(
 
         return _parse_sandbox_result(str(scan_id), result.stdout)
 
+    except DaytonaError as e:
+        status_code = getattr(e, "status_code", None)
+        detail = f"DaytonaError (HTTP {status_code}): {e}" if status_code else f"DaytonaError: {e}"
+        logger.error("FORGE sandbox scan failed for %s — %s", scan_id, detail)
+        return ForgeRunResult(
+            execution_id=str(scan_id),
+            status="error",
+            error=f"Sandbox execution failed: {detail}",
+        )
     except Exception as e:
         logger.exception("FORGE sandbox scan failed for %s", scan_id)
         return ForgeRunResult(
             execution_id=str(scan_id),
             status="error",
-            error=f"Sandbox execution failed: {e}",
+            error=f"Sandbox execution failed: {type(e).__name__}: {e}",
         )
     finally:
         await mgr.destroy(scan_id)
