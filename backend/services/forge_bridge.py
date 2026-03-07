@@ -182,6 +182,18 @@ async def trigger_forge_scan(
             webhook_token=webhook_token,
         )
 
+        # Diagnostic: test webhook connectivity from inside the sandbox
+        if webhook_url:
+            # Probe the /health endpoint on the same host to verify network connectivity
+            health_url = webhook_url.rsplit("/api/", 1)[0] + "/health"
+            probe = await mgr.exec(
+                scan_id,
+                f'python3 -c "import urllib.request, json; r=urllib.request.urlopen(\'{health_url}\', timeout=5); print(r.status, r.read().decode()[:100])" 2>&1 || echo "WEBHOOK_PROBE_FAILED"',
+                cwd="/home/daytona",
+                timeout=15,
+            )
+            logger.info("Webhook probe [%s]: %s", scan_id, probe.stdout.strip()[:200])
+
         cmd = "vibe2prod scan /home/daytona/repo --json"
         if model_override:
             cmd += f" --model {model_override}"
