@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from uuid import UUID
 
 import httpx
+from urllib.parse import urlparse
+
 from daytona import (
     Daytona,
     DaytonaConfig,
@@ -28,6 +30,7 @@ from config import settings
 from collections.abc import Callable
 
 from sandbox.executor import CommandResult, SandboxExecutor
+from sandbox.network_policy import NetworkPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +102,17 @@ class SandboxManager:
         )
         self._daytona = Daytona(config)
         self._sessions: dict[UUID, SandboxSession] = {}
-        self._executor = SandboxExecutor()
+
+        # Allow the webhook callback host through the network policy
+        extra_hosts: list[str] = []
+        webhook_base = settings.forge_webhook_base_url
+        if webhook_base:
+            parsed = urlparse(webhook_base)
+            if parsed.hostname:
+                extra_hosts.append(parsed.hostname)
+
+        policy = NetworkPolicy.with_extra_hosts(extra_hosts) if extra_hosts else None
+        self._executor = SandboxExecutor(policy=policy)
 
     async def provision(self, scan_id: UUID, clone_url: str) -> SandboxSession:
         """Spin up a sandbox, clone the repo, and return a session handle."""

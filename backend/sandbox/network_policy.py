@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 DEFAULT_ALLOWED_HOST_SUFFIXES: tuple[str, ...] = (
@@ -42,6 +43,12 @@ class PolicyViolationError(RuntimeError):
 @dataclass(frozen=True)
 class NetworkPolicy:
     allowed_host_suffixes: tuple[str, ...] = DEFAULT_ALLOWED_HOST_SUFFIXES
+
+    @classmethod
+    def with_extra_hosts(cls, extra: Sequence[str]) -> NetworkPolicy:
+        """Create a policy with additional allowed host suffixes."""
+        merged = DEFAULT_ALLOWED_HOST_SUFFIXES + tuple(h for h in extra if h)
+        return cls(allowed_host_suffixes=merged)
 
     def validate_command(self, command: str) -> None:
         normalized = command.strip()
