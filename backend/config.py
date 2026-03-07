@@ -70,8 +70,8 @@ class Settings(BaseSettings):
     forge_sandbox_cpu: int = 2
     forge_sandbox_memory_gb: int = 4
     forge_sandbox_disk_gb: int = 10
-    forge_sandbox_timeout_minutes: int = 20
-    forge_sandbox_exec_timeout: int = 900
+    forge_sandbox_timeout_minutes: int = 75
+    forge_sandbox_exec_timeout: int = 3600
     forge_package_source: str = "vibe2prod"
     forge_deploy_token: str | None = None  # GitHub PAT for private forge-engine repo access
 
