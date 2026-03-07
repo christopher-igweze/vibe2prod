@@ -126,13 +126,22 @@ async def update_scan_status(
     *,
     failure_reason: str | None = None,
 ) -> None:
+    client = _client()
     update: dict = {"status": status.value}
     if failure_reason is not None:
         update["failure_reason"] = failure_reason
-    client = _client()
-    client.table("scan_reports").update(update).eq(
-        "id", str(scan_id)
-    ).execute()
+    try:
+        client.table("scan_reports").update(update).eq(
+            "id", str(scan_id)
+        ).execute()
+    except Exception:
+        if failure_reason is not None:
+            # Column may not exist yet — retry without failure_reason
+            client.table("scan_reports").update(
+                {"status": status.value}
+            ).eq("id", str(scan_id)).execute()
+        else:
+            raise
 
 
 async def fail_orphaned_scans() -> int:
