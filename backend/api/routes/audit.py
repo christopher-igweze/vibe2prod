@@ -57,12 +57,23 @@ async def _run_forge_audit(
                 scan_id=scan_id,
                 discovery_report=result.discovery_report,
             )
-            # Deduct credit after successful scan (developers are exempt)
+            # Charge actual cost after successful scan (developers are exempt)
             if user_id and role != "developer":
                 try:
-                    db.deduct_credit(user_id)
+                    from models.credits import compute_scan_charge
+                    charge = compute_scan_charge(result.cost_usd)
+                    db.deduct_balance(
+                        user_id,
+                        charge["charged_amount"],
+                        scan_id=str(scan_id),
+                        description=f"Scan: LLM ${charge['llm_cost']:.2f} + Infra ${charge['infra_cost']:.2f} = ${charge['total_raw']:.2f} x {charge['markup']}x",
+                    )
+                    logger.info(
+                        "Charged $%.4f for scan %s (LLM: $%.4f, infra: $%.4f, markup: %.1fx)",
+                        charge["charged_amount"], scan_id, charge["llm_cost"], charge["infra_cost"], charge["markup"],
+                    )
                 except ValueError:
-                    logger.warning("Could not deduct credit for user %s (scan %s)", user_id, scan_id)
+                    logger.warning("Insufficient balance for user %s (scan %s) — scan ran but charge failed", user_id, scan_id)
         else:
             error_msg = result.error or "FORGE discovery scan failed."
             logger.error("FORGE audit failed for scan %s: %s", scan_id, error_msg)
@@ -123,11 +134,11 @@ async def start_audit(
             "You're on the waitlist. Scan access is not yet available for your account.",
         )
 
-    # Credit check: developers get unlimited scans, everyone else needs credits
-    if role != "developer" and db.get_user_credits(user_id) <= 0:
+    # Balance check: developers get unlimited scans, everyone else needs funds
+    if role != "developer" and db.get_user_balance(user_id) <= 0:
         raise _limit_exception(
-            "no_credits",
-            "You have no scan credits remaining. Purchase more to continue scanning.",
+            "no_balance",
+            "Your wallet balance is $0.00. Add funds to continue scanning.",
         )
 
     try:
