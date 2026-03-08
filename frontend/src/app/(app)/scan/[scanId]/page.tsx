@@ -107,15 +107,15 @@ export default function ScanProgressPage() {
       {/* Progress state */}
       {!error && !done && (
         <div className="flex flex-col items-center justify-center py-12 space-y-8">
-          <Loader2 className="size-10 text-emerald-500 animate-spin" />
+          <Loader2 className="size-10 text-amber-400 animate-spin" />
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Scanning your codebase</h1>
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Scanning your codebase</h1>
             <p className="text-neutral-400 text-sm">
               This typically takes 2-10 minutes. You can leave and check back
               from the{" "}
               <Link
                 href="/dashboard"
-                className="text-emerald-400 hover:underline"
+                className="text-amber-400 hover:text-amber-300 hover:underline"
               >
                 dashboard
               </Link>
@@ -135,17 +135,17 @@ export default function ScanProgressPage() {
                   key={p}
                   className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
                     isActive
-                      ? "bg-emerald-500/10 border border-emerald-500/30"
+                      ? "bg-amber-500/10 border border-amber-500/30"
                       : isComplete
-                        ? "bg-neutral-800/50 border border-neutral-700/30"
-                        : "bg-neutral-900/30 border border-transparent"
+                        ? "bg-[#131825]/80 backdrop-blur-sm border border-white/[0.06]"
+                        : "bg-[#131825]/40 border border-transparent"
                   }`}
                 >
                   {isComplete && (
-                    <CheckCircle2 className="size-5 text-emerald-500 shrink-0" />
+                    <CheckCircle2 className="size-5 text-amber-400 shrink-0" />
                   )}
                   {isActive && (
-                    <Loader2 className="size-5 text-emerald-400 animate-spin shrink-0" />
+                    <Loader2 className="size-5 text-amber-400 animate-spin shrink-0" />
                   )}
                   {!isActive && !isComplete && (
                     <Circle className="size-5 text-neutral-600 shrink-0" />
@@ -154,7 +154,7 @@ export default function ScanProgressPage() {
                     <p
                       className={`text-sm font-medium ${
                         isActive
-                          ? "text-emerald-300"
+                          ? "text-amber-300"
                           : isComplete
                             ? "text-neutral-300"
                             : "text-neutral-500"
@@ -176,8 +176,8 @@ export default function ScanProgressPage() {
       {/* Completed state (brief flash before redirect) */}
       {done && !error && (
         <div className="flex flex-col items-center justify-center py-16 space-y-4">
-          <CheckCircle2 className="size-12 text-emerald-500" />
-          <h1 className="text-2xl font-bold">Scan Complete</h1>
+          <CheckCircle2 className="size-12 text-amber-400" />
+          <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Scan Complete</h1>
           <p className="text-neutral-400 text-sm">Redirecting to report...</p>
         </div>
       )}

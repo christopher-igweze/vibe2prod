@@ -42,10 +42,10 @@ function PhaseIndicator({
       <div
         className={`size-8 rounded-full flex items-center justify-center ${
           state === "done"
-            ? "bg-emerald-500/20 text-emerald-400"
+            ? "bg-amber-500/20 text-amber-400"
             : state === "active"
               ? "bg-yellow-500/20 text-yellow-400"
-              : "bg-neutral-800 text-neutral-500"
+              : "bg-[#131825]/80 text-neutral-500"
         }`}
       >
         {state === "done" ? (
@@ -59,7 +59,7 @@ function PhaseIndicator({
       <span
         className={`text-xs font-medium ${
           state === "done"
-            ? "text-emerald-400"
+            ? "text-amber-400"
             : state === "active"
               ? "text-yellow-400"
               : "text-neutral-500"
@@ -147,24 +147,24 @@ export default function RemediationProgressPage() {
           {/* Phase indicators */}
           <div className="flex items-center gap-6">
             <PhaseIndicator label="Discovery" state="done" />
-            <div className="h-px w-8 bg-neutral-700" />
+            <div className="h-px w-8 bg-white/[0.06]" />
             <PhaseIndicator label="Remediation" state="active" />
-            <div className="h-px w-8 bg-neutral-700" />
+            <div className="h-px w-8 bg-white/[0.06]" />
             <PhaseIndicator label="Validation" state="pending" />
           </div>
 
-          <Loader2 className="size-12 text-emerald-500 animate-spin" />
+          <Loader2 className="size-12 text-amber-400 animate-spin" />
 
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold">Remediating your codebase</h1>
+            <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Remediating your codebase</h1>
             <p className="text-neutral-400 text-sm max-w-md">
               FORGE is auto-fixing critical issues, generating tests, and
               validating the results.
             </p>
           </div>
 
-          <div className="relative h-1.5 w-64 overflow-hidden rounded-full bg-neutral-800">
-            <div className="absolute h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
+          <div className="relative h-1.5 w-64 overflow-hidden rounded-full bg-[#131825]/80">
+            <div className="absolute h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
           </div>
         </div>
       )}
@@ -179,7 +179,7 @@ export default function RemediationProgressPage() {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
                   onClick={handleRetry}
                   disabled={retrying}
                 >
