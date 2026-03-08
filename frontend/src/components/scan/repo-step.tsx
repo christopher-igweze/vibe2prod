@@ -133,13 +133,13 @@ export function RepoStep({
   const displayBranch = branch || (primerJson?.default_branch as string) || "";
 
   return (
-    <Card className="bg-neutral-950 border-neutral-800">
+    <Card className="bg-background border-white/[0.06]">
       <CardHeader>
         <CardTitle className="text-neutral-100 flex items-center gap-2">
           <Github className="size-5" />
           Repository
         </CardTitle>
-        <CardDescription className="text-neutral-400">
+        <CardDescription className="text-[#8692A8]">
           Select a repository from your GitHub account, or paste a URL manually.
         </CardDescription>
       </CardHeader>
@@ -173,7 +173,7 @@ export function RepoStep({
               if (repoUrlError) setRepoUrlError(null);
             }}
             placeholder="https://github.com/owner/repo"
-            className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600"
+            className="bg-forge-surface border-white/[0.06] text-neutral-200 placeholder:text-neutral-600"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -191,12 +191,12 @@ export function RepoStep({
 
         {/* Primer Loading State */}
         {primerLoading && (
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+          <div className="rounded-lg border border-white/[0.06] bg-forge-surface/50 p-4">
             <div className="flex items-center gap-3">
-              <Loader2 className="size-5 animate-spin text-emerald-400" />
+              <Loader2 className="size-5 animate-spin text-forge-amber" />
               <div>
                 <p className="text-sm text-neutral-200">Analyzing repository...</p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-[#4E586E]">
                   Cloning, scanning file tree, and identifying patterns
                 </p>
               </div>
@@ -221,35 +221,35 @@ export function RepoStep({
 
         {/* Primer Results */}
         {primerResult && !primerLoading && (
-          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-4">
+          <div className="rounded-lg border border-forge-amber/20 bg-forge-amber/5 p-4 space-y-4">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="size-5 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle2 className="size-5 text-forge-amber shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-emerald-300">Repository analyzed</p>
+                <p className="text-sm font-medium text-forge-amber">Repository analyzed</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
                   {repoName && (
                     <div>
-                      <p className="text-xs text-neutral-500">Repository</p>
+                      <p className="text-xs text-[#4E586E]">Repository</p>
                       <p className="text-sm text-neutral-200 truncate">{repoName}</p>
                     </div>
                   )}
                   {displayBranch && (
                     <div>
-                      <p className="text-xs text-neutral-500">Branch</p>
+                      <p className="text-xs text-[#4E586E]">Branch</p>
                       <p className="text-sm text-neutral-200">{displayBranch}</p>
                     </div>
                   )}
                   {fileCount > 0 && (
                     <div>
-                      <p className="text-xs text-neutral-500">Files found</p>
+                      <p className="text-xs text-[#4E586E]">Files found</p>
                       <p className="text-sm text-neutral-200">{fileCount}+</p>
                     </div>
                   )}
                 </div>
 
                 {primerResult.summary && (
-                  <div className="mt-3 pt-3 border-t border-emerald-500/10">
-                    <p className="text-xs text-neutral-500 mb-1">AI Summary</p>
+                  <div className="mt-3 pt-3 border-t border-forge-amber/10">
+                    <p className="text-xs text-[#4E586E] mb-1">AI Summary</p>
                     <p className="text-sm text-neutral-300 whitespace-pre-line leading-relaxed">
                       {primerResult.summary}
                     </p>
@@ -266,7 +266,7 @@ export function RepoStep({
           <Button
             onClick={handleContinue}
             disabled={!repoUrl.trim() || primerLoading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
           >
             {primerLoading ? (
               <>
