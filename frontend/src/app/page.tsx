@@ -542,7 +542,7 @@ function PricingSection() {
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.15}>
           <p className="text-center text-sm text-forge-emerald mb-12">
-            $5 Free Balance Included With Signup
+            $15 Free Balance Included With Signup
           </p>
         </FadeInWhenVisible>
         <div className="grid md:grid-cols-3 gap-6">
