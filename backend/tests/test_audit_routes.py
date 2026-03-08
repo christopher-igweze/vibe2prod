@@ -69,6 +69,8 @@ class AuditRouteTests(unittest.TestCase):
 
     def test_onboarding_incomplete_blocks_audit(self) -> None:
         with patch(
+            "api.routes.audit.db.get_user_role", return_value="developer"
+        ), patch(
             "api.routes.audit.db.get_github_access_token", new=AsyncMock(return_value=None)
         ), patch("api.routes.audit.db.is_onboarding_complete", new=AsyncMock(return_value=False)):
             resp = self.client.post("/api/audit", json=self._payload())
@@ -86,6 +88,8 @@ class AuditRouteTests(unittest.TestCase):
         existing_project = {"id": str(project_id)}
 
         with patch(
+            "api.routes.audit.db.get_user_role", return_value="developer"
+        ), patch(
             "api.routes.audit._run_forge_audit", new=AsyncMock()
         ) as mock_forge, patch(
             "api.routes.audit.db.get_github_access_token", new=AsyncMock(return_value=None)
