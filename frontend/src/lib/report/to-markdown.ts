@@ -230,7 +230,7 @@ export function reportToMarkdown(
   lines.push(`# ${title}`)
   lines.push("")
   lines.push(
-    `**Generated:** ${new Date(report.generated_at).toLocaleString()} | **Duration:** ${formatDuration(report.duration_seconds)} | **Cost:** $${report.cost_usd.toFixed(2)}`
+    `**Generated:** ${new Date(report.generated_at).toLocaleString()} | **Duration:** ${formatDuration(report.duration_seconds)} | **Charged:** $${((report.cost_usd + 0.14) * 4).toFixed(2)} | **Raw Cost:** $${report.cost_usd.toFixed(2)}`
   )
   lines.push("")
 

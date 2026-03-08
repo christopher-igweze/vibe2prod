@@ -521,28 +521,10 @@ function ComparisonSection() {
 /* ─────────────── Pricing ─────────────── */
 
 function PricingSection() {
-  const packages = [
-    {
-      name: "Single",
-      credits: 1,
-      price: "$10",
-      perScan: "$10/scan",
-      highlight: false,
-    },
-    {
-      name: "Pack",
-      credits: 5,
-      price: "$40",
-      perScan: "$8/scan",
-      highlight: true,
-    },
-    {
-      name: "Bulk",
-      credits: 15,
-      price: "$99",
-      perScan: "$6.60/scan",
-      highlight: false,
-    },
+  const estimates = [
+    { size: "Small repo", cost: "~$1", loc: "<5k LOC" },
+    { size: "Medium repo", cost: "~$3", loc: "5k-50k LOC" },
+    { size: "Large repo", cost: "~$4", loc: "50k+ LOC" },
   ];
 
   return (
@@ -550,50 +532,37 @@ function PricingSection() {
       <div className="mx-auto max-w-4xl px-6">
         <FadeInWhenVisible>
           <h2 className="text-4xl sm:text-5xl font-bold text-center mb-2 font-[family-name:var(--font-heading)]">
-            Ship Confidently. Pay Per Scan.
+            Pay Only For What You Use
           </h2>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
           <p className="text-center text-[#8692A8] mb-2">
-            1 credit = 1 scan. Your first scan is free.
+            Each scan costs the actual AI + infrastructure cost. No subscriptions, no wasted credits.
           </p>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.15}>
           <p className="text-center text-sm text-forge-emerald mb-12">
-            1 Free Scan Included With Signup
+            $5 Free Balance Included With Signup
           </p>
         </FadeInWhenVisible>
         <div className="grid md:grid-cols-3 gap-6">
-          {packages.map((pkg, i) => (
-            <FadeInWhenVisible key={pkg.name} delay={i * 0.15}>
+          {estimates.map((est, i) => (
+            <FadeInWhenVisible key={est.size} delay={i * 0.15}>
               <div style={{ perspective: "800px" }}>
-                <TiltCard
-                  className={`rounded-2xl border p-8 text-center transition-all ${
-                    pkg.highlight
-                      ? "border-forge-emerald/30 bg-forge-emerald/5 forge-gradient-border forge-glow-emerald-sm"
-                      : "forge-glass-card"
-                  }`}
-                >
-                  {pkg.highlight && (
-                    <div className="text-xs font-semibold text-forge-emerald mb-3 uppercase tracking-wider">
-                      Most Popular
-                    </div>
-                  )}
-                  <div className="text-lg font-semibold text-[#E8ECF4] mb-1">
-                    {pkg.name}
-                  </div>
+                <TiltCard className="rounded-2xl border p-8 text-center transition-all forge-glass-card">
+                  <div className="text-sm text-[#4E586E] mb-2">{est.size}</div>
                   <div className="text-4xl font-bold text-[#E8ECF4] mb-1 font-[family-name:var(--font-heading)]">
-                    {pkg.price}
+                    {est.cost}
                   </div>
-                  <div className="text-sm text-[#4E586E]">
-                    {pkg.credits} credit{pkg.credits > 1 ? "s" : ""} ·{" "}
-                    {pkg.perScan}
-                  </div>
+                  <div className="text-sm text-[#4E586E]">{est.loc}</div>
                 </TiltCard>
               </div>
             </FadeInWhenVisible>
           ))}
         </div>
+        <FadeInWhenVisible delay={0.5}>
+          <p className="text-center text-xs text-[#4E586E] mt-6">Add funds anytime — $5 minimum deposit</p>
+        </FadeInWhenVisible>
       </div>
     </section>
   );
