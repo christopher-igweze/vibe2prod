@@ -48,7 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <nav className="forge-glass sticky top-0 z-50">
+      <nav className="forge-glass-nav sticky top-0 z-50">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-3">
           <Link href="/" className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
             <span className="forge-gradient-text">Vibe</span>
