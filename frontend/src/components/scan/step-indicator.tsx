@@ -32,10 +32,10 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
           <div
             className={`flex items-center justify-center size-8 rounded-full text-sm font-medium transition-colors ${
               currentStep === step.number
-                ? "bg-emerald-600 text-white"
+                ? "bg-forge-amber text-[#0B0F19]"
                 : currentStep > step.number
-                  ? "bg-emerald-600/20 text-emerald-400 border border-emerald-600/30"
-                  : "bg-neutral-900 text-neutral-500 border border-neutral-800"
+                  ? "bg-forge-amber/20 text-forge-amber"
+                  : "bg-forge-surface text-[#4E586E] border border-white/[0.06]"
             }`}
           >
             {currentStep > step.number ? (
@@ -46,13 +46,13 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
           </div>
           <span
             className={`text-sm hidden sm:inline ${
-              currentStep === step.number ? "text-neutral-200" : "text-neutral-500"
+              currentStep === step.number ? "text-foreground" : "text-[#4E586E]"
             }`}
           >
             {step.label}
           </span>
           {i < STEPS.length - 1 && (
-            <div className="w-8 sm:w-12 h-px bg-neutral-800 mx-1" />
+            <div className="w-8 sm:w-12 h-px bg-white/[0.06] mx-1" />
           )}
         </div>
       ))}
