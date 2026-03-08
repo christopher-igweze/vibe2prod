@@ -27,10 +27,10 @@ export function SeveritySummary({ breakdown, actionabilitySummary }: SeveritySum
             return (
               <div
                 key={actionability}
-                className={`rounded-lg border ${cfg.border} ${cfg.bg} p-4 text-center`}
+                className={`rounded-lg forge-glass border ${cfg.border} p-4 text-center`}
               >
-                <p className={`text-3xl font-bold ${cfg.text}`}>{count}</p>
-                <p className={`text-xs uppercase tracking-wider mt-1 ${cfg.text} opacity-80`}>
+                <p className={`text-3xl font-bold font-[family-name:var(--font-heading)] ${cfg.text}`}>{count}</p>
+                <p className={`text-xs uppercase tracking-wider mt-1 font-[family-name:var(--font-heading)] ${cfg.text} opacity-80`}>
                   {cfg.label}
                 </p>
               </div>
@@ -47,10 +47,10 @@ export function SeveritySummary({ breakdown, actionabilitySummary }: SeveritySum
           return (
             <div
               key={sev}
-              className={`rounded border ${cfg.border} ${cfg.bg} px-3 py-2 text-center`}
+              className={`rounded forge-glass border ${cfg.border} px-3 py-2 text-center`}
             >
-              <p className={`text-lg font-semibold ${cfg.text}`}>{count}</p>
-              <p className={`text-[10px] uppercase tracking-wider ${cfg.text} opacity-70`}>
+              <p className={`text-lg font-semibold font-[family-name:var(--font-heading)] ${cfg.text}`}>{count}</p>
+              <p className={`text-[10px] uppercase tracking-wider font-[family-name:var(--font-heading)] ${cfg.text} opacity-70`}>
                 {cfg.label}
               </p>
             </div>

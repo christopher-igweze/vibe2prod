@@ -36,9 +36,9 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
   }
 
   return (
-    <Card className="bg-neutral-900 border-neutral-800 p-5 space-y-6">
+    <Card className="forge-glass rounded-lg p-5 space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-neutral-100">Remediation Plan</h2>
+        <h2 className="text-lg font-semibold font-[family-name:var(--font-heading)] text-forge-amber">Remediation Plan</h2>
         <p className="text-xs text-neutral-500 mt-1">
           {plan.items.length} items across {plan.execution_levels.length} execution levels
         </p>
@@ -54,9 +54,9 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
 
         return (
           <div key={levelIndex}>
-            <h3 className="text-sm font-medium text-neutral-400 mb-3">
+            <h3 className="text-sm font-medium font-[family-name:var(--font-heading)] text-forge-amber-light mb-3">
               Level {levelIndex + 1}
-              <span className="text-neutral-600 ml-2 font-normal">
+              <span className="text-forge-text-muted ml-2 font-normal">
                 ({levelItems.length} item{levelItems.length !== 1 ? "s" : ""})
               </span>
             </h3>
@@ -70,7 +70,7 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
                 return (
                   <div
                     key={item.finding_id}
-                    className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-4 space-y-3"
+                    className="rounded-lg border border-white/6 bg-forge-surface/50 p-4 space-y-3"
                   >
                     {/* Header row */}
                     <div className="flex items-start justify-between gap-3">
@@ -88,14 +88,14 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
                         {item.group && (
                           <Badge
                             variant="outline"
-                            className="border-neutral-700 text-neutral-400 text-[10px] px-1.5 py-0 shrink-0"
+                            className="border-forge-surface-hover text-neutral-400 text-[10px] px-1.5 py-0 shrink-0"
                           >
                             {item.group}
                           </Badge>
                         )}
                         <span className="text-sm text-neutral-200">{item.title}</span>
                       </div>
-                      <span className="text-xs text-neutral-600 shrink-0 tabular-nums">
+                      <span className="text-xs text-forge-text-muted shrink-0 tabular-nums">
                         {item.estimated_files} file{item.estimated_files !== 1 ? "s" : ""}
                       </span>
                     </div>
@@ -115,7 +115,7 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
                           {item.files_to_modify.map((f, i) => (
                             <span
                               key={i}
-                              className="text-xs text-neutral-500 font-mono bg-neutral-800/50 rounded px-1.5 py-0.5"
+                              className="text-xs text-neutral-500 font-[family-name:var(--font-code)] bg-forge-surface-hover/50 rounded px-1.5 py-0.5"
                             >
                               {f}
                             </span>
@@ -141,7 +141,7 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
                     {/* Dependencies */}
                     {deps && deps.length > 0 && (
                       <div className="flex items-start gap-2 text-xs">
-                        <span className="text-neutral-600 shrink-0">Depends on:</span>
+                        <span className="text-forge-text-muted shrink-0">Depends on:</span>
                         <span className="text-neutral-500">{deps.join(", ")}</span>
                       </div>
                     )}
