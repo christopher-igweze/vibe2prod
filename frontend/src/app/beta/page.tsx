@@ -88,7 +88,7 @@ function BetaActivation() {
   if (role === "user" && !code) {
     return (
       <div className="text-center space-y-3">
-        <p className="text-amber-400 font-medium">
+        <p className="text-emerald-400 font-medium">
           You need a beta invite link to activate access.
         </p>
         <p className="text-neutral-400 text-sm">
