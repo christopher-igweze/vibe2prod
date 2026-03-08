@@ -39,15 +39,15 @@ class OnboardingRouteTests(unittest.TestCase):
             "explanation_style": "teach_me",
             "shipping_posture": "balanced",
             "tool_tags": ["React"],
-            "acquisition_source": "google_search",
+            "coding_tool": "codex",
+            "coding_tool_other": None,
+            "acquisition_source": "hackathon",
             "acquisition_other": None,
-            "coding_agent_provider": "openai",
-            "coding_agent_model": "openai/gpt-5.2-codex",
         }
 
-    def test_missing_required_coding_agent_fields_returns_422(self) -> None:
+    def test_missing_required_coding_tool_returns_422(self) -> None:
         payload = self._base_payload()
-        payload.pop("coding_agent_provider")
+        payload.pop("coding_tool")
 
         resp = self.client.post("/api/onboarding/org", json=payload)
 

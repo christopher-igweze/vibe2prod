@@ -25,28 +25,23 @@ class ShippingPosture(str, Enum):
     production_first = "production_first"
 
 
-class AcquisitionSource(str, Enum):
-    x_twitter = "x_twitter"
-    linkedin = "linkedin"
-    tiktok = "tiktok"
-    youtube = "youtube"
-    reddit = "reddit"
-    discord = "discord"
-    product_hunt = "product_hunt"
-    indie_hackers = "indie_hackers"
-    hacker_news = "hacker_news"
-    google_search = "google_search"
-    newsletter_email = "newsletter_email"
-    referral = "referral"
-    founder_begged_me = "founder_begged_me"
-    hackathon = "hackathon"
+class CodingTool(str, Enum):
+    claude_code = "claude_code"
+    codex = "codex"
+    antigravity = "antigravity"
+    cursor = "cursor"
+    replit = "replit"
+    lovable = "lovable"
     other = "other"
 
 
-class CodingAgentProvider(str, Enum):
-    openai = "openai"
-    anthropic = "anthropic"
-    google = "google"
+class AcquisitionSource(str, Enum):
+    hackathon = "hackathon"
+    linkedin = "linkedin"
+    founder_begged_me = "founder_begged_me"
+    x_twitter = "x_twitter"
+    threads = "threads"
+    other = "other"
 
 
 class OrgOnboardingPayload(BaseModel):
@@ -56,7 +51,7 @@ class OrgOnboardingPayload(BaseModel):
     explanation_style: ExplanationStyle
     shipping_posture: ShippingPosture = ShippingPosture.balanced
     tool_tags: list[str] = Field(default_factory=list, max_length=30)
+    coding_tool: CodingTool
+    coding_tool_other: str | None = None
     acquisition_source: AcquisitionSource
     acquisition_other: str | None = None
-    coding_agent_provider: CodingAgentProvider
-    coding_agent_model: str = Field(min_length=1, max_length=200, pattern=r"^[a-zA-Z0-9/_.\-:]+$")
