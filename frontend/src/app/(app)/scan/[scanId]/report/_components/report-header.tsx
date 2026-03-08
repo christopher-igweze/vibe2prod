@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { formatDuration, formatCost } from "./report-utils"
+import { formatDuration, formatCost, formatCharge } from "./report-utils"
 
 interface ReportHeaderProps {
   report: DiscoveryReport
@@ -141,9 +141,14 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
           {formatDuration(report.duration_seconds)}
         </Badge>
         {report.cost_usd > 0 && (
-          <Badge variant="outline" className="border-neutral-700 text-neutral-300">
-            {formatCost(report.cost_usd)}
-          </Badge>
+          <>
+            <Badge variant="outline" className="border-emerald-700/50 text-emerald-300">
+              Charged: {formatCharge(report.cost_usd)}
+            </Badge>
+            <Badge variant="outline" className="border-neutral-700 text-neutral-500">
+              Raw: {formatCost(report.cost_usd)}
+            </Badge>
+          </>
         )}
         {report.primary_language && (
           <Badge variant="outline" className="border-neutral-700 text-neutral-300">
