@@ -183,40 +183,30 @@ function ComparisonSection() {
 }
 
 function PricingSection() {
-  const packages = [
-    { name: "Single", credits: 1, price: "$10", perScan: "$10/scan", highlight: false },
-    { name: "Pack", credits: 5, price: "$40", perScan: "$8/scan", highlight: true },
-    { name: "Bulk", credits: 15, price: "$99", perScan: "$6.60/scan", highlight: false },
+  const estimates = [
+    { size: "Small repo", cost: "~$1", loc: "<5k LOC" },
+    { size: "Medium repo", cost: "~$3", loc: "5k-50k LOC" },
+    { size: "Large repo", cost: "~$4", loc: "50k+ LOC" },
   ];
 
   return (
     <section className="py-20 border-t border-neutral-800">
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="text-3xl font-bold text-center mb-2">Simple Credit Pricing</h2>
-        <p className="text-center text-neutral-400 mb-2">1 credit = 1 scan. Your first scan is free.</p>
-        <p className="text-center text-sm text-emerald-400 mb-10">1 Free Scan Included With Signup</p>
+        <h2 className="text-3xl font-bold text-center mb-2">Pay Only For What You Use</h2>
+        <p className="text-center text-neutral-400 mb-2">Each scan costs the actual AI + infrastructure cost. No subscriptions, no wasted credits.</p>
+        <p className="text-center text-sm text-emerald-400 mb-10">$5 Free Balance Included With Signup</p>
         <div className="grid md:grid-cols-3 gap-6">
-          {packages.map((pkg) => (
-            <div key={pkg.name}
-              className={`rounded-xl border p-6 text-center ${
-                pkg.highlight
-                  ? "border-emerald-500/50 bg-emerald-500/5"
-                  : "border-neutral-800 bg-neutral-900/50"
-              }`}
+          {estimates.map((est) => (
+            <div key={est.size}
+              className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 text-center"
             >
-              {pkg.highlight && (
-                <div className="text-xs font-semibold text-emerald-400 mb-2 uppercase tracking-wider">
-                  Most Popular
-                </div>
-              )}
-              <div className="text-lg font-semibold text-neutral-200 mb-1">{pkg.name}</div>
-              <div className="text-3xl font-bold text-neutral-100 mb-1">{pkg.price}</div>
-              <div className="text-sm text-neutral-500 mb-3">
-                {pkg.credits} credit{pkg.credits > 1 ? "s" : ""} · {pkg.perScan}
-              </div>
+              <div className="text-sm text-neutral-500 mb-2">{est.size}</div>
+              <div className="text-3xl font-bold text-neutral-100 mb-1">{est.cost}</div>
+              <div className="text-sm text-neutral-500">{est.loc}</div>
             </div>
           ))}
         </div>
+        <p className="text-center text-xs text-neutral-600 mt-4">Add funds anytime — $5 minimum deposit</p>
       </div>
     </section>
   );
