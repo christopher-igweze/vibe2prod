@@ -86,7 +86,7 @@ export default function PricingPage() {
       <div className="mx-auto max-w-lg space-y-6">
         <div className="text-center space-y-1">
           <p className="text-[#8692A8]">Pay only for what you use. Each scan costs the actual AI + infrastructure cost with a 4x markup.</p>
-          <p className="text-sm text-forge-emerald">$5 free balance included with signup</p>
+          <p className="text-sm text-forge-emerald">$15 free balance included with signup</p>
         </div>
 
         {/* Cost estimate table */}
