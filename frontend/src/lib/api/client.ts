@@ -7,9 +7,10 @@ const API_URL = ''
 export class ApiError extends Error {
   constructor(
     public status: number,
-    public detail: string,
+    public detail: string | Record<string, unknown>,
   ) {
-    super(detail)
+    const msg = typeof detail === 'string' ? detail : (detail?.message as string) ?? String(detail)
+    super(msg)
     this.name = 'ApiError'
   }
 }
@@ -35,8 +36,7 @@ export async function apiFetch<T>(
   if (!response.ok) {
     const body = await response.json().catch(() => ({ detail: response.statusText }))
     const detail = body.detail
-    const message = typeof detail === 'string' ? detail : detail?.message || response.statusText
-    throw new ApiError(response.status, message)
+    throw new ApiError(response.status, detail ?? response.statusText)
   }
 
   if (response.status === 204) return undefined as T
