@@ -150,20 +150,20 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Dashboard</h1>
         <Link href="/scan/new">
-          <Button className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]">
+          <Button className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]">
             New Scan
           </Button>
         </Link>
       </div>
 
       {role === "developer" ? (
-        <div className="text-sm text-forge-amber">Unlimited Scans</div>
+        <div className="text-sm text-forge-emerald">Unlimited Scans</div>
       ) : (profile?.scan_credits ?? 0) === 0 ? (
         <Card className="border-emerald-500/30 bg-emerald-500/5 p-4">
           <div className="flex items-center justify-between">
             <p className="text-emerald-400 text-sm font-medium">No scan credits remaining</p>
             <Link href="/pricing">
-              <Button size="sm" className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]">
+              <Button size="sm" className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]">
                 Buy Credits
               </Button>
             </Link>
@@ -172,9 +172,9 @@ export default function DashboardPage() {
       ) : (
         <div className="flex items-center gap-3 text-sm">
           <span className="text-[#8692A8]">
-            <span className="text-forge-amber font-semibold">{profile?.scan_credits}</span> scan credit{(profile?.scan_credits ?? 0) !== 1 ? "s" : ""} remaining
+            <span className="text-forge-emerald font-semibold">{profile?.scan_credits}</span> scan credit{(profile?.scan_credits ?? 0) !== 1 ? "s" : ""} remaining
           </span>
-          <Link href="/pricing" className="text-forge-amber hover:text-forge-amber-light underline text-xs">
+          <Link href="/pricing" className="text-forge-emerald hover:text-forge-emerald-light underline text-xs">
             Buy More
           </Link>
         </div>
@@ -193,7 +193,7 @@ export default function DashboardPage() {
             Paste a GitHub URL to run your first audit.
           </p>
           <Link href="/scan/new">
-            <Button className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]">
+            <Button className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]">
               Start Your First Scan
             </Button>
           </Link>
@@ -224,14 +224,14 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-[#8692A8] hover:text-forge-amber"
+                      className="size-8 text-[#8692A8] hover:text-forge-emerald"
                       disabled={copyingId === scan.id}
                       onClick={() => handleCopy(scan)}
                     >
                       {copyingId === scan.id ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : copiedId === scan.id ? (
-                        <Check className="size-4 text-forge-amber" />
+                        <Check className="size-4 text-forge-emerald" />
                       ) : (
                         <Copy className="size-4" />
                       )}
@@ -242,7 +242,7 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-[#8692A8] hover:text-forge-amber"
+                      className="size-8 text-[#8692A8] hover:text-forge-emerald"
                       disabled={downloadingId === scan.id}
                       onClick={() => handleDownload(scan)}
                     >

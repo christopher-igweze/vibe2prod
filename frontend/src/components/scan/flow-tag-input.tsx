@@ -100,7 +100,7 @@ export function FlowTagInput({
                 key={flow}
                 type="button"
                 onClick={() => addTag(flow)}
-                className="text-xs px-2.5 py-1 rounded-md border border-dashed border-white/[0.06] text-[#8692A8] hover:text-forge-amber hover:border-forge-amber/40 transition-colors"
+                className="text-xs px-2.5 py-1 rounded-md border border-dashed border-white/[0.06] text-[#8692A8] hover:text-forge-emerald hover:border-forge-emerald/40 transition-colors"
               >
                 + {flow}
               </button>

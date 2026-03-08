@@ -90,7 +90,7 @@ export function ReviewStep({
               <button
                 type="button"
                 onClick={onEditRepo}
-                className="text-xs text-forge-amber hover:text-forge-amber-light transition-colors"
+                className="text-xs text-forge-emerald hover:text-forge-emerald-light transition-colors"
               >
                 Edit
               </button>
@@ -129,7 +129,7 @@ export function ReviewStep({
               <button
                 type="button"
                 onClick={onEditContext}
-                className="text-xs text-forge-amber hover:text-forge-amber-light transition-colors"
+                className="text-xs text-forge-emerald hover:text-forge-emerald-light transition-colors"
               >
                 Edit
               </button>
@@ -194,7 +194,7 @@ export function ReviewStep({
             <Button
               onClick={onSubmit}
               disabled={submitting}
-              className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19] min-w-32"
+              className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19] min-w-32"
             >
               {submitting ? (
                 <>
