@@ -1,65 +1,16 @@
 "use client"
 
 import { Suspense, useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { SignedIn, SignedOut, SignUp, SignIn } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import { SignedIn, SignedOut, SignUp } from "@clerk/nextjs"
 import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
-import { Loader2, CheckCircle, XCircle, KeyRound } from "lucide-react"
+import { Loader2, CheckCircle, XCircle } from "lucide-react"
 import { useUserRole } from "@/hooks/use-user-role"
 import { apiFetch } from "@/lib/api/client"
 import { Button } from "@/components/ui/button"
 
-const ACCEPTED_CODES = ["FORGE2026"]
-
-function CodeGate({ onAccepted }: { onAccepted: (code: string) => void }) {
-  const [input, setInput] = useState("")
-  const [error, setError] = useState(false)
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = input.trim().toUpperCase()
-    if (ACCEPTED_CODES.includes(trimmed)) {
-      setError(false)
-      onAccepted(trimmed)
-    } else {
-      setError(true)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-      <div className="space-y-2">
-        <label htmlFor="beta-code" className="text-sm text-[#8692A8]">
-          Enter your beta invite code
-        </label>
-        <div className="flex gap-2">
-          <input
-            id="beta-code"
-            type="text"
-            value={input}
-            onChange={(e) => { setInput(e.target.value); setError(false) }}
-            placeholder="e.g. FORGE2026"
-            className="flex-1 bg-forge-surface border border-white/[0.08] rounded-lg px-4 py-2.5 text-[#E8ECF4] placeholder:text-[#4E586E] focus:outline-none focus:border-forge-emerald/50 text-sm font-mono tracking-wider"
-            autoFocus
-          />
-          <Button
-            type="submit"
-            className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19] px-6"
-          >
-            <KeyRound className="size-4 mr-1.5" />
-            Verify
-          </Button>
-        </div>
-        {error && (
-          <p className="text-red-400 text-xs">Invalid code. Check your invite and try again.</p>
-        )}
-      </div>
-    </form>
-  )
-}
-
-function BetaActivation({ code }: { code: string }) {
+function BetaActivation() {
   const { getToken } = useAuth()
   const { role, loading } = useUserRole()
   const router = useRouter()
@@ -74,11 +25,11 @@ function BetaActivation({ code }: { code: string }) {
       router.replace("/dashboard")
       return
     }
-    if (code && !activating && !activated && !error) {
+    if (!activating && !activated && !error) {
       activate()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [role, loading, code])
+  }, [role, loading])
 
   async function activate() {
     setActivating(true)
@@ -87,7 +38,7 @@ function BetaActivation({ code }: { code: string }) {
       const token = (await getToken()) ?? undefined
       const res = await apiFetch<{ status: string; role: string }>(
         "/api/beta/activate",
-        { method: "POST", body: JSON.stringify({ code }), token },
+        { method: "POST", token },
       )
       if (res.status === "activated" || res.status === "already_active") {
         setActivated(true)
@@ -144,34 +95,23 @@ function BetaActivation({ code }: { code: string }) {
 }
 
 function BetaContent() {
-  const searchParams = useSearchParams()
-  const urlCode = searchParams.get("code") ?? ""
-  const [acceptedCode, setAcceptedCode] = useState(urlCode)
-  const codeVerified = ACCEPTED_CODES.includes(acceptedCode.toUpperCase())
-
   return (
     <>
-      {!codeVerified ? (
-        <CodeGate onAccepted={setAcceptedCode} />
-      ) : (
-        <>
-          <SignedOut>
-            <SignUp
-              forceRedirectUrl={`/beta?code=${acceptedCode}`}
-              appearance={{
-                elements: {
-                  rootBox: "mx-auto",
-                  card: "bg-forge-surface/80 backdrop-blur-sm border border-white/[0.06]",
-                },
-              }}
-            />
-          </SignedOut>
+      <SignedOut>
+        <SignUp
+          forceRedirectUrl="/beta"
+          appearance={{
+            elements: {
+              rootBox: "mx-auto",
+              card: "bg-forge-surface/80 backdrop-blur-sm border border-white/[0.06]",
+            },
+          }}
+        />
+      </SignedOut>
 
-          <SignedIn>
-            <BetaActivation code={acceptedCode} />
-          </SignedIn>
-        </>
-      )}
+      <SignedIn>
+        <BetaActivation />
+      </SignedIn>
     </>
   )
 }
