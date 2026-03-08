@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     title: "Vibe2Prod — Ship AI Code With Confidence",
     description:
       "Audit your AI-generated codebase in minutes. Get actionable findings prioritized for your project stage.",
-    url: "https://vibe2prod.com",
+    url: "https://vibe2prod.net",
     siteName: "Vibe2Prod",
     type: "website",
   },

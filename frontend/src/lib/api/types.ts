@@ -326,7 +326,26 @@ export interface UserProfile {
   onboarding_complete: boolean
   lifetime_scans_used: number
   lifetime_scan_cap: number
+  scan_credits: number
   email?: string | null
   display_name?: string | null
   avatar_url?: string | null
+}
+
+export interface CreditPackage {
+  id: string
+  credits: number
+  price_cents: number
+  label: string
+}
+
+export interface CreditTransaction {
+  id: string
+  user_id: string
+  amount: number
+  balance_after: number
+  type: 'purchase' | 'usage' | 'free_grant'
+  stripe_session_id: string | null
+  package_name: string | null
+  created_at: string
 }
