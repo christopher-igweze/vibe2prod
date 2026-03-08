@@ -775,3 +775,98 @@ async def get_project(project_id: UUID) -> dict | None:
     if not row.data:
         return None
     return row.data[0]
+
+
+# ------------------------------------------------------------------ #
+# Credits
+# ------------------------------------------------------------------ #
+
+
+def get_user_credits(user_id: str) -> int:
+    """Return the user's current scan_credits balance."""
+    client = _client()
+    row = (
+        client.table("profiles")
+        .select("scan_credits")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return 0
+    return int(row.data[0].get("scan_credits", 0))
+
+
+def deduct_credit(user_id: str) -> int:
+    """Decrement scan_credits by 1 and log a usage transaction.
+
+    Raises ValueError if the user has no credits remaining.
+    Returns the new balance.
+    """
+    client = _client()
+    current = get_user_credits(user_id)
+    if current <= 0:
+        raise ValueError("No scan credits remaining")
+
+    new_balance = current - 1
+    client.table("profiles").update(
+        {"scan_credits": new_balance}
+    ).eq("user_id", str(user_id)).execute()
+
+    client.table("credit_transactions").insert(
+        {
+            "user_id": str(user_id),
+            "amount": -1,
+            "balance_after": new_balance,
+            "type": "usage",
+        }
+    ).execute()
+
+    return new_balance
+
+
+def add_credits(
+    user_id: str,
+    amount: int,
+    stripe_session_id: str | None = None,
+    package_name: str | None = None,
+) -> int:
+    """Add credits to a user's balance and log a purchase transaction.
+
+    Returns the new balance.
+    """
+    client = _client()
+    current = get_user_credits(user_id)
+    new_balance = current + amount
+
+    client.table("profiles").update(
+        {"scan_credits": new_balance}
+    ).eq("user_id", str(user_id)).execute()
+
+    tx: dict = {
+        "user_id": str(user_id),
+        "amount": amount,
+        "balance_after": new_balance,
+        "type": "purchase",
+    }
+    if stripe_session_id:
+        tx["stripe_session_id"] = stripe_session_id
+    if package_name:
+        tx["package_name"] = package_name
+    client.table("credit_transactions").insert(tx).execute()
+
+    return new_balance
+
+
+def get_credit_transactions(user_id: str, limit: int = 20) -> list[dict]:
+    """Return recent credit transactions for a user, newest first."""
+    client = _client()
+    row = (
+        client.table("credit_transactions")
+        .select("*")
+        .eq("user_id", str(user_id))
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return row.data or []
