@@ -46,6 +46,7 @@ class FixRouteTests(unittest.TestCase):
 
     def test_action_item_not_found_returns_404(self) -> None:
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_action_item", new=AsyncMock(return_value=None)):
             resp = self.client.post(
                 "/api/fix",
@@ -62,6 +63,7 @@ class FixRouteTests(unittest.TestCase):
             "fix_status": "in_progress",
         }
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_action_item", new=AsyncMock(return_value=action_item)):
             resp = self.client.post(
                 "/api/fix",
@@ -78,6 +80,7 @@ class FixRouteTests(unittest.TestCase):
             "fix_status": "open",
         }
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_action_item", new=AsyncMock(return_value=action_item)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=None)):
             resp = self.client.post(
@@ -110,6 +113,7 @@ class FixRouteTests(unittest.TestCase):
         }
 
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_action_item", new=AsyncMock(return_value=action_item)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan_report)), \
@@ -146,6 +150,7 @@ class FixRouteTests(unittest.TestCase):
         }
 
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_action_item", new=AsyncMock(return_value=action_item)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=None)), \
@@ -189,6 +194,7 @@ class ScanFixRouteTests(unittest.TestCase):
     def test_scan_fix_scan_not_found_returns_404(self) -> None:
         scan_id = uuid4()
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=None)):
             resp = self.client.post(f"/api/fix-scan/{scan_id}")
         self.assertEqual(resp.status_code, 404)
@@ -198,6 +204,7 @@ class ScanFixRouteTests(unittest.TestCase):
         scan_id = uuid4()
         scan = {"id": str(scan_id), "status": "scanning", "project_id": str(uuid4())}
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)):
             resp = self.client.post(f"/api/fix-scan/{scan_id}")
         self.assertEqual(resp.status_code, 400)
@@ -209,6 +216,7 @@ class ScanFixRouteTests(unittest.TestCase):
         scan = {"id": str(scan_id), "status": "completed", "project_id": str(project_id)}
         active_attempt = {"id": str(uuid4()), "status": "running"}
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
              patch("api.routes.fix.db.get_active_scan_fix_attempt", new=AsyncMock(return_value=active_attempt)):
             resp = self.client.post(f"/api/fix-scan/{scan_id}")
@@ -220,6 +228,7 @@ class ScanFixRouteTests(unittest.TestCase):
         project_id = uuid4()
         scan = {"id": str(scan_id), "status": "completed", "project_id": str(project_id)}
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
              patch("api.routes.fix.db.get_active_scan_fix_attempt", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=None)):
@@ -244,6 +253,7 @@ class ScanFixRouteTests(unittest.TestCase):
         }
 
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
              patch("api.routes.fix.db.get_active_scan_fix_attempt", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
@@ -276,6 +286,7 @@ class ScanFixRouteTests(unittest.TestCase):
         }
 
         with patch.object(fix.settings, "forge_enabled", True), \
+             patch("api.routes.fix.db.get_user_role", return_value="developer"), \
              patch("api.routes.fix.db.get_scan_report", new=AsyncMock(return_value=scan)), \
              patch("api.routes.fix.db.get_active_scan_fix_attempt", new=AsyncMock(return_value=None)), \
              patch("api.routes.fix.db.get_project", new=AsyncMock(return_value=project)), \
