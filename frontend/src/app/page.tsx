@@ -522,9 +522,9 @@ function ComparisonSection() {
 
 function PricingSection() {
   const estimates = [
-    { size: "Small repo", cost: "~$1", loc: "<5k LOC" },
-    { size: "Medium repo", cost: "~$3", loc: "5k-50k LOC" },
-    { size: "Large repo", cost: "~$4", loc: "50k+ LOC" },
+    { size: "Small repo", cost: "~$2", loc: "<5k LOC" },
+    { size: "Medium repo", cost: "~$6", loc: "5k-50k LOC" },
+    { size: "Large repo", cost: "~$8", loc: "50k+ LOC" },
   ];
 
   return (
@@ -537,7 +537,7 @@ function PricingSection() {
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
           <p className="text-center text-[#8692A8] mb-2">
-            Each scan costs the actual AI + infrastructure cost. No subscriptions, no wasted credits.
+            No subscriptions, no wasted credits. You only pay for scans you run.
           </p>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.15}>

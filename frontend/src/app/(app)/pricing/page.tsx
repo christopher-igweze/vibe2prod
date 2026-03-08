@@ -85,7 +85,7 @@ export default function PricingPage() {
 
       <div className="mx-auto max-w-lg space-y-6">
         <div className="text-center space-y-1">
-          <p className="text-[#8692A8]">Pay only for what you use. Each scan costs the actual AI + infrastructure cost with a 4x markup.</p>
+          <p className="text-[#8692A8]">Pay only for what you use. No subscriptions, no wasted credits.</p>
           <p className="text-sm text-forge-emerald">$15 free balance included with signup</p>
         </div>
 
@@ -95,17 +95,17 @@ export default function PricingPage() {
           <div className="grid grid-cols-3 gap-3 text-center text-xs">
             <div className="rounded-lg bg-forge-nav/50 p-3">
               <div className="text-[#4E586E] mb-1">Small repo</div>
-              <div className="text-lg font-bold text-[#E8ECF4]">~$1</div>
+              <div className="text-lg font-bold text-[#E8ECF4]">~$2</div>
               <div className="text-[#4E586E]">&lt;5k LOC</div>
             </div>
             <div className="rounded-lg bg-forge-nav/50 p-3">
               <div className="text-[#4E586E] mb-1">Medium repo</div>
-              <div className="text-lg font-bold text-[#E8ECF4]">~$3</div>
+              <div className="text-lg font-bold text-[#E8ECF4]">~$6</div>
               <div className="text-[#4E586E]">5k-50k LOC</div>
             </div>
             <div className="rounded-lg bg-forge-nav/50 p-3">
               <div className="text-[#4E586E] mb-1">Large repo</div>
-              <div className="text-lg font-bold text-[#E8ECF4]">~$4</div>
+              <div className="text-lg font-bold text-[#E8ECF4]">~$8</div>
               <div className="text-[#4E586E]">50k+ LOC</div>
             </div>
           </div>
