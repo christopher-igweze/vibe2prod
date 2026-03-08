@@ -30,6 +30,7 @@ export function useUserRole() {
             onboarding_complete: false,
             lifetime_scans_used: 0,
             lifetime_scan_cap: 5,
+            scan_credits: 0,
           })
         }
       } finally {
