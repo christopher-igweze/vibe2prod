@@ -198,12 +198,18 @@ export function OnboardingModal({
               <SelectContent className="bg-neutral-900 border-neutral-800">
                 <SelectItem value="x_twitter">X / Twitter</SelectItem>
                 <SelectItem value="linkedin">LinkedIn</SelectItem>
+                <SelectItem value="tiktok">TikTok</SelectItem>
                 <SelectItem value="youtube">YouTube</SelectItem>
                 <SelectItem value="reddit">Reddit</SelectItem>
+                <SelectItem value="discord">Discord</SelectItem>
                 <SelectItem value="product_hunt">Product Hunt</SelectItem>
+                <SelectItem value="indie_hackers">Indie Hackers</SelectItem>
                 <SelectItem value="hacker_news">Hacker News</SelectItem>
                 <SelectItem value="google_search">Google Search</SelectItem>
+                <SelectItem value="newsletter_email">Newsletter / Email</SelectItem>
+                <SelectItem value="hackathon">Hackathon</SelectItem>
                 <SelectItem value="referral">Referral</SelectItem>
+                <SelectItem value="founder_begged_me">Founder Begged Me</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
