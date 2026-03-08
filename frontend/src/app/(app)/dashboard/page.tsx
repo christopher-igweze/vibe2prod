@@ -159,9 +159,9 @@ export default function DashboardPage() {
       {role === "developer" ? (
         <div className="text-sm text-forge-amber">Unlimited Scans</div>
       ) : (profile?.scan_credits ?? 0) === 0 ? (
-        <Card className="border-amber-500/30 bg-amber-500/5 p-4">
+        <Card className="border-emerald-500/30 bg-emerald-500/5 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-amber-400 text-sm font-medium">No scan credits remaining</p>
+            <p className="text-emerald-400 text-sm font-medium">No scan credits remaining</p>
             <Link href="/pricing">
               <Button size="sm" className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]">
                 Buy Credits

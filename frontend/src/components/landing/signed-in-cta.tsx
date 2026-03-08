@@ -24,12 +24,12 @@ export function SignedInCTA({ variant = "hero" }: { variant?: "hero" | "nav" | "
     if (variant === "hero") {
       return (
         <div className="text-center space-y-3">
-          <p className="text-amber-400 font-medium">You&apos;re on the waitlist!</p>
+          <p className="text-emerald-400 font-medium">You&apos;re on the waitlist!</p>
           <p className="text-[#8692A8] text-sm">We&apos;re rolling out access in waves.</p>
           <p className="text-[#4E586E] text-sm">
             Follow for updates:{" "}
             <a href="https://linkedin.com/in/christopher-igweze" target="_blank" rel="noopener noreferrer"
-              className="text-forge-amber hover:text-forge-amber-light underline">
+              className="text-forge-emerald hover:text-forge-emerald-light underline">
               LinkedIn
             </a>
           </p>
@@ -38,7 +38,7 @@ export function SignedInCTA({ variant = "hero" }: { variant?: "hero" | "nav" | "
     }
     // nav/footer variant — just show a compact status
     return (
-      <span className="text-sm text-amber-400">Waitlisted</span>
+      <span className="text-sm text-emerald-400">Waitlisted</span>
     )
   }
 
@@ -46,7 +46,7 @@ export function SignedInCTA({ variant = "hero" }: { variant?: "hero" | "nav" | "
   if (variant === "hero") {
     return (
       <Link href="/dashboard"
-        className="rounded-lg bg-forge-amber px-6 py-3 text-base font-semibold text-[#0B0F19] hover:bg-forge-amber-light transition-colors">
+        className="rounded-lg bg-forge-emerald px-6 py-3 text-base font-semibold text-[#0B0F19] hover:bg-forge-emerald-light transition-colors">
         Go to Dashboard
       </Link>
     )
@@ -54,14 +54,14 @@ export function SignedInCTA({ variant = "hero" }: { variant?: "hero" | "nav" | "
   if (variant === "nav") {
     return (
       <Link href="/dashboard"
-        className="rounded-lg bg-forge-amber px-4 py-2 text-sm font-semibold text-[#0B0F19] hover:bg-forge-amber-light transition-colors">
+        className="rounded-lg bg-forge-emerald px-4 py-2 text-sm font-semibold text-[#0B0F19] hover:bg-forge-emerald-light transition-colors">
         Dashboard
       </Link>
     )
   }
   // footer
   return (
-    <Link href="/dashboard" className="text-sm text-forge-amber hover:text-forge-amber-light transition-colors">
+    <Link href="/dashboard" className="text-sm text-forge-emerald hover:text-forge-emerald-light transition-colors">
       Dashboard
     </Link>
   )
