@@ -18,7 +18,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       router.replace("/")
       return
     }
-    if (role !== "user" && profile && !profile.onboarding_complete && pathname !== "/onboarding") {
+    if (profile && !profile.onboarding_complete && pathname !== "/onboarding") {
       router.replace("/onboarding")
     }
   }, [role, profile, loading, pathname, router])
