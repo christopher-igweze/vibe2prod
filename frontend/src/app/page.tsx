@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { SignedOut } from "@clerk/nextjs";
 import { Search, Wrench, ShieldCheck } from "lucide-react";
+import { SignedInCTA } from "@/components/landing/signed-in-cta";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ function HeroSection() {
               href="/sign-up"
               className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
             >
-              Get Started Free
+              Join the Beta
             </Link>
             <Link
               href="/sign-in"
@@ -39,14 +40,7 @@ function HeroSection() {
               Sign In
             </Link>
           </SignedOut>
-          <SignedIn>
-            <Link
-              href="/dashboard"
-              className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
-            >
-              Go to Dashboard
-            </Link>
-          </SignedIn>
+          <SignedInCTA variant="hero" />
         </div>
       </div>
     </section>
@@ -188,6 +182,46 @@ function ComparisonSection() {
   );
 }
 
+function PricingSection() {
+  const packages = [
+    { name: "Single", credits: 1, price: "$10", perScan: "$10/scan", highlight: false },
+    { name: "Pack", credits: 5, price: "$40", perScan: "$8/scan", highlight: true },
+    { name: "Bulk", credits: 15, price: "$99", perScan: "$6.60/scan", highlight: false },
+  ];
+
+  return (
+    <section className="py-20 border-t border-neutral-800">
+      <div className="mx-auto max-w-4xl px-6">
+        <h2 className="text-3xl font-bold text-center mb-2">Simple Credit Pricing</h2>
+        <p className="text-center text-neutral-400 mb-2">1 credit = 1 scan. Your first scan is free.</p>
+        <p className="text-center text-sm text-emerald-400 mb-10">1 Free Scan Included With Signup</p>
+        <div className="grid md:grid-cols-3 gap-6">
+          {packages.map((pkg) => (
+            <div key={pkg.name}
+              className={`rounded-xl border p-6 text-center ${
+                pkg.highlight
+                  ? "border-emerald-500/50 bg-emerald-500/5"
+                  : "border-neutral-800 bg-neutral-900/50"
+              }`}
+            >
+              {pkg.highlight && (
+                <div className="text-xs font-semibold text-emerald-400 mb-2 uppercase tracking-wider">
+                  Most Popular
+                </div>
+              )}
+              <div className="text-lg font-semibold text-neutral-200 mb-1">{pkg.name}</div>
+              <div className="text-3xl font-bold text-neutral-100 mb-1">{pkg.price}</div>
+              <div className="text-sm text-neutral-500 mb-3">
+                {pkg.credits} credit{pkg.credits > 1 ? "s" : ""} · {pkg.perScan}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function StatsSection() {
   const stats = [
     { value: "12", label: "Specialized AI Agents" },
@@ -233,17 +267,10 @@ function Footer() {
               href="/sign-up"
               className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
             >
-              Get Started
+              Join Beta
             </Link>
           </SignedOut>
-          <SignedIn>
-            <Link
-              href="/dashboard"
-              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
-            >
-              Dashboard
-            </Link>
-          </SignedIn>
+          <SignedInCTA variant="footer" />
         </div>
       </div>
     </footer>
@@ -272,17 +299,10 @@ export default function LandingPage() {
                 href="/sign-up"
                 className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
               >
-                Get Started
+                Join Beta
               </Link>
             </SignedOut>
-            <SignedIn>
-              <Link
-                href="/dashboard"
-                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
-              >
-                Dashboard
-              </Link>
-            </SignedIn>
+            <SignedInCTA variant="nav" />
           </div>
         </div>
       </nav>
@@ -291,6 +311,7 @@ export default function LandingPage() {
       <FeaturesSection />
       <ActionabilitySection />
       <ComparisonSection />
+      <PricingSection />
       <StatsSection />
       <Footer />
     </div>
