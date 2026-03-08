@@ -166,8 +166,8 @@ export default function NewScanPage() {
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-neutral-100 mb-1">New Scan</h1>
-        <p className="text-neutral-400 text-sm">
+        <h1 className="text-2xl font-bold text-neutral-100 mb-1 font-[family-name:var(--font-heading)]">New Scan</h1>
+        <p className="text-[#8692A8] text-sm">
           Audit your codebase for security, reliability, and scalability issues.
         </p>
       </div>
