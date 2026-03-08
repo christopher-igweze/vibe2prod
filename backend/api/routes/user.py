@@ -27,6 +27,7 @@ async def get_me(request: Request) -> dict:
             "lifetime_scans_used": 0,
             "lifetime_scan_cap": 5,
             "scan_credits": 1,
+            "balance_usd": 0.0,
         }
     return profile
 

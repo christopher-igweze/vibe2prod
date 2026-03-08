@@ -31,6 +31,7 @@ export function useUserRole() {
             lifetime_scans_used: 0,
             lifetime_scan_cap: 5,
             scan_credits: 0,
+            balance_usd: 0,
           })
         }
       } finally {
