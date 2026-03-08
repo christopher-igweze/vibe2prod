@@ -9,7 +9,7 @@ import type {
   TechnicalLevel,
   ExplanationStyle,
   ShippingPosture,
-  CodingAgentProvider,
+  CodingTool,
   AcquisitionSource,
 } from "@/lib/api/types";
 
@@ -57,9 +57,10 @@ export function OnboardingModal({
   const [technicalLevel, setTechnicalLevel] = useState<TechnicalLevel>("engineer");
   const [explanationStyle, setExplanationStyle] = useState<ExplanationStyle>("just_steps");
   const [shippingPosture, setShippingPosture] = useState<ShippingPosture>("balanced");
-  const [codingAgentProvider, setCodingAgentProvider] = useState<CodingAgentProvider>("anthropic");
-  const [codingAgentModel, setCodingAgentModel] = useState("claude-sonnet-4");
-  const [acquisitionSource, setAcquisitionSource] = useState<AcquisitionSource>("google_search");
+  const [codingTool, setCodingTool] = useState<CodingTool>("claude_code");
+  const [codingToolOther, setCodingToolOther] = useState("");
+  const [acquisitionSource, setAcquisitionSource] = useState<AcquisitionSource>("hackathon");
+  const [acquisitionOther, setAcquisitionOther] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,9 +74,10 @@ export function OnboardingModal({
         explanation_style: explanationStyle,
         shipping_posture: shippingPosture,
         tool_tags: [],
+        coding_tool: codingTool,
+        coding_tool_other: codingTool === "other" ? codingToolOther : null,
         acquisition_source: acquisitionSource,
-        coding_agent_provider: codingAgentProvider,
-        coding_agent_model: codingAgentModel,
+        acquisition_other: acquisitionSource === "other" ? acquisitionOther : null,
       };
       await apiFetch("/api/onboarding/org", {
         method: "POST",
@@ -162,30 +164,31 @@ export function OnboardingModal({
             </Select>
           </div>
 
-          {/* Coding Agent */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label className="text-neutral-300">AI Provider</Label>
-              <Select value={codingAgentProvider} onValueChange={(v) => setCodingAgentProvider(v as CodingAgentProvider)}>
-                <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-neutral-900 border-neutral-800">
-                  <SelectItem value="anthropic">Anthropic</SelectItem>
-                  <SelectItem value="openai">OpenAI</SelectItem>
-                  <SelectItem value="google">Google</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-neutral-300">Model</Label>
+          {/* Coding Tool */}
+          <div className="space-y-2">
+            <Label className="text-neutral-300">What do you mostly build with?</Label>
+            <Select value={codingTool} onValueChange={(v) => setCodingTool(v as CodingTool)}>
+              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-neutral-900 border-neutral-800">
+                <SelectItem value="claude_code">Claude Code</SelectItem>
+                <SelectItem value="codex">Codex</SelectItem>
+                <SelectItem value="antigravity">AntiGravity</SelectItem>
+                <SelectItem value="cursor">Cursor</SelectItem>
+                <SelectItem value="replit">Replit</SelectItem>
+                <SelectItem value="lovable">Lovable</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            {codingTool === "other" && (
               <Input
-                value={codingAgentModel}
-                onChange={(e) => setCodingAgentModel(e.target.value)}
-                placeholder="e.g. claude-sonnet-4"
+                value={codingToolOther}
+                onChange={(e) => setCodingToolOther(e.target.value)}
+                placeholder="Please state..."
                 className="bg-neutral-900 border-neutral-800 text-neutral-200"
               />
-            </div>
+            )}
           </div>
 
           {/* Acquisition */}
@@ -196,23 +199,22 @@ export function OnboardingModal({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-neutral-900 border-neutral-800">
-                <SelectItem value="x_twitter">X / Twitter</SelectItem>
-                <SelectItem value="linkedin">LinkedIn</SelectItem>
-                <SelectItem value="tiktok">TikTok</SelectItem>
-                <SelectItem value="youtube">YouTube</SelectItem>
-                <SelectItem value="reddit">Reddit</SelectItem>
-                <SelectItem value="discord">Discord</SelectItem>
-                <SelectItem value="product_hunt">Product Hunt</SelectItem>
-                <SelectItem value="indie_hackers">Indie Hackers</SelectItem>
-                <SelectItem value="hacker_news">Hacker News</SelectItem>
-                <SelectItem value="google_search">Google Search</SelectItem>
-                <SelectItem value="newsletter_email">Newsletter / Email</SelectItem>
                 <SelectItem value="hackathon">Hackathon</SelectItem>
-                <SelectItem value="referral">Referral</SelectItem>
+                <SelectItem value="linkedin">LinkedIn</SelectItem>
                 <SelectItem value="founder_begged_me">Founder Begged Me</SelectItem>
+                <SelectItem value="x_twitter">X / Twitter</SelectItem>
+                <SelectItem value="threads">Threads</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
+            {acquisitionSource === "other" && (
+              <Input
+                value={acquisitionOther}
+                onChange={(e) => setAcquisitionOther(e.target.value)}
+                placeholder="Please state..."
+                className="bg-neutral-900 border-neutral-800 text-neutral-200"
+              />
+            )}
           </div>
 
           {error && (
@@ -229,7 +231,7 @@ export function OnboardingModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={saving || !codingAgentModel.trim()}
+            disabled={saving || (codingTool === "other" && !codingToolOther.trim()) || (acquisitionSource === "other" && !acquisitionOther.trim())}
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             {saving ? <Loader2 className="size-4 animate-spin" /> : "Save & Continue"}

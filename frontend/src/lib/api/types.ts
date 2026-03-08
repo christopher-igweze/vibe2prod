@@ -194,22 +194,22 @@ export interface PrimerResponse {
 export type TechnicalLevel = 'engineer' | 'vibe_coder' | 'founder'
 export type ExplanationStyle = 'teach_me' | 'just_steps' | 'cto_brief'
 export type ShippingPosture = 'ship_fast' | 'balanced' | 'production_first'
+export type CodingTool =
+  | 'claude_code' | 'codex' | 'antigravity' | 'cursor'
+  | 'replit' | 'lovable' | 'other'
 export type AcquisitionSource =
-  | 'x_twitter' | 'linkedin' | 'tiktok' | 'youtube' | 'reddit'
-  | 'discord' | 'product_hunt' | 'indie_hackers' | 'hacker_news'
-  | 'google_search' | 'newsletter_email' | 'hackathon' | 'referral'
-  | 'founder_begged_me' | 'other'
-export type CodingAgentProvider = 'openai' | 'anthropic' | 'google'
+  | 'hackathon' | 'linkedin' | 'founder_begged_me'
+  | 'x_twitter' | 'threads' | 'other'
 
 export interface OrgOnboardingPayload {
   technical_level: TechnicalLevel
   explanation_style: ExplanationStyle
   shipping_posture: ShippingPosture
   tool_tags: string[]
+  coding_tool: CodingTool
+  coding_tool_other?: string | null
   acquisition_source: AcquisitionSource
   acquisition_other?: string | null
-  coding_agent_provider: CodingAgentProvider
-  coding_agent_model: string
 }
 
 // ── FORGE Fix / Remediation types ────────────────────────────────
