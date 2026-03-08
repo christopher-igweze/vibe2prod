@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Download, Trash2, Loader2, Copy, Check } from "lucide-react";
@@ -23,13 +23,22 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import type { DiscoveryReport } from "@/lib/api/types";
+import { computeDashboardMetrics } from "./_components/dashboard-utils";
+import { DashboardStats } from "./_components/dashboard-stats";
+import { DashboardInsights } from "./_components/dashboard-insights";
 
 interface ScanSummary {
   id: string;
   repo_url: string;
   repo_name: string;
   status: string;
+  scan_tier: string | null;
   created_at: string;
+  project_id: string | null;
+  health_score: number | null;
+  security_score: number | null;
+  reliability_score: number | null;
+  scalability_score: number | null;
 }
 
 interface ScanDetail {
@@ -64,6 +73,8 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const metrics = useMemo(() => computeDashboardMetrics(scans), [scans]);
 
   useEffect(() => {
     async function load() {
@@ -184,6 +195,13 @@ export default function DashboardPage() {
         <Card className="border-red-500/50 bg-red-950/20 p-4">
           <p className="text-red-400 text-sm">{error}</p>
         </Card>
+      )}
+
+      {scans.length > 0 && (
+        <>
+          <DashboardStats metrics={metrics} />
+          <DashboardInsights metrics={metrics} />
+        </>
       )}
 
       {scans.length === 0 ? (
