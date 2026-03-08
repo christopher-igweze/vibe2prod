@@ -335,7 +335,7 @@ def get_user_profile(user_id: str) -> dict | None:
     client = _client()
     row = (
         client.table("profiles")
-        .select("user_id,email,display_name,avatar_url,role,onboarding_complete,lifetime_scans_used,lifetime_scan_cap,scan_credits")
+        .select("user_id,email,display_name,avatar_url,role,onboarding_complete,lifetime_scans_used,lifetime_scan_cap,scan_credits,balance_usd")
         .eq("user_id", str(user_id))
         .limit(1)
         .execute()
