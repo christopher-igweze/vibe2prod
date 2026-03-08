@@ -163,7 +163,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
             <Wrench className="size-4 mr-1.5" />
             Fix with FORGE
           </Button>
-          <Badge className="bg-forge-amber/15 text-forge-amber border-forge-amber/30 text-xs">
+          <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-xs">
             Coming Soon
           </Badge>
         </div>

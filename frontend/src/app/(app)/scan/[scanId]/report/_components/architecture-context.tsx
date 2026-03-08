@@ -84,7 +84,7 @@ export function ArchitectureContext({ map, findings }: ArchitectureContextProps)
                   <Badge
                     className={`text-[10px] px-1.5 py-0 border shrink-0 ${
                       ep.is_public
-                        ? "bg-forge-amber/10 text-forge-amber border-forge-amber/20"
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                         : "bg-forge-surface text-[#8692A8] border-white/[0.06]"
                     }`}
                   >
@@ -185,7 +185,7 @@ export function ArchitectureContext({ map, findings }: ArchitectureContextProps)
                 </span>
                 <div className="flex-1 h-4 bg-forge-nav rounded-sm overflow-hidden">
                   <div
-                    className="h-full bg-forge-amber/40 rounded-sm"
+                    className="h-full bg-emerald-500/40 rounded-sm"
                     style={{ width: `${(count / maxCount) * 100}%` }}
                   />
                 </div>
