@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { UserButton } from "@clerk/nextjs"
 import Link from "next/link"
-import { Loader2 } from "lucide-react"
+import { Loader2, Wallet } from "lucide-react"
 import { useUserRole } from "@/hooks/use-user-role"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -75,9 +75,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
             <Link
               href="/pricing"
-              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+              className="flex items-center gap-1.5 text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
             >
-              Pricing
+              <Wallet className="size-4" />
+              <span className="font-semibold text-forge-emerald">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
             </Link>
             <UserButton
               appearance={{
