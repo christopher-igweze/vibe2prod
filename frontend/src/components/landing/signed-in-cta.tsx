@@ -1,15 +1,22 @@
 "use client"
 
 import Link from "next/link"
+import { useAuth } from "@clerk/nextjs"
 import { Loader2 } from "lucide-react"
 import { useUserRole } from "@/hooks/use-user-role"
 
 // Two variants: "hero" (large buttons) and "nav" (small buttons)
 export function SignedInCTA({ variant = "hero" }: { variant?: "hero" | "nav" | "footer" }) {
+  const { isSignedIn, isLoaded } = useAuth()
   const { role, loading } = useUserRole()
 
-  if (loading) {
+  if (!isLoaded || loading) {
     return <Loader2 className="size-4 animate-spin text-neutral-500" />
+  }
+
+  // Not signed in — render nothing (SignedOut block handles this)
+  if (!isSignedIn) {
+    return null
   }
 
   // Waitlisted user — show waitlist message
