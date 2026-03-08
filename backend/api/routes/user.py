@@ -13,6 +13,23 @@ from services import supabase_client as db
 router = APIRouter()
 
 
+@router.get("/user/me")
+@limiter.limit(rate_limit_string())
+async def get_me(request: Request) -> dict:
+    """Return the authenticated user's profile (role, onboarding status)."""
+    user_id: str = request.state.user_id
+    profile = db.get_user_profile(user_id)
+    if not profile:
+        return {
+            "user_id": user_id,
+            "role": "user",
+            "onboarding_complete": False,
+            "lifetime_scans_used": 0,
+            "lifetime_scan_cap": 5,
+        }
+    return profile
+
+
 @router.get("/user/scans")
 @limiter.limit(rate_limit_string())
 async def list_scans(request: Request) -> list[dict]:
