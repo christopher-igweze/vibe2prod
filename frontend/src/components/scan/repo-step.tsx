@@ -106,7 +106,7 @@ export function RepoStep({
       }
     } catch (err) {
       if (err instanceof ApiError) {
-        setPrimerWarning(`Primer analysis failed: ${err.detail}. You can still continue.`);
+        setPrimerWarning(`Primer analysis failed: ${err.message}. You can still continue.`);
       } else {
         setPrimerWarning("Could not analyze repository. You can still continue manually.");
       }
