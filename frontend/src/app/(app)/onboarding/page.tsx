@@ -61,7 +61,8 @@ export default function OnboardingPage() {
         body: JSON.stringify(payload),
         token,
       })
-      router.replace("/dashboard")
+      // Full reload to clear stale useUserRole cache
+      window.location.href = "/dashboard"
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to save onboarding")
     } finally {
