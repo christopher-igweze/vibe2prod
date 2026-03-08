@@ -32,9 +32,9 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
           <div
             className={`flex items-center justify-center size-8 rounded-full text-sm font-medium transition-colors ${
               currentStep === step.number
-                ? "bg-forge-amber text-[#0B0F19]"
+                ? "bg-forge-emerald text-[#0B0F19]"
                 : currentStep > step.number
-                  ? "bg-forge-amber/20 text-forge-amber"
+                  ? "bg-forge-emerald/20 text-forge-emerald"
                   : "bg-forge-surface text-[#4E586E] border border-white/[0.06]"
             }`}
           >

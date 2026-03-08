@@ -225,7 +225,7 @@ export function RepoSelector({
             Connect GitHub in{" "}
             <a
               href="/settings"
-              className="text-forge-amber hover:text-forge-amber-light underline underline-offset-2 transition-colors"
+              className="text-forge-emerald hover:text-forge-emerald-light underline underline-offset-2 transition-colors"
             >
               Settings
             </a>{" "}
@@ -243,7 +243,7 @@ export function RepoSelector({
         <button
           type="button"
           onClick={() => onToggleManual(false)}
-          className="text-xs text-forge-amber hover:text-forge-amber-light transition-colors flex items-center gap-1"
+          className="text-xs text-forge-emerald hover:text-forge-emerald-light transition-colors flex items-center gap-1"
         >
           <ArrowLeft className="size-3" />
           Back to repo list
@@ -258,7 +258,7 @@ export function RepoSelector({
       {/* Connected badge */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-[#8692A8]">
-          <div className="size-2 rounded-full bg-forge-amber" />
+          <div className="size-2 rounded-full bg-forge-emerald" />
           Connected as{" "}
           <span className="text-neutral-200 font-medium">
             {status.github_username}
@@ -313,7 +313,7 @@ export function RepoSelector({
                     }}
                     className={`w-full text-left rounded-lg border p-3 transition-colors ${
                       isSelected
-                        ? "border-forge-amber/50 bg-forge-amber/5"
+                        ? "border-forge-emerald/50 bg-forge-emerald/5"
                         : "border-white/[0.06] hover:border-forge-border-hover bg-forge-surface/30"
                     }`}
                   >
@@ -357,7 +357,7 @@ export function RepoSelector({
                       </div>
                     </div>
                     {isSelected && (
-                      <div className="flex items-center gap-1 mt-2 text-xs text-forge-amber">
+                      <div className="flex items-center gap-1 mt-2 text-xs text-forge-emerald">
                         <CheckCircle2 className="size-3" />
                         Selected
                       </div>
@@ -394,7 +394,7 @@ export function RepoSelector({
                                 }}
                                 className={`w-full text-left px-3 py-1.5 text-xs transition-colors flex items-center gap-2 ${
                                   (selectedBranch || repo.default_branch) === b.name
-                                    ? "bg-forge-amber/10 text-forge-amber"
+                                    ? "bg-forge-emerald/10 text-forge-emerald"
                                     : "text-neutral-300 hover:bg-forge-nav"
                                 }`}
                               >

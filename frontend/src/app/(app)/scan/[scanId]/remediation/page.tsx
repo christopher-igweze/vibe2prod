@@ -42,7 +42,7 @@ function PhaseIndicator({
       <div
         className={`size-8 rounded-full flex items-center justify-center ${
           state === "done"
-            ? "bg-amber-500/20 text-amber-400"
+            ? "bg-emerald-500/20 text-emerald-400"
             : state === "active"
               ? "bg-yellow-500/20 text-yellow-400"
               : "bg-[#131825]/80 text-neutral-500"
@@ -59,7 +59,7 @@ function PhaseIndicator({
       <span
         className={`text-xs font-medium ${
           state === "done"
-            ? "text-amber-400"
+            ? "text-emerald-400"
             : state === "active"
               ? "text-yellow-400"
               : "text-neutral-500"
@@ -153,7 +153,7 @@ export default function RemediationProgressPage() {
             <PhaseIndicator label="Validation" state="pending" />
           </div>
 
-          <Loader2 className="size-12 text-amber-400 animate-spin" />
+          <Loader2 className="size-12 text-emerald-400 animate-spin" />
 
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Remediating your codebase</h1>
@@ -164,7 +164,7 @@ export default function RemediationProgressPage() {
           </div>
 
           <div className="relative h-1.5 w-64 overflow-hidden rounded-full bg-[#131825]/80">
-            <div className="absolute h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+            <div className="absolute h-full w-1/3 animate-[shimmer_1.5s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-transparent via-emerald-500 to-transparent" />
           </div>
         </div>
       )}
@@ -179,7 +179,7 @@ export default function RemediationProgressPage() {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
                   onClick={handleRetry}
                   disabled={retrying}
                 >

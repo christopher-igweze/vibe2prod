@@ -74,8 +74,8 @@ export default function OnboardingPage() {
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-forge-amber/15 mb-2">
-            <Rocket className="size-7 text-forge-amber" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-forge-emerald/15 mb-2">
+            <Rocket className="size-7 text-forge-emerald" />
           </div>
           <h1 className="text-2xl font-bold text-foreground font-[family-name:var(--font-heading)]">Welcome to Vibe2Prod</h1>
           <p className="text-[#8692A8]">
@@ -103,7 +103,7 @@ export default function OnboardingPage() {
                   key={value}
                   className={`flex flex-col items-center gap-1 rounded-lg border p-3 cursor-pointer transition-colors ${
                     technicalLevel === value
-                      ? "border-forge-amber/50 bg-forge-amber/5"
+                      ? "border-forge-emerald/50 bg-forge-emerald/5"
                       : "border-white/[0.06] hover:border-white/[0.08]"
                   }`}
                 >
@@ -209,7 +209,7 @@ export default function OnboardingPage() {
         <Button
           onClick={handleSubmit}
           disabled={saving || (codingTool === "other" && !codingToolOther.trim()) || (acquisitionSource === "other" && !acquisitionOther.trim())}
-          className="w-full bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19] h-11"
+          className="w-full bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19] h-11"
         >
           {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
           Get Started

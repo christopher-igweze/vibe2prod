@@ -122,7 +122,7 @@ export function OnboardingModal({
                   key={value}
                   className={`flex flex-col items-center gap-1 rounded-lg border p-3 cursor-pointer transition-colors ${
                     technicalLevel === value
-                      ? "border-forge-amber/50 bg-forge-amber/5"
+                      ? "border-forge-emerald/50 bg-forge-emerald/5"
                       : "border-white/[0.06] hover:border-forge-border-hover"
                   }`}
                 >
@@ -232,7 +232,7 @@ export function OnboardingModal({
           <Button
             onClick={handleSubmit}
             disabled={saving || (codingTool === "other" && !codingToolOther.trim()) || (acquisitionSource === "other" && !acquisitionOther.trim())}
-            className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
+            className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]"
           >
             {saving ? <Loader2 className="size-4 animate-spin" /> : "Save & Continue"}
           </Button>

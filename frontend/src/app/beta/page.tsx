@@ -55,7 +55,7 @@ function BetaActivation() {
   if (loading || activating) {
     return (
       <div className="flex flex-col items-center gap-3">
-        <Loader2 className="size-6 animate-spin text-amber-400" />
+        <Loader2 className="size-6 animate-spin text-emerald-400" />
         <p className="text-neutral-400">
           {activating ? "Activating beta access..." : "Loading..."}
         </p>
@@ -66,8 +66,8 @@ function BetaActivation() {
   if (activated) {
     return (
       <div className="flex flex-col items-center gap-3">
-        <CheckCircle className="size-8 text-amber-400" />
-        <p className="text-amber-400 font-medium">Beta access activated!</p>
+        <CheckCircle className="size-8 text-emerald-400" />
+        <p className="text-emerald-400 font-medium">Beta access activated!</p>
         <p className="text-neutral-400 text-sm">Redirecting to onboarding...</p>
       </div>
     )
@@ -88,7 +88,7 @@ function BetaActivation() {
   if (role === "user" && !code) {
     return (
       <div className="text-center space-y-3">
-        <p className="text-amber-400 font-medium">
+        <p className="text-emerald-400 font-medium">
           You need a beta invite link to activate access.
         </p>
         <p className="text-neutral-400 text-sm">
@@ -97,7 +97,7 @@ function BetaActivation() {
             href="https://linkedin.com/in/christopher-igweze"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-amber-400 hover:text-amber-300 underline"
+            className="text-emerald-400 hover:text-emerald-300 underline"
           >
             Christopher on LinkedIn
           </a>{" "}
@@ -138,15 +138,15 @@ export default function BetaPage() {
     <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center px-6">
       <div className="text-center mb-12">
         <Link href="/" className="text-lg font-bold tracking-tight mb-8 inline-block">
-          <span className="text-amber-400">Vibe</span>
+          <span className="text-emerald-400">Vibe</span>
           <span className="text-neutral-100">2Prod</span>
         </Link>
-        <div className="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-4 py-1.5 text-sm text-amber-400 mb-6">
+        <div className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-sm text-emerald-400 mb-6">
           Private Beta
         </div>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4 font-[family-name:var(--font-heading)]">
           Welcome to the{" "}
-          <span className="text-amber-400">FORGE</span> Beta
+          <span className="text-emerald-400">FORGE</span> Beta
         </h1>
         <p className="text-lg text-neutral-400 max-w-xl mx-auto">
           You&apos;ve been invited to try Vibe2Prod before public launch. Sign

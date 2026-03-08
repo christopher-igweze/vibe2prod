@@ -137,8 +137,8 @@ export default function SettingsPage() {
       )}
 
       {message && (
-        <Card className="border-forge-amber/50 bg-forge-amber/10 p-4">
-          <p className="text-forge-amber text-sm">{message}</p>
+        <Card className="border-forge-emerald/50 bg-forge-emerald/10 p-4">
+          <p className="text-forge-emerald text-sm">{message}</p>
         </Card>
       )}
 
@@ -152,7 +152,7 @@ export default function SettingsPage() {
             </p>
           </div>
           {github?.connected && (
-            <Badge className="bg-forge-amber/10 text-forge-amber border-forge-amber/20">
+            <Badge className="bg-forge-emerald/10 text-forge-emerald border-forge-emerald/20">
               Connected
             </Badge>
           )}
