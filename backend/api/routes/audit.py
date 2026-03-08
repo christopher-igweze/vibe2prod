@@ -115,6 +115,13 @@ async def start_audit(
             "You're on the waitlist. Scan access is not yet available for your account.",
         )
 
+    # Credit check: developers get unlimited scans, everyone else needs credits
+    if role != "developer" and db.get_user_credits(user_id) <= 0:
+        raise _limit_exception(
+            "no_credits",
+            "You have no scan credits remaining. Purchase more to continue scanning.",
+        )
+
     try:
         github_token = await db.get_github_access_token(user_id)
         preflight = await _preflight(request_body, user_id, github_token)
