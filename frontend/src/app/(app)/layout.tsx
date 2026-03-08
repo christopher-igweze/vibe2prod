@@ -26,7 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-forge-amber" />
+        <Loader2 className="size-6 animate-spin text-forge-emerald" />
       </div>
     )
   }
@@ -37,7 +37,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-6xl px-6 py-3">
           <Link href="/" className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
-            <span className="text-forge-amber">Vibe</span>
+            <span className="forge-gradient-text">Vibe</span>
             <span className="text-foreground">2Prod</span>
           </Link>
         </div>
@@ -51,31 +51,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav className="forge-glass sticky top-0 z-50">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-3">
           <Link href="/" className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
-            <span className="text-forge-amber">Vibe</span>
+            <span className="forge-gradient-text">Vibe</span>
             <span className="text-foreground">2Prod</span>
           </Link>
           <div className="flex items-center gap-6">
             <Link
               href="/dashboard"
-              className="text-sm text-[#8692A8] hover:text-forge-amber transition-colors"
+              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
             >
               Dashboard
             </Link>
             <Link
               href="/scan/new"
-              className="text-sm text-[#8692A8] hover:text-forge-amber transition-colors"
+              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
             >
               New Scan
             </Link>
             <Link
               href="/settings"
-              className="text-sm text-[#8692A8] hover:text-forge-amber transition-colors"
+              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
             >
               Settings
             </Link>
             <Link
               href="/pricing"
-              className="text-sm text-[#8692A8] hover:text-forge-amber transition-colors"
+              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
             >
               Pricing
             </Link>
