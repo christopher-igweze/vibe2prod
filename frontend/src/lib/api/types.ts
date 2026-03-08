@@ -197,7 +197,7 @@ export type ShippingPosture = 'ship_fast' | 'balanced' | 'production_first'
 export type AcquisitionSource =
   | 'x_twitter' | 'linkedin' | 'tiktok' | 'youtube' | 'reddit'
   | 'discord' | 'product_hunt' | 'indie_hackers' | 'hacker_news'
-  | 'google_search' | 'newsletter_email' | 'referral'
+  | 'google_search' | 'newsletter_email' | 'hackathon' | 'referral'
   | 'founder_begged_me' | 'other'
 export type CodingAgentProvider = 'openai' | 'anthropic' | 'google'
 
@@ -314,4 +314,19 @@ export interface ScanFixStatus {
   readiness_report: ForgeReadinessReport | null
   agent_invocations: number | null
   error: string | null
+}
+
+// ── User roles & profile ─────────────────────────────────────────
+
+export type UserRole = 'developer' | 'beta_tester' | 'user'
+
+export interface UserProfile {
+  user_id: string
+  role: UserRole
+  onboarding_complete: boolean
+  lifetime_scans_used: number
+  lifetime_scan_cap: number
+  email?: string | null
+  display_name?: string | null
+  avatar_url?: string | null
 }
