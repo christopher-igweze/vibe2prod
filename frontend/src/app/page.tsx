@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import { SignedOut } from "@clerk/nextjs";
 import { Search, Wrench, ShieldCheck, Check } from "lucide-react";
+import { motion, useScroll, useTransform } from "motion/react";
 import { SignedInCTA } from "@/components/landing/signed-in-cta";
+import {
+  FadeInWhenVisible,
+  TiltCard,
+  AnimatedCounter,
+} from "@/components/landing/motion-primitives";
 import {
   Accordion,
   AccordionContent,
@@ -14,86 +20,130 @@ import {
 
 export const dynamic = "force-dynamic";
 
-function useScrollReveal() {
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: "0px 0px -60px 0px" }
-    );
-
-    document.querySelectorAll(".forge-scroll-reveal").forEach((el) => {
-      observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-}
-
 /* ─────────────── Hero ─────────────── */
 
 function HeroSection() {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end start"],
+  });
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -150]);
+  const orbY = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  const words = [
+    { text: "Discover.", gradient: false },
+    { text: "Fix.", gradient: true },
+    { text: "Ship.", gradient: false },
+  ];
+
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+    <section
+      ref={ref}
+      className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
+    >
       {/* Animated gradient mesh background */}
       <div className="absolute inset-0 forge-mesh-bg" />
 
-      {/* Floating orbs */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-forge-emerald/5 rounded-full blur-3xl forge-float-slow pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-forge-teal/5 rounded-full blur-3xl forge-float-medium pointer-events-none" />
-      <div
-        className="absolute top-1/3 right-1/3 w-64 h-64 bg-forge-blue/[0.03] rounded-full blur-3xl forge-float-slow pointer-events-none"
-        style={{ animationDelay: "-3s" }}
-      />
+      {/* Floating orbs — parallax drift downward on scroll */}
+      <motion.div style={{ y: orbY }} className="absolute inset-0 pointer-events-none">
+        <motion.div
+          className="absolute top-1/4 left-1/4 w-96 h-96 bg-forge-emerald/15 rounded-full blur-3xl"
+          animate={{ y: [-20, 20, -20], scale: [1, 1.05, 1] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-forge-teal/15 rounded-full blur-3xl"
+          animate={{ y: [15, -15, 15], scale: [1.05, 1, 1.05] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-1/3 right-1/3 w-64 h-64 bg-forge-blue/10 rounded-full blur-3xl"
+          animate={{ y: [-10, 25, -10], x: [-10, 10, -10] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        />
+      </motion.div>
 
       {/* Dot grid overlay */}
       <div className="absolute inset-0 forge-dot-grid opacity-40" />
 
-      <div className="relative mx-auto max-w-4xl px-6 text-center">
+      {/* Hero content — parallax upward + fade on scroll */}
+      <motion.div
+        style={{ y: heroY, opacity }}
+        className="relative mx-auto max-w-4xl px-6 text-center"
+      >
         {/* Pill badge */}
-        <div className="inline-flex items-center rounded-full border border-forge-emerald/20 bg-forge-emerald/10 px-4 py-1.5 text-sm text-forge-emerald mb-8 animate-fade-in-up">
+        <motion.div
+          initial={{ opacity: 0, y: -20, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="inline-flex items-center rounded-full border border-forge-emerald/20 bg-forge-emerald/10 px-4 py-1.5 text-sm text-forge-emerald mb-8"
+        >
           <span className="w-2 h-2 rounded-full bg-forge-emerald mr-2 animate-pulse" />
           The only AI audit that fixes what it finds
-        </div>
+        </motion.div>
 
-        {/* Hero headline */}
-        <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight animate-fade-in-up-delay-1 font-[family-name:var(--font-heading)] leading-[0.95]">
-          <span className="text-foreground">Discover.</span>{" "}
-          <span className="forge-gradient-text">Fix.</span>{" "}
-          <span className="text-foreground">Ship.</span>
+        {/* Hero headline — staggered word reveal with blur-to-sharp */}
+        <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-tight font-[family-name:var(--font-heading)] leading-[1.05] overflow-visible">
+          {words.map((word, i) => (
+            <motion.span
+              key={word.text}
+              initial={{ opacity: 0, y: 30, filter: "blur(8px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{
+                duration: 0.6,
+                delay: 0.3 + i * 0.2,
+                ease: [0.25, 0.46, 0.45, 0.94],
+              }}
+              className={word.gradient ? "forge-gradient-text" : "text-foreground"}
+              style={{ display: "inline-block", marginRight: "0.3em" }}
+            >
+              {word.text}
+            </motion.span>
+          ))}
         </h1>
 
         {/* Subheadline */}
-        <p className="mt-8 text-lg sm:text-xl text-[#8692A8] max-w-2xl mx-auto animate-fade-in-up-delay-2 leading-relaxed">
-          Your AI wrote the code. Vibe2Prod audits it, auto-fixes critical
-          issues, and validates the result&nbsp;&mdash; 12 specialized agents,
-          zero manual triage.
-        </p>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="mt-8 text-lg sm:text-xl text-[#8692A8] max-w-2xl mx-auto leading-relaxed"
+        >
+          You vibe-coded it. Now ship it without getting hacked. 12 AI agents
+          find security holes, architecture debt, and reliability
+          gaps&nbsp;&mdash; then fix them automatically.
+        </motion.p>
 
         {/* CTA buttons */}
-        <div className="mt-12 flex items-center justify-center gap-4 animate-fade-in-up-delay-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 1.0 }}
+          className="mt-12 flex items-center justify-center gap-4"
+        >
           <SignedOut>
-            <Link
-              href="/sign-up"
-              className="forge-shimmer-cta forge-pulse-glow rounded-xl px-8 py-4 text-lg font-semibold transition-all"
-            >
-              Join Waiting List
-            </Link>
-            <Link
-              href="/sign-in"
-              className="forge-glass forge-glass-hover rounded-xl px-8 py-4 text-lg font-semibold text-[#E8ECF4] transition-all"
-            >
-              Sign In
-            </Link>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                href="/sign-up"
+                className="forge-shimmer-cta rounded-xl px-8 py-4 text-lg font-semibold transition-shadow hover:shadow-[0_0_40px_-4px_rgba(52,211,153,0.4)] block"
+              >
+                Join Waiting List
+              </Link>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                href="/sign-in"
+                className="forge-glass-card rounded-xl px-8 py-4 text-lg font-semibold text-[#E8ECF4] block"
+              >
+                Sign In
+              </Link>
+            </motion.div>
           </SignedOut>
           <SignedInCTA variant="hero" />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Bottom gradient fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0B0F19] to-transparent" />
@@ -104,24 +154,28 @@ function HeroSection() {
 /* ─────────────── Social Proof ─────────────── */
 
 function SocialProofBar() {
-  const stats = [
-    { value: "12", label: "AI Agents" },
-    { value: "3", label: "Control Loops" },
-    { value: "0\u2013100", label: "Readiness Score" },
-    { value: "Auto", label: "Fix & Validate" },
+  const stats: { value?: number; display?: string; label: string }[] = [
+    { value: 12, label: "AI Agents Working In Parallel" },
+    { value: 3, label: "Self-Healing Control Loops" },
+    { display: "0\u2013100", label: "Production Readiness Score" },
+    { display: "Auto", label: "Fix, Test & Validate" },
   ];
 
   return (
     <section className="py-16 border-y border-white/[0.06]">
       <div className="mx-auto max-w-5xl px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {stats.map((stat) => (
-            <div key={stat.label} className="forge-scroll-reveal">
+          {stats.map((stat, i) => (
+            <FadeInWhenVisible key={stat.label} delay={i * 0.1}>
               <div className="text-4xl sm:text-5xl font-bold forge-gradient-text font-[family-name:var(--font-heading)]">
-                {stat.value}
+                {stat.value !== undefined ? (
+                  <AnimatedCounter target={stat.value} />
+                ) : (
+                  stat.display
+                )}
               </div>
               <div className="text-sm text-[#8692A8] mt-2">{stat.label}</div>
-            </div>
+            </FadeInWhenVisible>
           ))}
         </div>
       </div>
@@ -129,17 +183,16 @@ function SocialProofBar() {
   );
 }
 
-/* ─────────────── Features (Asymmetric) ─────────────── */
+/* ─────────────── Features (3D Tilt) ─────────────── */
 
 function FeaturesSection() {
   const features = [
     {
       title: "Discover",
-      subtitle: "12 agents. Full-stack analysis.",
+      subtitle: "4 agents. Full-stack analysis.",
       description:
         "Security auditors, architecture reviewers, quality analysts, and reliability scanners work in parallel. Context-aware findings classified by actionability, not just severity.",
       icon: Search,
-      gradient: "from-emerald-500/20 to-teal-500/10",
     },
     {
       title: "Fix",
@@ -147,7 +200,6 @@ function FeaturesSection() {
       description:
         "FORGE auto-fixes critical issues with a coder retry loop, escalation loop, and replan loop. Generates tests. Handles edge cases. No manual patching.",
       icon: Wrench,
-      gradient: "from-teal-500/20 to-blue-500/10",
     },
     {
       title: "Validate",
@@ -155,41 +207,53 @@ function FeaturesSection() {
       description:
         "Integration validator confirms fixes don\u2019t break functionality. Get a Production Readiness Score (0\u2013100) with category breakdowns before you ship.",
       icon: ShieldCheck,
-      gradient: "from-blue-500/20 to-emerald-500/10",
     },
   ];
 
   return (
     <section className="py-24">
       <div className="mx-auto max-w-6xl px-6">
-        <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)] forge-scroll-reveal">
-          The Full Pipeline
-        </h2>
-        <p className="text-center text-[#8692A8] mb-16 max-w-2xl mx-auto forge-scroll-reveal">
-          Three phases. End-to-end. From raw AI code to production-ready.
-        </p>
+        <FadeInWhenVisible>
+          <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)]">
+            The Full Pipeline
+          </h2>
+        </FadeInWhenVisible>
+        <FadeInWhenVisible delay={0.1}>
+          <p className="text-center text-[#8692A8] mb-16 max-w-2xl mx-auto">
+            Other tools hand you a PDF of problems. We hand you
+            production-ready code.
+          </p>
+        </FadeInWhenVisible>
 
         <div className="space-y-16 md:space-y-24">
           {features.map((feature, i) => (
-            <div
+            <FadeInWhenVisible
               key={feature.title}
-              className={`forge-scroll-reveal flex flex-col ${
+              delay={i * 0.15}
+              className={`flex flex-col ${
                 i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
               } items-center gap-8 md:gap-16`}
             >
-              {/* Icon block */}
-              <div className="flex-1 flex items-center justify-center">
-                <div
-                  className={`relative w-52 h-52 sm:w-64 sm:h-64 rounded-3xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center forge-gradient-border`}
-                >
+              {/* Icon block with 3D tilt */}
+              <div
+                className="flex-1 flex items-center justify-center"
+                style={{ perspective: "800px" }}
+              >
+                <TiltCard className="relative w-52 h-52 sm:w-64 sm:h-64 rounded-3xl forge-glass-card forge-gradient-border flex items-center justify-center">
                   <feature.icon
                     className="size-16 sm:size-20 text-forge-emerald"
                     strokeWidth={1.5}
                   />
-                  <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-forge-emerald text-[#0B0F19] flex items-center justify-center font-bold text-lg font-[family-name:var(--font-heading)]">
+                  {/* Floating number badge — pops out in 3D */}
+                  <div
+                    className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-forge-emerald text-[#0B0F19] flex items-center justify-center font-bold text-lg font-[family-name:var(--font-heading)]"
+                    style={{ transform: "translateZ(30px)" }}
+                  >
                     {i + 1}
                   </div>
-                </div>
+                  {/* Inner glow on hover */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-forge-emerald/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500" />
+                </TiltCard>
               </div>
 
               {/* Text block */}
@@ -204,7 +268,7 @@ function FeaturesSection() {
                   {feature.description}
                 </p>
               </div>
-            </div>
+            </FadeInWhenVisible>
           ))}
         </div>
       </div>
@@ -215,6 +279,13 @@ function FeaturesSection() {
 /* ─────────────── How It Works ─────────────── */
 
 function HowItWorksSection() {
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start 0.8", "end 0.6"],
+  });
+  const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
   const steps = [
     {
       num: "01",
@@ -239,33 +310,52 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section className="py-24 border-t border-white/[0.06]">
+    <section
+      ref={containerRef}
+      className="py-24 border-t border-white/[0.06]"
+    >
       <div className="mx-auto max-w-5xl px-6">
-        <h2 className="text-4xl sm:text-5xl font-bold text-center mb-16 font-[family-name:var(--font-heading)] forge-scroll-reveal">
-          How It Works
-        </h2>
+        <FadeInWhenVisible>
+          <h2 className="text-4xl sm:text-5xl font-bold text-center mb-16 font-[family-name:var(--font-heading)]">
+            How It Works
+          </h2>
+        </FadeInWhenVisible>
 
         <div className="relative">
-          {/* Vertical connecting line */}
-          <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-forge-emerald/40 via-forge-teal/20 to-transparent hidden md:block" />
+          {/* Animated connecting line — draws on scroll */}
+          <div className="absolute left-8 top-0 bottom-0 w-px bg-white/[0.06] hidden md:block">
+            <motion.div
+              className="w-full bg-gradient-to-b from-forge-emerald to-forge-teal"
+              style={{ height: lineHeight }}
+            />
+          </div>
 
           <div className="space-y-12">
             {steps.map((step, i) => (
-              <div
-                key={step.num}
-                className="forge-scroll-reveal flex items-start gap-8"
-                style={{ transitionDelay: `${i * 100}ms` }}
-              >
-                <div className="shrink-0 w-16 h-16 rounded-2xl bg-forge-emerald/10 border border-forge-emerald/20 flex items-center justify-center font-[family-name:var(--font-heading)] text-forge-emerald font-bold text-xl relative z-10">
-                  {step.num}
+              <FadeInWhenVisible key={step.num} delay={i * 0.15}>
+                <div className="flex items-start gap-8">
+                  <motion.div
+                    className="shrink-0 w-16 h-16 rounded-2xl bg-forge-emerald/10 border border-forge-emerald/20 flex items-center justify-center font-[family-name:var(--font-heading)] text-forge-emerald font-bold text-xl relative z-10"
+                    whileHover={{
+                      scale: 1.1,
+                      borderColor: "rgba(52,211,153,0.5)",
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 20,
+                    }}
+                  >
+                    {step.num}
+                  </motion.div>
+                  <div className="pt-2">
+                    <h3 className="text-xl font-bold mb-2 font-[family-name:var(--font-heading)]">
+                      {step.title}
+                    </h3>
+                    <p className="text-[#8692A8]">{step.desc}</p>
+                  </div>
                 </div>
-                <div className="pt-2">
-                  <h3 className="text-xl font-bold mb-2 font-[family-name:var(--font-heading)]">
-                    {step.title}
-                  </h3>
-                  <p className="text-[#8692A8]">{step.desc}</p>
-                </div>
-              </div>
+              </FadeInWhenVisible>
             ))}
           </div>
         </div>
@@ -303,23 +393,30 @@ function ActionabilitySection() {
   return (
     <section className="py-24 border-t border-white/[0.06]">
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)] forge-scroll-reveal">
-          Not Just Severity &mdash;{" "}
-          <span className="forge-gradient-text">Actionability</span>
-        </h2>
-        <p className="text-center text-[#8692A8] mb-12 max-w-2xl mx-auto forge-scroll-reveal">
-          Every finding is classified by what you should actually do about it,
-          calibrated to your project&apos;s stage and context.
-        </p>
+        <FadeInWhenVisible>
+          <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)]">
+            Not Just Severity &mdash;{" "}
+            <span className="forge-gradient-text">Actionability</span>
+          </h2>
+        </FadeInWhenVisible>
+        <FadeInWhenVisible delay={0.1}>
+          <p className="text-center text-[#8692A8] mb-12 max-w-2xl mx-auto">
+            Every finding is classified by what you should actually do about it,
+            calibrated to your project&apos;s stage and context.
+          </p>
+        </FadeInWhenVisible>
         <div className="grid sm:grid-cols-2 gap-4">
-          {tiers.map((tier) => (
-            <div
-              key={tier.label}
-              className={`forge-scroll-reveal rounded-xl border p-5 ${tier.color}`}
-            >
-              <div className="font-semibold mb-1">{tier.label}</div>
-              <div className="text-sm opacity-80">{tier.description}</div>
-            </div>
+          {tiers.map((tier, i) => (
+            <FadeInWhenVisible key={tier.label} delay={i * 0.1}>
+              <motion.div
+                className={`rounded-xl border p-5 ${tier.color}`}
+                whileHover={{ scale: 1.03, y: -4 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              >
+                <div className="font-semibold mb-1">{tier.label}</div>
+                <div className="text-sm opacity-80">{tier.description}</div>
+              </motion.div>
+            </FadeInWhenVisible>
           ))}
         </div>
       </div>
@@ -330,7 +427,7 @@ function ActionabilitySection() {
 /* ─────────────── Comparison Table ─────────────── */
 
 function ComparisonSection() {
-  const features = [
+  const rows = [
     { name: "Find vulnerabilities", others: true, v2p: true },
     { name: "Auto-fix critical issues", others: false, v2p: true },
     { name: "Generate tests for fixes", others: false, v2p: true },
@@ -343,55 +440,79 @@ function ComparisonSection() {
   return (
     <section className="py-24 border-t border-white/[0.06]">
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)] forge-scroll-reveal">
-          Not Just Another Scanner
-        </h2>
-        <p className="text-center text-[#8692A8] mb-12 forge-scroll-reveal">
-          Everyone else tells you what&apos;s wrong.{" "}
-          <span className="text-forge-emerald font-semibold">We fix it.</span>
-        </p>
+        <FadeInWhenVisible>
+          <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)]">
+            Why Teams Switch to Vibe2Prod
+          </h2>
+        </FadeInWhenVisible>
+        <FadeInWhenVisible delay={0.1}>
+          <p className="text-center text-[#8692A8] mb-12">
+            Every other tool stops at detection.{" "}
+            <span className="text-forge-emerald font-semibold">
+              We go all the way to deployment-ready code.
+            </span>
+          </p>
+        </FadeInWhenVisible>
 
-        <div className="forge-glass forge-gradient-border rounded-2xl overflow-hidden forge-scroll-reveal">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-white/[0.06]">
-                <th className="text-left px-6 py-4 text-sm text-[#8692A8] font-medium">
-                  Feature
-                </th>
-                <th className="px-6 py-4 text-sm text-[#8692A8] text-center font-medium">
-                  Detection Tools
-                </th>
-                <th className="px-6 py-4 text-sm text-center font-medium">
-                  <span className="forge-gradient-text font-bold">
-                    Vibe2Prod
-                  </span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {features.map((f) => (
-                <tr
-                  key={f.name}
-                  className="border-b border-white/[0.04] last:border-0"
-                >
-                  <td className="px-6 py-3.5 text-sm text-[#E8ECF4]">
-                    {f.name}
-                  </td>
-                  <td className="px-6 py-3.5 text-center">
-                    {f.others ? (
-                      <Check className="size-4 text-[#4E586E] mx-auto" />
-                    ) : (
-                      <span className="text-[#4E586E]">&mdash;</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-3.5 text-center">
-                    <Check className="size-4 text-forge-emerald mx-auto" />
-                  </td>
+        <FadeInWhenVisible>
+          <div className="forge-glass-card forge-gradient-border rounded-2xl overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/[0.06]">
+                  <th className="text-left px-6 py-4 text-sm text-[#8692A8] font-medium">
+                    Feature
+                  </th>
+                  <th className="px-6 py-4 text-sm text-[#8692A8] text-center font-medium">
+                    Detection Tools
+                  </th>
+                  <th className="px-6 py-4 text-sm text-center font-medium">
+                    <span className="forge-gradient-text font-bold">
+                      Vibe2Prod
+                    </span>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((f, i) => (
+                  <motion.tr
+                    key={f.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.08, duration: 0.4 }}
+                    className="border-b border-white/[0.04] last:border-0"
+                  >
+                    <td className="px-6 py-3.5 text-sm text-[#E8ECF4]">
+                      {f.name}
+                    </td>
+                    <td className="px-6 py-3.5 text-center">
+                      {f.others ? (
+                        <Check className="size-4 text-[#4E586E] mx-auto" />
+                      ) : (
+                        <span className="text-[#4E586E]">&mdash;</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-3.5 text-center">
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{
+                          delay: 0.3 + i * 0.08,
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 15,
+                        }}
+                      >
+                        <Check className="size-4 text-forge-emerald mx-auto" />
+                      </motion.div>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </FadeInWhenVisible>
       </div>
     </section>
   );
@@ -427,41 +548,50 @@ function PricingSection() {
   return (
     <section className="py-24 border-t border-white/[0.06]">
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="text-4xl sm:text-5xl font-bold text-center mb-2 font-[family-name:var(--font-heading)] forge-scroll-reveal">
-          Simple Credit Pricing
-        </h2>
-        <p className="text-center text-[#8692A8] mb-2 forge-scroll-reveal">
-          1 credit = 1 scan. Your first scan is free.
-        </p>
-        <p className="text-center text-sm text-forge-emerald mb-12 forge-scroll-reveal">
-          1 Free Scan Included With Signup
-        </p>
+        <FadeInWhenVisible>
+          <h2 className="text-4xl sm:text-5xl font-bold text-center mb-2 font-[family-name:var(--font-heading)]">
+            Ship Confidently. Pay Per Scan.
+          </h2>
+        </FadeInWhenVisible>
+        <FadeInWhenVisible delay={0.1}>
+          <p className="text-center text-[#8692A8] mb-2">
+            1 credit = 1 scan. Your first scan is free.
+          </p>
+        </FadeInWhenVisible>
+        <FadeInWhenVisible delay={0.15}>
+          <p className="text-center text-sm text-forge-emerald mb-12">
+            1 Free Scan Included With Signup
+          </p>
+        </FadeInWhenVisible>
         <div className="grid md:grid-cols-3 gap-6">
-          {packages.map((pkg) => (
-            <div
-              key={pkg.name}
-              className={`forge-scroll-reveal rounded-2xl border p-8 text-center transition-all ${
-                pkg.highlight
-                  ? "border-forge-emerald/30 bg-forge-emerald/5 forge-gradient-border forge-glow-emerald-sm"
-                  : "forge-glass"
-              }`}
-            >
-              {pkg.highlight && (
-                <div className="text-xs font-semibold text-forge-emerald mb-3 uppercase tracking-wider">
-                  Most Popular
-                </div>
-              )}
-              <div className="text-lg font-semibold text-[#E8ECF4] mb-1">
-                {pkg.name}
+          {packages.map((pkg, i) => (
+            <FadeInWhenVisible key={pkg.name} delay={i * 0.15}>
+              <div style={{ perspective: "800px" }}>
+                <TiltCard
+                  className={`rounded-2xl border p-8 text-center transition-all ${
+                    pkg.highlight
+                      ? "border-forge-emerald/30 bg-forge-emerald/5 forge-gradient-border forge-glow-emerald-sm"
+                      : "forge-glass-card"
+                  }`}
+                >
+                  {pkg.highlight && (
+                    <div className="text-xs font-semibold text-forge-emerald mb-3 uppercase tracking-wider">
+                      Most Popular
+                    </div>
+                  )}
+                  <div className="text-lg font-semibold text-[#E8ECF4] mb-1">
+                    {pkg.name}
+                  </div>
+                  <div className="text-4xl font-bold text-[#E8ECF4] mb-1 font-[family-name:var(--font-heading)]">
+                    {pkg.price}
+                  </div>
+                  <div className="text-sm text-[#4E586E]">
+                    {pkg.credits} credit{pkg.credits > 1 ? "s" : ""} ·{" "}
+                    {pkg.perScan}
+                  </div>
+                </TiltCard>
               </div>
-              <div className="text-4xl font-bold text-[#E8ECF4] mb-1 font-[family-name:var(--font-heading)]">
-                {pkg.price}
-              </div>
-              <div className="text-sm text-[#4E586E]">
-                {pkg.credits} credit{pkg.credits > 1 ? "s" : ""} ·{" "}
-                {pkg.perScan}
-              </div>
-            </div>
+            </FadeInWhenVisible>
           ))}
         </div>
       </div>
@@ -479,7 +609,7 @@ function FAQSection() {
     },
     {
       q: "How is this different from CodeRabbit or Snyk?",
-      a: "Those tools find problems. We find AND fix them. Our 12-agent FORGE engine auto-remediates critical issues, generates tests, and validates that fixes don\u2019t break anything.",
+      a: "CodeRabbit, Snyk, and Semgrep generate reports. You still do all the work. Vibe2Prod\u2019s FORGE engine auto-remediates critical issues, generates regression tests, validates nothing broke, and hands you a production readiness score. Detection is table stakes \u2014 remediation is the moat.",
     },
     {
       q: 'What does a "scan credit" include?',
@@ -498,23 +628,26 @@ function FAQSection() {
   return (
     <section className="py-24 border-t border-white/[0.06]">
       <div className="mx-auto max-w-3xl px-6">
-        <h2 className="text-4xl font-bold text-center mb-12 font-[family-name:var(--font-heading)] forge-scroll-reveal">
-          Questions? Answers.
-        </h2>
+        <FadeInWhenVisible>
+          <h2 className="text-4xl font-bold text-center mb-12 font-[family-name:var(--font-heading)]">
+            Questions? Answers.
+          </h2>
+        </FadeInWhenVisible>
         <Accordion type="single" collapsible className="space-y-3">
           {faqs.map((faq, i) => (
-            <AccordionItem
-              key={i}
-              value={`faq-${i}`}
-              className="forge-glass rounded-xl border-none forge-scroll-reveal"
-            >
-              <AccordionTrigger className="px-6 py-4 text-left text-[#E8ECF4] hover:no-underline hover:text-forge-emerald transition-colors">
-                {faq.q}
-              </AccordionTrigger>
-              <AccordionContent className="px-6 pb-4 text-[#8692A8]">
-                {faq.a}
-              </AccordionContent>
-            </AccordionItem>
+            <FadeInWhenVisible key={i} delay={i * 0.1}>
+              <AccordionItem
+                value={`faq-${i}`}
+                className="forge-glass-card rounded-xl border-none"
+              >
+                <AccordionTrigger className="px-6 py-4 text-left text-[#E8ECF4] hover:no-underline hover:text-forge-emerald transition-colors">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-4 text-[#8692A8]">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            </FadeInWhenVisible>
           ))}
         </Accordion>
       </div>
@@ -526,95 +659,100 @@ function FAQSection() {
 
 function Footer() {
   return (
-    <footer className="border-t border-white/[0.06] py-12">
-      <div className="mx-auto max-w-5xl px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          {/* Brand */}
-          <div>
-            <span className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
-              <span className="forge-gradient-text">Vibe</span>
-              <span className="text-foreground">2Prod</span>
-            </span>
-            <p className="text-sm text-[#4E586E] mt-2">
-              Ship AI code with confidence.
-            </p>
-          </div>
+    <FadeInWhenVisible>
+      <footer className="border-t border-white/[0.06] py-12">
+        <div className="mx-auto max-w-5xl px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            {/* Brand */}
+            <div>
+              <span className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
+                <span className="forge-gradient-text">Vibe</span>
+                <span className="text-foreground">2Prod</span>
+              </span>
+              <p className="text-sm text-[#4E586E] mt-2">
+                Ship AI code with confidence.
+              </p>
+            </div>
 
-          {/* Product links */}
-          <div>
-            <h4 className="text-sm font-semibold text-[#8692A8] mb-3">
-              Product
-            </h4>
-            <div className="space-y-2">
-              <Link
-                href="/sign-up"
-                className="text-sm text-[#4E586E] hover:text-forge-emerald transition-colors block"
-              >
-                Join Waiting List
-              </Link>
-              <Link
-                href="/sign-in"
-                className="text-sm text-[#4E586E] hover:text-forge-emerald transition-colors block"
-              >
-                Sign In
-              </Link>
+            {/* Product links */}
+            <div>
+              <h4 className="text-sm font-semibold text-[#8692A8] mb-3">
+                Product
+              </h4>
+              <div className="space-y-2">
+                <Link
+                  href="/sign-up"
+                  className="text-sm text-[#4E586E] hover:text-forge-emerald transition-colors block"
+                >
+                  Join Waiting List
+                </Link>
+                <Link
+                  href="/sign-in"
+                  className="text-sm text-[#4E586E] hover:text-forge-emerald transition-colors block"
+                >
+                  Sign In
+                </Link>
+              </div>
+            </div>
+
+            {/* Social */}
+            <div>
+              <h4 className="text-sm font-semibold text-[#8692A8] mb-3">
+                Connect
+              </h4>
+              <div className="space-y-2">
+                <a
+                  href="https://linkedin.com/in/christopher-igweze"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-[#4E586E] hover:text-forge-emerald transition-colors block"
+                >
+                  LinkedIn
+                </a>
+              </div>
             </div>
           </div>
 
-          {/* Social */}
-          <div>
-            <h4 className="text-sm font-semibold text-[#8692A8] mb-3">
-              Connect
-            </h4>
-            <div className="space-y-2">
-              <a
-                href="https://linkedin.com/in/christopher-igweze"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-[#4E586E] hover:text-forge-emerald transition-colors block"
-              >
-                LinkedIn
-              </a>
+          <div className="border-t border-white/[0.06] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-[#4E586E]">
+              &copy; {new Date().getFullYear()} Vibe2Prod. All rights reserved.
+            </div>
+            <div className="flex items-center gap-6">
+              <SignedOut>
+                <Link
+                  href="/sign-in"
+                  className="text-sm text-[#8692A8] hover:text-foreground transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="text-sm text-forge-emerald hover:text-forge-emerald-light transition-colors"
+                >
+                  Join Waiting List
+                </Link>
+              </SignedOut>
+              <SignedInCTA variant="footer" />
             </div>
           </div>
         </div>
-
-        <div className="border-t border-white/[0.06] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-[#4E586E]">
-            &copy; {new Date().getFullYear()} Vibe2Prod. All rights reserved.
-          </div>
-          <div className="flex items-center gap-6">
-            <SignedOut>
-              <Link
-                href="/sign-in"
-                className="text-sm text-[#8692A8] hover:text-foreground transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/sign-up"
-                className="text-sm text-forge-emerald hover:text-forge-emerald-light transition-colors"
-              >
-                Join Waiting List
-              </Link>
-            </SignedOut>
-            <SignedInCTA variant="footer" />
-          </div>
-        </div>
-      </div>
-    </footer>
+      </footer>
+    </FadeInWhenVisible>
   );
 }
 
 /* ─────────────── Main Page ─────────────── */
 
 export default function LandingPage() {
-  useScrollReveal();
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Nav */}
-      <nav className="fixed top-0 w-full forge-glass z-50">
+      {/* Nav — visible frosted glass + slide-down entrance */}
+      <motion.nav
+        className="fixed top-0 w-full forge-glass-nav z-50"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+      >
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-3">
           <span className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
             <span className="forge-gradient-text">Vibe</span>
@@ -638,7 +776,7 @@ export default function LandingPage() {
             <SignedInCTA variant="nav" />
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       <HeroSection />
       <SocialProofBar />
