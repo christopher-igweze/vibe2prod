@@ -10,6 +10,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-space-grotesk);
+  --font-code: var(--font-jetbrains-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,6 +50,16 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
+  /* FORGE extended palette */
+  --color-forge-amber: var(--forge-amber);
+  --color-forge-amber-light: var(--forge-amber-light);
+  --color-forge-amber-glow: var(--forge-amber-glow);
+  --color-forge-blue: var(--forge-blue);
+  --color-forge-surface: var(--forge-surface);
+  --color-forge-surface-hover: var(--forge-surface-hover);
+  --color-forge-nav: var(--forge-nav);
+  --color-forge-text-muted: var(--forge-text-muted);
+  --color-forge-border-hover: var(--forge-border-hover);
 }
 
 :root {
@@ -86,37 +98,49 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* FORGE Command Center palette */
+  --background: #0B0F19;
+  --foreground: #E8ECF4;
+  --card: rgba(19, 24, 37, 0.8);
+  --card-foreground: #E8ECF4;
+  --popover: #131825;
+  --popover-foreground: #E8ECF4;
+  --primary: #E8913A;
+  --primary-foreground: #0B0F19;
+  --secondary: #1A2035;
+  --secondary-foreground: #E8ECF4;
+  --muted: #1A2035;
+  --muted-foreground: #8692A8;
+  --accent: #222940;
+  --accent-foreground: #E8ECF4;
+  --destructive: #EF4444;
+  --border: rgba(255, 255, 255, 0.06);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #E8913A;
+  --chart-1: #E8913A;
+  --chart-2: #5B8DEF;
+  --chart-3: #F4B56A;
+  --chart-4: #22C55E;
+  --chart-5: #EF4444;
+  --sidebar: #1A2035;
+  --sidebar-foreground: #E8ECF4;
+  --sidebar-primary: #E8913A;
+  --sidebar-primary-foreground: #0B0F19;
+  --sidebar-accent: #222940;
+  --sidebar-accent-foreground: #E8ECF4;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #E8913A;
+
+  /* FORGE extended tokens */
+  --forge-amber: #E8913A;
+  --forge-amber-light: #F4B56A;
+  --forge-amber-glow: rgba(232, 145, 58, 0.20);
+  --forge-blue: #5B8DEF;
+  --forge-surface: #131825;
+  --forge-surface-hover: #222940;
+  --forge-nav: #1A2035;
+  --forge-text-muted: #4E586E;
+  --forge-border-hover: rgba(232, 145, 58, 0.3);
 }
 
 @layer base {
@@ -181,3 +205,83 @@
 .animate-fade-in-up-delay-3 {
   animation: fadeInUp 0.7s ease-out 0.45s both;
 }
+
+/* ── FORGE background patterns ── */
+
+.forge-dot-grid {
+  background-image: radial-gradient(circle, rgba(232, 145, 58, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.forge-noise {
+  position: relative;
+}
+.forge-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── FORGE glass surface ── */
+
+.forge-glass {
+  background: rgba(19, 24, 37, 0.80);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.forge-glass-hover:hover {
+  border-color: rgba(232, 145, 58, 0.3);
+  box-shadow: 0 0 20px -4px rgba(232, 145, 58, 0.15);
+}
+
+/* ── FORGE animations ── */
+
+@keyframes forge-gauge-fill {
+  from { stroke-dashoffset: var(--gauge-circumference); }
+  to { stroke-dashoffset: var(--gauge-offset); }
+}
+
+@keyframes forge-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes forge-stagger-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.forge-shimmer-cta {
+  background: linear-gradient(
+    90deg,
+    #E8913A 0%,
+    #F4B56A 50%,
+    #E8913A 100%
+  );
+  background-size: 200% auto;
+  animation: forge-shimmer 3s linear infinite;
+  color: #0B0F19;
+  font-weight: 600;
+}
+
+.forge-spring-hover {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.forge-spring-hover:hover {
+  transform: scale(1.015);
+}
+
+/* Staggered entrance utility */
+.forge-stagger-1 { animation: forge-stagger-in 0.5s ease-out 0.1s both; }
+.forge-stagger-2 { animation: forge-stagger-in 0.5s ease-out 0.2s both; }
+.forge-stagger-3 { animation: forge-stagger-in 0.5s ease-out 0.3s both; }
+.forge-stagger-4 { animation: forge-stagger-in 0.5s ease-out 0.4s both; }
+.forge-stagger-5 { animation: forge-stagger-in 0.5s ease-out 0.5s both; }

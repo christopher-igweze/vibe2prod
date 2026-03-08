@@ -94,10 +94,10 @@ export function OnboardingModal({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-lg bg-neutral-950 border-neutral-800">
+      <DialogContent className="sm:max-w-lg bg-background border-white/[0.06]">
         <DialogHeader>
           <DialogTitle className="text-neutral-100">Quick Setup</DialogTitle>
-          <DialogDescription className="text-neutral-400">
+          <DialogDescription className="text-[#8692A8]">
             Tell us a bit about yourself so we can tailor your audit reports.
           </DialogDescription>
         </DialogHeader>
@@ -122,13 +122,13 @@ export function OnboardingModal({
                   key={value}
                   className={`flex flex-col items-center gap-1 rounded-lg border p-3 cursor-pointer transition-colors ${
                     technicalLevel === value
-                      ? "border-emerald-500/50 bg-emerald-500/5"
-                      : "border-neutral-800 hover:border-neutral-700"
+                      ? "border-forge-amber/50 bg-forge-amber/5"
+                      : "border-white/[0.06] hover:border-forge-border-hover"
                   }`}
                 >
                   <RadioGroupItem value={value} className="sr-only" />
                   <span className="text-sm font-medium text-neutral-200">{label}</span>
-                  <span className="text-xs text-neutral-500 text-center">{desc}</span>
+                  <span className="text-xs text-[#4E586E] text-center">{desc}</span>
                 </label>
               ))}
             </RadioGroup>
@@ -138,10 +138,10 @@ export function OnboardingModal({
           <div className="space-y-2">
             <Label className="text-neutral-300">How should we explain findings?</Label>
             <Select value={explanationStyle} onValueChange={(v) => setExplanationStyle(v as ExplanationStyle)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-neutral-200">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="teach_me">Teach Me -- explain the why</SelectItem>
                 <SelectItem value="just_steps">Just Steps -- tell me what to do</SelectItem>
                 <SelectItem value="cto_brief">CTO Brief -- executive summary</SelectItem>
@@ -153,10 +153,10 @@ export function OnboardingModal({
           <div className="space-y-2">
             <Label className="text-neutral-300">Shipping priority?</Label>
             <Select value={shippingPosture} onValueChange={(v) => setShippingPosture(v as ShippingPosture)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-neutral-200">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="ship_fast">Ship Fast -- speed over perfection</SelectItem>
                 <SelectItem value="balanced">Balanced -- pragmatic trade-offs</SelectItem>
                 <SelectItem value="production_first">Production First -- stability above all</SelectItem>
@@ -168,10 +168,10 @@ export function OnboardingModal({
           <div className="space-y-2">
             <Label className="text-neutral-300">What do you mostly build with?</Label>
             <Select value={codingTool} onValueChange={(v) => setCodingTool(v as CodingTool)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-neutral-200">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="claude_code">Claude Code</SelectItem>
                 <SelectItem value="codex">Codex</SelectItem>
                 <SelectItem value="antigravity">AntiGravity</SelectItem>
@@ -186,7 +186,7 @@ export function OnboardingModal({
                 value={codingToolOther}
                 onChange={(e) => setCodingToolOther(e.target.value)}
                 placeholder="Please state..."
-                className="bg-neutral-900 border-neutral-800 text-neutral-200"
+                className="bg-forge-surface border-white/[0.06] text-neutral-200"
               />
             )}
           </div>
@@ -195,10 +195,10 @@ export function OnboardingModal({
           <div className="space-y-2">
             <Label className="text-neutral-300">How did you find us?</Label>
             <Select value={acquisitionSource} onValueChange={(v) => setAcquisitionSource(v as AcquisitionSource)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-neutral-200">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="hackathon">Hackathon</SelectItem>
                 <SelectItem value="linkedin">LinkedIn</SelectItem>
                 <SelectItem value="founder_begged_me">Founder Begged Me</SelectItem>
@@ -212,7 +212,7 @@ export function OnboardingModal({
                 value={acquisitionOther}
                 onChange={(e) => setAcquisitionOther(e.target.value)}
                 placeholder="Please state..."
-                className="bg-neutral-900 border-neutral-800 text-neutral-200"
+                className="bg-forge-surface border-white/[0.06] text-neutral-200"
               />
             )}
           </div>
@@ -226,13 +226,13 @@ export function OnboardingModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="border-neutral-700">
+          <Button variant="outline" onClick={onClose} className="border-white/[0.08]">
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={saving || (codingTool === "other" && !codingToolOther.trim()) || (acquisitionSource === "other" && !acquisitionOther.trim())}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
           >
             {saving ? <Loader2 className="size-4 animate-spin" /> : "Save & Continue"}
           </Button>

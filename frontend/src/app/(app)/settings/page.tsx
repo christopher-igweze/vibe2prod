@@ -128,7 +128,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8 max-w-2xl">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Settings</h1>
 
       {error && (
         <Card className="border-red-500/50 bg-red-950/20 p-4">
@@ -137,22 +137,22 @@ export default function SettingsPage() {
       )}
 
       {message && (
-        <Card className="border-emerald-500/50 bg-emerald-950/20 p-4">
-          <p className="text-emerald-400 text-sm">{message}</p>
+        <Card className="border-forge-amber/50 bg-forge-amber/10 p-4">
+          <p className="text-forge-amber text-sm">{message}</p>
         </Card>
       )}
 
       {/* GitHub Connection */}
-      <Card className="bg-neutral-900 border-neutral-800 p-6">
+      <Card className="p-6">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-lg font-semibold mb-1">GitHub Connection</h2>
-            <p className="text-sm text-neutral-400">
+            <p className="text-sm text-[#8692A8]">
               Connect your GitHub account to scan private repositories.
             </p>
           </div>
           {github?.connected && (
-            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
+            <Badge className="bg-forge-amber/10 text-forge-amber border-forge-amber/20">
               Connected
             </Badge>
           )}
@@ -170,7 +170,7 @@ export default function SettingsPage() {
               )}
               <div>
                 <p className="font-medium">{github.github_username}</p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-[#4E586E]">
                   Private repo access enabled
                 </p>
               </div>
@@ -190,7 +190,7 @@ export default function SettingsPage() {
             <Button
               onClick={connectGitHub}
               disabled={loading}
-              className="bg-neutral-800 hover:bg-neutral-700 text-neutral-100"
+              className="bg-forge-nav hover:bg-forge-surface-hover text-neutral-100"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -206,7 +206,7 @@ export default function SettingsPage() {
                 </span>
               )}
             </Button>
-            <p className="text-xs text-neutral-500 mt-2">
+            <p className="text-xs text-[#4E586E] mt-2">
               Grants access to your repositories for scanning. You can disconnect at any time.
             </p>
           </div>

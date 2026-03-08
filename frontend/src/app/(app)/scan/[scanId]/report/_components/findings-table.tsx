@@ -107,7 +107,7 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border transition-colors ${
                 active
                   ? `${cfg.bg} ${cfg.text} ${cfg.border}`
-                  : "bg-neutral-900 text-neutral-600 border-neutral-800"
+                  : "bg-forge-nav text-forge-text-muted border-forge-surface-hover"
               }`}
             >
               {cfg.label}
@@ -115,7 +115,7 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
           )
         })}
 
-        <span className="w-px h-4 bg-neutral-800" />
+        <span className="w-px h-4 bg-forge-surface-hover" />
 
         {/* Category filters */}
         {ALL_CATEGORIES.map((c) => {
@@ -126,8 +126,8 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
               onClick={() => toggleCategory(c)}
               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border transition-colors ${
                 active
-                  ? "bg-neutral-800 text-neutral-200 border-neutral-700"
-                  : "bg-neutral-900 text-neutral-600 border-neutral-800"
+                  ? "bg-forge-surface-hover text-neutral-200 border-forge-border-hover"
+                  : "bg-forge-nav text-forge-text-muted border-forge-surface-hover"
               }`}
             >
               {CATEGORY_LABELS[c] ?? c}
@@ -146,10 +146,10 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
         const sorted = sortFindings(findings)
 
         return (
-          <Card key={level} className="bg-neutral-900 border-neutral-800 overflow-hidden">
+          <Card key={level} className="forge-glass rounded-lg overflow-hidden">
             {/* Group header */}
             <button
-              className={`w-full flex items-center gap-3 px-5 py-3 border-b ${cfg.border} hover:bg-neutral-800/30 transition-colors`}
+              className={`w-full flex items-center gap-3 px-5 py-3 border-b ${cfg.border} hover:bg-forge-surface-hover/30 transition-colors`}
               onClick={() => toggleGroup(level)}
             >
               {isCollapsed ? (
@@ -170,7 +170,7 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-800 text-neutral-500 text-xs">
+                    <tr className="border-b border-white/6 text-forge-text-muted text-xs">
                       <th className="text-left py-2 pl-5 pr-3 w-20">Severity</th>
                       <th className="text-left py-2 pr-3">Title</th>
                       <th className="text-left py-2 pr-3 w-28">Category</th>
@@ -197,9 +197,9 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
 
       {/* Intentional / Informational — collapsed by default */}
       {intentionalFindings.length > 0 && (
-        <Card className="bg-neutral-900/50 border-neutral-800/60">
+        <Card className="forge-glass rounded-lg opacity-80">
           <button
-            className="w-full flex items-center gap-3 px-5 py-3 hover:bg-neutral-800/20 transition-colors"
+            className="w-full flex items-center gap-3 px-5 py-3 hover:bg-forge-surface-hover/20 transition-colors"
             onClick={() => setShowIntentional((v) => !v)}
           >
             {showIntentional ? (
@@ -216,10 +216,10 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
           </button>
 
           {showIntentional && (
-            <div className="overflow-x-auto border-t border-neutral-800/40">
+            <div className="overflow-x-auto border-t border-white/6">
               <table className="w-full text-sm opacity-60">
                 <thead>
-                  <tr className="border-b border-neutral-800/30 text-neutral-600 text-xs">
+                  <tr className="border-b border-white/4 text-forge-text-muted text-xs">
                     <th className="text-left py-2 pl-5 pr-3 w-20">Severity</th>
                     <th className="text-left py-2 pr-3">Title</th>
                     <th className="text-left py-2 pr-3 w-28">Category</th>
@@ -246,7 +246,7 @@ export function FindingsTable({ actionableFindings, intentionalFindings }: Findi
 
       {/* Empty state for actionable */}
       {actionableFindings.length === 0 && intentionalFindings.length > 0 && (
-        <Card className="bg-neutral-900 border-neutral-800 p-8 text-center">
+        <Card className="forge-glass rounded-lg p-8 text-center">
           <p className="text-neutral-400 text-sm">
             No actionable findings — all {intentionalFindings.length} detected patterns appear intentional.
           </p>
@@ -272,7 +272,7 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
   return (
     <>
       <tr
-        className="border-b border-neutral-800/50 cursor-pointer hover:bg-neutral-800/30 transition-colors"
+        className="border-b border-white/6 cursor-pointer hover:bg-forge-surface-hover/30 transition-colors"
         onClick={onToggle}
       >
         <td className="py-2.5 pl-5 pr-3">
@@ -289,7 +289,7 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
         <td className="py-2.5 pr-3">
           <div className="flex flex-col gap-0.5">
             {finding.locations.slice(0, 2).map((loc, i) => (
-              <span key={i} className="text-xs text-neutral-500 font-mono truncate max-w-[12rem] block">
+              <span key={i} className="text-xs text-neutral-500 font-[family-name:var(--font-code)] truncate max-w-[12rem] block">
                 {loc.file_path}
                 {loc.line_start != null && `:${loc.line_start}`}
               </span>
@@ -305,13 +305,13 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
       </tr>
 
       {isExpanded && (
-        <tr className="border-b border-neutral-800/50">
-          <td colSpan={5} className="px-5 py-4 bg-neutral-950/40">
+        <tr className="border-b border-white/6">
+          <td colSpan={5} className="px-5 py-4 bg-forge-surface/60">
             <div className="space-y-4">
               {/* Pattern ID + Intent signal badges */}
               <div className="flex items-center gap-2 flex-wrap">
                 {finding.pattern_id && (
-                  <Badge variant="outline" className="font-mono text-xs border-neutral-700 text-neutral-400">
+                  <Badge variant="outline" className="font-[family-name:var(--font-code)] text-xs border-forge-surface-hover text-neutral-400">
                     {finding.pattern_id}
                   </Badge>
                 )}
@@ -320,8 +320,8 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
                     variant="outline"
                     className={
                       finding.intent_signal === "intentional"
-                        ? "border-neutral-600 text-neutral-500 text-xs"
-                        : "border-neutral-700 text-neutral-400 text-xs"
+                        ? "border-forge-text-muted text-neutral-500 text-xs"
+                        : "border-forge-surface-hover text-neutral-400 text-xs"
                     }
                   >
                     Intent: {finding.intent_signal}
@@ -330,7 +330,7 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
                 {finding.actionability && (
                   <Badge
                     variant="outline"
-                    className="border-neutral-700 text-neutral-400 text-xs"
+                    className="border-forge-surface-hover text-neutral-400 text-xs"
                   >
                     {finding.actionability.replace("_", " ")}
                   </Badge>
@@ -363,15 +363,15 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
                     {finding.locations.map((loc, i) => (
                       <div
                         key={i}
-                        className="rounded border border-neutral-800 bg-neutral-950/50 p-3"
+                        className="rounded border border-white/6 bg-forge-surface/50 p-3"
                       >
-                        <p className="text-xs text-neutral-400 font-mono mb-1">
+                        <p className="text-xs text-neutral-400 font-[family-name:var(--font-code)] mb-1">
                           {loc.file_path}
                           {loc.line_start != null && `:${loc.line_start}`}
                           {loc.line_end != null && loc.line_end !== loc.line_start && `-${loc.line_end}`}
                         </p>
                         {loc.snippet && (
-                          <pre className="text-xs text-neutral-500 whitespace-pre-wrap overflow-x-auto">
+                          <pre className="text-xs text-neutral-500 font-[family-name:var(--font-code)] whitespace-pre-wrap overflow-x-auto">
                             {loc.snippet}
                           </pre>
                         )}
@@ -385,7 +385,7 @@ function FindingRow({ finding, isExpanded, onToggle, muted }: FindingRowProps) {
               {finding.data_flow && (
                 <div>
                   <h4 className="text-xs font-medium text-neutral-500 mb-1">Data Flow</h4>
-                  <p className="text-xs text-neutral-400 font-mono">{finding.data_flow}</p>
+                  <p className="text-xs text-neutral-400 font-[family-name:var(--font-code)]">{finding.data_flow}</p>
                 </div>
               )}
 

@@ -60,7 +60,7 @@ function severityColor(severity: string): string {
 }
 
 function scoreBarColor(score: number): string {
-  if (score >= 70) return "bg-emerald-500"
+  if (score >= 70) return "bg-amber-500"
   if (score >= 40) return "bg-yellow-500"
   return "bg-red-500"
 }
@@ -79,7 +79,7 @@ function CollapsibleSection({
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <Card className="bg-neutral-900 border-neutral-800">
+    <Card className="bg-[#131825]/80 backdrop-blur-sm border-white/[0.06]">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-6 py-4 text-left"
@@ -161,7 +161,7 @@ export default function RemediationResultsPage() {
         <AlertCircle className="size-8 text-red-400 mx-auto" />
         <p className="text-neutral-400">{error || "Results not found."}</p>
         <Link href={`/scan/${scanId}/report`}>
-          <Button variant="outline" className="border-neutral-700">
+          <Button variant="outline" className="border-white/[0.06]">
             <ArrowLeft className="size-4 mr-1" /> Back to Report
           </Button>
         </Link>
@@ -192,11 +192,11 @@ export default function RemediationResultsPage() {
       {/* ── Hero Section ── */}
       <div className="text-center space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-neutral-100">
+          <h1 className="text-3xl font-bold text-neutral-100 font-[family-name:var(--font-heading)]">
             Production Readiness Report
           </h1>
           <div className="flex items-center justify-center gap-2 mt-3">
-            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+            <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30">
               Discovery ✓
             </Badge>
             {isFailed ? (
@@ -204,7 +204,7 @@ export default function RemediationResultsPage() {
                 Remediation ✗
               </Badge>
             ) : (
-              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+              <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30">
                 Remediation ✓
               </Badge>
             )}
@@ -223,25 +223,25 @@ export default function RemediationResultsPage() {
       {/* ── Category Breakdown ── */}
       {readiness?.category_scores && readiness.category_scores.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-neutral-100 mb-4">
+          <h2 className="text-lg font-semibold text-neutral-100 mb-4 font-[family-name:var(--font-heading)]">
             Category Breakdown
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {readiness.category_scores.map((cat) => (
               <Card
                 key={cat.name}
-                className="bg-neutral-900 border-neutral-800"
+                className="bg-[#131825]/80 backdrop-blur-sm border-white/[0.06]"
               >
                 <CardContent className="py-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-neutral-200">
                       {cat.name}
                     </span>
-                    <span className="text-sm font-mono text-neutral-400">
+                    <span className="text-sm font-[family-name:var(--font-code)] text-neutral-400">
                       {cat.score}/100
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-neutral-800 overflow-hidden">
+                  <div className="h-2 w-full rounded-full bg-[#131825] overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${scoreBarColor(cat.score)}`}
                       style={{ width: `${cat.score}%` }}
@@ -259,12 +259,12 @@ export default function RemediationResultsPage() {
 
       {/* ── Remediation Stats ── */}
       <div>
-        <h2 className="text-lg font-semibold text-neutral-100 mb-4">
+        <h2 className="text-lg font-semibold text-neutral-100 mb-4 font-[family-name:var(--font-heading)]">
           Remediation Stats
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Findings */}
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-[#131825]/80 backdrop-blur-sm border-white/[0.06]">
             <CardContent className="py-4 text-center space-y-1">
               <ListChecks className="size-5 text-neutral-400 mx-auto" />
               <p className="text-xs text-neutral-500">Findings</p>
@@ -272,7 +272,7 @@ export default function RemediationResultsPage() {
                 {totalFindings}
               </p>
               <div className="flex items-center justify-center gap-2 text-xs">
-                <span className="text-emerald-400">{findingsFixed} fixed</span>
+                <span className="text-amber-400">{findingsFixed} fixed</span>
                 <span className="text-neutral-600">/</span>
                 <span className="text-yellow-400">{findingsDeferred} deferred</span>
               </div>
@@ -280,7 +280,7 @@ export default function RemediationResultsPage() {
           </Card>
 
           {/* Agent Stats */}
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-[#131825]/80 backdrop-blur-sm border-white/[0.06]">
             <CardContent className="py-4 text-center space-y-1">
               <Zap className="size-5 text-neutral-400 mx-auto" />
               <p className="text-xs text-neutral-500">Agent Invocations</p>
@@ -291,7 +291,7 @@ export default function RemediationResultsPage() {
           </Card>
 
           {/* Duration & Cost */}
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-[#131825]/80 backdrop-blur-sm border-white/[0.06]">
             <CardContent className="py-4 text-center space-y-1">
               <Clock className="size-5 text-neutral-400 mx-auto" />
               <p className="text-xs text-neutral-500">Duration</p>
@@ -308,7 +308,7 @@ export default function RemediationResultsPage() {
 
       {/* ── Findings Detail ── */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-neutral-100">
+        <h2 className="text-lg font-semibold text-neutral-100 font-[family-name:var(--font-heading)]">
           Findings Detail
         </h2>
 
@@ -332,7 +332,7 @@ export default function RemediationResultsPage() {
               {readiness.debt_items.map((item, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-3 border-b border-neutral-800 pb-3 last:border-0 last:pb-0"
+                  className="flex items-start gap-3 border-b border-white/[0.06] pb-3 last:border-0 last:pb-0"
                 >
                   <Badge className={severityColor(item.severity)}>
                     {item.severity.toUpperCase()}
@@ -362,7 +362,7 @@ export default function RemediationResultsPage() {
             <ul className="space-y-2">
               {readiness.recommendations.map((rec, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-neutral-400">
-                  <CheckCircle2 className="size-4 text-emerald-400 mt-0.5 shrink-0" />
+                  <CheckCircle2 className="size-4 text-amber-400 mt-0.5 shrink-0" />
                   {rec}
                 </li>
               ))}
@@ -376,8 +376,8 @@ export default function RemediationResultsPage() {
         {/* Retry Remediation — always available */}
         <Button
           className={isFailed
-            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-            : "border-neutral-700 text-neutral-300"}
+            ? "bg-amber-600 hover:bg-amber-700 text-white"
+            : "border-white/[0.06] text-neutral-300"}
           variant={isFailed ? "default" : "outline"}
           onClick={handleRetryRemediation}
           disabled={retrying}
@@ -391,7 +391,7 @@ export default function RemediationResultsPage() {
         </Button>
 
         {status.pr_url && (
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white">
             <a href={status.pr_url} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="size-4 mr-1.5" />
               View Pull Request
@@ -399,7 +399,7 @@ export default function RemediationResultsPage() {
           </Button>
         )}
 
-        <Button variant="outline" className="border-neutral-700" asChild>
+        <Button variant="outline" className="border-white/[0.06]" asChild>
           <Link href={`/scan/${scanId}/report`}>
             <ArrowLeft className="size-4 mr-1.5" />
             Discovery Report
@@ -408,7 +408,7 @@ export default function RemediationResultsPage() {
 
         <Button
           variant="outline"
-          className="border-neutral-700 text-neutral-300"
+          className="border-white/[0.06] text-neutral-300"
           onClick={() => openRemediationPdfReport(status)}
         >
           <Download className="size-4 mr-1.5" />
@@ -416,7 +416,7 @@ export default function RemediationResultsPage() {
         </Button>
 
         {/* New Scan — go back to dashboard */}
-        <Button variant="outline" className="border-neutral-700 text-neutral-300" asChild>
+        <Button variant="outline" className="border-white/[0.06] text-neutral-300" asChild>
           <Link href="/dashboard">
             <Search className="size-4 mr-1.5" />
             New Scan
