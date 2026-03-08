@@ -130,7 +130,7 @@ export function RepoSelector({
       } catch (err) {
         if (!cancelled) {
           setFetchError(
-            err instanceof ApiError ? err.detail : "Failed to load repositories"
+            err instanceof ApiError ? err.message : "Failed to load repositories"
           );
         }
       } finally {
