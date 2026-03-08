@@ -90,7 +90,7 @@ export default function ReportPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="size-6 animate-spin text-neutral-500" />
+        <Loader2 className="size-6 animate-spin text-[#4E586E]" />
       </div>
     )
   }
@@ -99,9 +99,9 @@ export default function ReportPage() {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
         <AlertCircle className="size-8 text-red-400 mx-auto" />
-        <p className="text-neutral-400">{error || "Scan not found."}</p>
+        <p className="text-[#8692A8]">{error || "Scan not found."}</p>
         <Link href="/dashboard">
-          <Button variant="outline" className="border-neutral-700">
+          <Button variant="outline" className="border-white/[0.08]">
             <ArrowLeft className="size-4 mr-1" /> Back to Dashboard
           </Button>
         </Link>
@@ -112,12 +112,12 @@ export default function ReportPage() {
   if (scan.status !== "completed") {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
-        <Loader2 className="size-8 animate-spin text-neutral-500 mx-auto" />
-        <p className="text-neutral-400">
+        <Loader2 className="size-8 animate-spin text-[#4E586E] mx-auto" />
+        <p className="text-[#8692A8]">
           Scan is {scan.status}. Waiting for results...
         </p>
         <Link href={`/scan/${scanId}`}>
-          <Button variant="outline" className="border-neutral-700">
+          <Button variant="outline" className="border-white/[0.08]">
             View Progress
           </Button>
         </Link>
@@ -129,11 +129,11 @@ export default function ReportPage() {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
         <AlertCircle className="size-8 text-yellow-400 mx-auto" />
-        <p className="text-neutral-400">
+        <p className="text-[#8692A8]">
           No discovery report data available for this scan.
         </p>
         <Link href="/dashboard">
-          <Button variant="outline" className="border-neutral-700">
+          <Button variant="outline" className="border-white/[0.08]">
             <ArrowLeft className="size-4 mr-1" /> Back to Dashboard
           </Button>
         </Link>
@@ -157,7 +157,7 @@ export default function ReportPage() {
     <div className="max-w-5xl mx-auto space-y-6 pb-16">
       {/* Navigation */}
       <Link href="/dashboard">
-        <Button variant="ghost" size="sm" className="text-neutral-400 hover:text-neutral-200 -ml-2">
+        <Button variant="ghost" size="sm" className="text-[#8692A8] hover:text-[#E8ECF4] -ml-2">
           <ArrowLeft className="size-4 mr-1" /> Dashboard
         </Button>
       </Link>
@@ -172,17 +172,11 @@ export default function ReportPage() {
 
       {/* Tabbed content: Report / Markdown */}
       <Tabs defaultValue="report">
-        <TabsList className="bg-neutral-900 border border-neutral-800">
-          <TabsTrigger
-            value="report"
-            className="data-[state=active]:bg-neutral-800 data-[state=active]:text-neutral-100 text-neutral-400"
-          >
+        <TabsList>
+          <TabsTrigger value="report">
             Report
           </TabsTrigger>
-          <TabsTrigger
-            value="markdown"
-            className="data-[state=active]:bg-neutral-800 data-[state=active]:text-neutral-100 text-neutral-400"
-          >
+          <TabsTrigger value="markdown">
             Markdown
           </TabsTrigger>
         </TabsList>
@@ -217,8 +211,8 @@ export default function ReportPage() {
 
           {/* Empty state */}
           {actionableFindings.length === 0 && intentionalFindings.length === 0 && (
-            <Card className="bg-neutral-900 border-neutral-800 p-12 text-center">
-              <p className="text-neutral-400">No findings detected. Your codebase looks clean!</p>
+            <Card className="p-12 text-center">
+              <p className="text-[#8692A8]">No findings detected. Your codebase looks clean!</p>
             </Card>
           )}
 
@@ -229,17 +223,17 @@ export default function ReportPage() {
             <Button
               variant="outline"
               size="sm"
-              className="absolute top-3 right-3 border-neutral-700 text-neutral-300 hover:text-neutral-100 z-10"
+              className="absolute top-3 right-3 border-white/[0.08] text-[#E8ECF4] hover:text-foreground z-10"
               onClick={handleCopyMarkdown}
             >
               {mdCopied ? (
-                <Check className="size-4 mr-1.5 text-emerald-400" />
+                <Check className="size-4 mr-1.5 text-forge-amber" />
               ) : (
                 <Copy className="size-4 mr-1.5" />
               )}
               {mdCopied ? "Copied!" : "Copy Markdown"}
             </Button>
-            <pre className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 pt-14 overflow-auto max-h-[80vh] font-mono text-sm text-neutral-300 whitespace-pre-wrap">
+            <pre className="bg-forge-surface border border-white/[0.06] rounded-lg p-6 pt-14 overflow-auto max-h-[80vh] font-mono text-sm text-[#E8ECF4] whitespace-pre-wrap">
               {markdown}
             </pre>
           </div>

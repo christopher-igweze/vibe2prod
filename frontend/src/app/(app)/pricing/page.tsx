@@ -45,7 +45,7 @@ export default function PricingPage() {
   if (roleLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="size-6 animate-spin text-neutral-500" />
+        <Loader2 className="size-6 animate-spin text-[#4E586E]" />
       </div>
     )
   }
@@ -53,13 +53,13 @@ export default function PricingPage() {
   return (
     <div className="space-y-8">
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">Scan Credits</h1>
+        <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Scan Credits</h1>
         {role === "developer" ? (
-          <p className="text-emerald-400 font-medium">Unlimited Scans (Developer)</p>
+          <p className="text-forge-amber font-medium">Unlimited Scans (Developer)</p>
         ) : (
-          <p className="text-neutral-400">
+          <p className="text-[#8692A8]">
             You have{" "}
-            <span className="text-emerald-400 font-semibold">
+            <span className="text-forge-amber font-semibold">
               {profile?.scan_credits ?? 0}
             </span>{" "}
             credit{(profile?.scan_credits ?? 0) !== 1 ? "s" : ""} remaining
@@ -68,15 +68,15 @@ export default function PricingPage() {
       </div>
 
       {success && (
-        <div className="mx-auto max-w-md rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-center">
-          <p className="text-emerald-400 font-medium">Purchase successful!</p>
-          <p className="text-sm text-neutral-400 mt-1">Your credits have been added to your account.</p>
+        <div className="mx-auto max-w-md rounded-lg border border-forge-amber/30 bg-forge-amber/10 p-4 text-center">
+          <p className="text-forge-amber font-medium">Purchase successful!</p>
+          <p className="text-sm text-[#8692A8] mt-1">Your credits have been added to your account.</p>
         </div>
       )}
 
       <div className="mx-auto max-w-4xl">
-        <p className="text-center text-neutral-400 mb-2">1 credit = 1 scan. Your first scan is free.</p>
-        <p className="text-center text-sm text-emerald-400 mb-10">1 Free Scan Included With Signup</p>
+        <p className="text-center text-[#8692A8] mb-2">1 credit = 1 scan. Your first scan is free.</p>
+        <p className="text-center text-sm text-forge-amber mb-10">1 Free Scan Included With Signup</p>
 
         <div className="grid md:grid-cols-3 gap-6">
           {PACKAGES.map((pkg) => (
@@ -84,25 +84,25 @@ export default function PricingPage() {
               key={pkg.id}
               className={`rounded-xl border p-6 text-center ${
                 pkg.highlight
-                  ? "border-emerald-500/50 bg-emerald-500/5"
-                  : "border-neutral-800 bg-neutral-900/50"
+                  ? "border-forge-amber/50 bg-forge-amber/5"
+                  : "border-white/[0.06] bg-forge-surface/50"
               }`}
             >
               {pkg.highlight && (
-                <div className="text-xs font-semibold text-emerald-400 mb-2 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-forge-amber mb-2 uppercase tracking-wider">
                   Most Popular
                 </div>
               )}
               <div className="text-lg font-semibold text-neutral-200 mb-1">{pkg.name}</div>
               <div className="text-3xl font-bold text-neutral-100 mb-1">{pkg.price}</div>
-              <div className="text-sm text-neutral-500 mb-4">
+              <div className="text-sm text-[#4E586E] mb-4">
                 {pkg.credits} credit{pkg.credits > 1 ? "s" : ""} · {pkg.perScan}
               </div>
               <Button
                 className={`w-full ${
                   pkg.highlight
-                    ? "bg-emerald-600 hover:bg-emerald-700"
-                    : "bg-neutral-800 hover:bg-neutral-700"
+                    ? "bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
+                    : "bg-forge-nav hover:bg-forge-surface-hover"
                 }`}
                 disabled={buyingId === pkg.id}
                 onClick={() => handleBuy(pkg.id)}

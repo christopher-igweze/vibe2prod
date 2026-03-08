@@ -104,49 +104,49 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
   return (
     <div className="text-center space-y-4">
       <div>
-        <h1 className="text-3xl font-bold text-neutral-100">
+        <h1 className="text-3xl font-bold text-[#E8ECF4] font-[family-name:var(--font-heading)]">
           FORGE Report
         </h1>
 
         {/* Phase badges */}
         <div className="flex items-center justify-center gap-2 mt-3">
-          <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
+          <Badge className="bg-forge-amber/15 text-forge-amber border-forge-amber/30">
             Discovery ✓
           </Badge>
-          <Badge className="bg-neutral-500/15 text-neutral-400 border-neutral-500/30">
+          <Badge className="bg-forge-amber/15 text-forge-amber border-forge-amber/30">
             Remediation — Coming Soon
           </Badge>
         </div>
         {repoName && (
-          <p className="text-neutral-400 text-base mt-1">{repoName}</p>
+          <p className="text-[#8692A8] text-base mt-1">{repoName}</p>
         )}
-        <p className="text-neutral-500 text-sm mt-2">
+        <p className="text-[#4E586E] text-sm mt-2">
           <span className="font-mono">{truncatedRunId}</span>
-          <span className="mx-2 text-neutral-700">|</span>
+          <span className="mx-2 text-[#4E586E]/50">|</span>
           {formattedDate}
         </p>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3 text-xs">
-        <Badge variant="outline" className="border-neutral-700 text-neutral-300">
+        <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
           {actionableCount ?? report.total_findings} actionable findings
         </Badge>
-        <Badge variant="outline" className="border-neutral-700 text-neutral-300">
+        <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
           {report.loc_total.toLocaleString()} LOC
         </Badge>
-        <Badge variant="outline" className="border-neutral-700 text-neutral-300">
+        <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
           {report.file_count.toLocaleString()} files
         </Badge>
-        <Badge variant="outline" className="border-neutral-700 text-neutral-300">
+        <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
           {formatDuration(report.duration_seconds)}
         </Badge>
         {report.cost_usd > 0 && (
-          <Badge variant="outline" className="border-neutral-700 text-neutral-300">
+          <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
             {formatCost(report.cost_usd)}
           </Badge>
         )}
         {report.primary_language && (
-          <Badge variant="outline" className="border-neutral-700 text-neutral-300">
+          <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
             {report.primary_language}
           </Badge>
         )}
@@ -157,13 +157,13 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
         <div className="flex items-center gap-1.5">
           <Button
             size="sm"
-            className="bg-neutral-700 text-neutral-400 cursor-not-allowed"
+            className="bg-forge-nav text-[#4E586E] cursor-not-allowed"
             disabled
           >
             <Wrench className="size-4 mr-1.5" />
             Fix with FORGE
           </Button>
-          <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30 text-xs">
+          <Badge className="bg-forge-amber/15 text-forge-amber border-forge-amber/30 text-xs">
             Coming Soon
           </Badge>
         </div>
@@ -171,7 +171,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
         <Button
           variant="outline"
           size="sm"
-          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          className="border-white/[0.08] text-[#E8ECF4] hover:text-foreground"
           onClick={() => downloadJson(report, repoName)}
         >
           <Download className="size-4 mr-1.5" />
@@ -181,7 +181,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
         <Button
           variant="outline"
           size="sm"
-          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          className="border-white/[0.08] text-[#E8ECF4] hover:text-foreground"
           onClick={() => downloadMarkdown(report, repoName)}
         >
           <FileText className="size-4 mr-1.5" />
@@ -191,7 +191,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
         <Button
           variant="outline"
           size="sm"
-          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          className="border-white/[0.08] text-[#E8ECF4] hover:text-foreground"
           onClick={() => openPdfReport(report, repoName)}
         >
           <Printer className="size-4 mr-1.5" />
@@ -201,11 +201,11 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
         <Button
           variant="outline"
           size="sm"
-          className="border-neutral-700 text-neutral-300 hover:text-neutral-100"
+          className="border-white/[0.08] text-[#E8ECF4] hover:text-foreground"
           onClick={handleCopy}
         >
           {copied ? (
-            <Check className="size-4 mr-1.5 text-emerald-400" />
+            <Check className="size-4 mr-1.5 text-forge-amber" />
           ) : (
             <Copy className="size-4 mr-1.5" />
           )}
@@ -217,7 +217,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
             <Button
               variant="outline"
               size="sm"
-              className="border-neutral-700 text-red-400 hover:text-red-300 hover:border-red-700"
+              className="border-white/[0.08] text-red-400 hover:text-red-300 hover:border-red-700"
               disabled={deleting}
             >
               {deleting ? (
@@ -228,16 +228,16 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
               Delete Scan
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent className="bg-neutral-900 border-neutral-800">
+          <AlertDialogContent className="bg-forge-surface border-white/[0.06]">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this scan?</AlertDialogTitle>
-              <AlertDialogDescription className="text-neutral-400">
+              <AlertDialogDescription className="text-[#8692A8]">
                 This will permanently delete the scan report and all associated
                 data. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="border-neutral-700">
+              <AlertDialogCancel className="border-white/[0.08]">
                 Cancel
               </AlertDialogCancel>
               <AlertDialogAction

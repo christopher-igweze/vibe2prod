@@ -4,13 +4,13 @@ export const dynamic = "force-dynamic";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-950">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <SignIn
         forceRedirectUrl="/dashboard"
         appearance={{
           elements: {
             rootBox: "mx-auto",
-            card: "bg-neutral-900 border border-neutral-800",
+            card: "bg-forge-surface border border-white/[0.06]",
           },
         }}
       />

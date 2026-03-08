@@ -7,9 +7,9 @@ interface ScoreGaugeProps {
 }
 
 function scoreColor(score: number): string {
-  if (score >= 70) return "#34d399"; // emerald-400
-  if (score >= 40) return "#facc15"; // yellow-400
-  return "#f87171"; // red-400
+  if (score >= 70) return "#E8913A"; // forge-amber
+  if (score >= 40) return "#F4B56A"; // forge-amber-light
+  return "#5B8DEF"; // forge-blue
 }
 
 export function ScoreGauge({ score, label, size = 160 }: ScoreGaugeProps) {
