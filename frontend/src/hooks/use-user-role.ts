@@ -6,11 +6,12 @@ import { apiFetch } from '@/lib/api/client'
 import type { UserRole, UserProfile } from '@/lib/api/types'
 
 export function useUserRole() {
-  const { getToken, isSignedIn } = useAuth()
+  const { getToken, isSignedIn, isLoaded } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!isLoaded) return
     if (!isSignedIn) {
       setLoading(false)
       return
@@ -37,7 +38,7 @@ export function useUserRole() {
     }
     load()
     return () => { cancelled = true }
-  }, [getToken, isSignedIn])
+  }, [getToken, isSignedIn, isLoaded])
 
   return { role: (profile?.role ?? 'user') as UserRole, profile, loading }
 }
