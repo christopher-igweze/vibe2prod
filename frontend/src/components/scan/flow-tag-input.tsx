@@ -56,7 +56,7 @@ export function FlowTagInput({
           <Badge
             key={tag}
             variant="secondary"
-            className="bg-neutral-800 text-neutral-200 border-neutral-700 gap-1 pr-1"
+            className="bg-forge-nav text-foreground border-white/[0.06] gap-1 pr-1"
           >
             {tag}
             <button
@@ -75,7 +75,7 @@ export function FlowTagInput({
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type a flow and press Enter..."
-          className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600"
+          className="bg-forge-surface border-white/[0.06] text-neutral-200 placeholder:text-neutral-600"
         />
         <Button
           type="button"
@@ -83,14 +83,14 @@ export function FlowTagInput({
           size="sm"
           onClick={() => addTag(inputValue)}
           disabled={!inputValue.trim() || tags.length >= 20}
-          className="border-neutral-700 shrink-0"
+          className="border-white/[0.08] shrink-0"
         >
           Add
         </Button>
       </div>
       {unusedSuggestions.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-xs text-neutral-500 flex items-center gap-1">
+          <p className="text-xs text-[#4E586E] flex items-center gap-1">
             <Sparkles className="size-3" />
             Suggested from primer analysis
           </p>
@@ -100,7 +100,7 @@ export function FlowTagInput({
                 key={flow}
                 type="button"
                 onClick={() => addTag(flow)}
-                className="text-xs px-2.5 py-1 rounded-md border border-dashed border-neutral-700 text-neutral-400 hover:text-emerald-400 hover:border-emerald-600/40 transition-colors"
+                className="text-xs px-2.5 py-1 rounded-md border border-dashed border-white/[0.06] text-[#8692A8] hover:text-forge-amber hover:border-forge-amber/40 transition-colors"
               >
                 + {flow}
               </button>
