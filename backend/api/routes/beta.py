@@ -7,7 +7,6 @@ import logging
 from fastapi import APIRouter, Request, HTTPException
 
 from api.middleware.rate_limit import limiter, rate_limit_string
-from config import settings
 from services import supabase_client as db
 
 logger = logging.getLogger(__name__)
@@ -19,19 +18,9 @@ router = APIRouter()
 async def activate_beta(request: Request) -> dict:
     """Activate beta access for the authenticated user.
 
-    Validates the beta code, auto-creates profile if missing,
-    then upgrades user role to 'beta_tester'.
+    Auto-creates profile if missing, then upgrades user role to 'beta_tester'.
     """
     user_id: str = request.state.user_id
-
-    body = await request.json()
-    code = body.get("code", "")
-
-    if not settings.beta_access_code:
-        raise HTTPException(status_code=503, detail="Beta activation not configured")
-
-    if code != settings.beta_access_code:
-        raise HTTPException(status_code=403, detail="Invalid beta code")
 
     profile = db.get_user_profile(user_id)
 
