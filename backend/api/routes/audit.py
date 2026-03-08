@@ -36,6 +36,8 @@ async def _run_forge_audit(
     repo_url: str,
     project_context: dict | None = None,
     github_token: str | None = None,
+    user_id: str | None = None,
+    role: str | None = None,
 ) -> None:
     """Background task that runs FORGE discovery scan and stores results."""
     from services.forge_bridge import trigger_forge_scan
@@ -55,6 +57,12 @@ async def _run_forge_audit(
                 scan_id=scan_id,
                 discovery_report=result.discovery_report,
             )
+            # Deduct credit after successful scan (developers are exempt)
+            if user_id and role != "developer":
+                try:
+                    db.deduct_credit(user_id)
+                except ValueError:
+                    logger.warning("Could not deduct credit for user %s (scan %s)", user_id, scan_id)
         else:
             error_msg = result.error or "FORGE discovery scan failed."
             logger.error("FORGE audit failed for scan %s: %s", scan_id, error_msg)
@@ -156,6 +164,8 @@ async def start_audit(
             str(request_body.repo_url),
             project_context,
             github_token,
+            user_id,
+            role,
         )
 
         return AuditResponse(
