@@ -31,7 +31,7 @@ function HeroSection() {
               href="/sign-up"
               className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
             >
-              Join the Beta
+              Join Waiting List
             </Link>
             <Link
               href="/sign-in"
@@ -267,7 +267,7 @@ function Footer() {
               href="/sign-up"
               className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
             >
-              Join Beta
+              Join Waiting List
             </Link>
           </SignedOut>
           <SignedInCTA variant="footer" />
@@ -299,7 +299,7 @@ export default function LandingPage() {
                 href="/sign-up"
                 className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
               >
-                Join Beta
+                Join Waiting List
               </Link>
             </SignedOut>
             <SignedInCTA variant="nav" />
