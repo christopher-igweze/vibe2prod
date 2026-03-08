@@ -103,7 +103,7 @@ export function IntakeStep({
             <label
               className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
                 projectOrigin === "inspired"
-                  ? "border-forge-amber/50 bg-forge-amber/5"
+                  ? "border-forge-emerald/50 bg-forge-emerald/5"
                   : "border-white/[0.06] hover:border-forge-border-hover"
               }`}
             >
@@ -118,7 +118,7 @@ export function IntakeStep({
             <label
               className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
                 projectOrigin === "external"
-                  ? "border-forge-amber/50 bg-forge-amber/5"
+                  ? "border-forge-emerald/50 bg-forge-emerald/5"
                   : "border-white/[0.06] hover:border-forge-border-hover"
               }`}
             >
@@ -209,7 +209,7 @@ export function IntakeStep({
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
                   className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                     isChecked
-                      ? "border-forge-amber/50 bg-forge-amber/5"
+                      ? "border-forge-emerald/50 bg-forge-emerald/5"
                       : "border-white/[0.06] hover:border-forge-border-hover"
                   }`}
                 >
@@ -298,7 +298,7 @@ export function IntakeStep({
             <Button
               onClick={onContinue}
               disabled={!isValid}
-              className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
+              className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]"
             >
               Review & Submit
               <ArrowRight className="size-4 ml-1" />

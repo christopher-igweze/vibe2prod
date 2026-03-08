@@ -137,7 +137,7 @@ export function ArchitectureContext({ map, findings }: ArchitectureContextProps)
                 <Badge
                   className={`text-[10px] px-1.5 py-0 border shrink-0 ${
                     flow.is_authenticated
-                      ? "bg-forge-amber/10 text-forge-amber border-forge-amber/20"
+                      ? "bg-forge-emerald/10 text-forge-emerald border-forge-emerald/20"
                       : "bg-red-500/10 text-red-400 border-red-500/20"
                   }`}
                 >
@@ -160,7 +160,7 @@ export function ArchitectureContext({ map, findings }: ArchitectureContextProps)
                 <Badge
                   className={`text-[10px] px-1.5 py-0 border shrink-0 ${
                     ab.is_protected
-                      ? "bg-forge-amber/10 text-forge-amber border-forge-amber/20"
+                      ? "bg-forge-emerald/10 text-forge-emerald border-forge-emerald/20"
                       : "bg-red-500/10 text-red-400 border-red-500/20"
                   }`}
                 >

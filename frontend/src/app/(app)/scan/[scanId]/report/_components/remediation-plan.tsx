@@ -38,7 +38,7 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
   return (
     <Card className="forge-glass rounded-lg p-5 space-y-6">
       <div>
-        <h2 className="text-lg font-semibold font-[family-name:var(--font-heading)] text-forge-amber">Remediation Plan</h2>
+        <h2 className="text-lg font-semibold font-[family-name:var(--font-heading)] text-forge-emerald">Remediation Plan</h2>
         <p className="text-xs text-neutral-500 mt-1">
           {plan.items.length} items across {plan.execution_levels.length} execution levels
         </p>
@@ -54,7 +54,7 @@ export function RemediationPlan({ plan }: RemediationPlanProps) {
 
         return (
           <div key={levelIndex}>
-            <h3 className="text-sm font-medium font-[family-name:var(--font-heading)] text-forge-amber-light mb-3">
+            <h3 className="text-sm font-medium font-[family-name:var(--font-heading)] text-forge-emerald-light mb-3">
               Level {levelIndex + 1}
               <span className="text-forge-text-muted ml-2 font-normal">
                 ({levelItems.length} item{levelItems.length !== 1 ? "s" : ""})

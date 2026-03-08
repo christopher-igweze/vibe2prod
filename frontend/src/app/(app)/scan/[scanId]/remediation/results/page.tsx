@@ -60,7 +60,7 @@ function severityColor(severity: string): string {
 }
 
 function scoreBarColor(score: number): string {
-  if (score >= 70) return "bg-amber-500"
+  if (score >= 70) return "bg-emerald-500"
   if (score >= 40) return "bg-yellow-500"
   return "bg-red-500"
 }
@@ -196,7 +196,7 @@ export default function RemediationResultsPage() {
             Production Readiness Report
           </h1>
           <div className="flex items-center justify-center gap-2 mt-3">
-            <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30">
+            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
               Discovery ✓
             </Badge>
             {isFailed ? (
@@ -204,7 +204,7 @@ export default function RemediationResultsPage() {
                 Remediation ✗
               </Badge>
             ) : (
-              <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30">
+              <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
                 Remediation ✓
               </Badge>
             )}
@@ -272,7 +272,7 @@ export default function RemediationResultsPage() {
                 {totalFindings}
               </p>
               <div className="flex items-center justify-center gap-2 text-xs">
-                <span className="text-amber-400">{findingsFixed} fixed</span>
+                <span className="text-emerald-400">{findingsFixed} fixed</span>
                 <span className="text-neutral-600">/</span>
                 <span className="text-yellow-400">{findingsDeferred} deferred</span>
               </div>
@@ -362,7 +362,7 @@ export default function RemediationResultsPage() {
             <ul className="space-y-2">
               {readiness.recommendations.map((rec, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-neutral-400">
-                  <CheckCircle2 className="size-4 text-amber-400 mt-0.5 shrink-0" />
+                  <CheckCircle2 className="size-4 text-emerald-400 mt-0.5 shrink-0" />
                   {rec}
                 </li>
               ))}
@@ -376,7 +376,7 @@ export default function RemediationResultsPage() {
         {/* Retry Remediation — always available */}
         <Button
           className={isFailed
-            ? "bg-amber-600 hover:bg-amber-700 text-white"
+            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
             : "border-white/[0.06] text-neutral-300"}
           variant={isFailed ? "default" : "outline"}
           onClick={handleRetryRemediation}
@@ -391,7 +391,7 @@ export default function RemediationResultsPage() {
         </Button>
 
         {status.pr_url && (
-          <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white">
+          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
             <a href={status.pr_url} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="size-4 mr-1.5" />
               View Pull Request
