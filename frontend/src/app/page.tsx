@@ -7,20 +7,20 @@ export const dynamic = "force-dynamic";
 
 function HeroSection() {
   return (
-    <section className="relative pt-24 pb-16 text-center overflow-hidden">
+    <section className="relative pt-24 pb-16 text-center overflow-hidden forge-dot-grid">
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-neutral-950 via-neutral-950 to-emerald-950/20 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0B0F19] via-[#0B0F19] to-[#1A1508] pointer-events-none" />
       {/* Soft glow behind heading */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-forge-amber/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative mx-auto max-w-3xl px-6">
-        <div className="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-sm text-emerald-400 mb-8 animate-fade-in-up">
+        <div className="inline-flex items-center rounded-full border border-forge-amber/20 bg-forge-amber/10 px-4 py-1.5 text-sm text-forge-amber mb-8 animate-fade-in-up">
           The only AI audit that fixes what it finds
         </div>
-        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl animate-fade-in-up-delay-1">
-          Discover. <span className="text-emerald-400">Fix.</span> Ship.
+        <h1 className="text-5xl font-bold tracking-tight sm:text-6xl animate-fade-in-up-delay-1 font-[family-name:var(--font-heading)]">
+          Discover. <span className="text-forge-amber">Fix.</span> Ship.
         </h1>
-        <p className="mt-6 text-lg text-neutral-400 max-w-2xl mx-auto animate-fade-in-up-delay-2">
+        <p className="mt-6 text-lg text-[#8692A8] max-w-2xl mx-auto animate-fade-in-up-delay-2">
           Your AI wrote the code. Vibe2Prod audits it, auto-fixes critical
           issues, and validates the result&nbsp;&mdash; 12 specialized agents,
           zero manual triage.
@@ -29,13 +29,13 @@ function HeroSection() {
           <SignedOut>
             <Link
               href="/sign-up"
-              className="rounded-lg bg-emerald-500 px-6 py-3 text-base font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
+              className="forge-shimmer-cta rounded-lg px-6 py-3 text-base font-semibold transition-colors"
             >
               Join Waiting List
             </Link>
             <Link
               href="/sign-in"
-              className="rounded-lg border border-neutral-700 px-6 py-3 text-base font-semibold text-neutral-300 hover:border-neutral-500 hover:text-neutral-100 transition-colors"
+              className="forge-glass forge-glass-hover rounded-lg px-6 py-3 text-base font-semibold text-[#E8ECF4] transition-colors"
             >
               Sign In
             </Link>
@@ -73,20 +73,20 @@ function FeaturesSection() {
   ];
 
   return (
-    <section className="py-20 border-t border-neutral-800">
+    <section className="py-20 border-t border-white/[0.06]">
       <div className="mx-auto max-w-5xl px-6">
-        <h2 className="text-3xl font-bold text-center mb-12 animate-fade-in-up">
+        <h2 className="text-3xl font-bold text-center mb-12 animate-fade-in-up font-[family-name:var(--font-heading)]">
           The Full Pipeline
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
           {phases.map((phase) => (
             <div
               key={phase.title}
-              className={`group rounded-xl border border-neutral-800 bg-neutral-900/50 p-6 transition-all duration-300 hover:border-emerald-500/40 hover:shadow-[0_0_24px_-6px_rgba(16,185,129,0.15)] ${phase.delay}`}
+              className={`forge-glass forge-glass-hover forge-spring-hover rounded-xl p-6 transition-all duration-300 hover:border-forge-amber/40 hover:shadow-[0_0_24px_-6px_rgba(232,145,58,0.15)] ${phase.delay}`}
             >
-              <phase.icon className="h-8 w-8 text-emerald-400 mb-4" />
+              <phase.icon className="h-8 w-8 text-forge-amber mb-4" />
               <h3 className="text-lg font-semibold mb-2">{phase.title}</h3>
-              <p className="text-sm text-neutral-400">{phase.description}</p>
+              <p className="text-sm text-[#8692A8]">{phase.description}</p>
             </div>
           ))}
         </div>
@@ -120,13 +120,13 @@ function ActionabilitySection() {
   ];
 
   return (
-    <section className="py-20 border-t border-neutral-800">
+    <section className="py-20 border-t border-white/[0.06]">
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="text-3xl font-bold text-center mb-4">
+        <h2 className="text-3xl font-bold text-center mb-4 font-[family-name:var(--font-heading)]">
           Not Just Severity &mdash;{" "}
-          <span className="text-emerald-400">Actionability</span>
+          <span className="text-forge-amber">Actionability</span>
         </h2>
-        <p className="text-center text-neutral-400 mb-12 max-w-2xl mx-auto">
+        <p className="text-center text-[#8692A8] mb-12 max-w-2xl mx-auto">
           Every finding is classified by what you should actually do about it,
           calibrated to your project&apos;s stage and context.
         </p>
@@ -148,30 +148,30 @@ function ActionabilitySection() {
 
 function ComparisonSection() {
   return (
-    <section className="py-20 border-t border-neutral-800">
+    <section className="py-20 border-t border-white/[0.06]">
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="text-3xl font-bold text-center mb-12">
+        <h2 className="text-3xl font-bold text-center mb-12 font-[family-name:var(--font-heading)]">
           Why Not Just Another Scanner?
         </h2>
         <div className="grid md:grid-cols-2 gap-6">
           {/* Detection Tools */}
-          <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-6">
+          <div className="forge-glass rounded-xl p-6">
             <h3 className="text-lg font-semibold mb-1">Detection Tools</h3>
-            <p className="text-sm text-neutral-500 mb-4">
+            <p className="text-sm text-[#4E586E] mb-4">
               CodeRabbit, Greptile, Snyk
             </p>
-            <p className="text-sm text-neutral-400">
+            <p className="text-sm text-[#8692A8]">
               Find problems. Generate reports. Leave you to fix everything.
             </p>
           </div>
 
           {/* Vibe2Prod FORGE */}
-          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-6">
-            <h3 className="text-lg font-semibold text-emerald-400 mb-1">
+          <div className="rounded-xl border border-forge-amber/30 bg-forge-amber/5 p-6">
+            <h3 className="text-lg font-semibold text-forge-amber mb-1">
               Vibe2Prod FORGE
             </h3>
-            <p className="text-sm text-neutral-500 mb-4">&nbsp;</p>
-            <p className="text-sm text-neutral-300">
+            <p className="text-sm text-[#4E586E] mb-4">&nbsp;</p>
+            <p className="text-sm text-[#E8ECF4]">
               Find problems. Auto-fix them. Validate the result. Ship
               production-ready code.
             </p>
@@ -190,28 +190,28 @@ function PricingSection() {
   ];
 
   return (
-    <section className="py-20 border-t border-neutral-800">
+    <section className="py-20 border-t border-white/[0.06]">
       <div className="mx-auto max-w-4xl px-6">
-        <h2 className="text-3xl font-bold text-center mb-2">Simple Credit Pricing</h2>
-        <p className="text-center text-neutral-400 mb-2">1 credit = 1 scan. Your first scan is free.</p>
-        <p className="text-center text-sm text-emerald-400 mb-10">1 Free Scan Included With Signup</p>
+        <h2 className="text-3xl font-bold text-center mb-2 font-[family-name:var(--font-heading)]">Simple Credit Pricing</h2>
+        <p className="text-center text-[#8692A8] mb-2">1 credit = 1 scan. Your first scan is free.</p>
+        <p className="text-center text-sm text-forge-amber mb-10">1 Free Scan Included With Signup</p>
         <div className="grid md:grid-cols-3 gap-6">
           {packages.map((pkg) => (
             <div key={pkg.name}
               className={`rounded-xl border p-6 text-center ${
                 pkg.highlight
-                  ? "border-emerald-500/50 bg-emerald-500/5"
-                  : "border-neutral-800 bg-neutral-900/50"
+                  ? "border-forge-amber/50 bg-forge-amber/5"
+                  : "forge-glass"
               }`}
             >
               {pkg.highlight && (
-                <div className="text-xs font-semibold text-emerald-400 mb-2 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-forge-amber mb-2 uppercase tracking-wider">
                   Most Popular
                 </div>
               )}
-              <div className="text-lg font-semibold text-neutral-200 mb-1">{pkg.name}</div>
-              <div className="text-3xl font-bold text-neutral-100 mb-1">{pkg.price}</div>
-              <div className="text-sm text-neutral-500 mb-3">
+              <div className="text-lg font-semibold text-[#E8ECF4] mb-1">{pkg.name}</div>
+              <div className="text-3xl font-bold text-[#E8ECF4] mb-1">{pkg.price}</div>
+              <div className="text-sm text-[#4E586E] mb-3">
                 {pkg.credits} credit{pkg.credits > 1 ? "s" : ""} · {pkg.perScan}
               </div>
             </div>
@@ -231,15 +231,15 @@ function StatsSection() {
   ];
 
   return (
-    <section className="py-20 border-t border-neutral-800">
+    <section className="py-20 border-t border-white/[0.06]">
       <div className="mx-auto max-w-4xl px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {stats.map((stat) => (
             <div key={stat.label}>
-              <div className="text-3xl font-bold text-emerald-400">
+              <div className="text-3xl font-bold text-forge-amber">
                 {stat.value}
               </div>
-              <div className="text-sm text-neutral-400 mt-1">{stat.label}</div>
+              <div className="text-sm text-[#8692A8] mt-1">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -250,22 +250,22 @@ function StatsSection() {
 
 function Footer() {
   return (
-    <footer className="border-t border-neutral-800 py-8">
+    <footer className="border-t border-white/[0.06] py-8">
       <div className="mx-auto max-w-5xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-neutral-500">
+        <div className="text-sm text-[#4E586E]">
           &copy; {new Date().getFullYear()} Vibe2Prod. All rights reserved.
         </div>
         <div className="flex items-center gap-6">
           <SignedOut>
             <Link
               href="/sign-in"
-              className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
+              className="text-sm text-[#8692A8] hover:text-foreground transition-colors"
             >
               Sign In
             </Link>
             <Link
               href="/sign-up"
-              className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="text-sm text-forge-amber hover:text-forge-amber-light transition-colors"
             >
               Join Waiting List
             </Link>
@@ -279,25 +279,25 @@ function Footer() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-background">
       {/* Nav */}
-      <nav className="fixed top-0 w-full border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-sm z-50">
+      <nav className="fixed top-0 w-full forge-glass z-50">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-3">
-          <span className="text-lg font-bold tracking-tight">
-            <span className="text-emerald-400">Vibe</span>
-            <span className="text-neutral-100">2Prod</span>
+          <span className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
+            <span className="text-forge-amber">Vibe</span>
+            <span className="text-foreground">2Prod</span>
           </span>
           <div className="flex items-center gap-4">
             <SignedOut>
               <Link
                 href="/sign-in"
-                className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
+                className="text-sm text-[#8692A8] hover:text-foreground transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-emerald-400 transition-colors"
+                className="rounded-lg bg-forge-amber px-4 py-2 text-sm font-semibold text-[#0B0F19] hover:bg-forge-amber-light transition-colors"
               >
                 Join Waiting List
               </Link>
