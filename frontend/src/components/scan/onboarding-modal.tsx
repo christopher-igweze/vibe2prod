@@ -84,7 +84,7 @@ export function OnboardingModal({
       });
       onComplete();
     } catch (err) {
-      setError(err instanceof ApiError ? err.detail : "Failed to save onboarding");
+      setError(err instanceof ApiError ? err.message : "Failed to save onboarding");
     } finally {
       setSaving(false);
     }

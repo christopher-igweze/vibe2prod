@@ -8,7 +8,7 @@ import { useAuth } from "@clerk/nextjs"
 import Link from "next/link"
 import { ArrowLeft, Loader2, AlertCircle, Copy, Check } from "lucide-react"
 
-import { apiFetch, ApiError } from "@/lib/api/client"
+import { apiFetch } from "@/lib/api/client"
 import type { DiscoveryReport, Severity } from "@/lib/api/types"
 import { reportToMarkdown } from "@/lib/report/to-markdown"
 import { Button } from "@/components/ui/button"
@@ -33,12 +33,6 @@ interface ScanDetail {
   }
 }
 
-type FixStatus = 'pending' | 'running' | 'success' | 'failed'
-
-interface ScanFixStatus {
-  status: FixStatus
-}
-
 /* ---------- page ---------- */
 
 export default function ReportPage() {
@@ -47,7 +41,6 @@ export default function ReportPage() {
   const router = useRouter()
 
   const [scan, setScan] = useState<ScanDetail | null>(null)
-  const [fixAttemptStatus, setFixAttemptStatus] = useState<FixStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [mdCopied, setMdCopied] = useState(false)
@@ -61,20 +54,6 @@ export default function ReportPage() {
           { token },
         )
         setScan(data)
-
-        // Fetch fix status (404 = no fix attempt yet, which is fine)
-        try {
-          const fixData = await apiFetch<ScanFixStatus>(
-            `/api/fix-scan/${scanId}/status`,
-            { token },
-          )
-          setFixAttemptStatus(fixData.status)
-        } catch (e) {
-          if (e instanceof ApiError && e.status === 404) {
-            // No fix attempt — leave as null
-          }
-          // Silently ignore other errors for fix status
-        }
       } catch {
         setError("Failed to load scan report.")
       } finally {
@@ -189,7 +168,6 @@ export default function ReportPage() {
         repoName={scan.repo_name}
         scanId={scanId}
         actionableCount={actionableFindings.length}
-        fixAttemptStatus={fixAttemptStatus}
       />
 
       {/* Tabbed content: Report / Markdown */}
