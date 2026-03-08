@@ -109,7 +109,7 @@ export function FlowTagInput({
         </div>
       )}
       {tags.length >= 20 && (
-        <p className="text-xs text-amber-400">Maximum 20 flows reached.</p>
+        <p className="text-xs text-emerald-400">Maximum 20 flows reached.</p>
       )}
     </div>
   );

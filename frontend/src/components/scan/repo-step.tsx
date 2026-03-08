@@ -206,11 +206,11 @@ export function RepoStep({
 
         {/* Primer Warning */}
         {primerWarning && !primerLoading && (
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="size-5 text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="size-5 text-emerald-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-amber-200">{primerWarning}</p>
+                <p className="text-sm text-emerald-200">{primerWarning}</p>
                 <p className="text-xs text-neutral-500 mt-1">
                   You can still continue -- the audit will work without primer data.
                 </p>
