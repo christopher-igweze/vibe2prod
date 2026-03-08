@@ -345,6 +345,22 @@ def get_user_profile(user_id: str) -> dict | None:
     return row.data[0]
 
 
+async def upgrade_user_role(user_id: str, new_role: str) -> bool:
+    """Upgrade a user's role. Returns True if profile was updated."""
+    client = _client()
+    existing = (
+        client.table("profiles")
+        .select("role")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not existing.data:
+        return False
+    client.table("profiles").update({"role": new_role}).eq("user_id", str(user_id)).execute()
+    return True
+
+
 async def get_github_access_token(user_id: str) -> str | None:
     client = _client()
     row = (

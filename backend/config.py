@@ -63,6 +63,7 @@ class Settings(BaseSettings):
 
     # --- User Defaults ---
     default_user_role: str = "user"
+    beta_access_code: str = ""
 
     # --- Frontend ---
     frontend_url: str = "http://localhost:3000"
