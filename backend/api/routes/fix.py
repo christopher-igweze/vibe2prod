@@ -125,6 +125,14 @@ async def trigger_fix(
             },
         )
 
+    # Fix is gated to developers only (beta = coming soon for all)
+    role = db.get_user_role(user_id)
+    if role != "developer":
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "fix_coming_soon", "message": "Fix with FORGE is coming soon. Stay tuned."},
+        )
+
     action_item = await db.get_action_item(request_body.action_item_id, user_id)
     if not action_item:
         raise HTTPException(
@@ -287,6 +295,14 @@ async def trigger_scan_fix(
                 "code": "forge_disabled",
                 "message": "Auto-fix is not currently available. FORGE engine is disabled.",
             },
+        )
+
+    # Fix is gated to developers only (beta = coming soon for all)
+    role = db.get_user_role(user_id)
+    if role != "developer":
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "fix_coming_soon", "message": "Fix with FORGE is coming soon. Stay tuned."},
         )
 
     scan = await db.get_scan_report(scan_id, user_id)
