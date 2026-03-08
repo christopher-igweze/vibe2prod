@@ -158,13 +158,13 @@ export default function DashboardPage() {
 
       {role === "developer" ? (
         <div className="text-sm text-emerald-400">Unlimited Scans</div>
-      ) : (profile?.scan_credits ?? 0) === 0 ? (
+      ) : (profile?.balance_usd ?? 0) <= 0 ? (
         <Card className="border-amber-500/30 bg-amber-500/5 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-amber-400 text-sm font-medium">No scan credits remaining</p>
+            <p className="text-amber-400 text-sm font-medium">Wallet balance is $0.00</p>
             <Link href="/pricing">
               <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                Buy Credits
+                Add Funds
               </Button>
             </Link>
           </div>
@@ -172,10 +172,10 @@ export default function DashboardPage() {
       ) : (
         <div className="flex items-center gap-3 text-sm">
           <span className="text-neutral-400">
-            <span className="text-emerald-400 font-semibold">{profile?.scan_credits}</span> scan credit{(profile?.scan_credits ?? 0) !== 1 ? "s" : ""} remaining
+            Balance: <span className="text-emerald-400 font-semibold">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
           </span>
           <Link href="/pricing" className="text-emerald-400 hover:text-emerald-300 underline text-xs">
-            Buy More
+            Add Funds
           </Link>
         </div>
       )}
