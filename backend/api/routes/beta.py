@@ -19,7 +19,8 @@ router = APIRouter()
 async def activate_beta(request: Request) -> dict:
     """Activate beta access for the authenticated user.
 
-    Validates the beta code, upgrades user role from 'user' to 'beta_tester'.
+    Validates the beta code, auto-creates profile if missing,
+    then upgrades user role to 'beta_tester'.
     """
     user_id: str = request.state.user_id
 
@@ -33,8 +34,14 @@ async def activate_beta(request: Request) -> dict:
         raise HTTPException(status_code=403, detail="Invalid beta code")
 
     profile = db.get_user_profile(user_id)
+
+    # Auto-create profile if Clerk webhook hasn't fired yet
     if not profile:
-        raise HTTPException(status_code=404, detail="Profile not found")
+        logger.info("Beta activate: creating missing profile for user %s", user_id)
+        await db.upsert_profile_from_clerk(user_id=user_id, email="")
+        profile = db.get_user_profile(user_id)
+        if not profile:
+            raise HTTPException(status_code=500, detail="Failed to create profile")
 
     current_role = profile.get("role", "user")
     if current_role in ("beta_tester", "developer"):
