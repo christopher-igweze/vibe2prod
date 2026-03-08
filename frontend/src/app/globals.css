@@ -169,26 +169,7 @@
   to { height: 0; }
 }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.7s ease-out both;
-}
-
-.animate-fade-in-up-delay-1 {
-  animation: fadeInUp 0.7s ease-out 0.15s both;
-}
-
-.animate-fade-in-up-delay-2 {
-  animation: fadeInUp 0.7s ease-out 0.3s both;
-}
-
-.animate-fade-in-up-delay-3 {
-  animation: fadeInUp 0.7s ease-out 0.45s both;
-}
+/* fadeInUp removed — replaced by framer-motion FadeInWhenVisible */
 
 /* ── FORGE background patterns ── */
 
@@ -221,6 +202,31 @@
 .forge-glass-hover:hover {
   border-color: rgba(52, 211, 153, 0.3);
   box-shadow: 0 0 24px -4px rgba(52, 211, 153, 0.12);
+}
+
+/* ── Visible frosted glass for nav ── */
+
+.forge-glass-nav {
+  background: rgba(11, 15, 25, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Visible glass card with hover glow ── */
+
+.forge-glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.forge-glass-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(52, 211, 153, 0.2);
+  box-shadow: 0 0 30px -8px rgba(52, 211, 153, 0.15);
 }
 
 /* ── Gradient text fill ── */
@@ -282,44 +288,7 @@
   animation: forge-mesh-shift 15s ease-in-out infinite;
 }
 
-/* ── Floating orb animation ── */
-
-@keyframes forge-float {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-20px) scale(1.05); }
-}
-
-.forge-float-slow {
-  animation: forge-float 8s ease-in-out infinite;
-}
-
-.forge-float-medium {
-  animation: forge-float 6s ease-in-out infinite;
-}
-
-/* ── Scroll-triggered reveal ── */
-
-.forge-scroll-reveal {
-  opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.forge-scroll-reveal.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ── Card tilt perspective ── */
-
-.forge-tilt {
-  transition: transform 0.4s ease;
-  transform-style: preserve-3d;
-}
-
-.forge-tilt:hover {
-  transform: perspective(800px) rotateY(-2deg) rotateX(2deg) scale(1.02);
-}
+/* forge-float, forge-scroll-reveal, forge-tilt removed — replaced by framer-motion */
 
 /* ── FORGE animations ── */
 
