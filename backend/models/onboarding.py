@@ -39,6 +39,7 @@ class AcquisitionSource(str, Enum):
     newsletter_email = "newsletter_email"
     referral = "referral"
     founder_begged_me = "founder_begged_me"
+    hackathon = "hackathon"
     other = "other"
 
 
