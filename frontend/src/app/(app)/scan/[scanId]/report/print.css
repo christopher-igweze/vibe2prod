@@ -24,21 +24,25 @@
     display: none !important;
   }
 
-  /* ── Override dark theme colors ── */
+  /* ── Override dark theme colors + glass-morphism ── */
   * {
     color: black !important;
     background: transparent !important;
     border-color: #d1d5db !important;
     box-shadow: none !important;
     text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   /* ── Card and badge styling for print ── */
   [data-slot="card"],
-  .border-neutral-800 {
+  .forge-glass {
     border: 1px solid #d1d5db !important;
     padding: 0.75rem !important;
     margin-bottom: 0.5rem !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   [data-slot="badge"],
