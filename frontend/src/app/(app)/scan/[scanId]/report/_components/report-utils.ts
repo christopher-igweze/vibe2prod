@@ -24,9 +24,9 @@ export const ACTIONABILITY_CONFIG: Record<
   },
   informational: {
     label: "Informational",
-    bg: "bg-neutral-500/10",
-    text: "text-neutral-500",
-    border: "border-neutral-500/20",
+    bg: "bg-forge-blue/10",
+    text: "text-forge-blue",
+    border: "border-forge-blue/20",
   },
 }
 
@@ -58,9 +58,9 @@ export const SEVERITY_CONFIG: Record<
   },
   low: {
     label: "Low",
-    bg: "bg-blue-500/10",
-    text: "text-blue-400",
-    border: "border-blue-500/20",
+    bg: "bg-forge-blue/10",
+    text: "text-forge-blue",
+    border: "border-forge-blue/20",
   },
 }
 
