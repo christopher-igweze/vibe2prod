@@ -68,7 +68,7 @@ export default function SettingsPage() {
       setMessage("GitHub connected successfully!");
     } catch (e) {
       if (e instanceof ApiError) {
-        setError(e.detail);
+        setError(e.message);
       } else {
         setError("Failed to connect GitHub");
       }
@@ -96,7 +96,7 @@ export default function SettingsPage() {
     } catch (e) {
       setLoading(false);
       if (e instanceof ApiError) {
-        setError(e.detail);
+        setError(e.message);
       } else {
         setError("Failed to start GitHub connection");
       }
@@ -117,7 +117,7 @@ export default function SettingsPage() {
       setMessage("GitHub disconnected.");
     } catch (e) {
       if (e instanceof ApiError) {
-        setError(e.detail);
+        setError(e.message);
       } else {
         setError("Failed to disconnect GitHub");
       }
