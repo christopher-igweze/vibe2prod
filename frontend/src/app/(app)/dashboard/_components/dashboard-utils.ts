@@ -21,18 +21,22 @@ export interface DashboardMetrics {
   avgReliability: number | null;
   avgScalability: number | null;
   topRepo: { name: string; count: number } | null;
+  /** Scores from the latest scan of the most-scanned repo */
   latestScores: {
     health: number | null;
     security: number | null;
     reliability: number | null;
     scalability: number | null;
   } | null;
+  /** Per-repo deltas: latest scan vs prior scans of the SAME repo */
   scoreDeltas: {
     health: number | null;
     security: number | null;
     reliability: number | null;
     scalability: number | null;
   };
+  /** Which repo the trends are for */
+  trendRepo: string | null;
   lastScanDate: Date | null;
   statusBreakdown: Record<string, number>;
 }
@@ -93,23 +97,24 @@ export function computeDashboardMetrics(scans: ScanSummary[]): DashboardMetrics 
   const topRepoEntry = Object.entries(repoCounts).sort((a, b) => b[1] - a[1])[0];
   const topRepo = topRepoEntry ? { name: topRepoEntry[0], count: topRepoEntry[1] } : null;
 
-  // Latest scores (first completed scan, already sorted desc by created_at)
-  const latestCompleted = completed[0] ?? null;
-  const latestScores = latestCompleted
+  // Per-repo trends: use the most-scanned repo for meaningful comparison
+  const trendRepoName = topRepoEntry ? topRepoEntry[0] : null;
+  const repoScans = trendRepoName
+    ? completed.filter((s) => (s.repo_name || s.repo_url) === trendRepoName && s.health_score !== null)
+    : [];
+
+  const latestRepoScan = repoScans[0] ?? null;
+  const latestScores = latestRepoScan
     ? {
-        health: latestCompleted.health_score,
-        security: latestCompleted.security_score,
-        reliability: latestCompleted.reliability_score,
-        scalability: latestCompleted.scalability_score,
+        health: latestRepoScan.health_score,
+        security: latestRepoScan.security_score,
+        reliability: latestRepoScan.reliability_score,
+        scalability: latestRepoScan.scalability_score,
       }
     : null;
 
-  // Score deltas: latest vs average of prior
-  const prior = completed.slice(1);
-  const priorHealth = prior.map((s) => s.health_score).filter((v): v is number => v !== null);
-  const priorSecurity = prior.map((s) => s.security_score).filter((v): v is number => v !== null);
-  const priorReliability = prior.map((s) => s.reliability_score).filter((v): v is number => v !== null);
-  const priorScalability = prior.map((s) => s.scalability_score).filter((v): v is number => v !== null);
+  // Delta: latest scan of this repo vs average of its prior scans
+  const priorRepoScans = repoScans.slice(1);
 
   function delta(latest: number | null, priorArr: number[]): number | null {
     if (latest === null || priorArr.length === 0) return null;
@@ -119,10 +124,10 @@ export function computeDashboardMetrics(scans: ScanSummary[]): DashboardMetrics 
   }
 
   const scoreDeltas = {
-    health: delta(latestScores?.health ?? null, priorHealth),
-    security: delta(latestScores?.security ?? null, priorSecurity),
-    reliability: delta(latestScores?.reliability ?? null, priorReliability),
-    scalability: delta(latestScores?.scalability ?? null, priorScalability),
+    health: delta(latestScores?.health ?? null, priorRepoScans.map((s) => s.health_score).filter((v): v is number => v !== null)),
+    security: delta(latestScores?.security ?? null, priorRepoScans.map((s) => s.security_score).filter((v): v is number => v !== null)),
+    reliability: delta(latestScores?.reliability ?? null, priorRepoScans.map((s) => s.reliability_score).filter((v): v is number => v !== null)),
+    scalability: delta(latestScores?.scalability ?? null, priorRepoScans.map((s) => s.scalability_score).filter((v): v is number => v !== null)),
   };
 
   // Status breakdown
@@ -145,6 +150,7 @@ export function computeDashboardMetrics(scans: ScanSummary[]): DashboardMetrics 
     topRepo,
     latestScores,
     scoreDeltas,
+    trendRepo: trendRepoName,
     lastScanDate,
     statusBreakdown,
   };

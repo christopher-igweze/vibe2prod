@@ -42,6 +42,11 @@ export function DashboardInsights({ metrics }: DashboardInsightsProps) {
               {hasTrends ? "Score Trends" : "Latest Scores"}
             </h3>
           </div>
+          {metrics.trendRepo && (
+            <p className="text-xs text-[#4E586E] mb-2 truncate" title={metrics.trendRepo}>
+              {metrics.trendRepo.split("/").pop()}
+            </p>
+          )}
           {hasScores ? (
             <div className="divide-y divide-white/[0.04]">
               <TrendRow label="Health" score={metrics.latestScores!.health} delta={metrics.scoreDeltas.health} />
@@ -53,7 +58,7 @@ export function DashboardInsights({ metrics }: DashboardInsightsProps) {
             <p className="text-sm text-[#4E586E]">Complete a scan to see scores</p>
           )}
           {hasScores && !hasTrends && (
-            <p className="text-xs text-[#4E586E] mt-2">Scan again to see trends</p>
+            <p className="text-xs text-[#4E586E] mt-2">Re-scan this repo to see trends</p>
           )}
         </div>
 
