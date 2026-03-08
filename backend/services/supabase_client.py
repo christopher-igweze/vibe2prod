@@ -315,6 +315,36 @@ async def save_project_primer(
     ).execute()
 
 
+def get_user_role(user_id: str) -> str:
+    """Return the user's role. Defaults to 'user' (waitlist) if profile missing."""
+    client = _client()
+    row = (
+        client.table("profiles")
+        .select("role")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return "user"
+    return row.data[0].get("role", "user")
+
+
+def get_user_profile(user_id: str) -> dict | None:
+    """Return the user's profile including role and onboarding status."""
+    client = _client()
+    row = (
+        client.table("profiles")
+        .select("user_id,email,display_name,avatar_url,role,onboarding_complete,lifetime_scans_used,lifetime_scan_cap")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None
+    return row.data[0]
+
+
 async def get_github_access_token(user_id: str) -> str | None:
     client = _client()
     row = (
