@@ -327,15 +327,15 @@ export interface UserProfile {
   lifetime_scans_used: number
   lifetime_scan_cap: number
   scan_credits: number
+  balance_usd: number
   email?: string | null
   display_name?: string | null
   avatar_url?: string | null
 }
 
-export interface CreditPackage {
+export interface DepositOption {
   id: string
-  credits: number
-  price_cents: number
+  amount_cents: number
   label: string
 }
 
