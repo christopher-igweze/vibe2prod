@@ -69,7 +69,7 @@ export const TIER_CONFIG: Record<
   { label: string; bg: string; text: string }
 > = {
   1: { label: "T1", bg: "bg-blue-500/10", text: "text-blue-400" },
-  2: { label: "T2", bg: "bg-amber-500/10", text: "text-amber-400" },
+  2: { label: "T2", bg: "bg-emerald-500/10", text: "text-emerald-400" },
   3: { label: "T3", bg: "bg-purple-500/10", text: "text-purple-400" },
 }
 

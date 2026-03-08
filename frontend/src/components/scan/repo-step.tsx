@@ -193,7 +193,7 @@ export function RepoStep({
         {primerLoading && (
           <div className="rounded-lg border border-white/[0.06] bg-forge-surface/50 p-4">
             <div className="flex items-center gap-3">
-              <Loader2 className="size-5 animate-spin text-forge-amber" />
+              <Loader2 className="size-5 animate-spin text-forge-emerald" />
               <div>
                 <p className="text-sm text-neutral-200">Analyzing repository...</p>
                 <p className="text-xs text-[#4E586E]">
@@ -206,11 +206,11 @@ export function RepoStep({
 
         {/* Primer Warning */}
         {primerWarning && !primerLoading && (
-          <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="size-5 text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle className="size-5 text-emerald-400 shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-amber-200">{primerWarning}</p>
+                <p className="text-sm text-emerald-200">{primerWarning}</p>
                 <p className="text-xs text-neutral-500 mt-1">
                   You can still continue -- the audit will work without primer data.
                 </p>
@@ -221,11 +221,11 @@ export function RepoStep({
 
         {/* Primer Results */}
         {primerResult && !primerLoading && (
-          <div className="rounded-lg border border-forge-amber/20 bg-forge-amber/5 p-4 space-y-4">
+          <div className="rounded-lg border border-forge-emerald/20 bg-forge-emerald/5 p-4 space-y-4">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="size-5 text-forge-amber shrink-0 mt-0.5" />
+              <CheckCircle2 className="size-5 text-forge-emerald shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-forge-amber">Repository analyzed</p>
+                <p className="text-sm font-medium text-forge-emerald">Repository analyzed</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
                   {repoName && (
                     <div>
@@ -248,7 +248,7 @@ export function RepoStep({
                 </div>
 
                 {primerResult.summary && (
-                  <div className="mt-3 pt-3 border-t border-forge-amber/10">
+                  <div className="mt-3 pt-3 border-t border-forge-emerald/10">
                     <p className="text-xs text-[#4E586E] mb-1">AI Summary</p>
                     <p className="text-sm text-neutral-300 whitespace-pre-line leading-relaxed">
                       {primerResult.summary}
@@ -266,7 +266,7 @@ export function RepoStep({
           <Button
             onClick={handleContinue}
             disabled={!repoUrl.trim() || primerLoading}
-            className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
+            className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]"
           >
             {primerLoading ? (
               <>

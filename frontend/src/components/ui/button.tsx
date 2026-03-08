@@ -17,7 +17,7 @@ const buttonVariants = cva(
         secondary:
           "forge-glass forge-glass-hover text-secondary-foreground",
         ghost:
-          "hover:bg-forge-surface-hover hover:text-forge-amber-light dark:hover:bg-accent/50",
+          "hover:bg-forge-surface-hover hover:text-forge-emerald-light dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

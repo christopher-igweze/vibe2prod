@@ -55,11 +55,11 @@ export default function PricingPage() {
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Scan Credits</h1>
         {role === "developer" ? (
-          <p className="text-forge-amber font-medium">Unlimited Scans (Developer)</p>
+          <p className="text-forge-emerald font-medium">Unlimited Scans (Developer)</p>
         ) : (
           <p className="text-[#8692A8]">
             You have{" "}
-            <span className="text-forge-amber font-semibold">
+            <span className="text-forge-emerald font-semibold">
               {profile?.scan_credits ?? 0}
             </span>{" "}
             credit{(profile?.scan_credits ?? 0) !== 1 ? "s" : ""} remaining
@@ -68,15 +68,15 @@ export default function PricingPage() {
       </div>
 
       {success && (
-        <div className="mx-auto max-w-md rounded-lg border border-forge-amber/30 bg-forge-amber/10 p-4 text-center">
-          <p className="text-forge-amber font-medium">Purchase successful!</p>
+        <div className="mx-auto max-w-md rounded-lg border border-forge-emerald/30 bg-forge-emerald/10 p-4 text-center">
+          <p className="text-forge-emerald font-medium">Purchase successful!</p>
           <p className="text-sm text-[#8692A8] mt-1">Your credits have been added to your account.</p>
         </div>
       )}
 
       <div className="mx-auto max-w-4xl">
         <p className="text-center text-[#8692A8] mb-2">1 credit = 1 scan. Your first scan is free.</p>
-        <p className="text-center text-sm text-forge-amber mb-10">1 Free Scan Included With Signup</p>
+        <p className="text-center text-sm text-forge-emerald mb-10">1 Free Scan Included With Signup</p>
 
         <div className="grid md:grid-cols-3 gap-6">
           {PACKAGES.map((pkg) => (
@@ -84,12 +84,12 @@ export default function PricingPage() {
               key={pkg.id}
               className={`rounded-xl border p-6 text-center ${
                 pkg.highlight
-                  ? "border-forge-amber/50 bg-forge-amber/5"
+                  ? "border-emerald-500/50 bg-emerald-500/5 forge-gradient-border"
                   : "border-white/[0.06] bg-forge-surface/50"
               }`}
             >
               {pkg.highlight && (
-                <div className="text-xs font-semibold text-forge-amber mb-2 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-forge-emerald mb-2 uppercase tracking-wider">
                   Most Popular
                 </div>
               )}
@@ -101,7 +101,7 @@ export default function PricingPage() {
               <Button
                 className={`w-full ${
                   pkg.highlight
-                    ? "bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
+                    ? "bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]"
                     : "bg-forge-nav hover:bg-forge-surface-hover"
                 }`}
                 disabled={buyingId === pkg.id}

@@ -227,7 +227,7 @@ export default function ReportPage() {
               onClick={handleCopyMarkdown}
             >
               {mdCopied ? (
-                <Check className="size-4 mr-1.5 text-forge-amber" />
+                <Check className="size-4 mr-1.5 text-forge-emerald" />
               ) : (
                 <Copy className="size-4 mr-1.5" />
               )}

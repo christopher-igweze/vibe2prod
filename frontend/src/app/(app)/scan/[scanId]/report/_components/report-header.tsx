@@ -110,10 +110,10 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
 
         {/* Phase badges */}
         <div className="flex items-center justify-center gap-2 mt-3">
-          <Badge className="bg-forge-amber/15 text-forge-amber border-forge-amber/30">
+          <Badge className="bg-forge-emerald/15 text-forge-emerald border-forge-emerald/30">
             Discovery ✓
           </Badge>
-          <Badge className="bg-forge-amber/15 text-forge-amber border-forge-amber/30">
+          <Badge className="bg-forge-emerald/15 text-forge-emerald border-forge-emerald/30">
             Remediation — Coming Soon
           </Badge>
         </div>
@@ -163,7 +163,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
             <Wrench className="size-4 mr-1.5" />
             Fix with FORGE
           </Button>
-          <Badge className="bg-forge-amber/15 text-forge-amber border-forge-amber/30 text-xs">
+          <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-xs">
             Coming Soon
           </Badge>
         </div>
@@ -205,7 +205,7 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
           onClick={handleCopy}
         >
           {copied ? (
-            <Check className="size-4 mr-1.5 text-forge-amber" />
+            <Check className="size-4 mr-1.5 text-forge-emerald" />
           ) : (
             <Copy className="size-4 mr-1.5" />
           )}
