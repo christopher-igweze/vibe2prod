@@ -1,62 +1,37 @@
 "use client"
 
-import type { ActionabilitySummary, Severity } from "@/lib/api/types"
-import { severityClasses, ACTIONABILITY_CONFIG } from "./report-utils"
-
-const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low"]
+import type { ActionabilitySummary } from "@/lib/api/types"
+import { ACTIONABILITY_CONFIG } from "./report-utils"
 
 interface SeveritySummaryProps {
-  breakdown: Record<Severity, number>
   actionabilitySummary?: ActionabilitySummary | null
 }
 
-export function SeveritySummary({ breakdown, actionabilitySummary }: SeveritySummaryProps) {
-  return (
-    <div className="space-y-3">
-      {/* Actionability row — the numbers that matter */}
-      {actionabilitySummary && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {([
-            { key: "must_fix_count" as const, actionability: "must_fix" as const },
-            { key: "should_fix_count" as const, actionability: "should_fix" as const },
-            { key: "consider_count" as const, actionability: "consider" as const },
-            { key: "informational_count" as const, actionability: "informational" as const },
-          ]).map(({ key, actionability }) => {
-            const cfg = ACTIONABILITY_CONFIG[actionability]
-            const count = actionabilitySummary[key] ?? 0
-            return (
-              <div
-                key={actionability}
-                className={`rounded-lg forge-glass border ${cfg.border} p-4 text-center`}
-              >
-                <p className={`text-3xl font-bold font-[family-name:var(--font-heading)] ${cfg.text}`}>{count}</p>
-                <p className={`text-xs uppercase tracking-wider mt-1 font-[family-name:var(--font-heading)] ${cfg.text} opacity-80`}>
-                  {cfg.label}
-                </p>
-              </div>
-            )
-          })}
-        </div>
-      )}
+export function SeveritySummary({ actionabilitySummary }: SeveritySummaryProps) {
+  if (!actionabilitySummary) return null
 
-      {/* Severity row — secondary context */}
-      <div className="grid grid-cols-4 gap-2">
-        {SEVERITY_ORDER.map((sev) => {
-          const cfg = severityClasses(sev)
-          const count = breakdown[sev] ?? 0
-          return (
-            <div
-              key={sev}
-              className={`rounded forge-glass border ${cfg.border} px-3 py-2 text-center`}
-            >
-              <p className={`text-lg font-semibold font-[family-name:var(--font-heading)] ${cfg.text}`}>{count}</p>
-              <p className={`text-[10px] uppercase tracking-wider font-[family-name:var(--font-heading)] ${cfg.text} opacity-70`}>
-                {cfg.label}
-              </p>
-            </div>
-          )
-        })}
-      </div>
+  return (
+    <div className="grid grid-cols-4 gap-2">
+      {([
+        { key: "must_fix_count" as const, actionability: "must_fix" as const },
+        { key: "should_fix_count" as const, actionability: "should_fix" as const },
+        { key: "consider_count" as const, actionability: "consider" as const },
+        { key: "informational_count" as const, actionability: "informational" as const },
+      ]).map(({ key, actionability }) => {
+        const cfg = ACTIONABILITY_CONFIG[actionability]
+        const count = actionabilitySummary[key] ?? 0
+        return (
+          <div
+            key={actionability}
+            className={`rounded-lg forge-glass border ${cfg.border} px-3 py-2.5 text-center`}
+          >
+            <p className={`text-xl font-bold font-[family-name:var(--font-heading)] ${cfg.text}`}>{count}</p>
+            <p className={`text-[10px] uppercase tracking-wider mt-0.5 ${cfg.text} opacity-80`}>
+              {cfg.label}
+            </p>
+          </div>
+        )
+      })}
     </div>
   )
 }
