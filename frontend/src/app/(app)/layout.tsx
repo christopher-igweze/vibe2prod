@@ -14,8 +14,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (loading) return
-    if (role === "user" && pathname !== "/waitlist") {
-      router.replace("/waitlist")
+    if (role === "user") {
+      router.replace("/")
       return
     }
     if (role !== "user" && profile && !profile.onboarding_complete && pathname !== "/onboarding") {
@@ -72,6 +72,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
             >
               Settings
+            </Link>
+            <Link
+              href="/pricing"
+              className="text-sm text-neutral-400 hover:text-neutral-100 transition-colors"
+            >
+              Pricing
             </Link>
             <UserButton
               appearance={{
