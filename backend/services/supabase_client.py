@@ -798,77 +798,85 @@ async def get_project(project_id: UUID) -> dict | None:
 # ------------------------------------------------------------------ #
 
 
-def get_user_credits(user_id: str) -> int:
-    """Return the user's current scan_credits balance."""
+def get_user_balance(user_id: str) -> float:
+    """Return the user's current USD wallet balance."""
     client = _client()
     row = (
         client.table("profiles")
-        .select("scan_credits")
+        .select("balance_usd")
         .eq("user_id", str(user_id))
         .limit(1)
         .execute()
     )
     if not row.data:
-        return 0
-    return int(row.data[0].get("scan_credits", 0))
+        return 0.0
+    return float(row.data[0].get("balance_usd", 0))
 
 
-def deduct_credit(user_id: str) -> int:
-    """Decrement scan_credits by 1 and log a usage transaction.
-
-    Raises ValueError if the user has no credits remaining.
-    Returns the new balance.
-    """
-    client = _client()
-    current = get_user_credits(user_id)
-    if current <= 0:
-        raise ValueError("No scan credits remaining")
-
-    new_balance = current - 1
-    client.table("profiles").update(
-        {"scan_credits": new_balance}
-    ).eq("user_id", str(user_id)).execute()
-
-    client.table("credit_transactions").insert(
-        {
-            "user_id": str(user_id),
-            "amount": -1,
-            "balance_after": new_balance,
-            "type": "usage",
-        }
-    ).execute()
-
-    return new_balance
-
-
-def add_credits(
+def deduct_balance(
     user_id: str,
-    amount: int,
-    stripe_session_id: str | None = None,
-    package_name: str | None = None,
-) -> int:
-    """Add credits to a user's balance and log a purchase transaction.
+    amount: float,
+    scan_id: str | None = None,
+    description: str | None = None,
+) -> float:
+    """Deduct a USD amount from the user's wallet and log a usage transaction.
 
+    Raises ValueError if the user has insufficient balance.
     Returns the new balance.
     """
     client = _client()
-    current = get_user_credits(user_id)
-    new_balance = current + amount
+    current = get_user_balance(user_id)
+    if current < amount:
+        raise ValueError(f"Insufficient balance: ${current:.2f} < ${amount:.2f}")
 
+    new_balance = round(current - amount, 4)
     client.table("profiles").update(
-        {"scan_credits": new_balance}
+        {"balance_usd": new_balance}
     ).eq("user_id", str(user_id)).execute()
 
     tx: dict = {
         "user_id": str(user_id),
-        "amount": amount,
+        "amount": round(-amount, 4),
+        "balance_after": new_balance,
+        "type": "usage",
+    }
+    if scan_id:
+        tx["scan_id"] = scan_id
+    if description:
+        tx["description"] = description
+    client.table("credit_transactions").insert(tx).execute()
+
+    return new_balance
+
+
+def add_balance(
+    user_id: str,
+    amount_usd: float,
+    stripe_session_id: str | None = None,
+    description: str | None = None,
+) -> float:
+    """Add USD to a user's wallet balance and log a purchase transaction.
+
+    Returns the new balance.
+    """
+    client = _client()
+    current = get_user_balance(user_id)
+    new_balance = round(current + amount_usd, 4)
+
+    client.table("profiles").update(
+        {"balance_usd": new_balance}
+    ).eq("user_id", str(user_id)).execute()
+
+    tx: dict = {
+        "user_id": str(user_id),
+        "amount": round(amount_usd, 4),
         "balance_after": new_balance,
         "type": "purchase",
     }
     if stripe_session_id:
         tx["stripe_session_id"] = stripe_session_id
-    if package_name:
-        tx["package_name"] = package_name
+    if description:
+        tx["description"] = description
     client.table("credit_transactions").insert(tx).execute()
 
     return new_balance
