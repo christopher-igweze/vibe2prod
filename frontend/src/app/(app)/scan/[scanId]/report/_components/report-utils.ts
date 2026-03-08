@@ -99,3 +99,10 @@ export function formatDuration(seconds: number): string {
 export function formatCost(usd: number): string {
   return `$${usd.toFixed(2)}`
 }
+
+export function formatCharge(costUsd: number): string {
+  const infraCost = 0.14
+  const markup = 4
+  const charged = (costUsd + infraCost) * markup
+  return `$${charged.toFixed(2)}`
+}

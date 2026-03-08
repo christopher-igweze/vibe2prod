@@ -179,7 +179,7 @@ export function reportToPdfHtml(report: DiscoveryReport, repoName?: string): str
 </div>
 
 <h1>${esc(title)}</h1>
-<p class="subtitle">${date} &middot; Duration: ${formatDuration(report.duration_seconds)}${report.cost_usd > 0 ? ` &middot; Cost: $${report.cost_usd.toFixed(2)}` : ""}</p>
+<p class="subtitle">${date} &middot; Duration: ${formatDuration(report.duration_seconds)}${report.cost_usd > 0 ? ` &middot; Charged: $${((report.cost_usd + 0.14) * 4).toFixed(2)} &middot; Raw: $${report.cost_usd.toFixed(2)}` : ""}</p>
 <p class="run-id">Run ID: ${report.run_id}</p>
 
 <div class="summary-grid">
