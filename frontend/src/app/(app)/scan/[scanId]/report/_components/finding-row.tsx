@@ -18,7 +18,7 @@ export function FindingRow({ finding }: FindingRowProps) {
   return (
     <AccordionItem
       value={finding.id}
-      className="border-neutral-800"
+      className="border-white/6 forge-glass rounded-lg mb-2"
     >
       <AccordionTrigger className="hover:no-underline px-3 py-2.5 text-left">
         <div className="flex items-center gap-3 w-full min-w-0 pr-2">
@@ -36,7 +36,7 @@ export function FindingRow({ finding }: FindingRowProps) {
             {CATEGORY_LABELS[finding.category] ?? finding.category}
           </span>
           <span className="text-sm text-neutral-200 truncate">{finding.title}</span>
-          <span className="text-xs text-neutral-600 font-mono shrink-0 ml-auto">
+          <span className="text-xs text-forge-text-muted font-[family-name:var(--font-code)] shrink-0 ml-auto">
             {finding.id}
           </span>
         </div>
@@ -56,15 +56,15 @@ export function FindingRow({ finding }: FindingRowProps) {
               {finding.locations.map((loc, i) => (
                 <div
                   key={i}
-                  className="rounded border border-neutral-800 bg-neutral-950/50 p-3"
+                  className="rounded border border-white/6 bg-forge-surface/50 p-3"
                 >
-                  <p className="text-xs text-neutral-400 font-mono mb-1">
+                  <p className="text-xs text-neutral-400 font-[family-name:var(--font-code)] mb-1">
                     {loc.file_path}
                     {loc.line_start != null && `:${loc.line_start}`}
                     {loc.line_end != null && loc.line_end !== loc.line_start && `-${loc.line_end}`}
                   </p>
                   {loc.snippet && (
-                    <pre className="text-xs text-neutral-500 whitespace-pre-wrap overflow-x-auto">
+                    <pre className="text-xs text-neutral-500 font-[family-name:var(--font-code)] whitespace-pre-wrap overflow-x-auto">
                       {loc.snippet}
                     </pre>
                   )}
