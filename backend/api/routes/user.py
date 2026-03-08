@@ -26,6 +26,7 @@ async def get_me(request: Request) -> dict:
             "onboarding_complete": False,
             "lifetime_scans_used": 0,
             "lifetime_scan_cap": 5,
+            "scan_credits": 1,
         }
     return profile
 
