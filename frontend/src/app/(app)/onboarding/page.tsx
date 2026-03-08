@@ -74,19 +74,19 @@ export default function OnboardingPage() {
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
       <div className="w-full max-w-lg space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/15 mb-2">
-            <Rocket className="size-7 text-emerald-400" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-forge-amber/15 mb-2">
+            <Rocket className="size-7 text-forge-amber" />
           </div>
-          <h1 className="text-2xl font-bold text-neutral-100">Welcome to Vibe2Prod</h1>
-          <p className="text-neutral-400">
+          <h1 className="text-2xl font-bold text-foreground font-[family-name:var(--font-heading)]">Welcome to Vibe2Prod</h1>
+          <p className="text-[#8692A8]">
             Tell us a bit about yourself so we can tailor your audit reports.
           </p>
         </div>
 
-        <div className="grid gap-5 rounded-xl border border-neutral-800 bg-neutral-950 p-6">
+        <div className="grid gap-5 rounded-xl border border-white/[0.06] bg-background p-6">
           {/* Technical Level */}
           <div className="space-y-2">
-            <Label className="text-neutral-300">What describes you best?</Label>
+            <Label className="text-foreground">What describes you best?</Label>
             <RadioGroup
               value={technicalLevel}
               onValueChange={(v) => setTechnicalLevel(v as TechnicalLevel)}
@@ -103,13 +103,13 @@ export default function OnboardingPage() {
                   key={value}
                   className={`flex flex-col items-center gap-1 rounded-lg border p-3 cursor-pointer transition-colors ${
                     technicalLevel === value
-                      ? "border-emerald-500/50 bg-emerald-500/5"
-                      : "border-neutral-800 hover:border-neutral-700"
+                      ? "border-forge-amber/50 bg-forge-amber/5"
+                      : "border-white/[0.06] hover:border-white/[0.08]"
                   }`}
                 >
                   <RadioGroupItem value={value} className="sr-only" />
                   <span className="text-sm font-medium text-neutral-200">{label}</span>
-                  <span className="text-xs text-neutral-500 text-center">{desc}</span>
+                  <span className="text-xs text-[#4E586E] text-center">{desc}</span>
                 </label>
               ))}
             </RadioGroup>
@@ -117,12 +117,12 @@ export default function OnboardingPage() {
 
           {/* Explanation Style */}
           <div className="space-y-2">
-            <Label className="text-neutral-300">How should we explain findings?</Label>
+            <Label className="text-foreground">How should we explain findings?</Label>
             <Select value={explanationStyle} onValueChange={(v) => setExplanationStyle(v as ExplanationStyle)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="teach_me">Teach Me -- explain the why</SelectItem>
                 <SelectItem value="just_steps">Just Steps -- tell me what to do</SelectItem>
                 <SelectItem value="cto_brief">CTO Brief -- executive summary</SelectItem>
@@ -132,12 +132,12 @@ export default function OnboardingPage() {
 
           {/* Shipping Posture */}
           <div className="space-y-2">
-            <Label className="text-neutral-300">Shipping priority?</Label>
+            <Label className="text-foreground">Shipping priority?</Label>
             <Select value={shippingPosture} onValueChange={(v) => setShippingPosture(v as ShippingPosture)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="ship_fast">Ship Fast -- speed over perfection</SelectItem>
                 <SelectItem value="balanced">Balanced -- pragmatic trade-offs</SelectItem>
                 <SelectItem value="production_first">Production First -- stability above all</SelectItem>
@@ -147,12 +147,12 @@ export default function OnboardingPage() {
 
           {/* Coding Tool */}
           <div className="space-y-2">
-            <Label className="text-neutral-300">What do you mostly build with?</Label>
+            <Label className="text-foreground">What do you mostly build with?</Label>
             <Select value={codingTool} onValueChange={(v) => setCodingTool(v as CodingTool)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="claude_code">Claude Code</SelectItem>
                 <SelectItem value="codex">Codex</SelectItem>
                 <SelectItem value="antigravity">AntiGravity</SelectItem>
@@ -167,19 +167,19 @@ export default function OnboardingPage() {
                 value={codingToolOther}
                 onChange={(e) => setCodingToolOther(e.target.value)}
                 placeholder="Please state..."
-                className="bg-neutral-900 border-neutral-800 text-neutral-200"
+                className="bg-forge-surface border-white/[0.06] text-foreground"
               />
             )}
           </div>
 
           {/* Acquisition */}
           <div className="space-y-2">
-            <Label className="text-neutral-300">How did you find us?</Label>
+            <Label className="text-foreground">How did you find us?</Label>
             <Select value={acquisitionSource} onValueChange={(v) => setAcquisitionSource(v as AcquisitionSource)}>
-              <SelectTrigger className="bg-neutral-900 border-neutral-800 text-neutral-200">
+              <SelectTrigger className="bg-forge-surface border-white/[0.06] text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-neutral-900 border-neutral-800">
+              <SelectContent className="bg-forge-surface border-white/[0.06]">
                 <SelectItem value="hackathon">Hackathon</SelectItem>
                 <SelectItem value="linkedin">LinkedIn</SelectItem>
                 <SelectItem value="founder_begged_me">Founder Begged Me</SelectItem>
@@ -193,7 +193,7 @@ export default function OnboardingPage() {
                 value={acquisitionOther}
                 onChange={(e) => setAcquisitionOther(e.target.value)}
                 placeholder="Please state..."
-                className="bg-neutral-900 border-neutral-800 text-neutral-200"
+                className="bg-forge-surface border-white/[0.06] text-foreground"
               />
             )}
           </div>
@@ -209,7 +209,7 @@ export default function OnboardingPage() {
         <Button
           onClick={handleSubmit}
           disabled={saving || (codingTool === "other" && !codingToolOther.trim()) || (acquisitionSource === "other" && !acquisitionOther.trim())}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-11"
+          className="w-full bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19] h-11"
         >
           {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
           Get Started
