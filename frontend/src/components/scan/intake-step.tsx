@@ -80,13 +80,13 @@ export function IntakeStep({
   isValid,
 }: IntakeStepProps) {
   return (
-    <Card className="bg-neutral-950 border-neutral-800">
+    <Card className="bg-background border-white/[0.06]">
       <CardHeader>
         <CardTitle className="text-neutral-100 flex items-center gap-2">
           <Shield className="size-5" />
           Project Context
         </CardTitle>
-        <CardDescription className="text-neutral-400">
+        <CardDescription className="text-[#8692A8]">
           This context drives how we classify and prioritize findings. Be specific -- it directly
           impacts audit quality.
         </CardDescription>
@@ -103,14 +103,14 @@ export function IntakeStep({
             <label
               className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
                 projectOrigin === "inspired"
-                  ? "border-emerald-500/50 bg-emerald-500/5"
-                  : "border-neutral-800 hover:border-neutral-700"
+                  ? "border-forge-amber/50 bg-forge-amber/5"
+                  : "border-white/[0.06] hover:border-forge-border-hover"
               }`}
             >
               <RadioGroupItem value="inspired" className="mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-neutral-200">AI-Generated</p>
-                <p className="text-xs text-neutral-500 mt-0.5">
+                <p className="text-xs text-[#4E586E] mt-0.5">
                   Built with Cursor, Copilot, v0, Bolt, etc.
                 </p>
               </div>
@@ -118,14 +118,14 @@ export function IntakeStep({
             <label
               className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
                 projectOrigin === "external"
-                  ? "border-emerald-500/50 bg-emerald-500/5"
-                  : "border-neutral-800 hover:border-neutral-700"
+                  ? "border-forge-amber/50 bg-forge-amber/5"
+                  : "border-white/[0.06] hover:border-forge-border-hover"
               }`}
             >
               <RadioGroupItem value="external" className="mt-0.5" />
               <div>
                 <p className="text-sm font-medium text-neutral-200">Human-Written</p>
-                <p className="text-xs text-neutral-500 mt-0.5">
+                <p className="text-xs text-[#4E586E] mt-0.5">
                   Traditional development, external team, etc.
                 </p>
               </div>
@@ -133,7 +133,7 @@ export function IntakeStep({
           </RadioGroup>
         </div>
 
-        <Separator className="bg-neutral-800" />
+        <Separator className="bg-white/[0.06]" />
 
         {/* Product Summary */}
         <div className="space-y-2">
@@ -145,7 +145,7 @@ export function IntakeStep({
             value={productSummary}
             onChange={(e) => setProductSummary(e.target.value)}
             placeholder="e.g. A SaaS platform that helps freelancers track invoices and get paid faster..."
-            className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600 min-h-20"
+            className="bg-forge-surface border-white/[0.06] text-neutral-200 placeholder:text-neutral-600 min-h-20"
             maxLength={800}
           />
           <p className="text-xs text-neutral-600 text-right">
@@ -163,7 +163,7 @@ export function IntakeStep({
             value={targetUsers}
             onChange={(e) => setTargetUsers(e.target.value)}
             placeholder="e.g. Small business owners and freelancers managing their client billing..."
-            className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600 min-h-16"
+            className="bg-forge-surface border-white/[0.06] text-neutral-200 placeholder:text-neutral-600 min-h-16"
             maxLength={400}
           />
           <p className="text-xs text-neutral-600 text-right">
@@ -171,13 +171,13 @@ export function IntakeStep({
           </p>
         </div>
 
-        <Separator className="bg-neutral-800" />
+        <Separator className="bg-white/[0.06]" />
 
         {/* Sensitive Data */}
         <div className="space-y-3">
           <div>
             <Label className="text-neutral-300">Sensitive data handled</Label>
-            <p className="text-xs text-neutral-500 mt-0.5">
+            <p className="text-xs text-[#4E586E] mt-0.5">
               Select all that apply. This affects security severity scoring.
             </p>
           </div>
@@ -209,8 +209,8 @@ export function IntakeStep({
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
                   className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
                     isChecked
-                      ? "border-emerald-500/30 bg-emerald-500/5"
-                      : "border-neutral-800 hover:border-neutral-700"
+                      ? "border-forge-amber/50 bg-forge-amber/5"
+                      : "border-white/[0.06] hover:border-forge-border-hover"
                   }`}
                 >
                   <Checkbox
@@ -220,7 +220,7 @@ export function IntakeStep({
                   />
                   <div>
                     <p className="text-sm text-neutral-200">{option.label}</p>
-                    <p className="text-xs text-neutral-500">{option.description}</p>
+                    <p className="text-xs text-[#4E586E]">{option.description}</p>
                   </div>
                 </div>
               );
@@ -228,13 +228,13 @@ export function IntakeStep({
           </div>
         </div>
 
-        <Separator className="bg-neutral-800" />
+        <Separator className="bg-white/[0.06]" />
 
         {/* Must Not Break Flows */}
         <div className="space-y-2">
           <div>
             <Label className="text-neutral-300">Critical user flows that must not break</Label>
-            <p className="text-xs text-neutral-500 mt-0.5">
+            <p className="text-xs text-[#4E586E] mt-0.5">
               These get elevated to &quot;must_fix&quot; priority when issues are found in their paths.
             </p>
           </div>
@@ -245,7 +245,7 @@ export function IntakeStep({
           />
         </div>
 
-        <Separator className="bg-neutral-800" />
+        <Separator className="bg-white/[0.06]" />
 
         {/* Deployment Target */}
         <div className="space-y-2">
@@ -257,7 +257,7 @@ export function IntakeStep({
             value={deploymentTarget}
             onChange={(e) => setDeploymentTarget(e.target.value)}
             placeholder="e.g. Vercel (frontend) + Railway (backend) + Supabase (DB)"
-            className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600"
+            className="bg-forge-surface border-white/[0.06] text-neutral-200 placeholder:text-neutral-600"
             maxLength={200}
           />
         </div>
@@ -272,7 +272,7 @@ export function IntakeStep({
             value={scaleExpectation}
             onChange={(e) => setScaleExpectation(e.target.value)}
             placeholder="e.g. ~500 DAU currently, expecting 5k within 3 months"
-            className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600"
+            className="bg-forge-surface border-white/[0.06] text-neutral-200 placeholder:text-neutral-600"
             maxLength={200}
           />
         </div>
@@ -282,7 +282,7 @@ export function IntakeStep({
           <Button
             variant="outline"
             onClick={onBack}
-            className="border-neutral-700"
+            className="border-white/[0.08]"
           >
             <ArrowLeft className="size-4 mr-1" />
             Back
@@ -291,14 +291,14 @@ export function IntakeStep({
             <Button
               variant="ghost"
               onClick={onSkip}
-              className="text-neutral-500 hover:text-neutral-300"
+              className="text-[#4E586E] hover:text-[#8692A8]"
             >
               Skip for now
             </Button>
             <Button
               onClick={onContinue}
               disabled={!isValid}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]"
             >
               Review & Submit
               <ArrowRight className="size-4 ml-1" />

@@ -70,49 +70,49 @@ export function ReviewStep({
   return (
     <div className="space-y-6">
       {/* Summary Card */}
-      <Card className="bg-neutral-950 border-neutral-800">
+      <Card className="bg-background border-white/[0.06]">
         <CardHeader>
           <CardTitle className="text-neutral-100 flex items-center gap-2">
             <Zap className="size-5" />
             Review & Submit
           </CardTitle>
-          <CardDescription className="text-neutral-400">
+          <CardDescription className="text-[#8692A8]">
             Confirm your scan details before kicking off the audit.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           {/* Repo info */}
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4 space-y-3">
+          <div className="rounded-lg border border-white/[0.06] bg-forge-surface/30 p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-neutral-500 uppercase tracking-wider font-medium">
+              <p className="text-xs text-[#4E586E] uppercase tracking-wider font-medium">
                 Repository
               </p>
               <button
                 type="button"
                 onClick={onEditRepo}
-                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                className="text-xs text-forge-amber hover:text-forge-amber-light transition-colors"
               >
                 Edit
               </button>
             </div>
             <div className="flex items-center gap-2">
-              <Github className="size-4 text-neutral-400" />
+              <Github className="size-4 text-[#8692A8]" />
               <span className="text-sm text-neutral-200 font-mono truncate">
                 {repoUrl.trim()}
               </span>
             </div>
             {primerResult && (
-              <div className="flex items-center gap-3 text-xs text-neutral-500">
+              <div className="flex items-center gap-3 text-xs text-[#4E586E]">
                 {repoName && <span>{repoName}</span>}
                 {displayBranch && (
                   <>
-                    <span className="text-neutral-700">|</span>
+                    <span className="text-white/[0.08]">|</span>
                     <span>{displayBranch}</span>
                   </>
                 )}
                 {primerResult.confidence > 0 && (
                   <>
-                    <span className="text-neutral-700">|</span>
+                    <span className="text-white/[0.08]">|</span>
                     <span>Primer confidence: {primerResult.confidence}%</span>
                   </>
                 )}
@@ -121,36 +121,36 @@ export function ReviewStep({
           </div>
 
           {/* Project context summary */}
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4 space-y-3">
+          <div className="rounded-lg border border-white/[0.06] bg-forge-surface/30 p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs text-neutral-500 uppercase tracking-wider font-medium">
+              <p className="text-xs text-[#4E586E] uppercase tracking-wider font-medium">
                 Project Context
               </p>
               <button
                 type="button"
                 onClick={onEditContext}
-                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                className="text-xs text-forge-amber hover:text-forge-amber-light transition-colors"
               >
                 Edit
               </button>
             </div>
             <div className="grid gap-2 text-sm">
               <div className="flex gap-2">
-                <span className="text-neutral-500 shrink-0 w-28">Origin:</span>
+                <span className="text-[#4E586E] shrink-0 w-28">Origin:</span>
                 <span className="text-neutral-200">
                   {projectOrigin === "inspired" ? "AI-Generated" : "Human-Written"}
                 </span>
               </div>
               <div className="flex gap-2">
-                <span className="text-neutral-500 shrink-0 w-28">Product:</span>
+                <span className="text-[#4E586E] shrink-0 w-28">Product:</span>
                 <span className="text-neutral-300 line-clamp-2">{productSummary}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-neutral-500 shrink-0 w-28">Users:</span>
+                <span className="text-[#4E586E] shrink-0 w-28">Users:</span>
                 <span className="text-neutral-300 line-clamp-1">{targetUsers}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-neutral-500 shrink-0 w-28">Data:</span>
+                <span className="text-[#4E586E] shrink-0 w-28">Data:</span>
                 <span className="text-neutral-300">
                   {sensitiveData.length > 0
                     ? sensitiveData.join(", ")
@@ -159,16 +159,16 @@ export function ReviewStep({
               </div>
               {mustNotBreakFlows.length > 0 && (
                 <div className="flex gap-2">
-                  <span className="text-neutral-500 shrink-0 w-28">Critical flows:</span>
+                  <span className="text-[#4E586E] shrink-0 w-28">Critical flows:</span>
                   <span className="text-neutral-300">{mustNotBreakFlows.length} defined</span>
                 </div>
               )}
               <div className="flex gap-2">
-                <span className="text-neutral-500 shrink-0 w-28">Deployment:</span>
+                <span className="text-[#4E586E] shrink-0 w-28">Deployment:</span>
                 <span className="text-neutral-300 line-clamp-1">{deploymentTarget}</span>
               </div>
               <div className="flex gap-2">
-                <span className="text-neutral-500 shrink-0 w-28">Scale:</span>
+                <span className="text-[#4E586E] shrink-0 w-28">Scale:</span>
                 <span className="text-neutral-300 line-clamp-1">{scaleExpectation}</span>
               </div>
             </div>
@@ -186,7 +186,7 @@ export function ReviewStep({
             <Button
               variant="outline"
               onClick={onBack}
-              className="border-neutral-700"
+              className="border-white/[0.08]"
             >
               <ArrowLeft className="size-4 mr-1" />
               Back
@@ -194,7 +194,7 @@ export function ReviewStep({
             <Button
               onClick={onSubmit}
               disabled={submitting}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-32"
+              className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19] min-w-32"
             >
               {submitting ? (
                 <>
