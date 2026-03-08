@@ -5,7 +5,7 @@ const isProtectedRoute = createRouteMatcher([
   "/scan(.*)",
   "/settings(.*)",
   "/onboarding(.*)",
-  "/waitlist(.*)",
+  "/pricing(.*)",
 ]);
 
 // In E2E test mode, run clerkMiddleware for proper Clerk SDK initialization
