@@ -107,6 +107,14 @@ async def start_audit(
     user_id: str = request.state.user_id
     scan_id = uuid4()
 
+    # Role check: only developer and beta_tester can scan
+    role = db.get_user_role(user_id)
+    if role == "user":
+        raise _limit_exception(
+            "waitlist_required",
+            "You're on the waitlist. Scan access is not yet available for your account.",
+        )
+
     try:
         github_token = await db.get_github_access_token(user_id)
         preflight = await _preflight(request_body, user_id, github_token)
