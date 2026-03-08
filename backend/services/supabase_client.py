@@ -419,7 +419,8 @@ async def upsert_profile_from_clerk(
         if update_data:
             client.table("profiles").update(update_data).eq("user_id", user_id).execute()
     else:
-        # Insert new profile
+        # Insert new profile with default role
+        data["role"] = settings.default_user_role
         client.table("profiles").insert(data).execute()
 
 

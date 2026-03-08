@@ -57,6 +57,16 @@ class Settings(BaseSettings):
     clerk_issuer: str = ""    # e.g. https://your-app.clerk.accounts.dev — derived from jwks_url if empty
     clerk_webhook_secret: str = ""
 
+    # --- Stripe ---
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+
+    # --- User Defaults ---
+    default_user_role: str = "user"
+
+    # --- Frontend ---
+    frontend_url: str = "http://localhost:3000"
+
     # --- E2E Testing ---
     e2e_testing: bool = False
 
