@@ -125,14 +125,13 @@ export default function NewScanPage() {
       if (err instanceof ApiError) {
         // Handle structured 403 errors
         if (err.status === 403) {
-          let detail: { code?: string; message?: string };
-          try {
-            detail = typeof err.detail === "string" ? JSON.parse(err.detail) : err.detail;
-          } catch {
-            detail = { message: err.detail };
-          }
+          const detail = typeof err.detail === 'object' ? err.detail : { message: err.detail }
+          const code = (detail as { code?: string })?.code
 
-          const code = (detail as { code?: string })?.code;
+          if (code === "waitlist_required") {
+            router.replace('/waitlist')
+            return
+          }
 
           if (code === "onboarding_required") {
             setShowOnboarding(true);
@@ -142,12 +141,12 @@ export default function NewScanPage() {
           }
 
           setSubmitError(
-            (detail as { message?: string })?.message || err.detail || "Access denied"
+            (detail as { message?: string })?.message || err.message || "Access denied"
           );
         } else if (err.status === 429) {
           setSubmitError("Rate limited. Please wait a moment and try again.");
         } else {
-          setSubmitError(err.detail || "Scan failed to start");
+          setSubmitError(err.message || "Scan failed to start");
         }
       } else {
         setSubmitError("An unexpected error occurred. Please try again.");

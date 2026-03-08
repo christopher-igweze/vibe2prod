@@ -1,7 +1,47 @@
-import { UserButton } from "@clerk/nextjs";
-import Link from "next/link";
+"use client"
+
+import { useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { UserButton } from "@clerk/nextjs"
+import Link from "next/link"
+import { Loader2 } from "lucide-react"
+import { useUserRole } from "@/hooks/use-user-role"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const { role, loading } = useUserRole()
+
+  useEffect(() => {
+    if (loading) return
+    if (role === "user" && pathname !== "/waitlist") {
+      router.replace("/waitlist")
+    }
+  }, [role, loading, pathname, router])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <Loader2 className="size-6 animate-spin text-neutral-500" />
+      </div>
+    )
+  }
+
+  // Waitlisted users: no nav, just the page content
+  if (role === "user") {
+    return (
+      <div className="min-h-screen bg-neutral-950">
+        <div className="mx-auto max-w-6xl px-6 py-3">
+          <Link href="/" className="text-lg font-bold tracking-tight">
+            <span className="text-emerald-400">Vibe</span>
+            <span className="text-neutral-100">2Prod</span>
+          </Link>
+        </div>
+        <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-neutral-950">
       <nav className="border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-sm sticky top-0 z-50">
@@ -41,5 +81,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
     </div>
-  );
+  )
 }
