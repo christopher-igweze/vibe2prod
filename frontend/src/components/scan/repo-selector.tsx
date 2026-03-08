@@ -208,7 +208,7 @@ export function RepoSelector({
   // Loading state
   if (statusLoading) {
     return (
-      <div className="flex items-center gap-2 py-4 text-sm text-neutral-400">
+      <div className="flex items-center gap-2 py-4 text-sm text-[#8692A8]">
         <Loader2 className="size-4 animate-spin" />
         Checking GitHub connection...
       </div>
@@ -218,14 +218,14 @@ export function RepoSelector({
   // Not connected -- show fallback hint
   if (!status?.connected) {
     return (
-      <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
-        <div className="flex items-center gap-2 text-sm text-neutral-400">
+      <div className="rounded-lg border border-white/[0.06] bg-forge-surface/30 p-4">
+        <div className="flex items-center gap-2 text-sm text-[#8692A8]">
           <Github className="size-4" />
           <span>
             Connect GitHub in{" "}
             <a
               href="/settings"
-              className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors"
+              className="text-forge-amber hover:text-forge-amber-light underline underline-offset-2 transition-colors"
             >
               Settings
             </a>{" "}
@@ -243,7 +243,7 @@ export function RepoSelector({
         <button
           type="button"
           onClick={() => onToggleManual(false)}
-          className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1"
+          className="text-xs text-forge-amber hover:text-forge-amber-light transition-colors flex items-center gap-1"
         >
           <ArrowLeft className="size-3" />
           Back to repo list
@@ -257,8 +257,8 @@ export function RepoSelector({
     <div className="space-y-3">
       {/* Connected badge */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs text-neutral-400">
-          <div className="size-2 rounded-full bg-emerald-500" />
+        <div className="flex items-center gap-2 text-xs text-[#8692A8]">
+          <div className="size-2 rounded-full bg-forge-amber" />
           Connected as{" "}
           <span className="text-neutral-200 font-medium">
             {status.github_username}
@@ -268,12 +268,12 @@ export function RepoSelector({
 
       {/* Search input */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-neutral-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#4E586E]" />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search your repositories..."
-          className="bg-neutral-900 border-neutral-800 text-neutral-200 placeholder:text-neutral-600 pl-9"
+          className="bg-forge-surface border-white/[0.06] text-neutral-200 placeholder:text-neutral-600 pl-9"
         />
       </div>
 
@@ -287,14 +287,14 @@ export function RepoSelector({
 
       {/* Repos list */}
       {reposLoading ? (
-        <div className="flex items-center justify-center py-8 text-sm text-neutral-400">
+        <div className="flex items-center justify-center py-8 text-sm text-[#8692A8]">
           <Loader2 className="size-4 animate-spin mr-2" />
           Loading repositories...
         </div>
       ) : (
-        <div className="max-h-[340px] overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent">
+        <div className="max-h-[340px] overflow-y-auto space-y-2 pr-1 scrollbar-thin scrollbar-thumb-white/[0.06] scrollbar-track-transparent">
           {filteredRepos.length === 0 ? (
-            <div className="text-center py-6 text-sm text-neutral-500">
+            <div className="text-center py-6 text-sm text-[#4E586E]">
               {searchQuery.trim()
                 ? "No repositories match your search"
                 : "No repositories found"}
@@ -313,8 +313,8 @@ export function RepoSelector({
                     }}
                     className={`w-full text-left rounded-lg border p-3 transition-colors ${
                       isSelected
-                        ? "border-emerald-500/50 bg-emerald-500/5"
-                        : "border-neutral-800 hover:border-neutral-700 bg-neutral-900/30"
+                        ? "border-forge-amber/50 bg-forge-amber/5"
+                        : "border-white/[0.06] hover:border-forge-border-hover bg-forge-surface/30"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -326,18 +326,18 @@ export function RepoSelector({
                           {repo.private && (
                             <Badge
                               variant="outline"
-                              className="border-neutral-700 text-neutral-500 text-[10px] px-1.5 py-0 h-4 shrink-0"
+                              className="border-white/[0.08] text-[#4E586E] text-[10px] px-1.5 py-0 h-4 shrink-0"
                             >
                               <Lock className="size-2.5 mr-0.5" />
                               Private
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-neutral-500 mt-0.5 truncate">
+                        <p className="text-xs text-[#4E586E] mt-0.5 truncate">
                           {repo.owner}/{repo.name}
                         </p>
                         {repo.description && (
-                          <p className="text-xs text-neutral-400 mt-1 line-clamp-1">
+                          <p className="text-xs text-[#8692A8] mt-1 line-clamp-1">
                             {repo.description}
                           </p>
                         )}
@@ -346,7 +346,7 @@ export function RepoSelector({
                         {repo.language && (
                           <Badge
                             variant="secondary"
-                            className="bg-neutral-800 text-neutral-300 border-neutral-700 text-[10px] px-1.5 py-0 h-4"
+                            className="bg-forge-nav text-neutral-300 border-white/[0.06] text-[10px] px-1.5 py-0 h-4"
                           >
                             {repo.language}
                           </Badge>
@@ -357,7 +357,7 @@ export function RepoSelector({
                       </div>
                     </div>
                     {isSelected && (
-                      <div className="flex items-center gap-1 mt-2 text-xs text-emerald-400">
+                      <div className="flex items-center gap-1 mt-2 text-xs text-forge-amber">
                         <CheckCircle2 className="size-3" />
                         Selected
                       </div>
@@ -370,9 +370,9 @@ export function RepoSelector({
                         <button
                           type="button"
                           onClick={() => setBranchDropdownOpen(!branchDropdownOpen)}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-neutral-800 bg-neutral-900 text-xs text-neutral-300 hover:border-neutral-700 transition-colors"
+                          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-white/[0.06] bg-forge-surface text-xs text-neutral-300 hover:border-forge-border-hover transition-colors"
                         >
-                          <GitBranch className="size-3 text-neutral-500" />
+                          <GitBranch className="size-3 text-[#4E586E]" />
                           {branchesLoading ? (
                             <Loader2 className="size-3 animate-spin" />
                           ) : (
@@ -380,10 +380,10 @@ export function RepoSelector({
                               {selectedBranch || repo.default_branch}
                             </span>
                           )}
-                          <ChevronDown className="size-3 text-neutral-500" />
+                          <ChevronDown className="size-3 text-[#4E586E]" />
                         </button>
                         {branchDropdownOpen && branches.length > 0 && (
-                          <div className="absolute top-full left-0 mt-1 z-50 w-64 max-h-48 overflow-y-auto rounded-md border border-neutral-800 bg-neutral-900 shadow-lg">
+                          <div className="absolute top-full left-0 mt-1 z-50 w-64 max-h-48 overflow-y-auto rounded-md border border-white/[0.06] bg-forge-surface shadow-lg">
                             {branches.map((b) => (
                               <button
                                 key={b.name}
@@ -394,16 +394,16 @@ export function RepoSelector({
                                 }}
                                 className={`w-full text-left px-3 py-1.5 text-xs transition-colors flex items-center gap-2 ${
                                   (selectedBranch || repo.default_branch) === b.name
-                                    ? "bg-emerald-500/10 text-emerald-300"
-                                    : "text-neutral-300 hover:bg-neutral-800"
+                                    ? "bg-forge-amber/10 text-forge-amber"
+                                    : "text-neutral-300 hover:bg-forge-nav"
                                 }`}
                               >
-                                <GitBranch className="size-3 shrink-0 text-neutral-500" />
+                                <GitBranch className="size-3 shrink-0 text-[#4E586E]" />
                                 <span className="truncate">{b.name}</span>
                                 {b.name === repo.default_branch && (
                                   <Badge
                                     variant="outline"
-                                    className="border-neutral-700 text-neutral-500 text-[9px] px-1 py-0 h-3.5 ml-auto shrink-0"
+                                    className="border-white/[0.08] text-[#4E586E] text-[9px] px-1 py-0 h-3.5 ml-auto shrink-0"
                                   >
                                     default
                                   </Badge>
@@ -429,7 +429,7 @@ export function RepoSelector({
                 size="sm"
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="w-full border-neutral-800 text-neutral-400 hover:text-neutral-200"
+                className="w-full border-white/[0.06] text-[#8692A8] hover:text-neutral-200"
               >
                 {loadingMore ? (
                   <>
@@ -450,7 +450,7 @@ export function RepoSelector({
         <button
           type="button"
           onClick={() => onToggleManual(true)}
-          className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors flex items-center gap-1"
+          className="text-xs text-[#4E586E] hover:text-[#8692A8] transition-colors flex items-center gap-1"
         >
           <ExternalLink className="size-3" />
           Or paste a URL instead
