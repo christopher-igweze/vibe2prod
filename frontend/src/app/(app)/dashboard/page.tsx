@@ -135,10 +135,10 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="h-8 w-48 bg-neutral-800 rounded animate-pulse" />
+        <div className="h-8 w-48 bg-forge-nav rounded animate-pulse" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-16 bg-neutral-800 rounded-lg animate-pulse" />
+            <div key={i} className="h-16 bg-forge-nav rounded-lg animate-pulse" />
           ))}
         </div>
       </div>
@@ -148,22 +148,22 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Dashboard</h1>
         <Link href="/scan/new">
-          <Button className="bg-emerald-600 hover:bg-emerald-700">
+          <Button className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]">
             New Scan
           </Button>
         </Link>
       </div>
 
       {role === "developer" ? (
-        <div className="text-sm text-emerald-400">Unlimited Scans</div>
+        <div className="text-sm text-forge-amber">Unlimited Scans</div>
       ) : (profile?.scan_credits ?? 0) === 0 ? (
         <Card className="border-amber-500/30 bg-amber-500/5 p-4">
           <div className="flex items-center justify-between">
             <p className="text-amber-400 text-sm font-medium">No scan credits remaining</p>
             <Link href="/pricing">
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+              <Button size="sm" className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]">
                 Buy Credits
               </Button>
             </Link>
@@ -171,10 +171,10 @@ export default function DashboardPage() {
         </Card>
       ) : (
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-neutral-400">
-            <span className="text-emerald-400 font-semibold">{profile?.scan_credits}</span> scan credit{(profile?.scan_credits ?? 0) !== 1 ? "s" : ""} remaining
+          <span className="text-[#8692A8]">
+            <span className="text-forge-amber font-semibold">{profile?.scan_credits}</span> scan credit{(profile?.scan_credits ?? 0) !== 1 ? "s" : ""} remaining
           </span>
-          <Link href="/pricing" className="text-emerald-400 hover:text-emerald-300 underline text-xs">
+          <Link href="/pricing" className="text-forge-amber hover:text-forge-amber-light underline text-xs">
             Buy More
           </Link>
         </div>
@@ -187,13 +187,13 @@ export default function DashboardPage() {
       )}
 
       {scans.length === 0 ? (
-        <Card className="bg-neutral-900 border-neutral-800 border-dashed p-12 text-center">
+        <Card className="border-dashed p-12 text-center">
           <h2 className="text-lg font-semibold mb-2">No scans yet</h2>
-          <p className="text-neutral-400 text-sm mb-6">
+          <p className="text-[#8692A8] text-sm mb-6">
             Paste a GitHub URL to run your first audit.
           </p>
           <Link href="/scan/new">
-            <Button className="bg-emerald-600 hover:bg-emerald-700">
+            <Button className="bg-forge-amber hover:bg-forge-amber/90 text-[#0B0F19]">
               Start Your First Scan
             </Button>
           </Link>
@@ -204,7 +204,7 @@ export default function DashboardPage() {
           {scans.map((scan) => (
             <Card
               key={scan.id}
-              className="bg-neutral-900 border-neutral-800 p-4 hover:border-neutral-700 transition-colors"
+              className="forge-glass-hover p-4 transition-colors"
             >
               <div className="flex items-center justify-between gap-3">
                 <Link
@@ -213,7 +213,7 @@ export default function DashboardPage() {
                 >
                   <div className="cursor-pointer">
                     <p className="font-medium truncate">{scan.repo_name || scan.repo_url}</p>
-                    <p className="text-xs text-neutral-500 mt-1">
+                    <p className="text-xs text-[#4E586E] mt-1">
                       {new Date(scan.created_at).toLocaleDateString()}
                     </p>
                   </div>
@@ -224,14 +224,14 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-neutral-400 hover:text-neutral-200"
+                      className="size-8 text-[#8692A8] hover:text-forge-amber"
                       disabled={copyingId === scan.id}
                       onClick={() => handleCopy(scan)}
                     >
                       {copyingId === scan.id ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : copiedId === scan.id ? (
-                        <Check className="size-4 text-emerald-400" />
+                        <Check className="size-4 text-forge-amber" />
                       ) : (
                         <Copy className="size-4" />
                       )}
@@ -242,7 +242,7 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-neutral-400 hover:text-neutral-200"
+                      className="size-8 text-[#8692A8] hover:text-forge-amber"
                       disabled={downloadingId === scan.id}
                       onClick={() => handleDownload(scan)}
                     >
@@ -259,7 +259,7 @@ export default function DashboardPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 text-neutral-500 hover:text-red-400"
+                        className="size-8 text-[#4E586E] hover:text-red-400"
                         disabled={deletingId === scan.id}
                       >
                         {deletingId === scan.id ? (
@@ -269,10 +269,10 @@ export default function DashboardPage() {
                         )}
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-neutral-900 border-neutral-800">
+                    <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>Delete this scan?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-neutral-400">
+                        <AlertDialogDescription className="text-[#8692A8]">
                           This will permanently delete the scan for{" "}
                           <span className="font-medium text-neutral-300">
                             {scan.repo_name || scan.repo_url}
@@ -281,7 +281,7 @@ export default function DashboardPage() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className="border-neutral-700">
+                        <AlertDialogCancel>
                           Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
