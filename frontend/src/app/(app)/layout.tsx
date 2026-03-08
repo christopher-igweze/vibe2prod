@@ -10,14 +10,18 @@ import { useUserRole } from "@/hooks/use-user-role"
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { role, loading } = useUserRole()
+  const { role, profile, loading } = useUserRole()
 
   useEffect(() => {
     if (loading) return
     if (role === "user" && pathname !== "/waitlist") {
       router.replace("/waitlist")
+      return
     }
-  }, [role, loading, pathname, router])
+    if (role !== "user" && profile && !profile.onboarding_complete && pathname !== "/onboarding") {
+      router.replace("/onboarding")
+    }
+  }, [role, profile, loading, pathname, router])
 
   if (loading) {
     return (
@@ -27,8 +31,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Waitlisted users: no nav, just the page content
-  if (role === "user") {
+  // Onboarding or waitlisted users: no nav, just the page content
+  if (role === "user" || (profile && !profile.onboarding_complete)) {
     return (
       <div className="min-h-screen bg-neutral-950">
         <div className="mx-auto max-w-6xl px-6 py-3">

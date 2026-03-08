@@ -15,7 +15,6 @@ import type {
   ProjectIntake,
 } from "@/lib/api/types";
 
-import { OnboardingModal } from "@/components/scan/onboarding-modal";
 import { StepIndicator } from "@/components/scan/step-indicator";
 import { RepoStep } from "@/components/scan/repo-step";
 import { IntakeStep } from "@/components/scan/intake-step";
@@ -51,10 +50,6 @@ export default function NewScanPage() {
   // Step 3: Submit
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Onboarding modal
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [pendingRetry, setPendingRetry] = useState(false);
 
   // ---------------------------------------------------------------------------
   // Step 2 validation
@@ -134,10 +129,8 @@ export default function NewScanPage() {
           }
 
           if (code === "onboarding_required") {
-            setShowOnboarding(true);
-            setPendingRetry(true);
-            setSubmitting(false);
-            return;
+            router.replace('/onboarding')
+            return
           }
 
           setSubmitError(
@@ -153,14 +146,6 @@ export default function NewScanPage() {
       }
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    if (pendingRetry) {
-      setPendingRetry(false);
-      handleSubmit();
     }
   };
 
@@ -253,16 +238,6 @@ export default function NewScanPage() {
         />
       )}
 
-      {/* Onboarding Modal */}
-      <OnboardingModal
-        open={showOnboarding}
-        onClose={() => {
-          setShowOnboarding(false);
-          setPendingRetry(false);
-        }}
-        onComplete={handleOnboardingComplete}
-        getToken={getToken}
-      />
     </div>
   );
 }
