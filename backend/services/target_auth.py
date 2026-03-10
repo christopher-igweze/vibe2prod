@@ -16,15 +16,20 @@ from urllib.parse import urlparse
 
 import httpx
 
+from config import settings
+
 logger = logging.getLogger(__name__)
 
-_VERIFY_SECRET = b"vibe2prod-probe-verify-v1"
+
+def _get_verify_secret() -> bytes:
+    """Derive verification secret from the deployment's JWT secret."""
+    return f"vibe2prod-probe-verify:{settings.supabase_jwt_secret}".encode()
 
 
 def generate_verification_token(user_id: str, domain: str) -> str:
     """HMAC-SHA256 hash of user_id + domain, hex-encoded."""
     msg = f"{user_id}:{domain}".encode()
-    return hmac.new(_VERIFY_SECRET, msg, hashlib.sha256).hexdigest()
+    return hmac.new(_get_verify_secret(), msg, hashlib.sha256).hexdigest()
 
 
 def extract_domain(url: str) -> str:
@@ -38,7 +43,7 @@ async def verify_dns_txt(domain: str, token: str) -> bool:
 
     Uses subprocess `dig` to avoid adding a dnspython dependency.
     """
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     try:
         result = await loop.run_in_executor(
             None,

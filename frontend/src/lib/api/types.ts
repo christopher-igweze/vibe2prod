@@ -436,5 +436,5 @@ export interface AuthorizeResponse {
 export interface VerifyResponse {
   verified: boolean
   domain: string
-  message: string
+  expires_at: string
 }
