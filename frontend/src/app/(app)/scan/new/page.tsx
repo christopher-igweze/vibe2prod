@@ -231,6 +231,7 @@ function NewScanInner() {
 
       {/* Step 1: Repository URL + Primer */}
       {step === 1 && (
+        <div data-tour="repo-input">
         <RepoStep
           getToken={getToken}
           repoUrl={repoUrl}
@@ -244,10 +245,12 @@ function NewScanInner() {
           setRepoSelectorManual={setRepoSelectorManual}
           onContinue={() => goToStep(2)}
         />
+        </div>
       )}
 
       {/* Step 2: Project Intake Form */}
       {step === 2 && (
+        <div data-tour="intake-form">
         <IntakeStep
           projectOrigin={projectOrigin}
           setProjectOrigin={setProjectOrigin}
@@ -269,10 +272,12 @@ function NewScanInner() {
           onSkip={() => goToStep(3)}
           isValid={isStep2Valid()}
         />
+        </div>
       )}
 
       {/* Step 3: Review & Submit */}
       {step === 3 && (
+        <div data-tour="submit-review">
         <ReviewStep
           repoUrl={repoUrl}
           branch={branch}
@@ -291,6 +296,7 @@ function NewScanInner() {
           onBack={() => setStep(2)}
           onSubmit={handleSubmit}
         />
+        </div>
       )}
 
     </div>

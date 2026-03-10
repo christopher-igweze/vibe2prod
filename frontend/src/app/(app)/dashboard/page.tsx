@@ -316,7 +316,7 @@ export default function DashboardPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Dashboard</h1>
-        <Link href="/scan/new">
+        <Link href="/scan/new" data-tour="new-scan-btn">
           <Button className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]">
             New Scan
           </Button>
@@ -354,14 +354,14 @@ export default function DashboardPage() {
       )}
 
       {scans.length > 0 && (
-        <>
+        <div data-tour="stats-panel">
           <DashboardStats metrics={metrics} />
           <DashboardInsights metrics={metrics} />
-        </>
+        </div>
       )}
 
       {scans.length === 0 ? (
-        <Card className="border-dashed p-12 text-center">
+        <Card className="border-dashed p-12 text-center" data-tour="scan-list">
           <h2 className="text-lg font-semibold mb-2">No scans yet</h2>
           <p className="text-[#8692A8] text-sm mb-6">
             Paste a GitHub URL to run your first audit.
@@ -374,7 +374,7 @@ export default function DashboardPage() {
         </Card>
       ) : projects.length > 0 ? (
         /* Grouped by project */
-        <div className="space-y-4">
+        <div className="space-y-4" data-tour="scan-list">
           <h2 className="text-lg font-semibold">Projects</h2>
           {projects.map((project) => {
             const projectScans = (projectScanMap.get(project.id) || []).slice(0, 3);
@@ -461,7 +461,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         /* Fallback: flat list when no projects returned */
-        <div className="space-y-3">
+        <div className="space-y-3" data-tour="scan-list">
           <h2 className="text-lg font-semibold">Recent Scans</h2>
           {scans.map((scan) => (
             <Card
