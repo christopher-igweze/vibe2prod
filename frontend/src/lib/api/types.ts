@@ -354,6 +354,7 @@ export interface UserProfile {
   user_id: string
   role: UserRole
   onboarding_complete: boolean
+  tour_completed?: boolean
   lifetime_scans_used: number
   lifetime_scan_cap: number
   scan_credits: number
