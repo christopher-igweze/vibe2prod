@@ -386,7 +386,7 @@ def get_user_profile(user_id: str) -> dict | None:
     client = _client()
     row = (
         client.table("profiles")
-        .select("user_id,email,display_name,avatar_url,role,onboarding_complete,lifetime_scans_used,lifetime_scan_cap,scan_credits,balance_usd")
+        .select("user_id,email,display_name,avatar_url,role,onboarding_complete,tour_completed,lifetime_scans_used,lifetime_scan_cap,scan_credits,balance_usd")
         .eq("user_id", str(user_id))
         .limit(1)
         .execute()
@@ -453,6 +453,24 @@ async def clear_github_connection(*, user_id: str) -> None:
             "github_username": None,
         }
     ).eq("user_id", str(user_id)).execute()
+
+
+async def mark_tour_completed(user_id: str) -> None:
+    """Mark the guided tour as completed."""
+    client = _client()
+    client.table("profiles").update({
+        "tour_completed": True,
+        "tour_completed_at": datetime.now(timezone.utc).isoformat(),
+    }).eq("user_id", str(user_id)).execute()
+
+
+async def reset_tour(user_id: str) -> None:
+    """Reset tour so user can retake it."""
+    client = _client()
+    client.table("profiles").update({
+        "tour_completed": False,
+        "tour_completed_at": None,
+    }).eq("user_id", str(user_id)).execute()
 
 
 async def upsert_profile_from_clerk(
