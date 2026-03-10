@@ -4,10 +4,24 @@ import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { UserButton } from "@clerk/nextjs"
 import Link from "next/link"
-import { Loader2, Wallet } from "lucide-react"
+import { Loader2, Wallet, HelpCircle } from "lucide-react"
 import { useUserRole } from "@/hooks/use-user-role"
+import { TourProvider, useTour } from "@/components/tour/tour-provider"
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function HelpButton() {
+  const { startCurrentPageTour } = useTour()
+  return (
+    <button
+      onClick={startCurrentPageTour}
+      className="text-[#4E586E] hover:text-forge-emerald transition-colors"
+      title="Start guided tour"
+    >
+      <HelpCircle className="size-4" />
+    </button>
+  )
+}
+
+function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { role, profile, loading } = useUserRole()
@@ -58,28 +72,33 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link
               href="/dashboard"
               className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+              data-tour="nav-dashboard"
             >
               Dashboard
             </Link>
             <Link
               href="/scan/new"
               className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+              data-tour="nav-new-scan"
             >
               New Scan
             </Link>
             <Link
               href="/settings"
               className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+              data-tour="settings-link"
             >
               Settings
             </Link>
             <Link
               href="/pricing"
               className="flex items-center gap-1.5 text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+              data-tour="wallet-link"
             >
               <Wallet className="size-4" />
               <span className="font-semibold text-forge-emerald">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
             </Link>
+            <HelpButton />
             <UserButton
               appearance={{
                 elements: {
@@ -92,5 +111,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
       <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
     </div>
+  )
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <TourProvider>
+      <AppLayoutInner>{children}</AppLayoutInner>
+    </TourProvider>
   )
 }
