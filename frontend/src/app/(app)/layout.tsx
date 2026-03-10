@@ -26,16 +26,19 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { role, profile, loading } = useUserRole()
 
+  const isProbeRoute = pathname.startsWith("/probe")
+
   useEffect(() => {
     if (loading) return
     if (role === "user") {
       router.replace("/")
       return
     }
-    if (profile && !profile.onboarding_complete && pathname !== "/onboarding") {
+    // Allow probe pages without onboarding
+    if (profile && !profile.onboarding_complete && pathname !== "/onboarding" && !isProbeRoute) {
       router.replace("/onboarding")
     }
-  }, [role, profile, loading, pathname, router])
+  }, [role, profile, loading, pathname, router, isProbeRoute])
 
   if (loading) {
     return (
@@ -45,16 +48,29 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Onboarding or waitlisted users: no nav, just the page content
+  // Onboarding or waitlisted users: minimal nav
   if (role === "user" || (profile && !profile.onboarding_complete)) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-6xl px-6 py-3">
-          <Link href="/" className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
-            <span className="forge-gradient-text">Vibe</span>
-            <span className="text-foreground">2Prod</span>
-          </Link>
-        </div>
+        <nav className="forge-glass-nav sticky top-0 z-50">
+          <div className="mx-auto max-w-6xl flex items-center justify-between px-6 py-3">
+            <Link href="/" className="text-lg font-bold tracking-tight font-[family-name:var(--font-heading)]">
+              <span className="forge-gradient-text">Vibe</span>
+              <span className="text-foreground">2Prod</span>
+            </Link>
+            <div className="flex items-center gap-6">
+              <Link
+                href="/probe/new"
+                className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+              >
+                Live Probe
+              </Link>
+              <UserButton
+                appearance={{ elements: { avatarBox: "h-8 w-8" } }}
+              />
+            </div>
+          </div>
+        </nav>
         <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
       </div>
     )

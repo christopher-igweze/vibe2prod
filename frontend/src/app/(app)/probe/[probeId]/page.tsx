@@ -14,10 +14,12 @@ import {
   Shield,
   Clock,
   ArrowLeft,
+  Lock,
 } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
 import type { ProbeDetail, ProbeFinding } from "@/lib/api/types"
+import { useUserRole } from "@/hooks/use-user-role"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -142,6 +144,9 @@ export default function ProbeResultPage() {
   const params = useParams<{ probeId: string }>()
   const { getToken } = useAuth()
   const probeId = params.probeId
+
+  const { profile } = useUserRole()
+  const isOnboarded = !!profile?.onboarding_complete
 
   const [probe, setProbe] = useState<ProbeDetail | null>(null)
   const [findings, setFindings] = useState<ProbeFinding[]>([])
@@ -428,7 +433,22 @@ export default function ProbeResultPage() {
       </div>
 
       {/* Findings list */}
-      {findings.length > 0 ? (
+      {!isOnboarded ? (
+        <Card className="forge-glass-card p-8 text-center space-y-4">
+          <Lock className="size-8 text-forge-emerald mx-auto" />
+          <div>
+            <p className="text-sm text-[#E8ECF4] font-medium">
+              {probe.total_findings} finding{probe.total_findings !== 1 ? "s" : ""} detected
+            </p>
+            <p className="text-xs text-[#8692A8] mt-1">
+              Complete onboarding to see detailed findings, evidence, and remediation guidance.
+            </p>
+          </div>
+          <Button asChild className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]">
+            <Link href="/onboarding">Complete Onboarding</Link>
+          </Button>
+        </Card>
+      ) : findings.length > 0 ? (
         <Card className="forge-glass-card overflow-hidden">
           <div className="px-4 py-3 border-b border-white/[0.06]">
             <h2 className="text-sm font-semibold text-[#E8ECF4]">
