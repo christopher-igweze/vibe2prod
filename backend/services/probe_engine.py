@@ -97,17 +97,25 @@ _AUTH_PATHS = [
 class ProbeEngine:
     """Async security probe engine with rate limiting and scope enforcement."""
 
-    def __init__(self, target_url: str, probe_type: str = "security"):
+    def __init__(self, target_url: str, probe_type: str = "security", config: dict | None = None):
         self.target_url = str(target_url)
         self.probe_type = probe_type
+        self.config = config or {}
         parsed = urlparse(self.target_url)
         self.base_url = f"{parsed.scheme}://{parsed.netloc}"
         self.target_domain = parsed.hostname or ""
         self._semaphore = asyncio.Semaphore(settings.probe_max_concurrent)
         self._findings: list[ProbeFinding] = []
 
+    def _is_test_enabled(self, test_id: str) -> bool:
+        """Check if a test is enabled via config.tests (all enabled if not specified)."""
+        selected = self.config.get("tests")
+        if not selected:
+            return True
+        return test_id in selected
+
     async def run(self) -> ProbeResult:
-        """Execute all security test modules and compile results."""
+        """Execute enabled security test modules and compile results."""
         start = time.monotonic()
 
         async with httpx.AsyncClient(
@@ -122,18 +130,27 @@ class ProbeEngine:
             # Check robots.txt first
             disallowed = await self._check_robots_txt(client)
 
-            tests = [
-                self._test_security_headers(client),
-                self._test_sensitive_exposure(client, disallowed),
-                self._test_cookie_security(client),
-                self._test_ssl_tls(),
-                self._test_misconfiguration(client),
-                self._test_injection(client),
-                self._test_xss(client),
-                self._test_csrf(client),
-                self._test_open_redirects(client),
-                self._test_auth_issues(client),
-            ]
+            tests = []
+            if self._is_test_enabled("security_headers"):
+                tests.append(self._test_security_headers(client))
+            if self._is_test_enabled("sensitive_data"):
+                tests.append(self._test_sensitive_exposure(client, disallowed))
+            if self._is_test_enabled("cookie_security"):
+                tests.append(self._test_cookie_security(client))
+            if self._is_test_enabled("ssl_tls"):
+                tests.append(self._test_ssl_tls())
+            if self._is_test_enabled("server_misconfig"):
+                tests.append(self._test_misconfiguration(client))
+            if self._is_test_enabled("sql_injection"):
+                tests.append(self._test_injection(client))
+            if self._is_test_enabled("xss"):
+                tests.append(self._test_xss(client))
+            if self._is_test_enabled("csrf"):
+                tests.append(self._test_csrf(client))
+            if self._is_test_enabled("open_redirects"):
+                tests.append(self._test_open_redirects(client))
+            if self._is_test_enabled("auth_issues"):
+                tests.append(self._test_auth_issues(client))
 
             results = await asyncio.gather(*tests, return_exceptions=True)
             for i, result in enumerate(results):
@@ -211,7 +228,7 @@ class ProbeEngine:
                 "Missing Content-Security-Policy header",
                 "Content Security Policy (CSP) helps prevent XSS and data injection attacks.",
                 "medium",
-                "A5:2017 - Security Misconfiguration",
+                "A05:2021 - Security Misconfiguration",
                 "CWE-693",
             ),
             (
@@ -219,7 +236,7 @@ class ProbeEngine:
                 "Missing Strict-Transport-Security (HSTS) header",
                 "HSTS enforces secure HTTPS connections, preventing protocol downgrade attacks.",
                 "medium",
-                "A5:2017 - Security Misconfiguration",
+                "A05:2021 - Security Misconfiguration",
                 "CWE-311",
             ),
             (
@@ -227,7 +244,7 @@ class ProbeEngine:
                 "Missing X-Frame-Options header",
                 "X-Frame-Options prevents clickjacking by controlling iframe embedding.",
                 "low",
-                "A5:2017 - Security Misconfiguration",
+                "A05:2021 - Security Misconfiguration",
                 "CWE-1021",
             ),
             (
@@ -235,7 +252,7 @@ class ProbeEngine:
                 "Missing X-Content-Type-Options header",
                 "This header prevents MIME-type sniffing attacks.",
                 "low",
-                "A5:2017 - Security Misconfiguration",
+                "A05:2021 - Security Misconfiguration",
                 "CWE-16",
             ),
             (
@@ -243,7 +260,7 @@ class ProbeEngine:
                 "Missing Referrer-Policy header",
                 "Controls how much referrer information is shared with requests.",
                 "low",
-                "A5:2017 - Security Misconfiguration",
+                "A05:2021 - Security Misconfiguration",
                 "CWE-200",
             ),
             (
@@ -251,7 +268,7 @@ class ProbeEngine:
                 "Missing Permissions-Policy header",
                 "Controls which browser features the site can use (camera, microphone, etc.).",
                 "info",
-                "A5:2017 - Security Misconfiguration",
+                "A05:2021 - Security Misconfiguration",
                 "CWE-693",
             ),
         ]
@@ -303,7 +320,7 @@ class ProbeEngine:
                 method="GET",
                 response_summary=f"HTTP 200, {len(resp.content)} bytes",
                 evidence=resp.text[:200] if len(resp.text) > 0 else "",
-                owasp_category="A3:2017 - Sensitive Data Exposure",
+                owasp_category="A02:2021 - Cryptographic Failures",
                 cwe_id="CWE-538",
                 confidence=0.85,
             )
@@ -342,7 +359,7 @@ class ProbeEngine:
                         url_tested=self.target_url,
                         method="GET",
                         evidence=cookie_str[:100],
-                        owasp_category="A5:2017 - Security Misconfiguration",
+                        owasp_category="A05:2021 - Security Misconfiguration",
                         cwe_id="CWE-1004",
                         confidence=0.9,
                     )
@@ -358,7 +375,7 @@ class ProbeEngine:
                         url_tested=self.target_url,
                         method="GET",
                         evidence=cookie_str[:100],
-                        owasp_category="A5:2017 - Security Misconfiguration",
+                        owasp_category="A05:2021 - Security Misconfiguration",
                         cwe_id="CWE-614",
                         confidence=0.9,
                     )
@@ -374,7 +391,7 @@ class ProbeEngine:
                         url_tested=self.target_url,
                         method="GET",
                         evidence=cookie_str[:100],
-                        owasp_category="A8:2017 - Cross-Site Request Forgery",
+                        owasp_category="A01:2021 - Broken Access Control",
                         cwe_id="CWE-352",
                         confidence=0.8,
                     )
@@ -398,14 +415,14 @@ class ProbeEngine:
                     category="ssl-tls",
                     severity="high",
                     url_tested=self.target_url,
-                    owasp_category="A3:2017 - Sensitive Data Exposure",
+                    owasp_category="A02:2021 - Cryptographic Failures",
                     cwe_id="CWE-319",
                     confidence=1.0,
                 )
             )
             return findings
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         try:
             cert_info = await loop.run_in_executor(None, self._get_cert_info)
             if cert_info:
@@ -424,7 +441,7 @@ class ProbeEngine:
                                 severity="critical",
                                 url_tested=self.target_url,
                                 evidence=f"Expiry: {not_after}",
-                                owasp_category="A3:2017 - Sensitive Data Exposure",
+                                owasp_category="A02:2021 - Cryptographic Failures",
                                 cwe_id="CWE-295",
                                 confidence=1.0,
                             )
@@ -438,7 +455,7 @@ class ProbeEngine:
                                 severity="low",
                                 url_tested=self.target_url,
                                 evidence=f"Expiry: {not_after}",
-                                owasp_category="A3:2017 - Sensitive Data Exposure",
+                                owasp_category="A02:2021 - Cryptographic Failures",
                                 cwe_id="CWE-295",
                                 confidence=1.0,
                             )
@@ -451,7 +468,7 @@ class ProbeEngine:
                     category="ssl-tls",
                     severity="high",
                     url_tested=self.target_url,
-                    owasp_category="A3:2017 - Sensitive Data Exposure",
+                    owasp_category="A02:2021 - Cryptographic Failures",
                     cwe_id="CWE-295",
                     confidence=0.7,
                 )
@@ -491,7 +508,7 @@ class ProbeEngine:
                         severity="medium",
                         url_tested=f"{self.base_url}/",
                         method="GET",
-                        owasp_category="A5:2017 - Security Misconfiguration",
+                        owasp_category="A05:2021 - Security Misconfiguration",
                         cwe_id="CWE-548",
                         confidence=0.9,
                     )
@@ -515,7 +532,7 @@ class ProbeEngine:
                         url_tested=self.target_url,
                         method="GET",
                         evidence=f"Access-Control-Allow-Origin: {acao}",
-                        owasp_category="A5:2017 - Security Misconfiguration",
+                        owasp_category="A05:2021 - Security Misconfiguration",
                         cwe_id="CWE-942",
                         confidence=0.95,
                     )
@@ -530,7 +547,7 @@ class ProbeEngine:
                         url_tested=self.target_url,
                         method="GET",
                         evidence=f"Access-Control-Allow-Origin: {acao}",
-                        owasp_category="A5:2017 - Security Misconfiguration",
+                        owasp_category="A05:2021 - Security Misconfiguration",
                         cwe_id="CWE-942",
                         confidence=0.9,
                     )
@@ -555,7 +572,7 @@ class ProbeEngine:
                         url_tested=f"{self.base_url}/vibe2prod-nonexistent-test-page-12345",
                         method="GET",
                         evidence=resp.text[:200],
-                        owasp_category="A5:2017 - Security Misconfiguration",
+                        owasp_category="A05:2021 - Security Misconfiguration",
                         cwe_id="CWE-209",
                         confidence=0.8,
                     )
@@ -606,7 +623,7 @@ class ProbeEngine:
                                 method="GET",
                                 request_summary=f"Injected '{payload}' into '{param_name}'",
                                 evidence=body_lower[body_lower.index(pattern) : body_lower.index(pattern) + 100],
-                                owasp_category="A1:2017 - Injection",
+                                owasp_category="A03:2021 - Injection",
                                 cwe_id="CWE-89",
                                 confidence=0.75,
                             )
@@ -654,7 +671,7 @@ class ProbeEngine:
                             method="GET",
                             request_summary=f"Injected XSS payload into '{param_name}'",
                             evidence=payload,
-                            owasp_category="A7:2017 - Cross-Site Scripting (XSS)",
+                            owasp_category="A03:2021 - Injection",
                             cwe_id="CWE-79",
                             confidence=0.7,
                         )
@@ -692,7 +709,7 @@ class ProbeEngine:
                         severity="medium",
                         url_tested=self.target_url,
                         method="GET",
-                        owasp_category="A8:2017 - Cross-Site Request Forgery",
+                        owasp_category="A01:2021 - Broken Access Control",
                         cwe_id="CWE-352",
                         confidence=0.6,
                     )
@@ -774,7 +791,7 @@ class ProbeEngine:
                             url_tested=url,
                             method="GET",
                             response_summary=f"HTTP {resp.status_code}",
-                            owasp_category="A2:2017 - Broken Authentication",
+                            owasp_category="A07:2021 - Identification and Authentication Failures",
                             cwe_id="CWE-200",
                             confidence=0.6,
                         )

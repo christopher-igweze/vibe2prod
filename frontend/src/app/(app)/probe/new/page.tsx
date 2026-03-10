@@ -200,7 +200,7 @@ export default function NewProbePage() {
       if (resp.verified) {
         setVerified(true)
       } else {
-        setVerifyError(resp.message || "Verification failed. Please check your setup and try again.")
+        setVerifyError("Verification failed. Please check your setup and try again.")
       }
     } catch (err) {
       if (err instanceof ApiError) {

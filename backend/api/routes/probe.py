@@ -44,7 +44,7 @@ router = APIRouter()
 # ------------------------------------------------------------------ #
 
 
-async def _run_probe(probe_id: str, target_url: str, user_id: str, probe_type: str) -> None:
+async def _run_probe(probe_id: str, target_url: str, user_id: str, probe_type: str, config: dict | None = None) -> None:
     """Background task that executes the probe engine and stores results."""
     from services.probe_engine import ProbeEngine
 
@@ -52,11 +52,8 @@ async def _run_probe(probe_id: str, target_url: str, user_id: str, probe_type: s
     try:
         await db.update_probe_status(probe_id, "running", started_at=now_iso)
 
-        engine = ProbeEngine(target_url, probe_type)
-        result = engine.run()
-        # ProbeEngine.run() is async
-        if asyncio.iscoroutine(result):
-            result = await result
+        engine = ProbeEngine(target_url, probe_type, config=config)
+        result = await engine.run()
 
         completed_iso = datetime.now(timezone.utc).isoformat()
 
@@ -116,9 +113,6 @@ async def _run_probe(probe_id: str, target_url: str, user_id: str, probe_type: s
             logger.exception("Failed to update probe status after error for %s", probe_id)
 
 
-# Need asyncio for the iscoroutine check
-import asyncio  # noqa: E402
-
 
 # ------------------------------------------------------------------ #
 # POST /api/probe/authorize
@@ -129,10 +123,21 @@ import asyncio  # noqa: E402
 @limiter.limit(rate_limit_string())
 async def authorize_domain(body: AuthorizeRequest, request: Request) -> dict:
     """Generate a verification token for domain ownership."""
+    if not settings.probe_enabled:
+        raise HTTPException(status_code=503, detail="Live probing is not enabled")
     user_id: str = request.state.user_id
     domain = extract_domain(str(body.target_url))
     if not domain:
         raise HTTPException(status_code=400, detail="Invalid target URL")
+
+    # Check if already authorized
+    if await is_authorized(user_id, domain, db):
+        return {
+            "domain": domain,
+            "token": "",
+            "method": "already_verified",
+            "instructions": "Domain is already verified.",
+        }
 
     token = generate_verification_token(user_id, domain)
 
@@ -159,6 +164,8 @@ async def authorize_domain(body: AuthorizeRequest, request: Request) -> dict:
 @limiter.limit(rate_limit_string())
 async def verify_domain(body: VerifyRequest, request: Request) -> dict:
     """Verify domain ownership via the chosen method."""
+    if not settings.probe_enabled:
+        raise HTTPException(status_code=503, detail="Live probing is not enabled")
     user_id: str = request.state.user_id
     domain = extract_domain(str(body.target_url))
     if not domain:
@@ -238,7 +245,7 @@ async def start_probe(
 
     await db.create_probe(probe_data)
 
-    background_tasks.add_task(_run_probe, probe_id, str(body.target_url), user_id, body.probe_type)
+    background_tasks.add_task(_run_probe, probe_id, str(body.target_url), user_id, body.probe_type, body.config)
 
     return ProbeResponse(
         probe_id=probe_id,
