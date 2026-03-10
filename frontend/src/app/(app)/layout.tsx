@@ -84,6 +84,13 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
               New Scan
             </Link>
             <Link
+              href="/probe/new"
+              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+              data-tour="nav-probe"
+            >
+              Live Probe
+            </Link>
+            <Link
               href="/settings"
               className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
               data-tour="settings-link"
