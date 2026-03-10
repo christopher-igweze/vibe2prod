@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { UserButton } from "@clerk/nextjs"
+import { useAuth, UserButton } from "@clerk/nextjs"
 import Link from "next/link"
 import { Loader2, Wallet, HelpCircle } from "lucide-react"
 import { useUserRole } from "@/hooks/use-user-role"
@@ -24,23 +24,27 @@ function HelpButton() {
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
+  const { isSignedIn, isLoaded } = useAuth()
   const { role, profile, loading } = useUserRole()
 
   const isProbeRoute = pathname.startsWith("/probe")
 
   useEffect(() => {
-    if (loading) return
+    if (loading || !isLoaded) return
+    // Allow probe pages for anyone (including anonymous)
+    if (isProbeRoute) return
+    // Non-signed-in users shouldn't reach non-probe (app) routes
+    if (!isSignedIn) return
     if (role === "user") {
       router.replace("/")
       return
     }
-    // Allow probe pages without onboarding
-    if (profile && !profile.onboarding_complete && pathname !== "/onboarding" && !isProbeRoute) {
+    if (profile && !profile.onboarding_complete && pathname !== "/onboarding") {
       router.replace("/onboarding")
     }
-  }, [role, profile, loading, pathname, router, isProbeRoute])
+  }, [role, profile, loading, isLoaded, isSignedIn, pathname, router, isProbeRoute])
 
-  if (loading) {
+  if ((loading || !isLoaded) && !isProbeRoute) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="size-6 animate-spin text-forge-emerald" />
@@ -48,8 +52,8 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Onboarding or waitlisted users: minimal nav
-  if (role === "user" || (profile && !profile.onboarding_complete)) {
+  // Anonymous users on probe routes, or waitlisted/non-onboarded users: minimal nav
+  if (!isSignedIn || role === "user" || (profile && !profile.onboarding_complete)) {
     return (
       <div className="min-h-screen bg-background">
         <nav className="forge-glass-nav sticky top-0 z-50">
@@ -65,9 +69,18 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
               >
                 Live Probe
               </Link>
-              <UserButton
-                appearance={{ elements: { avatarBox: "h-8 w-8" } }}
-              />
+              {isSignedIn ? (
+                <UserButton
+                  appearance={{ elements: { avatarBox: "h-8 w-8" } }}
+                />
+              ) : (
+                <Link
+                  href="/sign-in"
+                  className="rounded-lg bg-forge-emerald px-3 py-1.5 text-sm font-semibold text-[#0B0F19] hover:bg-forge-emerald-light transition-colors"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
         </nav>

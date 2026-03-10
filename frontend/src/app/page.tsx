@@ -728,6 +728,12 @@ export default function LandingPage() {
             <span className="text-foreground">2Prod</span>
           </span>
           <div className="flex items-center gap-4">
+            <Link
+              href="/probe/new"
+              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+            >
+              Live Probe
+            </Link>
             <SignedOut>
               <Link
                 href="/sign-in"

@@ -110,13 +110,13 @@ const VERIFICATION_METHODS: { value: VerificationMethod; label: string }[] = [
 // ---------------------------------------------------------------------------
 
 export default function NewProbePage() {
-  const { getToken } = useAuth()
+  const { getToken, isSignedIn } = useAuth()
   const router = useRouter()
 
   // Wizard step
   const [step, setStep] = useState(1)
 
-  // Step 1: URL + Authorization
+  // Step 1: URL + Authorization (verification only shown to signed-in users)
   const [targetUrl, setTargetUrl] = useState("")
   const [authorizing, setAuthorizing] = useState(false)
   const [authResponse, setAuthResponse] = useState<AuthorizeResponse | null>(null)
@@ -138,14 +138,14 @@ export default function NewProbePage() {
     let cancelled = false
     async function loadQuota() {
       try {
-        const token = (await getToken()) ?? undefined
+        const token = isSignedIn ? ((await getToken()) ?? undefined) : undefined
         const data = await apiFetch<{ onboarded: boolean; remaining: number; limit: number }>("/api/probe/quota", { token })
         if (!cancelled) setQuota(data)
       } catch { /* non-critical */ }
     }
     loadQuota()
     return () => { cancelled = true }
-  }, [getToken])
+  }, [getToken, isSignedIn])
 
   // Step 3: Submit
   const [submitting, setSubmitting] = useState(false)
@@ -169,13 +169,18 @@ export default function NewProbePage() {
       setAuthError("Please enter a valid URL (e.g., https://myapp.com)")
       return
     }
+    // Anonymous users skip verification entirely
+    if (!isSignedIn) {
+      setVerified(true)
+      return
+    }
     setAuthorizing(true)
     setAuthError(null)
     setAuthResponse(null)
     setVerified(false)
 
     try {
-      const token = (await getToken()) ?? undefined
+      const token = isSignedIn ? ((await getToken()) ?? undefined) : undefined
       const resp = await apiFetch<AuthorizeResponse>("/api/probe/authorize", {
         method: "POST",
         body: JSON.stringify({ target_url: targetUrl.trim() }),
@@ -203,7 +208,7 @@ export default function NewProbePage() {
     setVerifyError(null)
 
     try {
-      const token = (await getToken()) ?? undefined
+      const token = isSignedIn ? ((await getToken()) ?? undefined) : undefined
       const resp = await apiFetch<VerifyResponse>("/api/probe/verify", {
         method: "POST",
         body: JSON.stringify({
@@ -259,7 +264,7 @@ export default function NewProbePage() {
     setSubmitError(null)
 
     try {
-      const token = (await getToken()) ?? undefined
+      const token = isSignedIn ? ((await getToken()) ?? undefined) : undefined
       const resp = await apiFetch<{ probe_id: string }>("/api/probe", {
         method: "POST",
         body: JSON.stringify({
@@ -312,8 +317,12 @@ export default function NewProbePage() {
             <span className="text-[#8692A8]">
               <span className="text-forge-emerald font-semibold">{quota.remaining}</span> of {quota.limit} free probes remaining.
               {quota.remaining === 0
-                ? <> <a href="/onboarding" className="text-forge-emerald hover:underline font-medium">Complete onboarding</a> for unlimited probes.</>
-                : <> <a href="/onboarding" className="text-forge-emerald hover:underline font-medium">Onboard</a> for unlimited probes + detailed reports.</>
+                ? isSignedIn
+                  ? <> <a href="/onboarding" className="text-forge-emerald hover:underline font-medium">Complete onboarding</a> for unlimited probes.</>
+                  : <> <a href="/sign-up" className="text-forge-emerald hover:underline font-medium">Sign up</a> for unlimited probes.</>
+                : isSignedIn
+                  ? <> <a href="/onboarding" className="text-forge-emerald hover:underline font-medium">Onboard</a> for unlimited probes + detailed reports.</>
+                  : <> <a href="/sign-up" className="text-forge-emerald hover:underline font-medium">Sign up</a> for unlimited probes + detailed reports.</>
               }
             </span>
           </div>
