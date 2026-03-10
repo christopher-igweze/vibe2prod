@@ -126,6 +126,16 @@ export function RepoSelector({
           setRepos(result);
           setPage(1);
           setHasMore(result.length === 30);
+
+          // Auto-fetch branches if a repo is already selected (e.g. pre-fill via ?repo_url=)
+          if (selectedUrl) {
+            const match = result.find(
+              (r) => `https://github.com/${r.full_name}` === selectedUrl
+            );
+            if (match) {
+              fetchBranches(match.owner, match.name);
+            }
+          }
         }
       } catch (err) {
         if (!cancelled) {
