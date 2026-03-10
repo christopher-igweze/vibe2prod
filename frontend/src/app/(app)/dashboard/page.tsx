@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
-import { Download, Trash2, Loader2, Copy, Check, RefreshCw, ChevronRight } from "lucide-react";
+import { Download, Trash2, Loader2, Copy, Check, RefreshCw, ChevronRight, Shield } from "lucide-react";
 import { apiFetch } from "@/lib/api/client";
 import { useUserRole } from "@/hooks/use-user-role";
 import { useTour } from "@/components/tour/tour-provider";
@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { DiscoveryReport, ProjectSummary } from "@/lib/api/types";
+import type { DiscoveryReport, ProjectSummary, ProbeSummary } from "@/lib/api/types";
 import { computeDashboardMetrics, scoreColorClass } from "./_components/dashboard-utils";
 import { DashboardStats } from "./_components/dashboard-stats";
 import { DashboardInsights } from "./_components/dashboard-insights";
@@ -210,6 +210,7 @@ export default function DashboardPage() {
   const { startTour } = useTour();
   const [scans, setScans] = useState<ScanSummary[]>([]);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
+  const [probes, setProbes] = useState<ProbeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -234,12 +235,14 @@ export default function DashboardPage() {
     async function load() {
       try {
         const token = (await getToken()) ?? undefined;
-        const [s, p] = await Promise.all([
+        const [s, p, pr] = await Promise.all([
           apiFetch<ScanSummary[]>("/api/user/scans", { token }).catch(() => [] as ScanSummary[]),
           apiFetch<ProjectSummary[]>("/api/user/projects", { token }).catch(() => [] as ProjectSummary[]),
+          apiFetch<ProbeSummary[]>("/api/user/probes", { token }).catch(() => [] as ProbeSummary[]),
         ]);
         setScans(s);
         setProjects(p);
+        setProbes(pr);
       } catch {
         setError("Failed to load dashboard data");
       } finally {
@@ -490,6 +493,69 @@ export default function DashboardPage() {
               />
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* ── Recent Probes ── */}
+      {probes.length > 0 ? (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Recent Probes</h2>
+            <Link href="/probe/new">
+              <Button size="sm" variant="ghost" className="text-[#8692A8] hover:text-forge-emerald gap-1.5">
+                <Shield className="size-3.5" /> New Probe
+              </Button>
+            </Link>
+          </div>
+          {probes.slice(0, 5).map((probe) => (
+            <Link key={probe.id} href={`/probe/${probe.id}`}>
+              <Card className="forge-glass-hover p-0 transition-colors">
+                <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-lg hover:bg-white/[0.02] transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[#E8ECF4] truncate">{probe.target_url}</p>
+                    <div className="flex items-center gap-3 mt-0.5 text-xs text-[#8692A8]">
+                      <span>{new Date(probe.created_at).toLocaleDateString()}</span>
+                      {probe.probe_score !== null && (
+                        <span className={scoreColorClass(probe.probe_score)}>
+                          Score: {probe.probe_score}
+                        </span>
+                      )}
+                      {probe.total_findings > 0 && (
+                        <span>{probe.total_findings} finding{probe.total_findings !== 1 ? "s" : ""}</span>
+                      )}
+                    </div>
+                  </div>
+                  <Badge
+                    className="ml-1 text-[10px]"
+                    variant={
+                      probe.status === "completed"
+                        ? "default"
+                        : probe.status === "failed"
+                        ? "destructive"
+                        : "secondary"
+                    }
+                  >
+                    {probe.status}
+                  </Badge>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Live Probes</h2>
+          <Card className="border-dashed p-8 text-center">
+            <Shield className="size-6 text-[#4E586E] mx-auto mb-2" />
+            <p className="text-sm text-[#8692A8] mb-4">
+              No probes yet. Test your deployed app for security vulnerabilities.
+            </p>
+            <Link href="/probe/new">
+              <Button size="sm" className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]">
+                Start Your First Probe
+              </Button>
+            </Link>
+          </Card>
         </div>
       )}
     </div>
