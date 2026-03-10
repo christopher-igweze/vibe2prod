@@ -2,9 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { apiFetch, ApiError } from "@/lib/api/client";
 import type {
@@ -13,6 +13,7 @@ import type {
   ProjectOrigin,
   SensitiveDataType,
   ProjectIntake,
+  ProjectSummary,
 } from "@/lib/api/types";
 
 import { StepIndicator } from "@/components/scan/step-indicator";
@@ -21,12 +22,13 @@ import { IntakeStep } from "@/components/scan/intake-step";
 import { ReviewStep } from "@/components/scan/review-step";
 
 // ---------------------------------------------------------------------------
-// Main Page (thin orchestrator)
+// Inner component (uses useSearchParams, needs Suspense boundary)
 // ---------------------------------------------------------------------------
 
-export default function NewScanPage() {
+function NewScanInner() {
   const { getToken } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Wizard state
   const [step, setStep] = useState(1);
@@ -50,6 +52,54 @@ export default function NewScanPage() {
   // Step 3: Submit
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Pre-fill state
+  const [preFilled, setPreFilled] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Pre-fill from previous scan (when ?repo_url= is present)
+  // ---------------------------------------------------------------------------
+
+  const prefillFromProject = useCallback(async () => {
+    const repoParam = searchParams.get("repo_url");
+    if (!repoParam) return;
+
+    setRepoUrl(repoParam);
+
+    try {
+      const token = (await getToken()) ?? undefined;
+
+      // Find matching project
+      const projects = await apiFetch<ProjectSummary[]>("/api/user/projects", { token });
+      const match = projects.find((p) => p.repo_url === repoParam);
+      if (!match) return;
+
+      // Fetch latest intake for this project
+      const intakeResp = await apiFetch<{ project_intake: ProjectIntake | null }>(
+        `/api/user/projects/${match.id}/intake`,
+        { token },
+      );
+
+      const intake = intakeResp.project_intake;
+      if (!intake) return;
+
+      // Populate intake fields
+      setProjectOrigin(intake.project_origin);
+      setProductSummary(intake.product_summary || "");
+      setTargetUsers(intake.target_users || "");
+      setSensitiveData(intake.sensitive_data || []);
+      setMustNotBreakFlows(intake.must_not_break_flows || []);
+      setDeploymentTarget(intake.deployment_target || "");
+      setScaleExpectation(intake.scale_expectation || "");
+      setPreFilled(true);
+    } catch {
+      // Silently fail — user can still fill manually
+    }
+  }, [searchParams, getToken]);
+
+  useEffect(() => {
+    prefillFromProject();
+  }, [prefillFromProject]);
 
   // ---------------------------------------------------------------------------
   // Step 2 validation
@@ -170,6 +220,11 @@ export default function NewScanPage() {
         <p className="text-[#8692A8] text-sm">
           Audit your codebase for security, reliability, and scalability issues.
         </p>
+        {preFilled && (
+          <p className="text-xs text-forge-emerald mt-1">
+            Pre-filled from previous scan
+          </p>
+        )}
       </div>
 
       <StepIndicator currentStep={step} />
@@ -239,5 +294,22 @@ export default function NewScanPage() {
       )}
 
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main Page (Suspense wrapper for useSearchParams)
+// ---------------------------------------------------------------------------
+
+export default function NewScanPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-2xl mx-auto">
+        <div className="h-8 w-48 bg-forge-nav rounded animate-pulse mb-6" />
+        <div className="h-64 bg-forge-nav rounded-lg animate-pulse" />
+      </div>
+    }>
+      <NewScanInner />
+    </Suspense>
   );
 }
