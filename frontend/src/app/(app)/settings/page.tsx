@@ -4,7 +4,9 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api/client";
+import { useTour } from "@/components/tour/tour-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +19,11 @@ interface GitHubStatus {
 
 export default function SettingsPage() {
   const { getToken } = useAuth();
+  const router = useRouter();
+  const { startTour } = useTour();
   const [github, setGithub] = useState<GitHubStatus | null>(null);
   const [loading, setLoading] = useState(false);
+  const [resettingTour, setResettingTour] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -126,6 +131,21 @@ export default function SettingsPage() {
     }
   }
 
+  async function restartTour() {
+    setResettingTour(true);
+    try {
+      const token = (await getToken()) ?? undefined;
+      await apiFetch("/api/user/tour/reset", {
+        method: "POST",
+        token,
+      });
+      router.push("/dashboard");
+    } catch {
+      setResettingTour(false);
+      setError("Failed to reset tour.");
+    }
+  }
+
   return (
     <div className="space-y-8 max-w-2xl">
       <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Settings</h1>
@@ -211,6 +231,27 @@ export default function SettingsPage() {
             </p>
           </div>
         )}
+      </Card>
+
+      {/* Guided Tour */}
+      <Card className="p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-semibold mb-1">Guided Tour</h2>
+            <p className="text-sm text-[#8692A8]">
+              Retake the interactive walkthrough to learn how the platform works.
+            </p>
+          </div>
+        </div>
+        <div className="mt-4">
+          <Button
+            onClick={restartTour}
+            disabled={resettingTour}
+            className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]"
+          >
+            {resettingTour ? "Resetting..." : "Restart Tour"}
+          </Button>
+        </div>
       </Card>
     </div>
   );
