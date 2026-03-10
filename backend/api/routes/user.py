@@ -82,3 +82,35 @@ async def delete_scan(scan_id: UUID, request: Request) -> Response:
     if not deleted:
         raise HTTPException(status_code=404, detail="Scan not found")
     return Response(status_code=204)
+
+
+@router.get("/user/projects")
+@limiter.limit(rate_limit_string())
+async def list_projects(request: Request) -> list[dict]:
+    """Return all projects for the authenticated user."""
+    user_id: str = request.state.user_id
+    return await db.list_user_projects(user_id)
+
+
+@router.get("/user/projects/{project_id}/scans")
+@limiter.limit(rate_limit_string())
+async def get_project_scans(project_id: UUID, request: Request) -> dict:
+    """Return scan history and score trends for a project."""
+    user_id: str = request.state.user_id
+    project = await db.get_project(project_id)
+    if not project or project.get("user_id") != user_id:
+        raise HTTPException(status_code=404, detail="Project not found")
+    scans = await db.get_project_scan_history(project_id, user_id)
+    return {"project": project, "scans": scans}
+
+
+@router.get("/user/projects/{project_id}/intake")
+@limiter.limit(rate_limit_string())
+async def get_project_intake(project_id: UUID, request: Request) -> dict:
+    """Return latest project_intake for pre-filling the scan wizard."""
+    user_id: str = request.state.user_id
+    project = await db.get_project(project_id)
+    if not project or project.get("user_id") != user_id:
+        raise HTTPException(status_code=404, detail="Project not found")
+    intake = await db.get_latest_project_intake(project_id, user_id)
+    return {"project_intake": intake}
