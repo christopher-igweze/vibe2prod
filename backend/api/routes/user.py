@@ -84,6 +84,24 @@ async def delete_scan(scan_id: UUID, request: Request) -> Response:
     return Response(status_code=204)
 
 
+@router.post("/user/tour/complete")
+@limiter.limit(rate_limit_string())
+async def complete_tour(request: Request) -> dict:
+    """Mark the guided tour as completed for the authenticated user."""
+    user_id: str = request.state.user_id
+    await db.mark_tour_completed(user_id)
+    return {"ok": True}
+
+
+@router.post("/user/tour/reset")
+@limiter.limit(rate_limit_string())
+async def reset_tour(request: Request) -> dict:
+    """Reset the guided tour so the user can retake it."""
+    user_id: str = request.state.user_id
+    await db.reset_tour(user_id)
+    return {"ok": True}
+
+
 @router.get("/user/projects")
 @limiter.limit(rate_limit_string())
 async def list_projects(request: Request) -> list[dict]:
