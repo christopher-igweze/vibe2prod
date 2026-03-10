@@ -26,6 +26,10 @@ logger = logging.getLogger(__name__)
 PUBLIC_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
 PUBLIC_PREFIXES = ("/api/webhook/",)
 
+# Paths where auth is attempted but not required — if a valid token is present
+# the user_id is set, otherwise the request proceeds without it.
+OPTIONAL_AUTH_PREFIXES = ("/api/probe/",)
+
 # Cache the JWKS client (fetches and caches signing keys automatically)
 _jwks_client: PyJWKClient | None = None
 
@@ -56,8 +60,16 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
             request.state.user_id = "e2e_test_user"
             return await call_next(request)
 
+        is_optional = any(
+            request.url.path.startswith(prefix)
+            for prefix in OPTIONAL_AUTH_PREFIXES
+        )
+
         auth_header = request.headers.get("Authorization", "")
         if not auth_header.startswith("Bearer "):
+            if is_optional:
+                # No token on optional-auth route — proceed without user_id
+                return await call_next(request)
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Missing Bearer token"},
@@ -95,11 +107,15 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
 
             request.state.user_id = payload["sub"]
         except jwt.ExpiredSignatureError:
+            if is_optional:
+                return await call_next(request)
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Token expired"},
             )
         except jwt.InvalidTokenError as exc:
+            if is_optional:
+                return await call_next(request)
             return JSONResponse(
                 status_code=401,
                 content={"detail": f"Invalid token: {exc}"},
