@@ -97,7 +97,7 @@ function ReportSidebar({
 
       {/* Score gauges */}
       {hasScores && (
-        <Card className="forge-glass-card p-4">
+        <Card className="forge-glass-card p-4" data-tour="score-gauges">
           <p className="text-xs text-[#8692A8] uppercase tracking-wider mb-3">Scores</p>
           <div className="grid grid-cols-2 gap-3">
             {scores.map((s) =>
@@ -283,7 +283,7 @@ export default function ReportPage() {
 
           {/* Findings Table */}
           {report.findings.length > 0 && (
-            <section id="findings">
+            <section id="findings" data-tour="findings-table">
               <FindingsTable
                 actionableFindings={actionableFindings}
                 intentionalFindings={intentionalFindings}
@@ -293,7 +293,7 @@ export default function ReportPage() {
 
           {/* Remediation Plan */}
           {report.remediation_plan && report.remediation_plan.items.length > 0 && (
-            <section id="remediation">
+            <section id="remediation" data-tour="fix-button">
               <RemediationPlan plan={report.remediation_plan} />
             </section>
           )}

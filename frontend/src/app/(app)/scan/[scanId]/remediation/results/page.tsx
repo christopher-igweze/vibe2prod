@@ -190,7 +190,7 @@ export default function RemediationResultsPage() {
       </Link>
 
       {/* ── Hero Section ── */}
-      <div className="text-center space-y-6">
+      <div className="text-center space-y-6" data-tour="readiness-report">
         <div>
           <h1 className="text-3xl font-bold text-neutral-100 font-[family-name:var(--font-heading)]">
             Production Readiness Report
@@ -391,7 +391,7 @@ export default function RemediationResultsPage() {
         </Button>
 
         {status.pr_url && (
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white" data-tour="pr-link">
             <a href={status.pr_url} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="size-4 mr-1.5" />
               View Pull Request

@@ -143,7 +143,7 @@ export default function RemediationProgressPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       {/* Running state */}
       {isRunning && !error && (
-        <div className="flex flex-col items-center justify-center py-24 space-y-8">
+        <div className="flex flex-col items-center justify-center py-24 space-y-8" data-tour="progress-section">
           {/* Phase indicators */}
           <div className="flex items-center gap-6">
             <PhaseIndicator label="Discovery" state="done" />
