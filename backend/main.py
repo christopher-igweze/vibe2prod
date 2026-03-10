@@ -28,6 +28,7 @@ from api.routes import (
     primer,
     onboarding,
     github_oauth,
+    probe,
     user,
     webhook,
     webhook_clerk,
@@ -124,6 +125,7 @@ app.include_router(primer.router, prefix="/api", tags=["primer"])
 app.include_router(onboarding.router, prefix="/api", tags=["onboarding"])
 app.include_router(github_oauth.router, prefix="/api", tags=["github"])
 app.include_router(user.router, prefix="/api", tags=["user"])
+app.include_router(probe.router, prefix="/api", tags=["probe"])
 app.include_router(webhook.router, prefix="/api", tags=["webhook"])
 app.include_router(webhook_clerk.router, prefix="/api", tags=["webhook"])
 
