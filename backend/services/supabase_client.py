@@ -1037,17 +1037,13 @@ async def save_probe_findings(
     client.table("probe_findings").insert(rows).execute()
 
 
-async def get_probe(probe_id: str, user_id: str) -> dict | None:
-    """Fetch a probe by ID, scoped to the requesting user."""
+async def get_probe(probe_id: str, user_id: str | None = None) -> dict | None:
+    """Fetch a probe by ID. If user_id is given, scope to that user."""
     client = _client()
-    row = (
-        client.table("probes")
-        .select("*")
-        .eq("id", probe_id)
-        .eq("user_id", user_id)
-        .limit(1)
-        .execute()
-    )
+    q = client.table("probes").select("*").eq("id", probe_id)
+    if user_id:
+        q = q.eq("user_id", user_id)
+    row = q.limit(1).execute()
     if not row.data:
         return None
     return row.data[0]

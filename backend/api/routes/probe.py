@@ -10,6 +10,7 @@ GET  /api/user/probes       — list user's probes
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -38,8 +39,20 @@ from services.target_auth import (
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Non-onboarded users get this many free probes before requiring onboarding.
+# Non-onboarded / anonymous users get this many free probes.
 FREE_PROBE_LIMIT = 3
+
+
+def _get_user_id(request: Request) -> str:
+    """Return authenticated user_id or a deterministic anon ID from client IP."""
+    if hasattr(request.state, "user_id"):
+        return request.state.user_id
+    ip = request.client.host if request.client else "unknown"
+    return f"anon:{hashlib.sha256(ip.encode()).hexdigest()[:16]}"
+
+
+def _is_authenticated(request: Request) -> bool:
+    return hasattr(request.state, "user_id")
 
 
 # ------------------------------------------------------------------ #
@@ -125,9 +138,11 @@ async def _run_probe(probe_id: str, target_url: str, user_id: str, probe_type: s
 @router.post("/probe/authorize")
 @limiter.limit(rate_limit_string())
 async def authorize_domain(body: AuthorizeRequest, request: Request) -> dict:
-    """Generate a verification token for domain ownership."""
+    """Generate a verification token for domain ownership. Requires auth."""
     if not settings.probe_enabled:
         raise HTTPException(status_code=503, detail="Live probing is not enabled")
+    if not _is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Sign in to use domain verification")
     user_id: str = request.state.user_id
     domain = extract_domain(str(body.target_url))
     if not domain:
@@ -166,9 +181,11 @@ async def authorize_domain(body: AuthorizeRequest, request: Request) -> dict:
 @router.post("/probe/verify")
 @limiter.limit(rate_limit_string())
 async def verify_domain(body: VerifyRequest, request: Request) -> dict:
-    """Verify domain ownership via the chosen method."""
+    """Verify domain ownership via the chosen method. Requires auth."""
     if not settings.probe_enabled:
         raise HTTPException(status_code=503, detail="Live probing is not enabled")
+    if not _is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Sign in to use domain verification")
     user_id: str = request.state.user_id
     domain = extract_domain(str(body.target_url))
     if not domain:
@@ -209,34 +226,41 @@ async def start_probe(
     background_tasks: BackgroundTasks,
 ) -> ProbeResponse:
     """Start a security probe against a target URL."""
-    user_id: str = request.state.user_id
+    user_id = _get_user_id(request)
+    authenticated = _is_authenticated(request)
 
     if not settings.probe_enabled:
         raise HTTPException(status_code=503, detail="Live probing is not enabled")
 
-    # Enforce free-tier limit for non-onboarded users
-    profile = db.get_user_profile(user_id)
-    if not profile or not profile.get("onboarding_complete"):
+    profile = db.get_user_profile(user_id) if authenticated else None
+    role = profile.get("role", "user") if profile else "user"
+    onboarded = bool(profile and profile.get("onboarding_complete"))
+
+    # Enforce free-tier limit for anonymous and non-onboarded users
+    if not onboarded:
         existing_probes = await db.list_user_probes(user_id, limit=FREE_PROBE_LIMIT + 1)
         if len(existing_probes) >= FREE_PROBE_LIMIT:
-            raise HTTPException(
-                status_code=403,
-                detail=f"Free probe limit reached ({FREE_PROBE_LIMIT}). Complete onboarding for unlimited probes.",
+            msg = (
+                f"Free probe limit reached ({FREE_PROBE_LIMIT}). Sign up for unlimited probes."
+                if not authenticated
+                else f"Free probe limit reached ({FREE_PROBE_LIMIT}). Complete onboarding for unlimited probes."
             )
+            raise HTTPException(status_code=403, detail=msg)
 
     domain = extract_domain(str(body.target_url))
     if not domain:
         raise HTTPException(status_code=400, detail="Invalid target URL")
 
-    # Role check
-    role = profile.get("role", "user") if profile else "user"
-
-    # For beta/developer users, auto-authorize with manual_approve
-    if role in ("developer", "beta_tester"):
+    # Domain authorization — skip for anonymous users (public URL scanning)
+    auth_method: str | None = None
+    if not authenticated:
+        auth_method = "anonymous"
+    elif role in ("developer", "beta_tester"):
         existing = await db.get_authorized_target(user_id, domain)
         if not existing:
             expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
             await db.save_authorized_target(user_id, domain, "manual_approve", expires_at)
+        auth_method = "manual_approve"
     elif not await is_authorized(user_id, domain, db):
         raise HTTPException(
             status_code=403,
@@ -251,7 +275,7 @@ async def start_probe(
         "status": "pending",
         "probe_type": body.probe_type,
         "config": body.config,
-        "auth_method": "manual_approve" if role in ("developer", "beta_tester") else None,
+        "auth_method": auth_method,
     }
     if body.project_id:
         probe_data["project_id"] = str(body.project_id)
@@ -275,9 +299,8 @@ async def start_probe(
 @router.get("/probe/{probe_id}")
 @limiter.limit(rate_limit_string())
 async def get_probe_status(probe_id: str, request: Request) -> dict:
-    """Return probe status and results."""
-    user_id: str = request.state.user_id
-    probe = await db.get_probe(probe_id, user_id)
+    """Return probe status and results. Public — UUID is unguessable."""
+    probe = await db.get_probe(probe_id)
     if not probe:
         raise HTTPException(status_code=404, detail="Probe not found")
     return probe
@@ -291,9 +314,10 @@ async def get_probe_status(probe_id: str, request: Request) -> dict:
 @router.get("/probe/{probe_id}/findings")
 @limiter.limit(rate_limit_string())
 async def get_probe_findings(probe_id: str, request: Request) -> list[dict]:
-    """Return all findings for a probe."""
+    """Return all findings for a probe. Requires auth — detailed findings are gated."""
+    if not _is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Sign in to view detailed findings")
     user_id: str = request.state.user_id
-    # Verify probe exists and belongs to user
     probe = await db.get_probe(probe_id, user_id)
     if not probe:
         raise HTTPException(status_code=404, detail="Probe not found")
@@ -308,12 +332,13 @@ async def get_probe_findings(probe_id: str, request: Request) -> list[dict]:
 @router.get("/probe/quota")
 @limiter.limit(rate_limit_string())
 async def probe_quota(request: Request) -> dict:
-    """Return remaining free probes (for non-onboarded users)."""
-    user_id: str = request.state.user_id
-    profile = db.get_user_profile(user_id)
-    onboarded = bool(profile and profile.get("onboarding_complete"))
-    if onboarded:
-        return {"onboarded": True, "remaining": -1, "limit": -1}
+    """Return remaining free probes. Works for both anonymous and authenticated users."""
+    user_id = _get_user_id(request)
+    authenticated = _is_authenticated(request)
+    if authenticated:
+        profile = db.get_user_profile(user_id)
+        if profile and profile.get("onboarding_complete"):
+            return {"onboarded": True, "remaining": -1, "limit": -1}
     used = len(await db.list_user_probes(user_id, limit=FREE_PROBE_LIMIT + 1))
     return {
         "onboarded": False,
@@ -330,6 +355,8 @@ async def probe_quota(request: Request) -> dict:
 @router.get("/user/probes")
 @limiter.limit(rate_limit_string())
 async def list_probes(request: Request) -> list[dict]:
-    """Return the authenticated user's probes."""
+    """Return the authenticated user's probes. Requires auth."""
+    if not _is_authenticated(request):
+        raise HTTPException(status_code=401, detail="Sign in to view probe history")
     user_id: str = request.state.user_id
     return await db.list_user_probes(user_id)
