@@ -86,6 +86,13 @@ class Settings(BaseSettings):
     forge_package_source: str = "vibe2prod"
     forge_deploy_token: str | None = None  # GitHub PAT for private forge-engine repo access
 
+    # --- Live Probe ---
+    probe_enabled: bool = False
+    probe_max_concurrent: int = 5
+    probe_request_timeout_seconds: int = 10
+    probe_max_urls_per_probe: int = 100
+    probe_rate_limit_per_target: int = 10
+
     # --- FORGE Engine ---
     forge_enabled: bool = False
     forge_agentfield_url: str = "http://localhost:8080"
