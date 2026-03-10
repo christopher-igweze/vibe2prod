@@ -316,6 +316,36 @@ export interface ScanFixStatus {
   error: string | null
 }
 
+// ── Project & Scan History ────────────────────────────────────────
+
+export interface ProjectSummary {
+  id: string
+  repo_url: string
+  repo_name: string | null
+  scan_count: number
+  latest_health_score: number | null
+  latest_scan_tier: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ScanHistoryItem {
+  id: string
+  status: string
+  scan_tier: string
+  health_score: number | null
+  security_score: number | null
+  reliability_score: number | null
+  scalability_score: number | null
+  created_at: string
+  completed_at: string | null
+}
+
+export interface ProjectScanHistory {
+  project: ProjectSummary
+  scans: ScanHistoryItem[]
+}
+
 // ── User roles & profile ─────────────────────────────────────────
 
 export type UserRole = 'developer' | 'beta_tester' | 'user'
