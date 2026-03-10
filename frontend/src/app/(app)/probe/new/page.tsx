@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import {
@@ -130,6 +130,22 @@ export default function NewProbePage() {
   const [selectedTests, setSelectedTests] = useState<Set<string>>(
     new Set(TEST_CATEGORIES.map((c) => c.id))
   )
+
+  // Quota
+  const [quota, setQuota] = useState<{ onboarded: boolean; remaining: number; limit: number } | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadQuota() {
+      try {
+        const token = (await getToken()) ?? undefined
+        const data = await apiFetch<{ onboarded: boolean; remaining: number; limit: number }>("/api/probe/quota", { token })
+        if (!cancelled) setQuota(data)
+      } catch { /* non-critical */ }
+    }
+    loadQuota()
+    return () => { cancelled = true }
+  }, [getToken])
 
   // Step 3: Submit
   const [submitting, setSubmitting] = useState(false)
@@ -290,6 +306,18 @@ export default function NewProbePage() {
         <p className="text-[#8692A8] text-sm">
           Test your deployed application for security vulnerabilities in real-time.
         </p>
+        {quota && !quota.onboarded && (
+          <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg bg-forge-emerald/5 border border-forge-emerald/20 text-xs">
+            <Shield className="size-3.5 text-forge-emerald shrink-0" />
+            <span className="text-[#8692A8]">
+              <span className="text-forge-emerald font-semibold">{quota.remaining}</span> of {quota.limit} free probes remaining.
+              {quota.remaining === 0
+                ? <> <a href="/onboarding" className="text-forge-emerald hover:underline font-medium">Complete onboarding</a> for unlimited probes.</>
+                : <> <a href="/onboarding" className="text-forge-emerald hover:underline font-medium">Onboard</a> for unlimited probes + detailed reports.</>
+              }
+            </span>
+          </div>
+        )}
       </div>
 
       <ProbeStepIndicator currentStep={step} />
