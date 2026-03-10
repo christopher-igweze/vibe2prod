@@ -142,7 +142,7 @@ function FindingRow({ finding }: { finding: ProbeFinding }) {
 
 export default function ProbeResultPage() {
   const params = useParams<{ probeId: string }>()
-  const { getToken } = useAuth()
+  const { getToken, isSignedIn } = useAuth()
   const probeId = params.probeId
 
   const { profile } = useUserRole()
@@ -154,15 +154,15 @@ export default function ProbeResultPage() {
   const [error, setError] = useState<string | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Polling for probe status
+  // Polling for probe status (public — no auth needed)
   useEffect(() => {
     let cancelled = false
     let failures = 0
 
     const poll = async () => {
       try {
-        const token = (await getToken()) ?? undefined
-        const data = await apiFetch<ProbeDetail>(`/api/probe/${probeId}`, { token })
+        // Probe status is public — no token needed
+        const data = await apiFetch<ProbeDetail>(`/api/probe/${probeId}`)
         failures = 0
         if (cancelled) return
 
@@ -172,13 +172,14 @@ export default function ProbeResultPage() {
           if (pollRef.current) clearInterval(pollRef.current)
           setLoading(false)
 
-          // Fetch findings on completion
-          if (data.status === "completed") {
+          // Fetch findings only for signed-in users (endpoint requires auth)
+          if (data.status === "completed" && isSignedIn) {
             try {
+              const token = (await getToken()) ?? undefined
               const f = await apiFetch<ProbeFinding[]>(`/api/probe/${probeId}/findings`, { token })
               if (!cancelled) setFindings(f)
             } catch {
-              // Findings fetch is non-critical
+              // Findings fetch is non-critical (may fail for non-onboarded)
             }
           }
         } else {
@@ -201,7 +202,7 @@ export default function ProbeResultPage() {
       cancelled = true
       if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [probeId, getToken])
+  }, [probeId, getToken, isSignedIn])
 
   // ---------------------------------------------------------------------------
   // Loading state
@@ -433,7 +434,22 @@ export default function ProbeResultPage() {
       </div>
 
       {/* Findings list */}
-      {!isOnboarded ? (
+      {!isSignedIn ? (
+        <Card className="forge-glass-card p-8 text-center space-y-4">
+          <Lock className="size-8 text-forge-emerald mx-auto" />
+          <div>
+            <p className="text-sm text-[#E8ECF4] font-medium">
+              {probe.total_findings} finding{probe.total_findings !== 1 ? "s" : ""} detected
+            </p>
+            <p className="text-xs text-[#8692A8] mt-1">
+              Sign up to see detailed findings, evidence, and remediation guidance.
+            </p>
+          </div>
+          <Button asChild className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]">
+            <Link href="/sign-up">Sign Up Free</Link>
+          </Button>
+        </Card>
+      ) : !isOnboarded ? (
         <Card className="forge-glass-card p-8 text-center space-y-4">
           <Lock className="size-8 text-forge-emerald mx-auto" />
           <div>
