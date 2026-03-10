@@ -38,6 +38,9 @@ from services.target_auth import (
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+# Non-onboarded users get this many free probes before requiring onboarding.
+FREE_PROBE_LIMIT = 3
+
 
 # ------------------------------------------------------------------ #
 # Background task: run the probe
@@ -211,12 +214,22 @@ async def start_probe(
     if not settings.probe_enabled:
         raise HTTPException(status_code=503, detail="Live probing is not enabled")
 
+    # Enforce free-tier limit for non-onboarded users
+    profile = db.get_user_profile(user_id)
+    if not profile or not profile.get("onboarding_complete"):
+        existing_probes = await db.list_user_probes(user_id, limit=FREE_PROBE_LIMIT + 1)
+        if len(existing_probes) >= FREE_PROBE_LIMIT:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Free probe limit reached ({FREE_PROBE_LIMIT}). Complete onboarding for unlimited probes.",
+            )
+
     domain = extract_domain(str(body.target_url))
     if not domain:
         raise HTTPException(status_code=400, detail="Invalid target URL")
 
     # Role check
-    role = db.get_user_role(user_id)
+    role = profile.get("role", "user") if profile else "user"
 
     # For beta/developer users, auto-authorize with manual_approve
     if role in ("developer", "beta_tester"):
@@ -285,6 +298,28 @@ async def get_probe_findings(probe_id: str, request: Request) -> list[dict]:
     if not probe:
         raise HTTPException(status_code=404, detail="Probe not found")
     return await db.get_probe_findings(probe_id, user_id)
+
+
+# ------------------------------------------------------------------ #
+# GET /api/probe/quota
+# ------------------------------------------------------------------ #
+
+
+@router.get("/probe/quota")
+@limiter.limit(rate_limit_string())
+async def probe_quota(request: Request) -> dict:
+    """Return remaining free probes (for non-onboarded users)."""
+    user_id: str = request.state.user_id
+    profile = db.get_user_profile(user_id)
+    onboarded = bool(profile and profile.get("onboarding_complete"))
+    if onboarded:
+        return {"onboarded": True, "remaining": -1, "limit": -1}
+    used = len(await db.list_user_probes(user_id, limit=FREE_PROBE_LIMIT + 1))
+    return {
+        "onboarded": False,
+        "remaining": max(0, FREE_PROBE_LIMIT - used),
+        "limit": FREE_PROBE_LIMIT,
+    }
 
 
 # ------------------------------------------------------------------ #
