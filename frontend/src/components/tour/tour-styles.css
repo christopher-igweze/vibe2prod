@@ -1,0 +1,58 @@
+/* Driver.js theme overrides for Forge dark UI */
+.driver-popover {
+  background: #0F1420 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #E8ECF4 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.driver-popover .driver-popover-title {
+  color: #34d399 !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+.driver-popover .driver-popover-description {
+  color: #8692A8 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+.driver-popover .driver-popover-progress-text {
+  color: #4E586E !important;
+}
+
+.driver-popover .driver-popover-prev-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #8692A8 !important;
+  border-radius: 6px !important;
+}
+
+.driver-popover .driver-popover-prev-btn:hover {
+  color: #E8ECF4 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.driver-popover .driver-popover-next-btn,
+.driver-popover .driver-popover-close-btn {
+  background: #34d399 !important;
+  color: #0B0F19 !important;
+  border: none !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+}
+
+.driver-popover .driver-popover-next-btn:hover,
+.driver-popover .driver-popover-close-btn:hover {
+  background: #2bb882 !important;
+}
+
+.driver-popover-arrow {
+  border-color: #0F1420 !important;
+}
+
+.driver-overlay {
+  background: rgba(11, 15, 25, 0.75) !important;
+}
