@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Download, Trash2, Loader2, Copy, Check, RefreshCw, ChevronRight } from "lucide-react";
 import { apiFetch } from "@/lib/api/client";
 import { useUserRole } from "@/hooks/use-user-role";
+import { useTour } from "@/components/tour/tour-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -206,6 +207,7 @@ function ScanRow({
 export default function DashboardPage() {
   const { getToken } = useAuth();
   const { role, profile } = useUserRole();
+  const { startTour } = useTour();
   const [scans, setScans] = useState<ScanSummary[]>([]);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -246,6 +248,14 @@ export default function DashboardPage() {
     }
     load();
   }, [getToken]);
+
+  // Auto-trigger tour after onboarding
+  useEffect(() => {
+    if (!loading && profile?.onboarding_complete && profile?.tour_completed === false) {
+      const timer = setTimeout(() => startTour("/dashboard"), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, profile, startTour]);
 
   async function handleDownload(scan: ScanSummary) {
     setDownloadingId(scan.id);
