@@ -81,6 +81,57 @@ async def get_project_by_repo_url(user_id: str, repo_url: str) -> dict | None:
     return row.data[0]
 
 
+async def list_user_projects(user_id: str, limit: int = 50) -> list[dict]:
+    """Return all projects for a user, with latest scan info."""
+    client = _client()
+    row = (
+        client.table("projects")
+        .select("id,repo_url,repo_name,scan_count,latest_health_score,latest_scan_tier,created_at,updated_at")
+        .eq("user_id", str(user_id))
+        .order("updated_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return row.data or []
+
+
+async def get_project_scan_history(
+    project_id: UUID, user_id: str, limit: int = 50
+) -> list[dict]:
+    """Return scan reports for a project, newest first, with scores."""
+    client = _client()
+    row = (
+        client.table("scan_reports")
+        .select("id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,created_at,completed_at")
+        .eq("project_id", str(project_id))
+        .eq("user_id", str(user_id))
+        .order("created_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+    return row.data or []
+
+
+async def get_latest_project_intake(
+    project_id: UUID, user_id: str
+) -> dict | None:
+    """Return project_intake from the most recent scan for intake pre-fill."""
+    client = _client()
+    row = (
+        client.table("scan_reports")
+        .select("project_intake")
+        .eq("project_id", str(project_id))
+        .eq("user_id", str(user_id))
+        .not_.is_("project_intake", "null")
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None
+    return row.data[0].get("project_intake")
+
+
 # ------------------------------------------------------------------ #
 # Scan reports
 # ------------------------------------------------------------------ #
