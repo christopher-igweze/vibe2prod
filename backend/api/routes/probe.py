@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from collections import Counter
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
@@ -61,68 +60,94 @@ def _is_authenticated(request: Request) -> bool:
 
 
 async def _run_probe(probe_id: str, target_url: str, user_id: str, probe_type: str, config: dict | None = None) -> None:
-    """Background task that executes the probe engine and stores results."""
-    from services.probe_engine import ProbeEngine
+    """Background task that triggers probe service scan and stores results."""
+    import asyncio
+    from services.probe_bridge import probe_bridge
 
     now_iso = datetime.now(timezone.utc).isoformat()
     try:
         await db.update_probe_status(probe_id, "running", started_at=now_iso)
 
-        engine = ProbeEngine(target_url, probe_type, config=config)
-        result = await engine.run()
+        # Trigger scan on probe service
+        trigger_result = await probe_bridge.trigger_scan(target_url, config or {})
+        if trigger_result.status == "error":
+            raise RuntimeError(f"Probe service error: {trigger_result.error}")
 
+        job_id = trigger_result.job_id
+        if not job_id:
+            raise RuntimeError("Probe service returned no job_id")
+        logger.info("Probe %s → service job %s", probe_id, job_id)
+
+        # Poll until completion (max 70 minutes, 10s interval)
+        poll_interval = 10
+        max_wait = 4200  # 70 minutes
+        elapsed = 0
+        current_status = "queued"
+
+        while elapsed < max_wait:
+            await asyncio.sleep(poll_interval)
+            elapsed += poll_interval
+            try:
+                status = await probe_bridge.get_status(job_id)
+                current_status = status.get("status", "unknown")
+            except Exception as poll_err:
+                logger.warning("Poll failed for %s (will retry): %s", job_id, poll_err)
+                continue
+
+            if current_status in ("completed", "failed", "cancelled"):
+                break
+
+        if current_status != "completed":
+            raise RuntimeError(f"Probe service scan {current_status} after {elapsed}s")
+
+        # Fetch results
+        results = await probe_bridge.get_results(job_id)
         completed_iso = datetime.now(timezone.utc).isoformat()
-
-        # Count severities
-        severity_counts = Counter(f.severity for f in result.findings)
 
         await db.update_probe_results(
             probe_id,
-            total_findings=len(result.findings),
-            critical_count=severity_counts.get("critical", 0),
-            high_count=severity_counts.get("high", 0),
-            medium_count=severity_counts.get("medium", 0),
-            low_count=severity_counts.get("low", 0),
-            probe_score=result.probe_score,
-            report_data={"findings_summary": [f.model_dump() for f in result.findings[:50]]},
+            total_findings=results.get("total_findings", 0),
+            critical_count=results.get("critical_count", 0),
+            high_count=results.get("high_count", 0),
+            medium_count=results.get("medium_count", 0),
+            low_count=results.get("low_count", 0),
+            probe_score=results.get("probe_score", 0),
+            report_data={"findings_summary": results.get("findings", [])[:50]},
         )
 
         # Save individual findings
-        finding_rows = [
-            {
-                "title": f.title,
-                "description": f.description,
-                "category": f.category,
-                "severity": f.severity,
-                "url_tested": f.url_tested,
-                "method": f.method,
-                "request_summary": f.request_summary,
-                "response_summary": f.response_summary,
-                "evidence": f.evidence,
-                "owasp_category": f.owasp_category,
-                "cwe_id": f.cwe_id,
-                "confidence": f.confidence,
-            }
-            for f in result.findings
-        ]
+        finding_rows = []
+        for f in results.get("findings", []):
+            finding_rows.append({
+                "title": f.get("title", ""),
+                "description": f.get("description", ""),
+                "category": f.get("tool", ""),
+                "severity": f.get("severity", "info"),
+                "url_tested": f.get("url", ""),
+                "method": "GET",
+                "request_summary": "",
+                "response_summary": "",
+                "evidence": f.get("evidence", ""),
+                "owasp_category": "",
+                "cwe_id": "",
+                "confidence": f.get("confidence", 0.8),
+            })
         await db.save_probe_findings(probe_id, user_id, finding_rows)
 
         await db.update_probe_status(
-            probe_id,
-            "completed",
+            probe_id, "completed",
             completed_at=completed_iso,
-            duration_seconds=result.duration_seconds,
+            duration_seconds=results.get("duration_seconds", 0.0),
         )
         logger.info(
-            "Probe %s completed: score=%d, findings=%d (%.1fs)",
-            probe_id, result.probe_score, len(result.findings), result.duration_seconds,
+            "Probe %s completed: score=%d, findings=%d",
+            probe_id, results.get("probe_score", 0), results.get("total_findings", 0),
         )
     except Exception as exc:
         logger.exception("Probe %s failed: %s", probe_id, exc)
         try:
             await db.update_probe_status(
-                probe_id,
-                "failed",
+                probe_id, "failed",
                 completed_at=datetime.now(timezone.utc).isoformat(),
             )
         except Exception:
@@ -231,6 +256,9 @@ async def start_probe(
 
     if not settings.probe_enabled:
         raise HTTPException(status_code=503, detail="Live probing is not enabled")
+
+    if not settings.probe_service_url:
+        raise HTTPException(status_code=503, detail="Probe service not configured")
 
     profile = db.get_user_profile(user_id) if authenticated else None
     role = profile.get("role", "user") if profile else "user"
