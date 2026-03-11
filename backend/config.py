@@ -93,6 +93,10 @@ class Settings(BaseSettings):
     probe_max_urls_per_probe: int = 100
     probe_rate_limit_per_target: int = 10
 
+    # --- Security Probe Service ---
+    probe_service_url: str = ""  # e.g. http://security-probe:8080
+    probe_service_api_key: str = ""
+
     # --- FORGE Engine ---
     forge_enabled: bool = False
     forge_agentfield_url: str = "http://localhost:8080"
