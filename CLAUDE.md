@@ -75,3 +75,8 @@ The FORGE engine is documented in `doc/forge-engine-context.md`. Key points:
 ## Database
 
 Supabase (PostgreSQL + RLS). Migrations in `supabase/migrations/`. All DB access goes through `services/supabase_client.py` using the service role key (bypasses RLS for backend operations).
+
+## Sibling Repos
+
+- **forge-engine** (`../forge-engine`): 12-agent AI remediation engine. Has its own specs in `docs/superpowers/specs/`.
+- **security-probe** (`../security-probe`): Live vulnerability scanning microservice. Has its own specs in `docs/superpowers/specs/`.
