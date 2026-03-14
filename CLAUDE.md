@@ -66,7 +66,7 @@ benchmarks/
 
 ## FORGE Engine Context
 
-The FORGE engine is documented in `doc/forge-engine-context.md`. Key points:
+The FORGE engine is documented in `docs/forge-engine-context.md`. Key points:
 - 12 agents across 4 phases: Discovery (codebase analyst, security/quality auditors, architecture reviewer) → Triage (classifier, fix strategist) → Remediation (coders, test gen, code reviewer, escalation) → Validation (integration validator, debt tracker)
 - Three-loop control: inner (coder retry, max 3), middle (escalation: reclassify/split/defer), outer (replan, max 1)
 - Sonnet 4.6 for coders, Haiku 4.5 for planning agents, Minimax M2.5 for cheap analysis
