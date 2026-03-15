@@ -411,26 +411,13 @@ async def github_connection_status(request: Request):
     if not token:
         return {"connected": False}
 
-    # Verify token is still valid
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(
-                "https://api.github.com/user",
-                headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": f"Bearer {token}",
-                },
-            )
-    except (httpx.TimeoutException, httpx.ConnectError):
-        return {"connected": False, "error": "github_unreachable"}
-
-    if resp.status_code != 200:
-        return {"connected": False, "error": "token_expired"}
-
-    data = resp.json()
+    # Token exists in DB, assume connected
+    # If GitHub revoked the token, subsequent API calls (e.g., list_repos)
+    # will fail with 401 and handle that appropriately
+    github_username, avatar_url = await db.get_github_profile(user_id)
     return {
         "connected": True,
-        "github_username": data.get("login"),
-        "avatar_url": data.get("avatar_url"),
+        "github_username": github_username,
+        "avatar_url": avatar_url,
     }
 
