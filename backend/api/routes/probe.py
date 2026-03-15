@@ -25,7 +25,7 @@ from models.probe import (
     VerifyRequest,
 )
 from services import supabase_client as db
-from services import probe_service
+from services.probe_service import probe_service
 from services.target_auth import (
     extract_domain,
     generate_verification_token,
@@ -52,6 +52,23 @@ def _get_user_id(request: Request) -> str:
 
 def _is_authenticated(request: Request) -> bool:
     return hasattr(request.state, "user_id")
+
+
+# ------------------------------------------------------------------ #
+# Background task: run the probe (delegates to ProbeService)
+# ------------------------------------------------------------------ #
+
+
+async def _run_probe(probe_id: str, target_url: str, user_id: str, probe_type: str, config: dict | None = None) -> None:
+    """Background task that delegates to ProbeService for security probe execution."""
+    await probe_service.run_probe(
+        probe_id=probe_id,
+        target_url=target_url,
+        user_id=user_id,
+        probe_type=probe_type,
+        config=config,
+    )
+
 
 
 # ------------------------------------------------------------------ #
