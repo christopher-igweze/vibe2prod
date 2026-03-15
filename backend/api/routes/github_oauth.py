@@ -356,6 +356,19 @@ async def list_repo_branches(
             detail={"code": "github_not_connected", "message": "GitHub is not connected."},
         )
 
+    # Validate repository ownership to prevent IDOR
+    repo_url = f"https://github.com/{owner}/{repo}"
+    project = await db.get_project_by_repo_url(user_id, repo_url)
+    if not project:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "repo_not_authorized",
+                "message": "You don't have access to this repository. "
+                "Please add the repository to your account first.",
+            },
+        )
+
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             resp = await client.get(
