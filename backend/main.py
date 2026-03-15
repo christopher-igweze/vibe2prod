@@ -78,6 +78,11 @@ app = FastAPI(
 # ------------------------------------------------------------------ #
 _cors_origins = [o.strip() for o in settings.cors_allowed_origins.split(",") if o.strip()]
 
+# Known Vercel production projects (comma-separated). If set, only these project
+# subdomains on vercel.app will be allowed. This restricts the overly permissive
+# wildcard pattern for security (CWE-346).
+_vercel_projects = [p.strip() for p in settings.cors_vercel_projects.split(",") if p.strip()]
+
 if _cors_origins:
     # Production: explicit origin allowlist
     app.add_middleware(
@@ -87,13 +92,33 @@ if _cors_origins:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
     )
+elif _vercel_projects:
+    # Development with known Vercel projects: restrict to explicit project list
+    # Build regex: ^https://project1\.vercel\.app$|^https://project2\.vercel\.app$, etc.
+    _vercel_pattern = "|".join(
+        rf"^https://{_re.escape(project)}\.vercel\.app$" for project in _vercel_projects
+    )
+    _cors_regex = (
+        r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|"
+        + _vercel_pattern
+        + r"|^https://(www\.)?vibe2prod\.com$|^https://.*\.verstandai\.site$"
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=_cors_regex,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 else:
-    # Development fallback: regex-based matching
+    # Development fallback: only localhost (no Vercel wildcard)
+    # WARNING: Without cors_allowed_origins or cors_vercel_projects configured,
+    # Vercel preview deployments will be blocked. Set cors_vercel_projects to
+    # allow specific Vercel projects, or configure cors_allowed_origins for production.
     app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=(
             r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
-            r"|^https://.*\.vercel\.app$"
             r"|^https://(www\.)?vibe2prod\.com$"
             r"|^https://.*\.verstandai\.site$"
         ),
