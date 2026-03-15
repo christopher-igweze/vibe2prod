@@ -22,6 +22,7 @@
 {"ts": 1773555333.3320801, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 550726, "output_tokens": 7934, "api_calls": 30, "api_time_ms": 216143, "cost_usd": 0.147202}
 {"ts": 1773555724.231884, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 254966, "output_tokens": 4559, "api_calls": 19, "api_time_ms": 289393, "cost_usd": 0.069212}
 {"ts": 1773556688.231934, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 494362, "output_tokens": 3470, "api_calls": 30, "api_time_ms": 220931, "cost_usd": 0.127755}
-{"ts": 1773584965.8244202, "model": "anthropic/claude-sonnet-4.6", "mode": "agent", "input_tokens": 1015276, "output_tokens": 12753, "api_calls": 30, "api_time_ms": 197818, "cost_usd": 3.237123}
-{"ts": 1773585491.141464, "model": "moonshotai/kimi-k2.5", "mode": "agent", "input_tokens": 418013, "output_tokens": 3125, "api_calls": 18, "api_time_ms": 154259, "cost_usd": 0.194981}
-{"ts": 1773585830.067273, "model": "moonshotai/kimi-k2.5", "mode": "agent", "input_tokens": 427445, "output_tokens": 4232, "api_calls": 19, "api_time_ms": 272717, "cost_usd": 0.201661}
+{"ts": 1773585027.1981592, "model": "anthropic/claude-sonnet-4.6", "mode": "agent", "input_tokens": 1004904, "output_tokens": 12380, "api_calls": 30, "api_time_ms": 198643, "cost_usd": 3.200412}
+{"ts": 1773585266.967045, "model": "moonshotai/kimi-k2.5", "mode": "agent", "input_tokens": 468019, "output_tokens": 5021, "api_calls": 24, "api_time_ms": 175251, "cost_usd": 0.221655}
+{"ts": 1773585597.4011781, "model": "moonshotai/kimi-k2.5", "mode": "agent", "input_tokens": 544420, "output_tokens": 5951, "api_calls": 24, "api_time_ms": 272310, "cost_usd": 0.258081}
+{"ts": 1773586148.958358, "model": "anthropic/claude-sonnet-4.6", "mode": "agent", "input_tokens": 770806, "output_tokens": 6405, "api_calls": 27, "api_time_ms": 129237, "cost_usd": 2.408493}
