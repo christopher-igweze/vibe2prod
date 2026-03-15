@@ -235,6 +235,21 @@ async def fail_orphaned_scans() -> int:
     return len(result.data) if result.data else 0
 
 
+async def check_database_health() -> bool:
+    """Verify database connectivity by executing a simple query.
+
+    Returns True if database is reachable and responsive, False otherwise.
+    This is used for health checks and startup verification.
+    """
+    try:
+        client = _client()
+        # Execute a simple query to verify connectivity
+        result = client.table("projects").select("id").limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+
 def _compute_scores_from_discovery(discovery_report: dict) -> dict[str, int]:
     """Derive health/security/reliability/scalability scores from findings.
 
