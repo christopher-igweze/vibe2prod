@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Request, HTTPException
@@ -110,7 +111,12 @@ async def reset_tour(request: Request) -> dict:
 async def list_projects(request: Request) -> list[dict]:
     """Return all projects for the authenticated user."""
     user_id: str = request.state.user_id
-    return await db.list_user_projects(user_id)
+    try:
+        return await db.list_user_projects(user_id)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error listing projects for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve projects")
 
 
 @router.get("/user/projects/{project_id}/scans")
@@ -118,11 +124,18 @@ async def list_projects(request: Request) -> list[dict]:
 async def get_project_scans(project_id: UUID, request: Request) -> dict:
     """Return scan history and score trends for a project."""
     user_id: str = request.state.user_id
-    project = await db.get_project(project_id)
-    if not project or project.get("user_id") != user_id:
-        raise HTTPException(status_code=404, detail="Project not found")
-    scans = await db.get_project_scan_history(project_id, user_id)
-    return {"project": project, "scans": scans}
+    try:
+        project = await db.get_project(project_id)
+        if not project or project.get("user_id") != user_id:
+            raise HTTPException(status_code=404, detail="Project not found")
+        scans = await db.get_project_scan_history(project_id, user_id)
+        return {"project": project, "scans": scans}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching scans for project {project_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve project scans")
 
 
 @router.get("/user/projects/{project_id}/intake")
@@ -130,8 +143,15 @@ async def get_project_scans(project_id: UUID, request: Request) -> dict:
 async def get_project_intake(project_id: UUID, request: Request) -> dict:
     """Return latest project_intake for pre-filling the scan wizard."""
     user_id: str = request.state.user_id
-    project = await db.get_project(project_id)
-    if not project or project.get("user_id") != user_id:
-        raise HTTPException(status_code=404, detail="Project not found")
-    intake = await db.get_latest_project_intake(project_id, user_id)
-    return {"project_intake": intake}
+    try:
+        project = await db.get_project(project_id)
+        if not project or project.get("user_id") != user_id:
+            raise HTTPException(status_code=404, detail="Project not found")
+        intake = await db.get_latest_project_intake(project_id, user_id)
+        return {"project_intake": intake}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching intake for project {project_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve project intake")
