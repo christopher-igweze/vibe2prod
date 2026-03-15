@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import hmac
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import urlencode, urlparse, parse_qs
@@ -113,6 +114,64 @@ class GitHubOAuthService:
                 },
             ) from exc
         return payload
+
+    def validate_oauth_state(
+        self,
+        state: str,
+        expected_user_id: str,
+        expected_redirect_uri: str,
+    ) -> None:
+        """Validate OAuth state matches expected user_id and redirect_uri.
+        
+        Uses constant-time comparison to prevent timing attacks.
+        """
+        state_payload = self._decode_state(state)
+        
+        # Use constant-time comparison to prevent timing attacks
+        if not hmac.compare_digest(state_payload.get("sub", ""), expected_user_id):
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "code": "oauth_state_user_mismatch",
+                    "message": "GitHub OAuth state does not belong to this user.",
+                },
+            )
+        # Use constant-time comparison to prevent timing attacks
+        if not hmac.compare_digest(state_payload.get("redirect_uri", ""), expected_redirect_uri):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "oauth_state_redirect_mismatch",
+                    "message": "GitHub OAuth redirect URI mismatch.",
+                },
+            )
+
+    def build_auth_url(self, redirect_uri: str, state: str) -> str:
+        """Build the GitHub OAuth authorization URL."""
+        query = urlencode(
+            {
+                "client_id": settings.github_client_id,
+                "redirect_uri": redirect_uri,
+                "scope": settings.github_oauth_scope,
+                "state": state,
+            }
+        )
+        return f"https://github.com/login/oauth/authorize?{query}"
+
+    def get_auth_url(self, user_id: str, redirect_uri: str) -> str:
+        """Generate the GitHub OAuth authorization URL for a user.
+        
+        Args:
+            user_id: The user ID to encode in the state
+            redirect_uri: The redirect URI after OAuth completion
+            
+        Returns:
+            The full authorization URL
+        """
+        self._ensure_oauth_configured()
+        self._validate_redirect_uri(redirect_uri)
+        state = self._encode_state(user_id=user_id, redirect_uri=redirect_uri)
+        return self.build_auth_url(redirect_uri, state)
 
     async def exchange_code_for_token(
         self,
@@ -485,6 +544,25 @@ class GitHubOAuthService:
             "github_username": data.get("login"),
             "avatar_url": data.get("avatar_url"),
         }
+
+    async def connect_user(
+        self,
+        user_id: str,
+        access_token: str,
+        github_username: str | None = None,
+        avatar_url: str | None = None,
+    ) -> None:
+        """Persist GitHub OAuth credentials for a user."""
+        await db.save_github_connection(
+            user_id=user_id,
+            access_token=access_token,
+            github_username=github_username,
+            avatar_url=avatar_url,
+        )
+
+    async def disconnect_user(self, user_id: str) -> None:
+        """Remove GitHub OAuth credentials for a user."""
+        await db.clear_github_connection(user_id=user_id)
 
 
 # Module-level singleton
