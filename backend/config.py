@@ -73,6 +73,7 @@ class Settings(BaseSettings):
 
     # --- CORS ---
     cors_allowed_origins: str = ""  # Comma-separated explicit origins for production
+    cors_vercel_projects: str = ""  # Comma-separated Vercel project names (for preview deployments)
 
     # --- Rate Limiting ---
     rate_limit_per_minute: int = 10
