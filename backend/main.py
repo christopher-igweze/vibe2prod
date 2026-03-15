@@ -220,7 +220,14 @@ async def health():
     from services import supabase_client as db
 
     # Verify database connectivity
-    db_healthy = await db.check_database_health()
+    try:
+        db_healthy = await db.check_database_health()
+    except Exception as e:
+        logger.exception("Health check failed with exception")
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "database": "error", "message": str(e)},
+        )
 
     if not db_healthy:
         return JSONResponse(

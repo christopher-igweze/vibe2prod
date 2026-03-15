@@ -22,3 +22,4 @@
 {"ts": 1773555333.3320801, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 550726, "output_tokens": 7934, "api_calls": 30, "api_time_ms": 216143, "cost_usd": 0.147202}
 {"ts": 1773555724.231884, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 254966, "output_tokens": 4559, "api_calls": 19, "api_time_ms": 289393, "cost_usd": 0.069212}
 {"ts": 1773556688.231934, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 494362, "output_tokens": 3470, "api_calls": 30, "api_time_ms": 220931, "cost_usd": 0.127755}
+{"ts": 1773584838.4761071, "model": "anthropic/claude-sonnet-4.6", "mode": "agent", "input_tokens": 212151, "output_tokens": 4438, "api_calls": 13, "api_time_ms": 71169, "cost_usd": 0.703023}
