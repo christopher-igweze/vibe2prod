@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+import logging
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from supabase import create_client, Client
 
 from config import settings
+
+logger = logging.getLogger(__name__)
 from models.findings import (
     AuditReport,
     Finding,
@@ -504,6 +507,133 @@ async def clear_github_connection(*, user_id: str) -> None:
             "github_username": None,
         }
     ).eq("user_id", str(user_id)).execute()
+
+
+# ------------------------------------------------------------------ #
+# OAuth state nonce consumption (replay-attack prevention, CWE-613)
+# ------------------------------------------------------------------ #
+
+
+async def is_oauth_state_consumed(jti: str) -> bool:
+    """Return True if the OAuth state nonce *jti* has already been consumed.
+
+    Each ``jti`` is stored in the ``oauth_state_nonces`` table the first time
+    :func:`consume_oauth_state` is called.  Subsequent calls for the same
+    ``jti`` therefore return ``True``, preventing replay attacks within the
+    JWT's TTL window.
+
+    Required table (run once as a migration)::
+
+        CREATE TABLE IF NOT EXISTS oauth_state_nonces (
+            jti        TEXT PRIMARY KEY,
+            user_id    TEXT NOT NULL,
+            consumed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            expires_at  TIMESTAMPTZ NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_oauth_state_nonces_expires_at
+            ON oauth_state_nonces (expires_at);
+
+    Raises:
+        HTTPException: If the database is unavailable or query fails,
+            with 503 status code to indicate a temporary service issue.
+    """
+    client = _client()
+    try:
+        row = (
+            client.table("oauth_state_nonces")
+            .select("jti")
+            .eq("jti", jti)
+            .limit(1)
+            .execute()
+        )
+        return bool(row.data)
+    except Exception as exc:
+        # Log the error and raise a service-unavailable exception.
+        # We intentionally do NOT fail-open (return False) here because
+        # that would allow replay attacks if the DB is under load.
+        # Instead, we fail-secure by blocking the OAuth flow when the
+        # database is unreachable.
+        logger.error("Failed to check OAuth state consumption for jti %s: %s", jti, exc)
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "oauth_state_check_failed",
+                "message": "Unable to verify OAuth state. Please try again later.",
+            },
+        ) from exc
+
+
+async def consume_oauth_state(
+    *,
+    jti: str,
+    user_id: str,
+    ttl_minutes: int,
+) -> None:
+    """Mark an OAuth state nonce as consumed so it cannot be replayed.
+
+    Inserts a row into ``oauth_state_nonces`` keyed by *jti*.  If the row
+    already exists (race condition between two near-simultaneous requests
+    carrying the same state token) the insert is silently ignored — the
+    *first* writer wins and the second request will be rejected by
+    :func:`is_oauth_state_consumed`.
+
+    Args:
+        jti: The JWT ID claim from the state token.
+        user_id: The user who owns this state token (for audit purposes).
+        ttl_minutes: How long until the record is eligible for cleanup;
+            mirrors the JWT expiry so no token can be replayed after it
+            would have expired anyway.
+    """
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(minutes=ttl_minutes)
+    client = _client()
+    try:
+        client.table("oauth_state_nonces").insert(
+            {
+                "jti": jti,
+                "user_id": str(user_id),
+                "consumed_at": now.isoformat(),
+                "expires_at": expires_at.isoformat(),
+            }
+        ).execute()
+    except Exception as exc:
+        # Only swallow unique-key violations (race condition where another
+        # request already consumed this nonce). Re-raise all other errors
+        # to prevent masking database connectivity or schema issues.
+        error_code = getattr(exc, "code", None)
+        error_message = str(exc).lower()
+        is_unique_violation = (
+            error_code == "23505"  # PostgreSQL unique_violation
+            or "duplicate" in error_message
+            or "unique constraint" in error_message
+            or "already exists" in error_message
+        )
+        if is_unique_violation:
+            logger.warning("OAuth state nonce %s already consumed (race condition suppressed).", jti)
+        else:
+            # Re-raise non-unique-violation exceptions to fail fast on
+            # real database errors (connectivity, permissions, schema, etc.)
+            raise
+
+
+async def purge_expired_oauth_states() -> int:
+    """Delete expired nonce rows and return the count removed.
+
+    Intended to be called from a periodic maintenance task or cron job so
+    that the ``oauth_state_nonces`` table does not grow unbounded.
+    """
+    now = datetime.now(timezone.utc)
+    client = _client()
+    result = (
+        client.table("oauth_state_nonces")
+        .delete()
+        .lt("expires_at", now.isoformat())
+        .execute()
+    )
+    count = len(result.data) if result.data else 0
+    logger.info("Purged %d expired OAuth state nonce(s).", count)
+    return count
 
 
 async def mark_tour_completed(user_id: str) -> None:
