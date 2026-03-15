@@ -6,12 +6,11 @@ When FORGE is enabled, this route:
 3. Kicks off FORGE remediation as a background task
 4. Returns immediately with the fix_attempt_id
 
-The background task is handled by services.fix_service.
+The background task delegates to FixService for business logic.
 """
 
 from __future__ import annotations
 
-import logging
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Request, HTTPException
@@ -20,10 +19,31 @@ from config import settings
 from models.scan import FixRequest, FixResponse, ScanFixResponse, ScanFixStatusResponse
 from api.middleware.rate_limit import limiter, rate_limit_string
 from services import supabase_client as db
-from services import fix_service
+from services.fix_service import fix_service
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# ------------------------------------------------------------------ #
+# Action item fix (one finding at a time)
+# ------------------------------------------------------------------ #
+
+
+async def _run_forge_fix(
+    fix_attempt_id: UUID,
+    action_item_id: UUID,
+    repo_url: str,
+    scan_findings: list[dict] | None,
+    github_token: str | None = None,
+) -> None:
+    """Background task that delegates to FixService for FORGE remediation."""
+    await fix_service.run_forge_fix(
+        fix_attempt_id=fix_attempt_id,
+        action_item_id=action_item_id,
+        repo_url=repo_url,
+        scan_findings=scan_findings,
+        github_token=github_token,
+    )
 
 
 @router.post("/fix", response_model=FixResponse)
@@ -130,6 +150,23 @@ async def trigger_fix(
 # ------------------------------------------------------------------ #
 # Scan-level remediation
 # ------------------------------------------------------------------ #
+
+
+async def _run_scan_forge_fix(
+    fix_attempt_id: UUID,
+    scan_id: UUID,
+    repo_url: str,
+    scan_findings: list[dict] | None,
+    github_token: str | None = None,
+) -> None:
+    """Background task that delegates to FixService for scan-level remediation."""
+    await fix_service.run_scan_forge_fix(
+        fix_attempt_id=fix_attempt_id,
+        scan_id=scan_id,
+        repo_url=repo_url,
+        scan_findings=scan_findings,
+        github_token=github_token,
+    )
 
 
 @router.post("/fix-scan/{scan_id}", response_model=ScanFixResponse)
