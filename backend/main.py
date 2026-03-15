@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re as _re
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -17,6 +18,7 @@ from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from api.middleware.auth import SupabaseAuthMiddleware
 from api.middleware.rate_limit import limiter
@@ -140,6 +142,23 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ------------------------------------------------------------------ #
 app.add_middleware(SupabaseAuthMiddleware)
 
+
+# ------------------------------------------------------------------ #
+# Request ID middleware for traceability
+# ------------------------------------------------------------------ #
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Generate a unique request ID for each request and add it to state."""
+
+    async def dispatch(self, request: Request, call_next):
+        request_id = str(uuid.uuid4())[:8]
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+
+app.add_middleware(RequestIDMiddleware)
+
 # ------------------------------------------------------------------ #
 # Routers
 # ------------------------------------------------------------------ #
@@ -203,10 +222,19 @@ async def global_exception_handler(request: Request, exc: Exception):
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
-    logger.exception("Unhandled exception on %s %s", request.method, _sanitize_url(request.url))
+    # Capture request context for better diagnostics
+    request_id = getattr(request.state, "request_id", "unknown")
+    user_id = getattr(request.state, "user_id", None)
+    logger.exception(
+        "Unhandled exception on %s %s | request_id=%s user_id=%s",
+        request.method,
+        _sanitize_url(request.url),
+        request_id,
+        user_id,
+    )
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error"},
+        content={"detail": "Internal server error", "request_id": request_id},
     )
 
 
@@ -220,7 +248,13 @@ async def handle_cancelled_error(request: Request, exc: asyncio.CancelledError):
     CancelledError is a BaseException (not Exception) in Python 3.8+.
     Re-raising allows the ASGI server to handle task cancellation gracefully.
     """
-    logger.warning("Request cancelled: %s %s", request.method, _sanitize_url(request.url))
+    request_id = getattr(request.state, "request_id", "unknown")
+    logger.warning(
+        "Request cancelled: %s %s | request_id=%s",
+        request.method,
+        _sanitize_url(request.url),
+        request_id,
+    )
     raise exc
 
 
