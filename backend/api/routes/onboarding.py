@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+import logging
+
+from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
 
 from api.middleware.rate_limit import limiter, rate_limit_string
@@ -10,6 +12,8 @@ from models.onboarding import OrgOnboardingPayload
 from services import supabase_client as db
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 class OnboardingResponse(BaseModel):
@@ -24,6 +28,10 @@ async def save_org_onboarding(
     request: Request,
 ) -> OnboardingResponse:
     user_id: str = request.state.user_id
-    await db.save_org_onboarding(user_id=user_id, payload=request_body.model_dump(mode="json"))
+    try:
+        await db.save_org_onboarding(user_id=user_id, payload=request_body.model_dump(mode="json"))
+    except Exception as e:
+        logger.error(f"Error saving org onboarding for user {user_id}: {e}")
+        raise HTTPException(status_code=503, detail="Service temporarily unavailable")
     return OnboardingResponse()
 
