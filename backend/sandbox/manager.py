@@ -97,7 +97,17 @@ class SandboxManager:
             api_url=settings.daytona_api_url,
             target=target,
         )
-        self._daytona = Daytona(config)
+        try:
+            self._daytona = Daytona(config)
+        except Exception as exc:
+            logger.warning(
+                "Daytona client initialization failed — sandbox unavailable: %s",
+                exc,
+                exc_info=True,
+            )
+            raise RuntimeError(
+                f"Sandbox service unavailable: Daytona client could not be initialized ({exc})"
+            ) from exc
         self._sessions: dict[UUID, SandboxSession] = {}
         self._executor = SandboxExecutor()
 
