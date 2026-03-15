@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -110,6 +111,26 @@ async def get_project_scan_history(
         .execute()
     )
     return row.data or []
+
+
+async def get_project_with_scans(
+    project_id: UUID, user_id: str, limit: int = 50
+) -> tuple[dict | None, list[dict]]:
+    """Fetch project and its scan history concurrently.
+
+    Returns a tuple of (project, scans) to reduce sequential DB calls.
+    The project is None if not found or belongs to another user.
+    """
+    project_task = get_project(project_id)
+    scans_task = get_project_scan_history(project_id, user_id, limit)
+
+    project, scans = await asyncio.gather(project_task, scans_task)
+
+    # Verify ownership
+    if project and project.get("user_id") != user_id:
+        return None, []
+
+    return project, scans
 
 
 async def get_latest_project_intake(
