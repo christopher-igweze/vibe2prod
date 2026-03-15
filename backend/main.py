@@ -189,6 +189,39 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(RequestIDMiddleware)
 
+
+# ------------------------------------------------------------------ #
+# Access logging middleware — sanitize URLs on every request
+# ------------------------------------------------------------------ #
+class AccessLogMiddleware(BaseHTTPMiddleware):
+    """Log every incoming request with a sanitized URL.
+
+    Applying _sanitize_url here ensures that *all* request paths —
+    not only error paths — are logged without exposing sensitive query
+    parameters (CWE-532 / OWASP A09:2021).
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        request_id = getattr(request.state, "request_id", "unknown")
+        logger.info(
+            "Incoming request: %s %s | request_id=%s",
+            request.method,
+            _sanitize_url(request.url),
+            request_id,
+        )
+        response = await call_next(request)
+        logger.info(
+            "Completed request: %s %s | status=%s | request_id=%s",
+            request.method,
+            _sanitize_url(request.url),
+            response.status_code,
+            request_id,
+        )
+        return response
+
+
+app.add_middleware(AccessLogMiddleware)
+
 # ------------------------------------------------------------------ #
 # Routers
 # ------------------------------------------------------------------ #
@@ -245,25 +278,63 @@ async def health():
 # ------------------------------------------------------------------ #
 # URL sanitization for logging
 # ------------------------------------------------------------------ #
-_SENSITIVE_PARAM = _re.compile(
-    r"(token|key|secret|password|jwt|bearer|access_token|refresh_token)"
-    r"=([^\s&]+)",
-    _re.IGNORECASE,
+
+# Allowlist of query-parameter names that are safe to appear in logs.
+# Every parameter whose name is NOT in this set will be redacted to "***".
+# This whitelist approach (CWE-532) ensures that any new or unknown query
+# parameters — including user_id, email, session_id, or future secrets —
+# are redacted automatically rather than accidentally exposed.
+_SAFE_QUERY_PARAMS: frozenset[str] = frozenset(
+    {
+        # Pagination / filtering
+        "page",
+        "limit",
+        "offset",
+        "sort",
+        "order",
+        "filter",
+        "q",
+        "search",
+        # Resource identifiers that carry no PII
+        "format",
+        "version",
+        "lang",
+        "locale",
+        # Caching / HTTP semantics
+        "v",
+        "cb",
+    }
 )
 
-# Matches Authorization header values (Bearer <token>, Basic <creds>, etc.)
-# Used to redact credential material from any string representation before logging.
-_SENSITIVE_HEADER = _re.compile(
-    r"(authorization\s*:\s*(?:bearer|basic|token)\s+)([^\s,;\"']+)",
-    _re.IGNORECASE,
-)
+# Pre-compiled pattern that matches any query-parameter assignment.
+# Used to iterate over all key=value pairs in the query string.
+_QUERY_PARAM_RE = _re.compile(r"([^&=\s]+)=([^&\s]*)")
 
 
 def _sanitize_url(url: object) -> str:
-    """Redact sensitive query parameters and Authorization values from URLs before logging."""
-    sanitized = _SENSITIVE_PARAM.sub(r"\1=***", str(url))
-    sanitized = _SENSITIVE_HEADER.sub(r"\1***", sanitized)
-    return sanitized
+    """Redact all non-allowlisted query parameters from a URL before logging.
+
+    Uses a whitelist approach: only parameters explicitly listed in
+    _SAFE_QUERY_PARAMS are preserved; every other parameter value is
+    replaced with "***".  This prevents accidental exposure of sensitive
+    data (e.g. token, key, email, user_id, session_id) that may appear
+    in query strings but are not included in the explicit denylist.
+
+    Args:
+        url: Any object whose ``str()`` representation is a URL.
+
+    Returns:
+        The URL string with all non-allowlisted query-parameter values
+        replaced by "***".
+    """
+
+    def _redact_param(match: _re.Match) -> str:  # type: ignore[type-arg]
+        param_name = match.group(1)
+        if param_name.lower() in _SAFE_QUERY_PARAMS:
+            return match.group(0)  # preserve name=value unchanged
+        return f"{param_name}=***"
+
+    return _QUERY_PARAM_RE.sub(_redact_param, str(url))
 
 
 # ------------------------------------------------------------------ #
