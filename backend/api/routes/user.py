@@ -19,7 +19,12 @@ router = APIRouter()
 async def get_me(request: Request) -> dict:
     """Return the authenticated user's profile (role, onboarding status)."""
     user_id: str = request.state.user_id
-    profile = db.get_user_profile(user_id)
+    try:
+        profile = db.get_user_profile(user_id)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching user profile for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve user profile")
     if not profile:
         return {
             "user_id": user_id,
@@ -38,13 +43,23 @@ async def get_me(request: Request) -> dict:
 async def list_scans(request: Request) -> list[dict]:
     """Return the authenticated user's recent scans."""
     user_id: str = request.state.user_id
-    scans = await db.list_user_scans(user_id)
+    try:
+        scans = await db.list_user_scans(user_id)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error listing scans for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve scans")
 
     # Batch fetch all projects to avoid N+1 queries
     project_ids = [UUID(s["project_id"]) for s in scans if s.get("project_id")]
     project_cache: dict[UUID, dict] = {}
     if project_ids:
-        project_cache = await db.get_projects_batch(project_ids)
+        try:
+            project_cache = await db.get_projects_batch(project_ids)
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error fetching projects batch for user {user_id}: {e}")
+            # Continue without project enrichment if this fails
 
     # Enrich with repo_url from projects
     for scan in scans:
@@ -62,14 +77,24 @@ async def list_scans(request: Request) -> list[dict]:
 async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
     """Return full scan report data for a completed scan."""
     user_id: str = request.state.user_id
-    scan = await db.get_scan_report(scan_id, user_id)
+    try:
+        scan = await db.get_scan_report(scan_id, user_id)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error fetching scan detail for scan {scan_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve scan")
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
     # Enrich with project info
     pid = scan.get("project_id")
     if pid:
-        project = await db.get_project(UUID(pid))
+        try:
+            project = await db.get_project(UUID(pid))
+        except Exception as e:
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error fetching project for scan {scan_id}: {e}")
+            project = None
         if project:
             scan["repo_url"] = project.get("repo_url", "")
             scan["repo_name"] = project.get("repo_name", "")
@@ -82,7 +107,12 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
 async def delete_scan(scan_id: UUID, request: Request) -> Response:
     """Delete a scan report and all associated data."""
     user_id: str = request.state.user_id
-    deleted = await db.delete_scan_report(scan_id, user_id)
+    try:
+        deleted = await db.delete_scan_report(scan_id, user_id)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error deleting scan {scan_id} for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete scan")
     if not deleted:
         raise HTTPException(status_code=404, detail="Scan not found")
     return Response(status_code=204)
@@ -93,7 +123,12 @@ async def delete_scan(scan_id: UUID, request: Request) -> Response:
 async def complete_tour(request: Request) -> dict:
     """Mark the guided tour as completed for the authenticated user."""
     user_id: str = request.state.user_id
-    await db.mark_tour_completed(user_id)
+    try:
+        await db.mark_tour_completed(user_id)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error completing tour for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to complete tour")
     return {"ok": True}
 
 
@@ -102,7 +137,12 @@ async def complete_tour(request: Request) -> dict:
 async def reset_tour(request: Request) -> dict:
     """Reset the guided tour so the user can retake it."""
     user_id: str = request.state.user_id
-    await db.reset_tour(user_id)
+    try:
+        await db.reset_tour(user_id)
+    except Exception as e:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error resetting tour for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to reset tour")
     return {"ok": True}
 
 
