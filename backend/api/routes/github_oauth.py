@@ -137,15 +137,31 @@ async def _exchange_code_for_access_token(
                 },
             )
     except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub OAuth request timed out."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub OAuth service is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
+        )
     except httpx.ConnectError:
-        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
+        )
     if resp.status_code >= 400:
         raise HTTPException(
             status_code=502,
             detail={
                 "code": "github_token_exchange_failed",
-                "message": "GitHub token exchange failed.",
+                "message": "GitHub token exchange failed. Please try again.",
             },
         )
 
@@ -174,9 +190,25 @@ async def _fetch_github_profile(access_token: str) -> tuple[str | None, str | No
                 },
             )
     except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub profile request timed out."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub API is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
+        )
     except httpx.ConnectError:
-        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
+        )
     if resp.status_code >= 400:
         raise HTTPException(
             status_code=502,
@@ -313,9 +345,25 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
                 },
             )
     except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub API request timed out."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub API is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
+        )
     except httpx.ConnectError:
-        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
+        )
 
     if resp.status_code == 401:
         raise HTTPException(
@@ -370,9 +418,25 @@ async def list_repo_branches(
                 },
             )
     except httpx.TimeoutException:
-        raise HTTPException(status_code=504, detail={"code": "github_timeout", "message": "GitHub API request timed out."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub API is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
+        )
     except httpx.ConnectError:
-        raise HTTPException(status_code=502, detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
+        )
 
     if resp.status_code == 401:
         raise HTTPException(
@@ -421,8 +485,26 @@ async def github_connection_status(request: Request):
                     "Authorization": f"Bearer {token}",
                 },
             )
-    except (httpx.TimeoutException, httpx.ConnectError):
-        return {"connected": False, "error": "github_unreachable"}
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub API is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
+        )
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
+        )
 
     if resp.status_code != 200:
         return {"connected": False, "error": "token_expired"}

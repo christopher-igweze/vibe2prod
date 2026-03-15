@@ -59,13 +59,23 @@ async def get_repo_info(
             data = resp.json()
     except httpx.TimeoutException:
         raise HTTPException(
-            status_code=504,
-            detail={"code": "github_timeout", "message": "GitHub API request timed out."},
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub API is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
         )
     except httpx.ConnectError:
         raise HTTPException(
-            status_code=502,
-            detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."},
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
         )
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
@@ -85,8 +95,13 @@ async def get_repo_info(
             )
     except httpx.RequestError as e:
         raise HTTPException(
-            status_code=502,
-            detail={"code": "github_request_error", "message": f"GitHub request failed: {str(e)}"},
+            status_code=503,
+            detail={
+                "code": "github_request_error",
+                "message": "GitHub service is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
         )
 
     return RepoInfo(
@@ -123,13 +138,23 @@ async def create_pull_request(
             return resp.json()["html_url"]
     except httpx.TimeoutException:
         raise HTTPException(
-            status_code=504,
-            detail={"code": "github_timeout", "message": "GitHub API request timed out."},
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub API is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
         )
     except httpx.ConnectError:
         raise HTTPException(
-            status_code=502,
-            detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."},
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
         )
     except httpx.HTTPStatusError as e:
         raise HTTPException(
@@ -138,8 +163,13 @@ async def create_pull_request(
         )
     except httpx.RequestError as e:
         raise HTTPException(
-            status_code=502,
-            detail={"code": "github_request_error", "message": f"GitHub request failed: {str(e)}"},
+            status_code=503,
+            detail={
+                "code": "github_request_error",
+                "message": "GitHub service is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
         )
 
 
@@ -164,13 +194,23 @@ async def get_head_sha(
             data = resp.json()
     except httpx.TimeoutException:
         raise HTTPException(
-            status_code=504,
-            detail={"code": "github_timeout", "message": "GitHub API request timed out."},
+            status_code=503,
+            detail={
+                "code": "github_timeout",
+                "message": "GitHub API is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
         )
     except httpx.ConnectError:
         raise HTTPException(
-            status_code=502,
-            detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."},
+            status_code=503,
+            detail={
+                "code": "github_unreachable",
+                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+                "retry_after": 60,
+            },
+            headers={"Retry-After": "60"},
         )
     except httpx.HTTPStatusError as e:
         if e.response.status_code == 404:
@@ -185,7 +225,12 @@ async def get_head_sha(
             )
     except httpx.RequestError as e:
         raise HTTPException(
-            status_code=502,
-            detail={"code": "github_request_error", "message": f"GitHub request failed: {str(e)}"},
+            status_code=503,
+            detail={
+                "code": "github_request_error",
+                "message": "GitHub service is temporarily unavailable. Please try again later.",
+                "retry_after": 30,
+            },
+            headers={"Retry-After": "30"},
         )
     return data["sha"]
