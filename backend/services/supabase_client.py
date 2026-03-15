@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from datetime import datetime, timezone
 from uuid import UUID
 
+from cryptography.exceptions import InvalidTag
 from supabase import create_client, Client
 
 from config import settings
@@ -16,6 +18,9 @@ from models.findings import (
     EducationCard,
 )
 from models.scan import ScanStatus
+from services.token_encryption import decrypt_token, encrypt_token
+
+logger = logging.getLogger(__name__)
 
 
 def _client() -> Client:
@@ -449,6 +454,13 @@ async def upgrade_user_role(user_id: str, new_role: str) -> bool:
 
 
 async def get_github_access_token(user_id: str) -> str | None:
+    """Retrieve and decrypt the stored GitHub OAuth access token for *user_id*.
+
+    Returns the plaintext token, or *None* if the user has not connected
+    GitHub.  If the stored value cannot be decrypted (e.g. tampered ciphertext
+    or a key mismatch) a warning is logged and *None* is returned so the caller
+    treats the credential as absent rather than exposing raw ciphertext.
+    """
     client = _client()
     row = (
         client.table("profiles")
@@ -459,7 +471,20 @@ async def get_github_access_token(user_id: str) -> str | None:
     )
     if not row.data:
         return None
-    return row.data[0].get("github_access_token")
+    raw = row.data[0].get("github_access_token")
+    if not raw:
+        return None
+    try:
+        return decrypt_token(raw, settings.github_token_encryption_key)
+    except (InvalidTag, ValueError) as exc:
+        logger.warning(
+            "Failed to decrypt GitHub access token for user %s: %s. "
+            "The stored credential may be corrupted or was encrypted with a "
+            "different key.  Treating as disconnected.",
+            user_id,
+            exc,
+        )
+        return None
 
 
 async def get_github_profile(user_id: str) -> tuple[str | None, str | None]:
@@ -484,11 +509,17 @@ async def save_github_connection(
     github_username: str | None = None,
     avatar_url: str | None = None,
 ) -> None:
-    """Persist GitHub OAuth credentials and profile metadata for a user."""
+    """Persist GitHub OAuth credentials and profile metadata for a user.
+
+    The *access_token* is encrypted with AES-256-GCM using the key from
+    ``settings.github_token_encryption_key`` before being written to the
+    database.  The plaintext token never touches the storage layer.
+    """
+    encrypted = encrypt_token(access_token, settings.github_token_encryption_key)
     client = _client()
     client.table("profiles").update(
         {
-            "github_access_token": access_token,
+            "github_access_token": encrypted,
             "github_username": github_username,
             "avatar_url": avatar_url,
         }
