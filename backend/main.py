@@ -49,16 +49,30 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Vibe2Prod API starting up...")
 
-    # Mark scans orphaned by a previous container lifecycle as failed.
-    # If we just booted, no background tasks can be running for them.
+    # Verify database connectivity before attempting any database operations.
+    # This ensures we fail fast if critical services are unavailable.
     try:
         from services import supabase_client as db
 
+        db_available = await db.check_database_health()
+        if not db_available:
+            logger.error("Database connectivity check failed on startup. Cannot proceed.")
+            raise RuntimeError("Database unavailable: critical service failure")
+        logger.info("Database connectivity verified")
+    except Exception:
+        # Re-raise to fail fast - database is a critical service
+        logger.exception("Failed to verify database connectivity on startup.")
+        raise RuntimeError("Database connectivity check failed - cannot start in degraded state")
+
+    # Mark scans orphaned by a previous container lifecycle as failed.
+    # If we just booted, no background tasks can be running for them.
+    try:
         count = await db.fail_orphaned_scans()
         if count:
             logger.warning("Marked %d orphaned scan(s) as failed on startup.", count)
     except Exception:
         logger.exception("Failed to clean up orphaned scans on startup.")
+        # Don't re-raise - cleanup failure is not critical to startup
 
     # Initialize shared HTTP client with connection pooling
     from services.http_client import shared_client
@@ -195,7 +209,24 @@ async def root():
 
 @app.get("/health", tags=["meta"])
 async def health():
-    return {"status": "healthy"}
+    """Health check endpoint that verifies database connectivity.
+
+    Returns healthy status only if all critical services are available.
+    This allows load balancers and orchestration systems to detect
+    degraded states and take appropriate action.
+    """
+    from services import supabase_client as db
+
+    # Verify database connectivity
+    db_healthy = await db.check_database_health()
+
+    if not db_healthy:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "unhealthy", "database": "unavailable"},
+        )
+
+    return {"status": "healthy", "database": "available"}
 
 
 # ------------------------------------------------------------------ #
