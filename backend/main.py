@@ -256,44 +256,86 @@ async def global_exception_handler(request: Request, exc: Exception):
     if isinstance(exc, BaseExceptionGroup):
         for inner in exc.exceptions:
             if isinstance(inner, HTTPException):
+                # Log the root cause before returning the HTTPException response
+                _log_exception(request, exc, inner)
                 return JSONResponse(
                     status_code=inner.status_code,
                     content={"detail": inner.detail},
                 )
-    if isinstance(exc, HTTPException):
+        # Log the root cause for unhandled exceptions in the group
+        _log_exception(request, exc, None)
+    elif isinstance(exc, HTTPException):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
         )
+    else:
+        # Log the exception with proper context
+        _log_exception(request, exc, None)
+
+    # Return generic error to client without exposing internal request_id
+    # This prevents information leakage about internal tracking to unauthenticated users
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
+
+def _log_exception(request: Request, exc: Exception, http_exc: HTTPException | None):
+    """Log exception details with appropriate context.
+
+    Only includes user_id in logs when actually authenticated (not None).
+    Uses internal request_id for tracing but does not expose it to clients.
+    """
     # Capture request context for better diagnostics
     request_id = getattr(request.state, "request_id", "unknown")
+    # Only include user_id in logs if the user is authenticated
     user_id = getattr(request.state, "user_id", None)
 
     # In debug mode, log full exception with stack trace for debugging
     # In production, log a sanitized message without stack trace to avoid
     # exposing sensitive code paths in log files (CWE-532)
     if settings.debug:
-        logger.exception(
-            "Unhandled exception on %s %s | request_id=%s user_id=%s",
-            request.method,
-            _sanitize_url(request.url),
-            request_id,
-            user_id,
-        )
+        if http_exc:
+            # Log the underlying exception that was wrapped in BaseExceptionGroup
+            logger.exception(
+                "Unhandled exception on %s %s | request_id=%s%s",
+                request.method,
+                _sanitize_url(request.url),
+                request_id,
+                f" user_id={user_id}" if user_id else "",
+                exc_info=exc,
+            )
+        else:
+            logger.exception(
+                "Unhandled exception on %s %s | request_id=%s%s",
+                request.method,
+                _sanitize_url(request.url),
+                request_id,
+                f" user_id={user_id}" if user_id else "",
+            )
     else:
-        logger.error(
-            "Unhandled exception on %s %s | request_id=%s user_id=%s | error=%s: %s",
-            request.method,
-            _sanitize_url(request.url),
-            request_id,
-            user_id,
-            type(exc).__name__,
-            str(exc),
-        )
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error", "request_id": request_id},
-    )
+        if http_exc:
+            # Log the underlying exception that was wrapped
+            logger.error(
+                "Unhandled exception on %s %s | request_id=%s%s | wrapped_exc=%s: %s",
+                request.method,
+                _sanitize_url(request.url),
+                request_id,
+                f" user_id={user_id}" if user_id else "",
+                type(exc).__name__,
+                str(exc),
+            )
+        else:
+            logger.error(
+                "Unhandled exception on %s %s | request_id=%s%s | error=%s: %s",
+                request.method,
+                _sanitize_url(request.url),
+                request_id,
+                f" user_id={user_id}" if user_id else "",
+                type(exc).__name__,
+                str(exc),
+            )
 
 
 # ------------------------------------------------------------------ #
