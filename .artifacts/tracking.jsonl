@@ -13,3 +13,6 @@
 {"ts": 1773549688.380321, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 319286, "output_tokens": 2769, "api_calls": 30, "api_time_ms": 135402, "cost_usd": 0.083144}
 {"ts": 1773549974.335567, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 411344, "output_tokens": 3394, "api_calls": 30, "api_time_ms": 62911, "cost_usd": 0.106909}
 {"ts": 1773550813.3358982, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 269255, "output_tokens": 5477, "api_calls": 20, "api_time_ms": 212527, "cost_usd": 0.073886}
+{"ts": 1773551960.858016, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 785876, "output_tokens": 6731, "api_calls": 30, "api_time_ms": 212332, "cost_usd": 0.204546}
+{"ts": 1773552203.505992, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 572236, "output_tokens": 5834, "api_calls": 30, "api_time_ms": 180422, "cost_usd": 0.15006}
+{"ts": 1773552554.946296, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 572343, "output_tokens": 5128, "api_calls": 30, "api_time_ms": 207021, "cost_usd": 0.149239}

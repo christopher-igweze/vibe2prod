@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from api.middleware.rate_limit import limiter, rate_limit_string
 from config import settings
 from services import supabase_client as db
+from services.http_client import shared_client
 
 router = APIRouter()
 
@@ -124,18 +125,17 @@ async def _exchange_code_for_access_token(
 ) -> str:
     _ensure_oauth_configured()
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.post(
-                "https://github.com/login/oauth/access_token",
-                headers={"Accept": "application/json"},
-                json={
-                    "client_id": settings.github_client_id,
-                    "client_secret": settings.github_client_secret,
-                    "code": code,
-                    "redirect_uri": redirect_uri,
-                    "state": state,
-                },
-            )
+        resp = await shared_client.post(
+            "https://github.com/login/oauth/access_token",
+            headers={"Accept": "application/json"},
+            json={
+                "client_id": settings.github_client_id,
+                "client_secret": settings.github_client_secret,
+                "code": code,
+                "redirect_uri": redirect_uri,
+                "state": state,
+            },
+        )
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=503,
@@ -181,14 +181,13 @@ async def _exchange_code_for_access_token(
 
 async def _fetch_github_profile(access_token: str) -> tuple[str | None, str | None]:
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.get(
-                "https://api.github.com/user",
-                headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": f"Bearer {access_token}",
-                },
-            )
+        resp = await shared_client.get(
+            "https://api.github.com/user",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {access_token}",
+            },
+        )
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=503,
@@ -325,25 +324,24 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
         )
 
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.get(
-                "https://api.github.com/user/repos",
-                headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": f"Bearer {token}",
-                },
-                params={
-                    "sort": "updated",
-                    "direction": "desc",
-                    "per_page": min(per_page, 100),
-                    "page": page,
-                    # Filter to only repos the user owns, is a collaborator on,
-                    # or is an organization member of. This prevents IDOR where
-                    # a user could access repos their token can see but aren't
-                    # linked to their Vibe2Prod account.
-                    "affiliation": "owner,collaborator,organization_member",
-                },
-            )
+        resp = await shared_client.get(
+            "https://api.github.com/user/repos",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+            },
+            params={
+                "sort": "updated",
+                "direction": "desc",
+                "per_page": min(per_page, 100),
+                "page": page,
+                # Filter to only repos the user owns, is a collaborator on,
+                # or is an organization member of. This prevents IDOR where
+                # a user could access repos their token can see but aren't
+                # linked to their Vibe2Prod account.
+                "affiliation": "owner,collaborator,organization_member",
+            },
+        )
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=503,
@@ -418,18 +416,17 @@ async def list_repo_branches(
         )
 
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.get(
-                f"https://api.github.com/repos/{owner}/{repo}/branches",
-                headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": f"Bearer {token}",
-                },
-                params={
-                    "per_page": min(per_page, 100),
-                    "page": page,
-                },
-            )
+        resp = await shared_client.get(
+            f"https://api.github.com/repos/{owner}/{repo}/branches",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+            },
+            params={
+                "per_page": min(per_page, 100),
+                "page": page,
+            },
+        )
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=503,
@@ -490,14 +487,13 @@ async def github_connection_status(request: Request):
 
     # Verify token is still valid
     try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            resp = await client.get(
-                "https://api.github.com/user",
-                headers={
-                    "Accept": "application/vnd.github+json",
-                    "Authorization": f"Bearer {token}",
-                },
-            )
+        resp = await shared_client.get(
+            "https://api.github.com/user",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {token}",
+            },
+        )
     except httpx.TimeoutException:
         raise HTTPException(
             status_code=503,
