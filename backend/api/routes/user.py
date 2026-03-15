@@ -12,6 +12,7 @@ from api.middleware.rate_limit import limiter, rate_limit_string
 from services import supabase_client as db
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/user/me")
@@ -22,8 +23,7 @@ async def get_me(request: Request) -> dict:
     try:
         profile = db.get_user_profile(user_id)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error fetching user profile for {user_id}: {e}")
+        logger.exception("Failed to retrieve user profile for user %s", user_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve user profile")
     if not profile:
         return {
@@ -46,8 +46,7 @@ async def list_scans(request: Request) -> list[dict]:
     try:
         scans = await db.list_user_scans(user_id)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error listing scans for user {user_id}: {e}")
+        logger.exception("Failed to retrieve scans for user %s", user_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve scans")
 
     # Batch fetch all projects to avoid N+1 queries
@@ -57,8 +56,10 @@ async def list_scans(request: Request) -> list[dict]:
         try:
             project_cache = await db.get_projects_batch(project_ids)
         except Exception as e:
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error fetching projects batch for user {user_id}: {e}")
+            logger.exception(
+                "Failed to batch-fetch projects for user %s; returning scans without enrichment",
+                user_id,
+            )
             # Continue without project enrichment if this fails
 
     # Defense-in-depth: explicitly filter out any scans for projects 
@@ -86,21 +87,18 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
     try:
         scan = await db.get_scan_report(scan_id, user_id)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error fetching scan detail for scan {scan_id}: {e}")
+        logger.exception("Failed to retrieve scan %s", scan_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve scan")
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    # Enrich with project info (use batch method for consistency with list_scans)
+    # Enrich with project info
     pid = scan.get("project_id")
     if pid:
         try:
-            project_cache = await db.get_projects_batch([UUID(pid)])
-            project = project_cache.get(UUID(pid), {})
+            project = await db.get_project(UUID(pid))
         except Exception as e:
-            logger = logging.getLogger(__name__)
-            logger.error(f"Error fetching project for scan {scan_id}: {e}")
+            logger.exception("Failed to fetch project for scan %s; returning scan without enrichment", scan_id)
             project = {}
         if project:
             scan["repo_url"] = project.get("repo_url", "")
@@ -117,8 +115,7 @@ async def delete_scan(scan_id: UUID, request: Request) -> Response:
     try:
         deleted = await db.delete_scan_report(scan_id, user_id)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error deleting scan {scan_id} for user {user_id}: {e}")
+        logger.exception("Failed to delete scan %s for user %s", scan_id, user_id)
         raise HTTPException(status_code=500, detail="Failed to delete scan")
     if not deleted:
         raise HTTPException(status_code=404, detail="Scan not found")
@@ -133,8 +130,7 @@ async def complete_tour(request: Request) -> dict:
     try:
         await db.mark_tour_completed(user_id)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error completing tour for user {user_id}: {e}")
+        logger.exception("Failed to complete tour for user %s", user_id)
         raise HTTPException(status_code=500, detail="Failed to complete tour")
     return {"ok": True}
 
@@ -147,8 +143,7 @@ async def reset_tour(request: Request) -> dict:
     try:
         await db.reset_tour(user_id)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error resetting tour for user {user_id}: {e}")
+        logger.exception("Failed to reset tour for user %s", user_id)
         raise HTTPException(status_code=500, detail="Failed to reset tour")
     return {"ok": True}
 
@@ -161,8 +156,7 @@ async def list_projects(request: Request) -> list[dict]:
     try:
         return await db.list_user_projects(user_id)
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error listing projects for user {user_id}: {e}")
+        logger.exception("Failed to retrieve projects for user %s", user_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve projects")
 
 
@@ -179,8 +173,7 @@ async def get_project_scans(project_id: UUID, request: Request) -> dict:
     except HTTPException:
         raise
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error fetching scans for project {project_id}: {e}")
+        logger.exception("Failed to retrieve scans for project %s", project_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve project scans")
 
 
@@ -198,6 +191,5 @@ async def get_project_intake(project_id: UUID, request: Request) -> dict:
     except HTTPException:
         raise
     except Exception as e:
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error fetching intake for project {project_id}: {e}")
+        logger.exception("Failed to retrieve project intake for project %s", project_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve project intake")
