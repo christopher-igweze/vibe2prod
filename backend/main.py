@@ -6,6 +6,7 @@ Start with:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re as _re
 from contextlib import asynccontextmanager
@@ -207,3 +208,27 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Internal server error"},
     )
+
+
+# ------------------------------------------------------------------ #
+# Explicit handlers for asyncio.CancelledError and KeyboardInterrupt
+# ------------------------------------------------------------------ #
+@app.exception_handler(asyncio.CancelledError)
+async def handle_cancelled_error(request: Request, exc: asyncio.CancelledError):
+    """Handle asyncio.CancelledError explicitly to allow proper request cancellation.
+
+    CancelledError is a BaseException (not Exception) in Python 3.8+.
+    Re-raising allows the ASGI server to handle task cancellation gracefully.
+    """
+    logger.warning("Request cancelled: %s %s", request.method, _sanitize_url(request.url))
+    raise exc
+
+
+@app.exception_handler(KeyboardInterrupt)
+async def handle_keyboard_interrupt(request: Request, exc: KeyboardInterrupt):
+    """Handle KeyboardInterrupt to allow graceful shutdown.
+
+    Re-raising allows the server to shut down cleanly on SIGINT/SIGTERM.
+    """
+    logger.info("Keyboard interrupt received, shutting down...")
+    raise exc
