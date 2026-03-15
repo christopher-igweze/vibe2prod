@@ -865,6 +865,30 @@ async def get_project(project_id: UUID) -> dict | None:
     return row.data[0]
 
 
+async def get_projects_batch(project_ids: list[UUID]) -> dict[UUID, dict]:
+    """Fetch multiple projects by IDs in a single query.
+
+    Returns a dict mapping project_id to project dict (or empty dict if not found).
+    """
+    if not project_ids:
+        return {}
+
+    client = _client()
+    str_ids = [str(pid) for pid in project_ids]
+    rows = (
+        client.table("projects")
+        .select("*")
+        .in_("id", str_ids)
+        .execute()
+    )
+
+    result: dict[UUID, dict] = {}
+    for row in rows.data:
+        pid = UUID(row["id"])
+        result[pid] = row
+    return result
+
+
 # ------------------------------------------------------------------ #
 # Credits
 # ------------------------------------------------------------------ #
