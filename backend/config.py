@@ -143,11 +143,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_production_security(self) -> "Settings":
-        """Ensure debug mode is never enabled in production."""
-        if self.debug and self.environment == "production":
+        """Ensure debug mode is never enabled in any environment."""
+        if self.debug:
             raise ValueError(
-                "debug=True is not allowed in production. "
-                "Never enable debug mode in production as it can expose sensitive information."
+                "debug=True is not allowed in any environment. "
+                "Set debug=False explicitly."
             )
         return self
 
