@@ -39,16 +39,19 @@ async def list_scans(request: Request) -> list[dict]:
     user_id: str = request.state.user_id
     scans = await db.list_user_scans(user_id)
 
+    # Batch fetch all projects to avoid N+1 queries
+    project_ids = [UUID(s["project_id"]) for s in scans if s.get("project_id")]
+    project_cache: dict[UUID, dict] = {}
+    if project_ids:
+        project_cache = await db.get_projects_batch(project_ids)
+
     # Enrich with repo_url from projects
-    project_cache: dict[str, dict] = {}
     for scan in scans:
         pid = scan.get("project_id")
-        if pid and pid not in project_cache:
-            project = await db.get_project(UUID(pid))
-            project_cache[pid] = project or {}
-        project = project_cache.get(pid, {})
-        scan["repo_url"] = project.get("repo_url", "")
-        scan["repo_name"] = project.get("repo_name", "")
+        if pid:
+            project = project_cache.get(UUID(pid), {})
+            scan["repo_url"] = project.get("repo_url", "")
+            scan["repo_name"] = project.get("repo_name", "")
 
     return scans
 
