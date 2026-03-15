@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings
-from pydantic import Field, model_validator
 
 
 class Settings(BaseSettings):
@@ -73,7 +73,7 @@ class Settings(BaseSettings):
 
     # --- E2E Testing ---
     e2e_testing: bool = False
-    e2e_testing_token: str = ""  # Required secret token when e2e_testing is enabled
+    e2e_testing_token: SecretStr = SecretStr("")  # Required secret token when e2e_testing is enabled
 
     # --- CORS ---
     cors_allowed_origins: str = ""  # Comma-separated explicit origins for production
@@ -134,7 +134,7 @@ class Settings(BaseSettings):
                     "e2e_testing=True is not allowed in production. "
                     "Set environment='development' to enable e2e_testing."
                 )
-            if not self.e2e_testing_token:
+            if not self.e2e_testing_token.get_secret_value():
                 raise ValueError(
                     "e2e_testing_token is required when e2e_testing is enabled. "
                     "Set a secure token value (e.g., E2E_TESTING_TOKEN=your-secret-token)."

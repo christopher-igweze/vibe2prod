@@ -13,6 +13,7 @@ Framework: pytest
 """
 
 import pytest
+from pydantic import SecretStr
 from unittest.mock import MagicMock, patch, AsyncMock
 from fastapi import Request
 from starlette.responses import JSONResponse
@@ -34,13 +35,18 @@ except ImportError:
 
 
 class MockSettings:
-    """Mock settings object for testing different configurations."""
-    
-    def __init__(self, environment: str = "development", e2e_testing: bool = False, 
+    """Mock settings object for testing different configurations.
+
+    ``e2e_testing_token`` is stored as a ``SecretStr`` to match the real
+    ``Settings`` type, ensuring the middleware's ``.get_secret_value()`` call
+    works correctly in tests (CWE-532).
+    """
+
+    def __init__(self, environment: str = "development", e2e_testing: bool = False,
                  e2e_testing_token: str = ""):
         self.environment = environment
         self.e2e_testing = e2e_testing
-        self.e2e_testing_token = e2e_testing_token
+        self.e2e_testing_token = SecretStr(e2e_testing_token)
 
 
 def create_mock_request(path: str = "/api/test", method: str = "GET"):
