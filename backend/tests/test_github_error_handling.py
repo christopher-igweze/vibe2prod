@@ -15,7 +15,7 @@ import httpx
 
 from fastapi import HTTPException
 
-from backend.services.github import get_repo_info, create_pull_request, get_head_sha
+from services.github import get_repo_info, create_pull_request, get_head_sha
 
 
 class TestGetRepoInfoErrorHandling:
@@ -32,8 +32,9 @@ class TestGetRepoInfoErrorHandling:
             with pytest.raises(HTTPException) as exc_info:
                 await get_repo_info("owner", "repo")
 
-            assert exc_info.value.status_code == 504
+            assert exc_info.value.status_code == 503
             assert exc_info.value.detail["code"] == "github_timeout"
+            assert exc_info.value.headers.get("Retry-After") == "30"
 
     @pytest.mark.asyncio
     async def test_get_repo_info_handles_connect_error(self):
@@ -46,8 +47,9 @@ class TestGetRepoInfoErrorHandling:
             with pytest.raises(HTTPException) as exc_info:
                 await get_repo_info("owner", "repo")
 
-            assert exc_info.value.status_code == 502
+            assert exc_info.value.status_code == 503
             assert exc_info.value.detail["code"] == "github_unreachable"
+            assert exc_info.value.headers.get("Retry-After") == "60"
 
     @pytest.mark.asyncio
     async def test_get_repo_info_handles_404_not_found(self):
@@ -140,8 +142,9 @@ class TestCreatePullRequestErrorHandling:
             with pytest.raises(HTTPException) as exc_info:
                 await create_pull_request("owner", "repo", "title", "body", "head", "base", "token")
 
-            assert exc_info.value.status_code == 504
+            assert exc_info.value.status_code == 503
             assert exc_info.value.detail["code"] == "github_timeout"
+            assert exc_info.value.headers.get("Retry-After") == "30"
 
     @pytest.mark.asyncio
     async def test_create_pull_request_handles_connect_error(self):
@@ -154,8 +157,9 @@ class TestCreatePullRequestErrorHandling:
             with pytest.raises(HTTPException) as exc_info:
                 await create_pull_request("owner", "repo", "title", "body", "head", "base", "token")
 
-            assert exc_info.value.status_code == 502
+            assert exc_info.value.status_code == 503
             assert exc_info.value.detail["code"] == "github_unreachable"
+            assert exc_info.value.headers.get("Retry-After") == "60"
 
     @pytest.mark.asyncio
     async def test_create_pull_request_handles_http_status_error(self):
@@ -187,8 +191,9 @@ class TestCreatePullRequestErrorHandling:
             with pytest.raises(HTTPException) as exc_info:
                 await create_pull_request("owner", "repo", "title", "body", "head", "base", "token")
 
-            assert exc_info.value.status_code == 502
+            assert exc_info.value.status_code == 503
             assert exc_info.value.detail["code"] == "github_request_error"
+            assert exc_info.value.headers.get("Retry-After") == "30"
 
     @pytest.mark.asyncio
     async def test_create_pull_request_success(self):
