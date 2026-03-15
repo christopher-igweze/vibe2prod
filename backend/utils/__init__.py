@@ -1,4 +1,4 @@
-"""Shared utilities for Pydantic models."""
+"""Shared utilities for the application."""
 
 from __future__ import annotations
 
