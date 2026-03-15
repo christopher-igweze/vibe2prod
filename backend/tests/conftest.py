@@ -20,6 +20,7 @@ def mock_config(monkeypatch):
     mock_settings.github_oauth_allowed_redirect_origins = ""
     mock_settings.github_oauth_state_ttl_minutes = 10
     mock_settings.github_oauth_scope = "repo"
+    mock_settings.github_token_encryption_key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
     mock_settings.openrouter_api_key = "test-key"
     mock_settings.openrouter_base_url = "http://localhost:11434"
     mock_settings.model_scanner = "test-model"

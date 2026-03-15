@@ -34,6 +34,16 @@ class Settings(BaseSettings):
     github_webhook_secret: str | None = None
     github_oauth_allowed_redirect_origins: str = ""  # Comma-separated, e.g. "https://vibe2prod.com,http://localhost:3000"
     webhook_replay_window_seconds: int = 600
+    # 32-byte AES-256 key encoded as URL-safe base64 (required).
+    # Generate with:
+    #   python -c "import secrets, base64; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"
+    github_token_encryption_key: str = Field(
+        ...,
+        description=(
+            "URL-safe base64-encoded 32-byte AES-256 key used to encrypt "
+            "GitHub OAuth access tokens before storing them in the database."
+        ),
+    )
 
     # --- Daytona (sandbox) ---
     daytona_api_key: str = Field(..., description="Daytona API key")
