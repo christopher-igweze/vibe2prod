@@ -125,8 +125,10 @@ elif _vercel_projects:
     _vercel_pattern = "|".join(
         rf"^https://{_re.escape(project)}\.vercel\.app$" for project in _vercel_projects
     )
+    # Security fix: Only allow HTTP for localhost to reduce attack surface (CWE-346)
+    # HTTPS localhost is not needed for development and creates bypass risk
     _cors_regex = (
-        r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$|"
+        r"^http://(localhost|127\.0\.0\.1)(:\d+)?$|"
         + _vercel_pattern
         + r"|^https://(www\.)?vibe2prod\.com$|^https://.*\.verstandai\.site$"
     )
@@ -138,14 +140,14 @@ elif _vercel_projects:
         allow_headers=["Authorization", "Content-Type"],
     )
 else:
-    # Development fallback: only localhost (no Vercel wildcard)
+    # Development fallback: only localhost over HTTP (no Vercel wildcard)
     # WARNING: Without cors_allowed_origins or cors_vercel_projects configured,
     # Vercel preview deployments will be blocked. Set cors_vercel_projects to
     # allow specific Vercel projects, or configure cors_allowed_origins for production.
     app.add_middleware(
         CORSMiddleware,
         allow_origin_regex=(
-            r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$"
+            r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
             r"|^https://(www\.)?vibe2prod\.com$"
             r"|^https://.*\.verstandai\.site$"
         ),
