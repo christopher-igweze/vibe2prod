@@ -56,7 +56,30 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # E2E testing bypass: skip JWT verification and use a synthetic user_id
+        # This is only allowed in development environment with a valid token
         if settings.e2e_testing:
+            if settings.environment != "development":
+                logger.error(
+                    "E2E testing mode is not allowed in production environment. "
+                    "Authentication bypass attempt blocked."
+                )
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "E2E testing is not allowed in production"},
+                )
+            if not settings.e2e_testing_token:
+                logger.error(
+                    "E2E testing enabled but e2e_testing_token is not set. "
+                    "Authentication bypass blocked."
+                )
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "E2E testing token is required"},
+                )
+            logger.warning(
+                "E2E testing mode active — JWT verification bypassed. "
+                "This should only be used in development environment."
+            )
             request.state.user_id = "e2e_test_user"
             return await call_next(request)
 
