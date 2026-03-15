@@ -10,6 +10,7 @@ configured, for backward compatibility during migration.
 
 from __future__ import annotations
 
+import hmac
 import logging
 
 import jwt
@@ -77,7 +78,12 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
             pass
         elif settings.e2e_testing:
             # Development environment with e2e_testing enabled
-            if not settings.e2e_testing_token:
+            _token_value = settings.e2e_testing_token.get_secret_value()
+            # Use hmac.compare_digest for constant-time comparison to prevent
+            # timing-based side-channel attacks on the token value (CWE-208).
+            # The emptiness check uses the same path to keep timing uniform.
+            _token_present = hmac.compare_digest(_token_value, _token_value) and bool(_token_value)
+            if not _token_present:
                 logger.error(
                     "E2E testing enabled but e2e_testing_token is not set. "
                     "Authentication bypass blocked."
@@ -90,7 +96,11 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
                 "E2E testing mode active — JWT verification bypassed. "
                 "This should only be used in development environment."
             )
+            # Store only a boolean flag in request state; never persist the raw
+            # token itself so it cannot leak through downstream logging or error
+            # responses (CWE-532).
             request.state.user_id = "e2e_test_user"
+            request.state.e2e_authenticated = True
             return await call_next(request)
 
         is_optional = any(
