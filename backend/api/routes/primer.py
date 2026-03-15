@@ -15,6 +15,7 @@ from models.scan import PrimerResult
 from sandbox.manager import SandboxManager
 from services import supabase_client as db
 from services.github import get_head_sha, get_repo_info, parse_repo_url
+from services.http_client import shared_client
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -217,30 +218,29 @@ async def _summarize(primer_json: dict) -> str:
     }
     prompt = _SUMMARIZE_PROMPT_TEMPLATE.format(repo_json=json.dumps(trimmed))
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.post(
-                f"{settings.openrouter_base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {settings.openrouter_api_key}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": settings.model_scanner,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "temperature": 0.2,
-                    "max_tokens": 280,
-                },
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            content = (
-                data.get("choices", [{}])[0]
-                .get("message", {})
-                .get("content", "")
-                .strip()
-            )
-            if content:
-                return content
+        resp = await shared_client.post(
+            f"{settings.openrouter_base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {settings.openrouter_api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": settings.model_scanner,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.2,
+                "max_tokens": 280,
+            },
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        content = (
+            data.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "")
+            .strip()
+        )
+        if content:
+            return content
     except Exception:
         logger.exception("Primer summary fallback to deterministic text")
 
