@@ -70,8 +70,9 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
                 detail={"code": "state_required", "message": "state is required."},
             )
 
-        # Delegate to service for state validation (includes user and redirect_uri checks)
-        github_oauth_service.validate_oauth_state(
+        # Delegate to service for state validation (includes user, redirect_uri,
+        # and one-time-use / replay-prevention checks).
+        await github_oauth_service.validate_oauth_state(
             state=request_body.state,
             expected_user_id=user_id,
             expected_redirect_uri=request_body.redirect_uri,
