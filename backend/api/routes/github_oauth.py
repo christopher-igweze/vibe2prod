@@ -305,7 +305,11 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
                     "direction": "desc",
                     "per_page": min(per_page, 100),
                     "page": page,
-                    "type": "all",
+                    # Filter to only repos the user owns, is a collaborator on,
+                    # or is an organization member of. This prevents IDOR where
+                    # a user could access repos their token can see but aren't
+                    # linked to their Vibe2Prod account.
+                    "affiliation": "owner,collaborator,organization_member",
                 },
             )
     except httpx.TimeoutException:
