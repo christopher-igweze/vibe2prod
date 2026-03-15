@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hmac
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 from urllib.parse import urlencode, urlparse
@@ -270,7 +271,8 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
             )
 
         state_payload = _decode_state(request_body.state)
-        if state_payload.get("sub") != user_id:
+        # Use constant-time comparison to prevent timing attacks
+        if not hmac.compare_digest(state_payload.get("sub", ""), user_id):
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -278,7 +280,8 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
                     "message": "GitHub OAuth state does not belong to this user.",
                 },
             )
-        if state_payload.get("redirect_uri") != request_body.redirect_uri:
+        # Use constant-time comparison to prevent timing attacks
+        if not hmac.compare_digest(state_payload.get("redirect_uri", ""), request_body.redirect_uri):
             raise HTTPException(
                 status_code=400,
                 detail={
