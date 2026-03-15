@@ -46,15 +46,21 @@ async def list_scans(request: Request) -> list[dict]:
     if project_ids:
         project_cache = await db.get_projects_batch(project_ids)
 
-    # Enrich with repo_url from projects
+    # Defense-in-depth: explicitly filter out any scans for projects 
+    # the user doesn't own (protects against edge cases)
+    authorized_scans = []
     for scan in scans:
         pid = scan.get("project_id")
         if pid:
             project = project_cache.get(UUID(pid), {})
+            # Verify project ownership
+            if project.get("user_id") != user_id:
+                continue
             scan["repo_url"] = project.get("repo_url", "")
             scan["repo_name"] = project.get("repo_name", "")
+        authorized_scans.append(scan)
 
-    return scans
+    return authorized_scans
 
 
 @router.get("/user/scans/{scan_id}")
