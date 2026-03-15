@@ -240,10 +240,19 @@ _SENSITIVE_PARAM = _re.compile(
     _re.IGNORECASE,
 )
 
+# Matches Authorization header values (Bearer <token>, Basic <creds>, etc.)
+# Used to redact credential material from any string representation before logging.
+_SENSITIVE_HEADER = _re.compile(
+    r"(authorization\s*:\s*(?:bearer|basic|token)\s+)([^\s,;\"']+)",
+    _re.IGNORECASE,
+)
+
 
 def _sanitize_url(url: object) -> str:
-    """Redact sensitive query parameters from URLs before logging."""
-    return _SENSITIVE_PARAM.sub(r"\1=***", str(url))
+    """Redact sensitive query parameters and Authorization values from URLs before logging."""
+    sanitized = _SENSITIVE_PARAM.sub(r"\1=***", str(url))
+    sanitized = _SENSITIVE_HEADER.sub(r"\1***", sanitized)
+    return sanitized
 
 
 # ------------------------------------------------------------------ #

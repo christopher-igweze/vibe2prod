@@ -10,6 +10,7 @@ Framework: pytest
 """
 
 import pytest
+from pydantic import SecretStr
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import Request
 from starlette.responses import JSONResponse, Response
@@ -35,13 +36,18 @@ class TestE2ETestingSecurityBypass:
 
     @pytest.fixture
     def mock_settings(self):
-        """Create mock settings for different test scenarios."""
+        """Create mock settings for different test scenarios.
+
+        ``e2e_testing_token`` is a ``SecretStr`` to match the real ``Settings``
+        type so the middleware's ``.get_secret_value()`` call works correctly
+        (CWE-532).
+        """
         mock = MagicMock()
         mock.clerk_jwks_url = "https://clerk.example.com/.well-known/jwks"
         mock.supabase_jwt_secret = "secret"
         mock.e2e_testing = False
         mock.environment = "production"
-        mock.e2e_testing_token = ""
+        mock.e2e_testing_token = SecretStr("")
         return mock
 
     @pytest.fixture
@@ -66,13 +72,13 @@ class TestE2ETestingSecurityBypass:
         """Test that E2E testing is blocked when environment is production."""
         mock_settings.e2e_testing = True
         mock_settings.environment = "production"
-        mock_settings.e2e_testing_token = "test-token"
-        
+        mock_settings.e2e_testing_token = SecretStr("test-token")
+
         async def mock_call_next(request):
             return Response(content=b"OK", status_code=200)
-        
+
         response = await middleware.dispatch(mock_request, mock_call_next)
-        
+
         # Should return 403 Forbidden
         assert response.status_code == 403
         body = response.body.decode() if hasattr(response, 'body') else ""
@@ -83,13 +89,13 @@ class TestE2ETestingSecurityBypass:
         """Test that E2E testing is blocked in development without token."""
         mock_settings.e2e_testing = True
         mock_settings.environment = "development"
-        mock_settings.e2e_testing_token = ""
-        
+        mock_settings.e2e_testing_token = SecretStr("")
+
         async def mock_call_next(request):
             return Response(content=b"OK", status_code=200)
-        
+
         response = await middleware.dispatch(mock_request, mock_call_next)
-        
+
         # Should return 403 Forbidden
         assert response.status_code == 403
         body = response.body.decode() if hasattr(response, 'body') else ""
@@ -100,13 +106,13 @@ class TestE2ETestingSecurityBypass:
         """Test that E2E testing works in development with valid token."""
         mock_settings.e2e_testing = True
         mock_settings.environment = "development"
-        mock_settings.e2e_testing_token = "valid-test-token"
-        
+        mock_settings.e2e_testing_token = SecretStr("valid-test-token")
+
         async def mock_call_next(request):
             return Response(content=b"OK", status_code=200)
-        
+
         response = await middleware.dispatch(mock_request, mock_call_next)
-        
+
         # Should allow the request through
         assert response.status_code == 200
         # Should set the synthetic user_id
@@ -117,7 +123,7 @@ class TestE2ETestingSecurityBypass:
         """Test that E2E testing is blocked when e2e_testing is False."""
         mock_settings.e2e_testing = False
         mock_settings.environment = "development"
-        mock_settings.e2e_testing_token = ""
+        mock_settings.e2e_testing_token = SecretStr("")
         
         async def mock_call_next(request):
             return Response(content=b"OK", status_code=200)

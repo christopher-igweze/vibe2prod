@@ -9,7 +9,7 @@ Framework: pytest
 """
 
 import pytest
-from pydantic import ValidationError
+from pydantic import SecretStr, ValidationError
 
 # Import using relative path based on project structure
 try:
@@ -84,7 +84,11 @@ class TestE2ETestingConfigValidation:
         
         assert settings.e2e_testing is True
         assert settings.environment == "development"
-        assert settings.e2e_testing_token == "valid-test-token-123"
+        # e2e_testing_token is a SecretStr — compare via get_secret_value() so the
+        # raw token value is never inadvertently printed by repr/str in assertion
+        # failure messages (CWE-532).
+        assert isinstance(settings.e2e_testing_token, SecretStr)
+        assert settings.e2e_testing_token.get_secret_value() == "valid-test-token-123"
 
     def test_e2e_testing_disabled_allows_production(self):
         """Test that e2e_testing=False allows production environment."""
@@ -161,5 +165,9 @@ class TestE2ETestingConfigValidation:
             daytona_api_key="test-key",
             daytona_api_url="https://test.daytona.io/api",
         )
-        
-        assert settings.e2e_testing_token == ""
+
+        # e2e_testing_token is a SecretStr — compare via get_secret_value() so the
+        # raw token value is never inadvertently printed by repr/str in assertion
+        # failure messages (CWE-532).
+        assert isinstance(settings.e2e_testing_token, SecretStr)
+        assert settings.e2e_testing_token.get_secret_value() == ""
