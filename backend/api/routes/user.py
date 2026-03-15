@@ -92,15 +92,16 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    # Enrich with project info
+    # Enrich with project info (use batch method for consistency with list_scans)
     pid = scan.get("project_id")
     if pid:
         try:
-            project = await db.get_project(UUID(pid))
+            project_cache = await db.get_projects_batch([UUID(pid)])
+            project = project_cache.get(UUID(pid), {})
         except Exception as e:
             logger = logging.getLogger(__name__)
             logger.error(f"Error fetching project for scan {scan_id}: {e}")
-            project = None
+            project = {}
         if project:
             scan["repo_url"] = project.get("repo_url", "")
             scan["repo_name"] = project.get("repo_name", "")
