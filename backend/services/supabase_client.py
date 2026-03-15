@@ -447,6 +447,21 @@ async def get_github_access_token(user_id: str) -> str | None:
     return row.data[0].get("github_access_token")
 
 
+async def get_github_profile(user_id: str) -> tuple[str | None, str | None]:
+    """Retrieve GitHub username and avatar URL from the user's profile."""
+    client = _client()
+    row = (
+        client.table("profiles")
+        .select("github_username, avatar_url")
+        .eq("user_id", str(user_id))
+        .limit(1)
+        .execute()
+    )
+    if not row.data:
+        return None, None
+    return row.data[0].get("github_username"), row.data[0].get("avatar_url")
+
+
 async def save_github_connection(
     *,
     user_id: str,
