@@ -75,9 +75,13 @@ async def lifespan(app: FastAPI):
         # Don't re-raise - cleanup failure is not critical to startup
 
     # Initialize shared HTTP client with connection pooling
-    from services.http_client import shared_client
-    await shared_client.__aenter__()
-    logger.info("Shared HTTP client initialized with connection pooling")
+    try:
+        from services.http_client import shared_client
+        await shared_client.__aenter__()
+        logger.info("Shared HTTP client initialized with connection pooling")
+    except Exception as e:
+        logger.warning("Failed to initialize shared HTTP client: %s", e)
+        # Continue startup - some features may work without it
 
     yield
 
