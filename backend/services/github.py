@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from urllib.parse import urlparse
 
 import httpx
+from fastapi import HTTPException
 
 _GITHUB_HOSTS = {"github.com", "www.github.com"}
 _VALID_SEGMENT = re.compile(r"^[a-zA-Z0-9._-]+$")
@@ -48,13 +49,45 @@ async def get_repo_info(
     if token:
         headers["Authorization"] = f"token {token}"
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"https://api.github.com/repos/{owner}/{repo}",
-            headers=headers,
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://api.github.com/repos/{owner}/{repo}",
+                headers=headers,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail={"code": "github_timeout", "message": "GitHub API request timed out."},
         )
-        resp.raise_for_status()
-        data = resp.json()
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."},
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            raise HTTPException(
+                status_code=404,
+                detail={"code": "repo_not_found", "message": f"Repository {owner}/{repo} not found."},
+            )
+        elif e.response.status_code == 403:
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "github_rate_limited", "message": "GitHub API rate limit exceeded."},
+            )
+        else:
+            raise HTTPException(
+                status_code=502,
+                detail={"code": "github_api_error", "message": f"GitHub API error: {e.response.status_code}"},
+            )
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_request_error", "message": f"GitHub request failed: {str(e)}"},
+        )
 
     return RepoInfo(
         owner=owner,
@@ -76,17 +109,38 @@ async def create_pull_request(
     token: str,
 ) -> str:
     """Create a PR and return the HTML URL."""
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"https://api.github.com/repos/{owner}/{repo}/pulls",
-            headers={
-                "Accept": "application/vnd.github.v3+json",
-                "Authorization": f"token {token}",
-            },
-            json={"title": title, "body": body, "head": head, "base": base},
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"https://api.github.com/repos/{owner}/{repo}/pulls",
+                headers={
+                    "Accept": "application/vnd.github.v3+json",
+                    "Authorization": f"token {token}",
+                },
+                json={"title": title, "body": body, "head": head, "base": base},
+            )
+            resp.raise_for_status()
+            return resp.json()["html_url"]
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail={"code": "github_timeout", "message": "GitHub API request timed out."},
         )
-        resp.raise_for_status()
-        return resp.json()["html_url"]
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."},
+        )
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_api_error", "message": f"GitHub API error: {e.response.status_code}"},
+        )
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_request_error", "message": f"GitHub request failed: {str(e)}"},
+        )
 
 
 async def get_head_sha(
@@ -100,11 +154,38 @@ async def get_head_sha(
     if token:
         headers["Authorization"] = f"token {token}"
 
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"https://api.github.com/repos/{owner}/{repo}/commits/{branch}",
-            headers=headers,
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://api.github.com/repos/{owner}/{repo}/commits/{branch}",
+                headers=headers,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=504,
+            detail={"code": "github_timeout", "message": "GitHub API request timed out."},
         )
-        resp.raise_for_status()
-        data = resp.json()
+    except httpx.ConnectError:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_unreachable", "message": "Unable to reach GitHub. Please try again."},
+        )
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            raise HTTPException(
+                status_code=404,
+                detail={"code": "branch_not_found", "message": f"Branch '{branch}' not found in {owner}/{repo}."},
+            )
+        else:
+            raise HTTPException(
+                status_code=502,
+                detail={"code": "github_api_error", "message": f"GitHub API error: {e.response.status_code}"},
+            )
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=502,
+            detail={"code": "github_request_error", "message": f"GitHub request failed: {str(e)}"},
+        )
     return data["sha"]
