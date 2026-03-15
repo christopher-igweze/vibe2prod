@@ -5,7 +5,7 @@ from __future__ import annotations
 import hmac
 from datetime import datetime, timedelta, timezone
 from typing import Literal
-from urllib.parse import urlencode, urlparse
+from urllib.parse import urlencode, urlparse, parse_qs
 
 import httpx
 import jwt
@@ -314,10 +314,58 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
     )
 
 
+def _parse_link_header(link_header: str | None) -> str | None:
+    """Parse GitHub's Link header to extract the next cursor.
+    
+    GitHub returns pagination info in the Link header like:
+    <https://api.github.com/user/repos?page=2&per_page=30>; rel="next"
+    
+    Returns the cursor value for the 'next' page, or None if there's no next page.
+    """
+    if not link_header:
+        return None
+    
+    # Parse the Link header - format: <url>; rel="rel_type", <url>; rel="rel_type"
+    links = {}
+    for part in link_header.split(","):
+        part = part.strip()
+        if ">" in part and 'rel="' in part:
+            url_part, rel_part = part.split(";", 1)
+            url = url_part.strip().strip("<>")
+            rel = rel_part.strip().split("=")[1].strip('"')
+            links[rel] = url
+    
+    next_url = links.get("next")
+    if next_url:
+        # Extract cursor from URL query params
+        parsed = urlparse(next_url)
+        query_params = parse_qs(parsed.query)
+        cursors = query_params.get("cursor")
+        if cursors:
+            return cursors[0]
+    return None
+
+
 @router.get("/github/repos")
 @limiter.limit(rate_limit_string())
-async def list_github_repos(request: Request, page: int = 1, per_page: int = 30):
-    """List the authenticated user's GitHub repositories."""
+async def list_github_repos(
+    request: Request,
+    page: int = 1,
+    per_page: int = 30,
+    cursor: str | None = None,
+    paginated: bool = False,
+):
+    """List the authenticated user's GitHub repositories.
+    
+    Supports both page-based and cursor-based pagination.
+    For large result sets, prefer using cursor-based pagination for better performance.
+    
+    Args:
+        page: Page number for page-based pagination (used when cursor is not provided)
+        per_page: Number of repos per page (max 100)
+        cursor: Cursor for cursor-based pagination (preferred for large result sets)
+        paginated: If true, returns a paginated response with next_cursor and has_more
+    """
     user_id: str = request.state.user_id
     token = await db.get_github_access_token(user_id)
     if not token:
@@ -326,6 +374,24 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
             detail={"code": "github_not_connected", "message": "GitHub is not connected."},
         )
 
+    # Build request params - use cursor if provided, otherwise use page
+    params = {
+        "sort": "updated",
+        "direction": "desc",
+        "per_page": min(per_page, 100),
+        # Filter to only repos the user owns, is a collaborator on,
+        # or is an organization member of. This prevents IDOR where
+        # a user could access repos their token can see but aren't
+        # linked to their Vibe2Prod account.
+        "affiliation": "owner,collaborator,organization_member",
+    }
+    
+    # Use cursor-based pagination if provided, otherwise fall back to page-based
+    if cursor:
+        params["cursor"] = cursor
+    else:
+        params["page"] = page
+
     try:
         resp = await shared_client.get(
             "https://api.github.com/user/repos",
@@ -333,17 +399,7 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
                 "Accept": "application/vnd.github+json",
                 "Authorization": f"Bearer {token}",
             },
-            params={
-                "sort": "updated",
-                "direction": "desc",
-                "per_page": min(per_page, 100),
-                "page": page,
-                # Filter to only repos the user owns, is a collaborator on,
-                # or is an organization member of. This prevents IDOR where
-                # a user could access repos their token can see but aren't
-                # linked to their Vibe2Prod account.
-                "affiliation": "owner,collaborator,organization_member",
-            },
+            params=params,
         )
     except httpx.TimeoutException:
         raise HTTPException(
@@ -375,7 +431,12 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
         raise HTTPException(status_code=502, detail={"code": "github_api_error", "message": "GitHub API error."})
 
     repos = resp.json()
-    return [
+    
+    # Parse Link header for pagination metadata
+    link_header = resp.headers.get("Link") or resp.headers.get("link")
+    next_cursor = _parse_link_header(link_header)
+    
+    repo_list = [
         {
             "full_name": r["full_name"],
             "name": r["name"],
@@ -389,6 +450,18 @@ async def list_github_repos(request: Request, page: int = 1, per_page: int = 30)
         }
         for r in repos
     ]
+    
+    # Return paginated format if requested, otherwise return list for backward compatibility
+    if paginated or cursor is not None:
+        return {
+            "repos": repo_list,
+            "pagination": {
+                "next_cursor": next_cursor,
+                "has_more": next_cursor is not None,
+            },
+        }
+    
+    return repo_list
 
 
 @router.get("/github/repos/{owner}/{repo}/branches")
