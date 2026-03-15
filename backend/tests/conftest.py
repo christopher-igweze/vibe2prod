@@ -45,26 +45,36 @@ def mock_config(monkeypatch):
 def mock_slowapi(monkeypatch):
     """Mock slowapi limiter to avoid import errors."""
     import sys
-    
+
     # Mock the Limiter class
     mock_limit_decorator = lambda x: lambda f: f
     mock_limiter_instance = MagicMock()
     mock_limiter_instance.limit = mock_limit_decorator
-    
+
     class MockLimiter:
         def __init__(self, *args, **kwargs):
             pass
         def limit(self, *args, **kwargs):
             return mock_limit_decorator
-    
+
+    # Stub out slowapi.util *before* replacing the slowapi package-level mock.
+    # This is required because api.middleware.rate_limit does
+    # ``from slowapi.util import get_remote_address`` at import time; if
+    # slowapi is already replaced with a plain MagicMock (which is not a real
+    # package), Python cannot resolve the submodule and raises ImportError.
+    if 'slowapi.util' not in sys.modules:
+        util_mock = MagicMock()
+        util_mock.get_remote_address = MagicMock(return_value="127.0.0.1")
+        sys.modules['slowapi.util'] = util_mock
+
     # Patch slowapi
-    if 'slowapi' in sys.modules:
+    if 'slowapi' in sys.modules and not isinstance(sys.modules['slowapi'], MagicMock):
         sys.modules['slowapi'].Limiter = MockLimiter
     else:
         slowapi_mock = MagicMock()
         slowapi_mock.Limiter = MockLimiter
         slowapi_mock._rate_limit_exceeded = MagicMock()
         sys.modules['slowapi'] = slowapi_mock
-    
+
     # Also patch api.middleware.rate_limit
     monkeypatch.setattr("api.middleware.rate_limit.limiter", mock_limiter_instance)
