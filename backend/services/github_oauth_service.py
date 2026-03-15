@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hmac
 import logging
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import urlencode, urlparse, parse_qs
@@ -81,17 +82,29 @@ class GitHubOAuthService:
             )
 
     def _encode_state(self, user_id: str, redirect_uri: str) -> str:
-        """Encode OAuth state JWT."""
+        """Encode OAuth state JWT.
+
+        A unique ``jti`` (JWT ID) nonce is embedded so that each state token
+        can be individually tracked and marked as consumed after first use,
+        preventing replay attacks within the TTL window (CWE-613).
+        """
         now = datetime.now(timezone.utc)
         payload = {
             "sub": user_id,
             "redirect_uri": redirect_uri,
+            # Cryptographically random nonce — used as the consumption key.
+            "jti": secrets.token_urlsafe(32),
             "iat": int(now.timestamp()),
             "exp": int(
                 (now + timedelta(minutes=settings.github_oauth_state_ttl_minutes)).timestamp()
             ),
         }
         return jwt.encode(payload, self._get_state_secret(), algorithm="HS256")
+
+    # Public alias so tests and module-level shims can call encode_state directly.
+    def encode_state(self, user_id: str, redirect_uri: str) -> str:
+        """Public alias for :meth:`_encode_state`."""
+        return self._encode_state(user_id=user_id, redirect_uri=redirect_uri)
 
     def _decode_state(self, state: str) -> dict:
         """Decode and validate OAuth state JWT."""
@@ -115,19 +128,33 @@ class GitHubOAuthService:
             ) from exc
         return payload
 
-    def validate_oauth_state(
+    # Public alias so tests and module-level shims can call decode_state directly.
+    def decode_state(self, state: str) -> dict:
+        """Public alias for :meth:`_decode_state`."""
+        return self._decode_state(state)
+
+    async def validate_oauth_state(
         self,
         state: str,
         expected_user_id: str,
         expected_redirect_uri: str,
     ) -> None:
         """Validate OAuth state matches expected user_id and redirect_uri.
-        
-        Uses constant-time comparison to prevent timing attacks.
+
+        Performs three layers of validation:
+        1. JWT signature and expiry (prevents forgery and stale tokens).
+        2. Constant-time ``sub`` / ``redirect_uri`` comparison (prevents timing
+           attacks and IDOR / open-redirect abuse).
+        3. One-time-use enforcement via a per-``jti`` consumption record stored
+           in the database (prevents replay attacks within the TTL window,
+           addressing CWE-613).
+
+        The state token is marked consumed *after* all field checks pass so
+        that a mismatch error does not silently burn the nonce.
         """
         state_payload = self._decode_state(state)
-        
-        # Use constant-time comparison to prevent timing attacks
+
+        # Use constant-time comparison to prevent timing attacks.
         if not hmac.compare_digest(state_payload.get("sub", ""), expected_user_id):
             raise HTTPException(
                 status_code=403,
@@ -136,7 +163,7 @@ class GitHubOAuthService:
                     "message": "GitHub OAuth state does not belong to this user.",
                 },
             )
-        # Use constant-time comparison to prevent timing attacks
+        # Use constant-time comparison to prevent timing attacks.
         if not hmac.compare_digest(state_payload.get("redirect_uri", ""), expected_redirect_uri):
             raise HTTPException(
                 status_code=400,
@@ -145,6 +172,40 @@ class GitHubOAuthService:
                     "message": "GitHub OAuth redirect URI mismatch.",
                 },
             )
+
+        # Replay-attack prevention: each state token may only be used once.
+        jti = state_payload.get("jti")
+        if not jti:
+            # Tokens without a jti were issued before this fix — reject them to
+            # enforce forward-only security posture.
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "oauth_state_missing_nonce",
+                    "message": "GitHub OAuth state is missing a required nonce. "
+                    "Please restart the authorization flow.",
+                },
+            )
+
+        already_consumed = await db.is_oauth_state_consumed(jti)
+        if already_consumed:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "oauth_state_already_used",
+                    "message": "This GitHub OAuth state has already been used. "
+                    "Please restart the authorization flow.",
+                },
+            )
+
+        # Mark the nonce as consumed.  TTL mirrors the JWT expiry so the row
+        # is automatically eligible for cleanup after the token would have
+        # expired anyway.
+        await db.consume_oauth_state(
+            jti=jti,
+            user_id=expected_user_id,
+            ttl_minutes=settings.github_oauth_state_ttl_minutes,
+        )
 
     def build_auth_url(self, redirect_uri: str, state: str) -> str:
         """Build the GitHub OAuth authorization URL."""
@@ -567,3 +628,31 @@ class GitHubOAuthService:
 
 # Module-level singleton
 github_oauth_service = GitHubOAuthService()
+
+# ---------------------------------------------------------------------------
+# Module-level function shims
+#
+# These thin wrappers delegate to the singleton instance so that other modules
+# and tests can import individual helpers from this module without going
+# through the class, matching the interface expected by the refactoring tests.
+# ---------------------------------------------------------------------------
+
+
+def ensure_oauth_configured() -> None:
+    """Module-level shim for :meth:`GitHubOAuthService._ensure_oauth_configured`."""
+    github_oauth_service._ensure_oauth_configured()
+
+
+def validate_redirect_uri(redirect_uri: str) -> None:
+    """Module-level shim for :meth:`GitHubOAuthService._validate_redirect_uri`."""
+    github_oauth_service._validate_redirect_uri(redirect_uri)
+
+
+def encode_state(user_id: str, redirect_uri: str) -> str:
+    """Module-level shim for :meth:`GitHubOAuthService.encode_state`."""
+    return github_oauth_service.encode_state(user_id=user_id, redirect_uri=redirect_uri)
+
+
+def decode_state(state: str) -> dict:
+    """Module-level shim for :meth:`GitHubOAuthService.decode_state`."""
+    return github_oauth_service.decode_state(state)
