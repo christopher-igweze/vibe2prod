@@ -17,3 +17,4 @@
 {"ts": 1773552203.505992, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 572236, "output_tokens": 5834, "api_calls": 30, "api_time_ms": 180422, "cost_usd": 0.15006}
 {"ts": 1773552554.946296, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 572343, "output_tokens": 5128, "api_calls": 30, "api_time_ms": 207021, "cost_usd": 0.149239}
 {"ts": 1773553511.815447, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 380772, "output_tokens": 5396, "api_calls": 30, "api_time_ms": 100348, "cost_usd": 0.101668}
+{"ts": 1773553758.0265028, "model": "minimax/minimax-m2.5", "mode": "agent", "input_tokens": 89751, "output_tokens": 1872, "api_calls": 10, "api_time_ms": 166785, "cost_usd": 0.024684}
