@@ -125,10 +125,9 @@ async def get_project_scans(project_id: UUID, request: Request) -> dict:
     """Return scan history and score trends for a project."""
     user_id: str = request.state.user_id
     try:
-        project = await db.get_project(project_id)
-        if not project or project.get("user_id") != user_id:
+        project, scans = await db.get_project_with_scans(project_id, user_id)
+        if not project:
             raise HTTPException(status_code=404, detail="Project not found")
-        scans = await db.get_project_scan_history(project_id, user_id)
         return {"project": project, "scans": scans}
     except HTTPException:
         raise
