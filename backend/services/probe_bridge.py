@@ -9,6 +9,7 @@ Usage:
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import dataclass
 
@@ -17,6 +18,9 @@ import httpx
 from config import settings
 
 logger = logging.getLogger(__name__)
+
+# Default timeout for probe service HTTP calls (in seconds)
+DEFAULT_TIMEOUT = 30.0
 
 
 @dataclass
@@ -34,11 +38,12 @@ class ProbeBridge:
         self,
         service_url: str | None = None,
         api_key: str | None = None,
-        timeout: int = 30,
+        timeout: float = DEFAULT_TIMEOUT,
     ):
         self.service_url = (service_url or getattr(settings, "probe_service_url", "")).rstrip("/")
         self.api_key = api_key or getattr(settings, "probe_service_api_key", "")
-        self.timeout = timeout
+        # Use httpx.Timeout for explicit timeout control (connect, read, write, pool)
+        self.timeout = httpx.Timeout(timeout, connect=timeout, read=timeout, write=timeout, pool=timeout)
 
     async def _post(self, path: str, payload: dict) -> dict:
         """POST JSON to probe service."""
@@ -79,6 +84,9 @@ class ProbeBridge:
                 job_id=resp.get("job_id", ""),
                 status=resp.get("status", "queued"),
             )
+        except (httpx.TimeoutException, asyncio.TimeoutError) as e:
+            logger.error("Timeout triggering probe scan: %s", e)
+            return ProbeServiceResult(status="error", error=f"Request timed out: {e}")
         except Exception as e:
             logger.error("Failed to trigger probe scan: %s", e)
             return ProbeServiceResult(status="error", error=str(e))
@@ -87,6 +95,9 @@ class ProbeBridge:
         """Get scan status from probe service."""
         try:
             return await self._get(f"/api/v1/scans/{job_id}")
+        except (httpx.TimeoutException, asyncio.TimeoutError) as e:
+            logger.error("Timeout getting probe status for %s: %s", job_id, e)
+            return {"job_id": job_id, "status": "error", "error": f"Request timed out: {e}"}
         except Exception as e:
             logger.error("Failed to get probe status for %s: %s", job_id, e)
             return {"job_id": job_id, "status": "error", "error": str(e)}
@@ -95,6 +106,9 @@ class ProbeBridge:
         """Get final scan results from probe service."""
         try:
             return await self._get(f"/api/v1/scans/{job_id}/results")
+        except (httpx.TimeoutException, asyncio.TimeoutError) as e:
+            logger.error("Timeout getting probe results for %s: %s", job_id, e)
+            return {"job_id": job_id, "status": "error", "error": f"Request timed out: {e}"}
         except Exception as e:
             logger.error("Failed to get probe results for %s: %s", job_id, e)
             return {"job_id": job_id, "status": "error", "error": str(e)}
@@ -103,6 +117,9 @@ class ProbeBridge:
         """Cancel a running scan."""
         try:
             return await self._delete(f"/api/v1/scans/{job_id}")
+        except (httpx.TimeoutException, asyncio.TimeoutError) as e:
+            logger.error("Timeout cancelling probe %s: %s", job_id, e)
+            return {"job_id": job_id, "status": "error", "error": f"Request timed out: {e}"}
         except Exception as e:
             logger.error("Failed to cancel probe %s: %s", job_id, e)
             return {"job_id": job_id, "status": "error", "error": str(e)}

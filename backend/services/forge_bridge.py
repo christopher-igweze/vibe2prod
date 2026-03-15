@@ -120,6 +120,9 @@ async def _poll_until_complete(
 
         try:
             result = _http_get(url, api_key)
+        except asyncio.TimeoutError as e:
+            logger.warning("Timeout polling FORGE execution %s (will retry): %s", execution_id, e)
+            continue
         except Exception as e:
             logger.warning("Poll failed (will retry): %s", e)
             continue
@@ -348,6 +351,11 @@ async def _trigger_forge(
 
     try:
         resp = _http_post(url, payload, api_key)
+    except asyncio.TimeoutError as e:
+        return ForgeRunResult(
+            status="error",
+            error=f"Timeout triggering FORGE: {e}",
+        )
     except Exception as e:
         return ForgeRunResult(
             status="error",
@@ -364,9 +372,16 @@ async def _trigger_forge(
     logger.info("FORGE execution started: %s", execution_id)
 
     # Poll for completion
-    result = await _poll_until_complete(
-        agentfield_url, execution_id, api_key, timeout,
-    )
+    try:
+        result = await _poll_until_complete(
+            agentfield_url, execution_id, api_key, timeout,
+        )
+    except asyncio.TimeoutError as e:
+        return ForgeRunResult(
+            execution_id=execution_id,
+            status="timeout",
+            error=f"Polling for FORGE result timed out: {e}",
+        )
 
     return _parse_forge_result(execution_id, result)
 
