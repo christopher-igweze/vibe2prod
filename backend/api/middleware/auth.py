@@ -56,17 +56,27 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # E2E testing bypass: skip JWT verification and use a synthetic user_id
-        # This is only allowed in development environment with a valid token
-        if settings.e2e_testing:
-            if settings.environment != "development":
+        # This is only allowed in development environment with a valid token.
+        # Security: Check environment FIRST to ensure bypass cannot be activated
+        # in production even if e2e_testing is incorrectly configured.
+        if settings.environment != "development":
+            # Production environment: e2e_testing must be disabled (defense in depth)
+            # The config validator should prevent this at startup, but we check here
+            # as an additional safeguard against misconfiguration
+            if settings.e2e_testing:
                 logger.error(
-                    "E2E testing mode is not allowed in production environment. "
-                    "Authentication bypass attempt blocked."
+                    "E2E testing mode is enabled but environment is not 'development'. "
+                    "This should not happen if config validation is working correctly. "
+                    "Authentication bypass attempt blocked as a security precaution."
                 )
                 return JSONResponse(
                     status_code=403,
                     content={"detail": "E2E testing is not allowed in production"},
                 )
+            # Normal production flow - proceed to JWT verification
+            pass
+        elif settings.e2e_testing:
+            # Development environment with e2e_testing enabled
             if not settings.e2e_testing_token:
                 logger.error(
                     "E2E testing enabled but e2e_testing_token is not set. "
