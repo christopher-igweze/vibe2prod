@@ -8,7 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from models._utils import utc_now
+from utils import utc_now
 
 
 class RuntimeSession(BaseModel):
