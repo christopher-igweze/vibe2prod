@@ -16,6 +16,7 @@ from dataclasses import dataclass
 import httpx
 
 from config import settings
+from services.http_client import shared_client
 
 logger = logging.getLogger(__name__)
 
@@ -49,28 +50,25 @@ class ProbeBridge:
         """POST JSON to probe service."""
         url = f"{self.service_url}{path}"
         headers = {"X-API-Key": self.api_key, "Content-Type": "application/json"}
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.post(url, json=payload, headers=headers)
-            resp.raise_for_status()
-            return resp.json()
+        resp = await shared_client.post(url, json=payload, headers=headers)
+        resp.raise_for_status()
+        return resp.json()
 
     async def _get(self, path: str) -> dict:
         """GET from probe service."""
         url = f"{self.service_url}{path}"
         headers = {"X-API-Key": self.api_key}
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.get(url, headers=headers)
-            resp.raise_for_status()
-            return resp.json()
+        resp = await shared_client.get(url, headers=headers)
+        resp.raise_for_status()
+        return resp.json()
 
     async def _delete(self, path: str) -> dict:
         """DELETE to probe service."""
         url = f"{self.service_url}{path}"
         headers = {"X-API-Key": self.api_key}
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            resp = await client.delete(url, headers=headers)
-            resp.raise_for_status()
-            return resp.json()
+        resp = await shared_client.delete(url, headers=headers)
+        resp.raise_for_status()
+        return resp.json()
 
     async def trigger_scan(self, target_url: str, config: dict) -> ProbeServiceResult:
         """Start a scan on the probe service."""

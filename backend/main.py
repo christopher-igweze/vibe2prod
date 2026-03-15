@@ -60,7 +60,17 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.exception("Failed to clean up orphaned scans on startup.")
 
+    # Initialize shared HTTP client with connection pooling
+    from services.http_client import shared_client
+    await shared_client.__aenter__()
+    logger.info("Shared HTTP client initialized with connection pooling")
+
     yield
+
+    # Close shared HTTP client
+    await shared_client.__aexit__(None, None, None)
+    logger.info("Shared HTTP client closed")
+
     logger.info("Vibe2Prod API shutting down.")
 
 
