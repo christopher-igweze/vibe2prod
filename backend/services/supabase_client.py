@@ -840,17 +840,44 @@ async def get_latest_scan_fix_attempt(scan_id: UUID) -> dict | None:
 
 
 async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
-    """Return recent scans for a user, newest first."""
+    """Return recent scans for a user, newest first.
+    
+    Only returns scans for projects that the user owns. This ensures
+    authorization boundaries are enforced at the database level.
+    """
     client = _client()
+    # Join with projects table to verify project ownership
+    # This prevents returning scans for projects the user doesn't own
     row = (
         client.table("scan_reports")
-        .select("id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,created_at,project_id")
-        .eq("user_id", str(user_id))
-        .order("created_at", desc=True)
+        .select(
+            "id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,created_at,project_id,"
+            "projects(id,user_id)"
+        )
+        .eq("scan_reports.user_id", str(user_id))
+        .eq("projects.user_id", str(user_id))
+        .order("scan_reports.created_at", desc=True)
         .limit(limit)
         .execute()
     )
-    return row.data or []
+    
+    # Extract scan fields from the joined result
+    scans = []
+    for item in (row.data or []):
+        scan = {
+            "id": item.get("id"),
+            "status": item.get("status"),
+            "scan_tier": item.get("scan_tier"),
+            "health_score": item.get("health_score"),
+            "security_score": item.get("security_score"),
+            "reliability_score": item.get("reliability_score"),
+            "scalability_score": item.get("scalability_score"),
+            "created_at": item.get("created_at"),
+            "project_id": item.get("project_id"),
+        }
+        scans.append(scan)
+    
+    return scans
 
 
 async def get_scan_report(scan_id: UUID, user_id: str) -> dict | None:
