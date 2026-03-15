@@ -176,6 +176,15 @@ async def github_webhook(request: Request) -> WebhookResponse:
         )
 
     body = await request.body()
+    if not body:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "body_empty",
+                "message": "Request body must not be empty.",
+            },
+        )
+
     if not _verify_github_signature(body=body, signature=signature):
         raise HTTPException(
             status_code=401,
