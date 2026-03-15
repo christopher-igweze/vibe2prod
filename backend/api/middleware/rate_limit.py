@@ -7,6 +7,7 @@ for accurate request counting, with support for different limits per endpoint ty
 from __future__ import annotations
 
 import logging
+import random
 import threading
 import time
 from collections import defaultdict
@@ -89,6 +90,11 @@ class RateLimitStorage:
         Returns:
             Tuple of (is_allowed, remaining_requests, reset_timestamp)
         """
+        # Probabilistic cleanup: ~10% chance to clear expired entries on each call
+        # This prevents unbounded memory growth in long-running processes
+        if random.random() < 0.1:
+            self.clear_expired()
+        
         with self._lock:
             counter = self._counters[key]
             return counter.is_allowed(window_seconds, max_requests)
