@@ -1,2 +1,2 @@
 {"ts": 1773544464.4286568, "model": "minimax/MiniMax-M1", "mode": "agent", "input_tokens": 309683, "output_tokens": 6195, "api_calls": 29, "api_time_ms": 184512, "cost_usd": 0.0}
-{"ts": 1773544566.804123, "model": "minimax/MiniMax-M1", "mode": "agent", "input_tokens": 14078, "output_tokens": 228, "api_calls": 4, "api_time_ms": 22183, "cost_usd": 0.0}
+{"ts": 1773544558.428184, "model": "minimax/MiniMax-M1", "mode": "agent", "input_tokens": 14060, "output_tokens": 224, "api_calls": 4, "api_time_ms": 14093, "cost_usd": 0.0}
