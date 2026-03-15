@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from uuid import UUID, uuid4
@@ -88,13 +89,15 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
                 f"https://x-access-token:{github_token}@github.com/",
             )
         await sandbox_mgr.provision(scan_id, clone_url)
-        tree = await sandbox_mgr.exec(
-            scan_id,
-            "find . -type f -not -path './.git/*' -not -path './node_modules/*' | head -350 | sort",
-            timeout=30,
+        tree, top_dirs, head = await asyncio.gather(
+            sandbox_mgr.exec(
+                scan_id,
+                "find . -type f -not -path './.git/*' -not -path './node_modules/*' | head -350 | sort",
+                timeout=30,
+            ),
+            sandbox_mgr.exec(scan_id, "ls -1", timeout=15),
+            sandbox_mgr.exec(scan_id, "git rev-parse HEAD", timeout=15),
         )
-        top_dirs = await sandbox_mgr.exec(scan_id, "ls -1", timeout=15)
-        head = await sandbox_mgr.exec(scan_id, "git rev-parse HEAD", timeout=15)
         package_raw = ""
         try:
             package_raw = await sandbox_mgr.read_file(scan_id, "/home/daytona/repo/package.json")
