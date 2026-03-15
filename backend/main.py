@@ -225,13 +225,28 @@ async def global_exception_handler(request: Request, exc: Exception):
     # Capture request context for better diagnostics
     request_id = getattr(request.state, "request_id", "unknown")
     user_id = getattr(request.state, "user_id", None)
-    logger.exception(
-        "Unhandled exception on %s %s | request_id=%s user_id=%s",
-        request.method,
-        _sanitize_url(request.url),
-        request_id,
-        user_id,
-    )
+
+    # In debug mode, log full exception with stack trace for debugging
+    # In production, log a sanitized message without stack trace to avoid
+    # exposing sensitive code paths in log files (CWE-532)
+    if settings.debug:
+        logger.exception(
+            "Unhandled exception on %s %s | request_id=%s user_id=%s",
+            request.method,
+            _sanitize_url(request.url),
+            request_id,
+            user_id,
+        )
+    else:
+        logger.error(
+            "Unhandled exception on %s %s | request_id=%s user_id=%s | error=%s: %s",
+            request.method,
+            _sanitize_url(request.url),
+            request_id,
+            user_id,
+            type(exc).__name__,
+            str(exc),
+        )
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error", "request_id": request_id},
