@@ -12,7 +12,6 @@ import {
   Check,
   ArrowRight,
   Lock,
-  GitBranch,
   ExternalLink,
 } from "lucide-react";
 
@@ -221,14 +220,14 @@ export default function CLIPage() {
           <span className="text-zinc-600 text-xs font-mono ml-1">CLI</span>
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="https://github.com/christopher-igweze/forge-engine"
+          <a
+            href="https://openrouter.ai"
             target="_blank"
             className="text-zinc-400 hover:text-white text-sm transition-colors flex items-center gap-1"
           >
-            <GitBranch className="w-3.5 h-3.5" />
-            GitHub
-          </Link>
+            Get API Key
+            <ExternalLink className="w-3 h-3" />
+          </a>
           <Link
             href="/"
             className="text-zinc-400 hover:text-white text-sm transition-colors"
@@ -295,12 +294,12 @@ export default function CLIPage() {
             <ArrowRight className="w-4 h-4" />
           </a>
           <a
-            href="https://github.com/christopher-igweze/forge-engine"
+            href="https://openrouter.ai"
             target="_blank"
             className="inline-flex items-center gap-2 border border-zinc-700 hover:border-zinc-500 text-zinc-300 hover:text-white px-6 py-3 rounded-lg transition-colors text-sm"
           >
-            <GitBranch className="w-4 h-4" />
-            View on GitHub
+            Get API Key
+            <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </motion.div>
       </motion.section>
@@ -356,12 +355,12 @@ export default function CLIPage() {
 
             {/* Terminal content */}
             <div className="p-5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] leading-[1.9] relative">
-              <CopyButton text={`pip install vibe2prod\nclaude mcp add forge -- python -m forge.mcp_server`} />
+              <CopyButton text={`pip install vibe2prod\nclaude mcp add forge -e OPENROUTER_API_KEY=your-key -- python -m forge.mcp_server`} />
 
               <TerminalLine text='pip install vibe2prod' delay={500} />
               <TerminalLine text="  Successfully installed vibe2prod-1.2.0" delay={1500} isOutput />
 
-              <TerminalLine text='claude mcp add forge -- python -m forge.mcp_server' delay={2500} />
+              <TerminalLine text='claude mcp add forge -e OPENROUTER_API_KEY=sk-or... -- python -m forge.mcp_server' delay={2500} />
               <TerminalLine text="  Added MCP server: forge" delay={3500} isOutput />
 
               <div className="h-3" />
@@ -422,9 +421,16 @@ export default function CLIPage() {
           viewport={{ once: true }}
           className="bg-zinc-900/40 border border-zinc-800 rounded-xl p-8 md:p-10"
         >
-          <h2 className="text-2xl font-bold mb-6 font-[family-name:var(--font-space-grotesk)]">
+          <h2 className="text-2xl font-bold mb-2 font-[family-name:var(--font-space-grotesk)]">
             Quick Start
           </h2>
+          <p className="text-zinc-500 text-sm mb-6">
+            You need an{" "}
+            <a href="https://openrouter.ai" target="_blank" className="text-emerald-400 hover:underline">
+              OpenRouter API key
+            </a>{" "}
+            (free signup, pay per token).
+          </p>
           <div className="space-y-4 font-[family-name:var(--font-jetbrains-mono)] text-sm">
             <div>
               <div className="text-zinc-500 text-xs mb-1">1. Install FORGE</div>
@@ -435,54 +441,54 @@ export default function CLIPage() {
             </div>
             <div>
               <div className="text-zinc-500 text-xs mb-1">
-                2. Add your OpenRouter API key
+                2. Add MCP server with your API key (one command)
               </div>
               <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800 relative group">
-                <code className="text-emerald-400">
-                  export OPENROUTER_API_KEY=sk-or-v1-...
+                <code className="text-emerald-400 text-xs">
+                  claude mcp add forge -e OPENROUTER_API_KEY=sk-or-v1-... -- python -m forge.mcp_server
                 </code>
-                <CopyButton text="export OPENROUTER_API_KEY=sk-or-v1-your-key-here" />
+                <CopyButton text="claude mcp add forge -e OPENROUTER_API_KEY=your-key-here -- python -m forge.mcp_server" />
               </div>
             </div>
             <div>
               <div className="text-zinc-500 text-xs mb-1">
-                3. Register the MCP server
+                3. Install the /forge skill (enables auto-fixing)
               </div>
               <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800 relative group">
-                <code className="text-emerald-400">
-                  claude mcp add forge -- python -m forge.mcp_server
+                <code className="text-emerald-400 text-xs">
+                  mkdir -p ~/.claude/skills/forge && curl -sL https://vibe2prod.net/forge-skill.md -o ~/.claude/skills/forge/SKILL.md
                 </code>
-                <CopyButton text="claude mcp add forge -- python -m forge.mcp_server" />
+                <CopyButton text="mkdir -p ~/.claude/skills/forge && curl -sL https://vibe2prod.net/forge-skill.md -o ~/.claude/skills/forge/SKILL.md" />
               </div>
             </div>
             <div>
               <div className="text-zinc-500 text-xs mb-1">
-                4. Scan and fix
+                4. Use it
               </div>
-              <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800">
-                <code className="text-zinc-400">
+              <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800 space-y-1">
+                <code className="text-zinc-400 block">
                   In Claude Code:{" "}
                   <span className="text-white">
                     &quot;Scan my codebase with forge&quot;
-                  </span>{" "}
-                  then{" "}
-                  <span className="text-emerald-400">/forge</span> to fix
+                  </span>
+                </code>
+                <code className="text-zinc-400 block">
+                  Then:{" "}
+                  <span className="text-emerald-400">/forge</span>
+                  {" "}to fix all findings automatically
                 </code>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-zinc-800">
-            <p className="text-zinc-500 text-xs mb-3">
-              Get an API key at{" "}
-              <a
-                href="https://openrouter.ai"
-                target="_blank"
-                className="text-emerald-400 hover:underline"
-              >
-                openrouter.ai
-              </a>
-              {" "}— sign up is free, pay per token.
+          <div className="mt-6 pt-6 border-t border-zinc-800 space-y-3">
+            <p className="text-zinc-500 text-xs">
+              <span className="text-zinc-400 font-medium">No API key?</span>{" "}
+              The scan will show a clear error message asking you to set one up.
+            </p>
+            <p className="text-zinc-500 text-xs">
+              <span className="text-zinc-400 font-medium">Usage tracking:</span>{" "}
+              Anonymous scan metrics only (finding counts, not code). Opt-in data sharing available for improving FORGE.
             </p>
           </div>
         </motion.div>
