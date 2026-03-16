@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # Paths that don't require authentication
 PUBLIC_PATHS = {"/", "/health", "/docs", "/openapi.json", "/redoc"}
-PUBLIC_PREFIXES = ("/api/webhook/", "/api/telemetry")
+PUBLIC_PREFIXES = ("/api/webhook/", "/api/telemetry", "/api/cli/")
 
 # Paths where auth is attempted but not required — if a valid token is present
 # the user_id is set, otherwise the request proceeds without it.
