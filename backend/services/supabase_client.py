@@ -1370,3 +1370,43 @@ async def get_authorized_target(user_id: str, domain: str) -> dict | None:
     if not row.data:
         return None
     return row.data[0]
+
+
+# ------------------------------------------------------------------ #
+# Telemetry
+# ------------------------------------------------------------------ #
+
+
+async def store_telemetry_event(data: dict) -> None:
+    """Insert an anonymous telemetry event."""
+    client = _client()
+    client.table("telemetry_events").insert(data).execute()
+
+
+async def store_shared_findings(data: dict) -> None:
+    """Insert opt-in anonymized findings."""
+    client = _client()
+    client.table("telemetry_events").insert(
+        {"event": "findings_shared", **data}
+    ).execute()
+
+
+# ------------------------------------------------------------------ #
+# API Key management
+# ------------------------------------------------------------------ #
+
+
+async def update_profile_api_key(user_id: str, key_hash: str) -> None:
+    """Store the hashed API key in the user's profile."""
+    client = _client()
+    client.table("profiles").update(
+        {"api_key_hash": key_hash}
+    ).eq("user_id", user_id).execute()
+
+
+async def revoke_profile_api_key(user_id: str) -> None:
+    """Remove the API key hash from the user's profile."""
+    client = _client()
+    client.table("profiles").update(
+        {"api_key_hash": None}
+    ).eq("user_id", user_id).execute()
