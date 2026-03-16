@@ -441,13 +441,22 @@ export default function CLIPage() {
             </div>
             <div>
               <div className="text-zinc-500 text-xs mb-1">
-                2. Add MCP server with your API key (one command)
+                2. Add MCP server with your API key
               </div>
               <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800 relative group">
-                <code className="text-emerald-400 text-xs">
-                  claude mcp add forge -e OPENROUTER_API_KEY=sk-or-v1-... -- python -m forge.mcp_server
-                </code>
-                <CopyButton text="claude mcp add forge -e OPENROUTER_API_KEY=your-key-here -- python -m forge.mcp_server" />
+                <pre className="text-emerald-400 text-xs leading-relaxed whitespace-pre-wrap"><code>{`claude mcp add forge \\
+  -e OPENROUTER_API_KEY=sk-or-v1-your-key \\
+  -- python -m forge.mcp_server`}</code></pre>
+                <CopyButton text="claude mcp add forge -e OPENROUTER_API_KEY=sk-or-v1-your-key -- python -m forge.mcp_server" />
+              </div>
+              <div className="text-zinc-600 text-xs mt-2 ml-1">
+                Optional flags you can add before the <code className="text-zinc-500">--</code> separator:
+              </div>
+              <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800/50 mt-1.5">
+                <pre className="text-zinc-500 text-xs leading-relaxed whitespace-pre-wrap"><code>{`# Sync scan history to dashboard
+  -e VIBE2PROD_API_KEY=v2p_your-key \\
+# Help improve FORGE (anonymized patterns only)
+  -e VIBE2PROD_DATA_SHARING=true \\`}</code></pre>
               </div>
             </div>
             <div>
@@ -490,6 +499,72 @@ export default function CLIPage() {
               <span className="text-zinc-400 font-medium">Usage tracking:</span>{" "}
               Anonymous scan metrics only (finding counts, not code). Opt-in data sharing available for improving FORGE.
             </p>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── Optional: Connect to Dashboard ── */}
+      <section className="relative z-10 px-6 md:px-12 pb-20 max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="bg-zinc-900/30 border border-zinc-800/50 rounded-xl p-8 md:p-10"
+        >
+          <h2 className="text-xl font-bold mb-1 font-[family-name:var(--font-space-grotesk)]">
+            Optional: Connect to Dashboard
+          </h2>
+          <p className="text-zinc-500 text-sm mb-6">
+            FORGE works fully offline. These options add cloud features if you want them.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Dashboard Sync */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-emerald-400" />
+                </div>
+                <h3 className="text-white font-semibold text-sm font-[family-name:var(--font-space-grotesk)]">
+                  Dashboard Sync
+                </h3>
+              </div>
+              <div className="text-zinc-400 text-xs leading-relaxed space-y-1.5">
+                <p>
+                  Sign up at{" "}
+                  <a href="https://vibe2prod.net" target="_blank" className="text-emerald-400 hover:underline">
+                    vibe2prod.net
+                  </a>
+                  {" "}&#8594; Settings &#8594; Generate API Key
+                </p>
+                <p>
+                  Add <code className="text-emerald-400/80 bg-zinc-800/60 px-1 py-0.5 rounded">VIBE2PROD_API_KEY=v2p_...</code> to your MCP setup
+                </p>
+                <p>Your scan history, readiness trends, and findings will sync to the dashboard</p>
+              </div>
+            </div>
+
+            {/* Data Sharing */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-emerald-400" />
+                </div>
+                <h3 className="text-white font-semibold text-sm font-[family-name:var(--font-space-grotesk)]">
+                  Data Sharing
+                </h3>
+              </div>
+              <div className="text-zinc-400 text-xs leading-relaxed space-y-1.5">
+                <p>
+                  Add <code className="text-emerald-400/80 bg-zinc-800/60 px-1 py-0.5 rounded">VIBE2PROD_DATA_SHARING=true</code> to your MCP setup
+                </p>
+                <p>Shares anonymized finding patterns (types, severities, fix rates)</p>
+                <p className="text-zinc-500 font-medium">
+                  NEVER shares code, file paths, or repo identity
+                </p>
+                <p>Helps improve FORGE&apos;s detection accuracy</p>
+              </div>
+            </div>
           </div>
         </motion.div>
       </section>
