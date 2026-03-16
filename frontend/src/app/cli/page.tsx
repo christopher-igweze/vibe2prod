@@ -515,7 +515,7 @@ export default function CLIPage() {
             Optional: Connect to Dashboard
           </h2>
           <p className="text-zinc-500 text-sm mb-6">
-            FORGE works fully offline. These options add cloud features if you want them.
+            FORGE works fully offline. Add an API key to sync scan results to your dashboard.
           </p>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -529,18 +529,33 @@ export default function CLIPage() {
                   Dashboard Sync
                 </h3>
               </div>
-              <div className="text-zinc-400 text-xs leading-relaxed space-y-1.5">
-                <p>
-                  Sign up at{" "}
-                  <a href="https://vibe2prod.net" target="_blank" className="text-emerald-400 hover:underline">
-                    vibe2prod.net
-                  </a>
-                  {" "}&#8594; Settings &#8594; Generate API Key
-                </p>
-                <p>
-                  Add <code className="text-emerald-400/80 bg-zinc-800/60 px-1 py-0.5 rounded">VIBE2PROD_API_KEY=v2p_...</code> to your MCP setup
-                </p>
-                <p>Your scan history, readiness trends, and findings will sync to the dashboard</p>
+              <div className="text-zinc-400 text-xs leading-relaxed space-y-3">
+                <div className="space-y-1.5">
+                  <p className="text-zinc-300 font-medium">3 steps:</p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>
+                      Create an account at{" "}
+                      <a href="https://vibe2prod.net" target="_blank" className="text-emerald-400 hover:underline">
+                        vibe2prod.net
+                      </a>
+                    </li>
+                    <li>
+                      Go to{" "}
+                      <a href="https://vibe2prod.net/settings" target="_blank" className="text-emerald-400 hover:underline">
+                        Settings
+                      </a>
+                      {" "}and click <span className="text-zinc-300">Generate API Key</span>
+                    </li>
+                    <li>Add the key to your MCP setup (see below)</li>
+                  </ol>
+                </div>
+                <div className="bg-[#0d1117] rounded-lg px-3 py-2.5 border border-zinc-800">
+                  <pre className="text-emerald-400/80 text-[11px] leading-relaxed whitespace-pre-wrap font-[family-name:var(--font-jetbrains-mono)]"><code>{`claude mcp add forge \\
+  -e OPENROUTER_API_KEY=sk-or-... \\
+  -e VIBE2PROD_API_KEY=v2p_... \\
+  -- python -m forge.mcp_server`}</code></pre>
+                </div>
+                <p>CLI scans appear in your dashboard alongside cloud scans, grouped by repo with readiness trends over time.</p>
               </div>
             </div>
 
@@ -551,7 +566,7 @@ export default function CLIPage() {
                   <Shield className="w-4 h-4 text-emerald-400" />
                 </div>
                 <h3 className="text-white font-semibold text-sm font-[family-name:var(--font-space-grotesk)]">
-                  Data Sharing
+                  Data Sharing (Opt-in)
                 </h3>
               </div>
               <div className="text-zinc-400 text-xs leading-relaxed space-y-1.5">
@@ -562,7 +577,7 @@ export default function CLIPage() {
                 <p className="text-zinc-500 font-medium">
                   NEVER shares code, file paths, or repo identity
                 </p>
-                <p>Helps improve FORGE&apos;s detection accuracy</p>
+                <p>Helps improve FORGE&apos;s detection accuracy for everyone</p>
               </div>
             </div>
           </div>
