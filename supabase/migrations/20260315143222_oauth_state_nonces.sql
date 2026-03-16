@@ -16,8 +16,17 @@ CREATE INDEX IF NOT EXISTS idx_oauth_state_nonces_expires_at
 ALTER TABLE public.oauth_state_nonces ENABLE ROW LEVEL SECURITY;
 
 -- Only allow service role to access this table (internal use only)
-CREATE POLICY IF NOT EXISTS service_role_only ON public.oauth_state_nonces
-    FOR ALL
-    TO service_role
-    USING (true)
-    WITH CHECK (true);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE tablename = 'oauth_state_nonces' AND policyname = 'service_role_only'
+    ) THEN
+        CREATE POLICY service_role_only ON public.oauth_state_nonces
+            FOR ALL
+            TO service_role
+            USING (true)
+            WITH CHECK (true);
+    END IF;
+END
+$$;
