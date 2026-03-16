@@ -1,8 +1,10 @@
-"""User-facing API routes: profile info, scan history."""
+"""User-facing API routes: profile info, scan history, API key management."""
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import secrets
 from uuid import UUID
 
 from fastapi import APIRouter, Request, HTTPException
@@ -193,3 +195,36 @@ async def get_project_intake(project_id: UUID, request: Request) -> dict:
     except Exception as e:
         logger.exception("Failed to retrieve project intake for project %s", project_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve project intake")
+
+
+# ------------------------------------------------------------------ #
+# API Key management
+# ------------------------------------------------------------------ #
+
+
+@router.post("/user/api-key")
+@limiter.limit(rate_limit_string())
+async def generate_api_key(request: Request) -> dict:
+    """Generate a v2p_ prefixed API key. Shown once — user must save it."""
+    user_id: str = request.state.user_id
+    raw_key = f"v2p_{secrets.token_urlsafe(32)}"
+    key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+    try:
+        await db.update_profile_api_key(user_id, key_hash)
+    except Exception as e:
+        logger.exception("Failed to generate API key for user %s", user_id)
+        raise HTTPException(status_code=500, detail="Failed to generate API key")
+    return {"api_key": raw_key, "message": "Save this key — it won't be shown again."}
+
+
+@router.delete("/user/api-key", status_code=204)
+@limiter.limit(rate_limit_string())
+async def revoke_api_key(request: Request) -> Response:
+    """Revoke the user's API key."""
+    user_id: str = request.state.user_id
+    try:
+        await db.revoke_profile_api_key(user_id)
+    except Exception as e:
+        logger.exception("Failed to revoke API key for user %s", user_id)
+        raise HTTPException(status_code=500, detail="Failed to revoke API key")
+    return Response(status_code=204)
