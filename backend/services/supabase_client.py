@@ -1410,3 +1410,18 @@ async def revoke_profile_api_key(user_id: str) -> None:
     client.table("profiles").update(
         {"api_key_hash": None}
     ).eq("user_id", user_id).execute()
+
+
+async def lookup_user_by_api_key(key_hash: str) -> str | None:
+    """Find a user_id by API key hash. Returns None if not found."""
+    client = _client()
+    result = (
+        client.table("profiles")
+        .select("user_id")
+        .eq("api_key_hash", key_hash)
+        .limit(1)
+        .execute()
+    )
+    if result.data:
+        return result.data[0]["user_id"]
+    return None
