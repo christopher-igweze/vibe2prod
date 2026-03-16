@@ -43,3 +43,19 @@ CREATE INDEX IF NOT EXISTS idx_telemetry_events_user_id
 -- Index for querying by event type
 CREATE INDEX IF NOT EXISTS idx_telemetry_events_event
   ON public.telemetry_events (event);
+
+-- Allow 'forge_cli' as a scan_tier value for CLI scans
+ALTER TABLE scan_reports
+DROP CONSTRAINT IF EXISTS scan_reports_scan_tier_check;
+
+ALTER TABLE scan_reports
+ADD CONSTRAINT scan_reports_scan_tier_check
+CHECK (scan_tier IN ('deep', 'free', 'forge', 'forge_cli'));
+
+-- Also update projects constraint
+ALTER TABLE projects
+DROP CONSTRAINT IF EXISTS projects_latest_scan_tier_check;
+
+ALTER TABLE projects
+ADD CONSTRAINT projects_latest_scan_tier_check
+CHECK (latest_scan_tier IS NULL OR latest_scan_tier IN ('deep', 'free', 'forge', 'forge_cli'));
