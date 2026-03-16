@@ -1,6 +1,10 @@
 """Pytest configuration for shared client usage tests."""
+import os
 import sys
 from unittest.mock import MagicMock, patch
+
+# Set required env vars before any module imports config.py
+os.environ.setdefault("GITHUB_TOKEN_ENCRYPTION_KEY", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
 
 import pytest
 
