@@ -37,9 +37,20 @@ class GithubOAuthRouteTests(unittest.TestCase):
         app.include_router(github_oauth.router, prefix="/api")
         cls.client = TestClient(app)
 
+        # Patch settings so OAuth checks pass
+        cls._settings_patcher = patch("services.github_oauth_service.settings")
+        mock_s = cls._settings_patcher.start()
+        mock_s.github_client_id = "test-client"
+        mock_s.github_client_secret = "test-secret"
+        mock_s.github_oauth_state_secret = "test-state-secret"
+        mock_s.github_token_encryption_key = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls._settings_patcher.stop()
+
     def test_get_auth_url_returns_stateful_redirect(self) -> None:
-        with patch.object(github_oauth_service, "_ensure_oauth_configured"):
-            resp = self.client.post(
+        resp = self.client.post(
                 "/api/github-oauth",
                 json={
                     "action": "get_auth_url",
@@ -53,21 +64,18 @@ class GithubOAuthRouteTests(unittest.TestCase):
 
     def test_exchange_code_persists_connection(self) -> None:
         # First get auth URL to obtain a valid state token
-        with patch.object(github_oauth_service, "_ensure_oauth_configured"):
-            auth_resp = self.client.post(
-                "/api/github-oauth",
-                json={
-                    "action": "get_auth_url",
-                    "redirect_uri": "http://localhost:5173/settings",
-                },
-            )
+        auth_resp = self.client.post(
+            "/api/github-oauth",
+            json={
+                "action": "get_auth_url",
+                "redirect_uri": "http://localhost:5173/settings",
+            },
+        )
         self.assertEqual(auth_resp.status_code, 200)
         state = auth_resp.json()["auth_url"].split("state=", 1)[1]
 
         # Mock the service methods that the route delegates to
         with patch.object(
-            github_oauth_service, "_ensure_oauth_configured"
-        ), patch.object(
             github_oauth_service, "validate_oauth_state", new=AsyncMock()
         ), patch.object(
             github_oauth_service, "exchange_code_for_token",
