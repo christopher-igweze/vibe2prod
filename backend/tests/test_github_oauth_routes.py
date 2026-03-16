@@ -20,6 +20,7 @@ os.environ.setdefault("GITHUB_CLIENT_SECRET", "test-secret")
 os.environ.setdefault("GITHUB_OAUTH_STATE_SECRET", "test-state-secret")
 
 from api.routes import github_oauth  # noqa: E402
+from services.github_oauth_service import github_oauth_service  # noqa: E402
 
 
 class GithubOAuthRouteTests(unittest.TestCase):
@@ -37,49 +38,42 @@ class GithubOAuthRouteTests(unittest.TestCase):
         cls.client = TestClient(app)
 
     def test_get_auth_url_returns_stateful_redirect(self) -> None:
-        with patch.object(github_oauth.settings, "github_client_id", "test-client"), patch.object(
-            github_oauth.settings, "github_client_secret", "test-secret"
-        ), patch.object(github_oauth.settings, "github_oauth_state_secret", "test-state-secret"):
-            resp = self.client.post(
-                "/api/github-oauth",
-                json={
-                    "action": "get_auth_url",
-                    "redirect_uri": "http://localhost:5173/settings",
-                },
-            )
+        resp = self.client.post(
+            "/api/github-oauth",
+            json={
+                "action": "get_auth_url",
+                "redirect_uri": "http://localhost:5173/settings",
+            },
+        )
         self.assertEqual(resp.status_code, 200)
         payload = resp.json()
         self.assertTrue(payload["auth_url"].startswith("https://github.com/login/oauth/authorize?"))
         self.assertIn("state=", payload["auth_url"])
 
     def test_exchange_code_persists_connection(self) -> None:
-        with patch.object(github_oauth.settings, "github_client_id", "test-client"), patch.object(
-            github_oauth.settings, "github_client_secret", "test-secret"
-        ), patch.object(github_oauth.settings, "github_oauth_state_secret", "test-state-secret"):
-            auth_resp = self.client.post(
-                "/api/github-oauth",
-                json={
-                    "action": "get_auth_url",
-                    "redirect_uri": "http://localhost:5173/settings",
-                },
-            )
+        # First get auth URL to obtain a valid state token
+        auth_resp = self.client.post(
+            "/api/github-oauth",
+            json={
+                "action": "get_auth_url",
+                "redirect_uri": "http://localhost:5173/settings",
+            },
+        )
         self.assertEqual(auth_resp.status_code, 200)
         state = auth_resp.json()["auth_url"].split("state=", 1)[1]
 
-        with patch.object(github_oauth.settings, "github_client_id", "test-client"), patch.object(
-            github_oauth.settings, "github_client_secret", "test-secret"
+        # Mock the service methods that the route delegates to
+        with patch.object(
+            github_oauth_service, "validate_oauth_state", new=AsyncMock()
         ), patch.object(
-            github_oauth.settings, "github_oauth_state_secret", "test-state-secret"
-        ), patch(
-            "api.routes.github_oauth._exchange_code_for_access_token",
+            github_oauth_service, "exchange_code_for_token",
             new=AsyncMock(return_value="gho_test_token"),
-        ), patch(
-            "api.routes.github_oauth._fetch_github_profile",
+        ), patch.object(
+            github_oauth_service, "fetch_github_profile",
             new=AsyncMock(return_value=("octocat", "https://avatars.githubusercontent.com/u/1")),
-        ), patch(
-            "api.routes.github_oauth.db.save_github_connection",
-            new=AsyncMock(),
-        ) as mock_save:
+        ), patch.object(
+            github_oauth_service, "connect_user", new=AsyncMock()
+        ) as mock_connect:
             resp = self.client.post(
                 "/api/github-oauth",
                 json={
@@ -94,18 +88,17 @@ class GithubOAuthRouteTests(unittest.TestCase):
         payload = resp.json()
         self.assertTrue(payload["connected"])
         self.assertEqual(payload["github_username"], "octocat")
-        mock_save.assert_awaited_once()
+        mock_connect.assert_awaited_once()
 
     def test_disconnect_clears_connection(self) -> None:
-        with patch(
-            "api.routes.github_oauth.db.clear_github_connection",
-            new=AsyncMock(),
-        ) as mock_clear:
+        with patch.object(
+            github_oauth_service, "disconnect_user", new=AsyncMock()
+        ) as mock_disconnect:
             resp = self.client.post("/api/github-oauth", json={"action": "disconnect"})
 
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["connected"], False)
-        mock_clear.assert_awaited_once_with(user_id="user_test")
+        mock_disconnect.assert_awaited_once_with(user_id="user_test")
 
 
 if __name__ == "__main__":
