@@ -27,6 +27,11 @@ export default function SettingsPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
+  // API Key state
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [apiKeyLoading, setApiKeyLoading] = useState(false);
+  const [apiKeyCopied, setApiKeyCopied] = useState(false);
+
   // Fetch GitHub connection status on mount
   useEffect(() => {
     async function fetchStatus() {
@@ -146,6 +151,58 @@ export default function SettingsPage() {
     }
   }
 
+  async function generateApiKey() {
+    setApiKeyLoading(true);
+    setError("");
+    try {
+      const token = (await getToken()) ?? undefined;
+      const result = await apiFetch<{ api_key: string; message: string }>("/api/user/api-key", {
+        method: "POST",
+        token,
+      });
+      setApiKey(result.api_key);
+      setMessage("API key generated. Copy it now — it won't be shown again.");
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError("Failed to generate API key");
+      }
+    } finally {
+      setApiKeyLoading(false);
+    }
+  }
+
+  async function revokeApiKey() {
+    setApiKeyLoading(true);
+    setError("");
+    try {
+      const token = (await getToken()) ?? undefined;
+      await apiFetch("/api/user/api-key", {
+        method: "DELETE",
+        token,
+      });
+      setApiKey(null);
+      setMessage("API key revoked.");
+    } catch (e) {
+      if (e instanceof ApiError) {
+        setError(e.message);
+      } else {
+        setError("Failed to revoke API key");
+      }
+    } finally {
+      setApiKeyLoading(false);
+    }
+  }
+
+  function copyApiKey() {
+    if (apiKey) {
+      navigator.clipboard.writeText(apiKey);
+      setApiKeyCopied(true);
+      setTimeout(() => setApiKeyCopied(false), 2000);
+    }
+  }
+
   return (
     <div className="space-y-8 max-w-2xl">
       <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Settings</h1>
@@ -228,6 +285,99 @@ export default function SettingsPage() {
             </Button>
             <p className="text-xs text-[#4E586E] mt-2">
               Grants access to your repositories for scanning. You can disconnect at any time.
+            </p>
+          </div>
+        )}
+      </Card>
+
+      {/* CLI API Key */}
+      <Card className="p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-lg font-semibold mb-1">CLI API Key</h2>
+            <p className="text-sm text-[#8692A8]">
+              Connect the FORGE CLI to your dashboard. Scan history and readiness trends sync automatically.
+            </p>
+          </div>
+          {apiKey && (
+            <Badge className="bg-forge-emerald/10 text-forge-emerald border-forge-emerald/20">
+              Active
+            </Badge>
+          )}
+        </div>
+
+        {apiKey ? (
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800">
+              <code className="text-forge-emerald text-sm font-mono flex-1 break-all select-all">
+                {apiKey}
+              </code>
+              <button
+                onClick={copyApiKey}
+                className="shrink-0 p-1.5 rounded-md hover:bg-zinc-800 transition-colors"
+                title="Copy"
+              >
+                {apiKeyCopied ? (
+                  <svg className="w-4 h-4 text-forge-emerald" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            <div className="bg-zinc-900/60 rounded-lg px-4 py-3 border border-zinc-800/50">
+              <p className="text-xs text-zinc-500 mb-2">Add to your MCP setup:</p>
+              <code className="text-xs text-zinc-400 font-mono">
+                -e VIBE2PROD_API_KEY={apiKey}
+              </code>
+            </div>
+
+            <p className="text-xs text-amber-400/80">
+              Save this key now — it won&apos;t be shown again after you leave this page.
+            </p>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={revokeApiKey}
+              disabled={apiKeyLoading}
+              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+            >
+              Revoke Key
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-4">
+            <Button
+              onClick={generateApiKey}
+              disabled={apiKeyLoading}
+              className="bg-forge-nav hover:bg-forge-surface-hover text-neutral-100"
+            >
+              {apiKeyLoading ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-neutral-500 border-t-neutral-100 rounded-full animate-spin" />
+                  Generating...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
+                  Generate API Key
+                </span>
+              )}
+            </Button>
+            <p className="text-xs text-[#4E586E] mt-2">
+              Generates a <code className="text-zinc-500">v2p_</code> key for CLI authentication.
+              See{" "}
+              <a href="/cli" className="text-forge-emerald hover:underline">
+                CLI setup guide
+              </a>{" "}
+              for usage.
             </p>
           </div>
         )}
