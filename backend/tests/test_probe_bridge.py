@@ -23,7 +23,7 @@ class TestProbeBridge:
     def test_trigger_scan_success(self, bridge):
         mock_response = {"job_id": "abc-123", "status": "queued"}
         with patch.object(bridge, "_post", new_callable=AsyncMock, return_value=mock_response):
-            result = asyncio.get_event_loop().run_until_complete(
+            result = asyncio.run(
                 bridge.trigger_scan("https://example.com", {})
             )
             assert result.job_id == "abc-123"
@@ -31,7 +31,7 @@ class TestProbeBridge:
 
     def test_trigger_scan_connection_error(self, bridge):
         with patch.object(bridge, "_post", new_callable=AsyncMock, side_effect=ConnectionError("refused")):
-            result = asyncio.get_event_loop().run_until_complete(
+            result = asyncio.run(
                 bridge.trigger_scan("https://example.com", {})
             )
             assert result.status == "error"
@@ -40,7 +40,7 @@ class TestProbeBridge:
     def test_get_status(self, bridge):
         mock_response = {"job_id": "abc-123", "status": "running", "current_phase": 2, "progress": 35, "findings_so_far": 3}
         with patch.object(bridge, "_get", new_callable=AsyncMock, return_value=mock_response):
-            result = asyncio.get_event_loop().run_until_complete(
+            result = asyncio.run(
                 bridge.get_status("abc-123")
             )
             assert result["status"] == "running"
@@ -53,7 +53,7 @@ class TestProbeBridge:
             "probe_score": 75, "duration_seconds": 120.0,
         }
         with patch.object(bridge, "_get", new_callable=AsyncMock, return_value=mock_response):
-            result = asyncio.get_event_loop().run_until_complete(
+            result = asyncio.run(
                 bridge.get_results("abc-123")
             )
             assert result["total_findings"] == 5
