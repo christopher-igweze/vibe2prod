@@ -13,6 +13,7 @@ Usage:
 from __future__ import annotations
 
 import logging
+import uuid
 from datetime import datetime, timezone
 
 from constants import (
@@ -34,7 +35,12 @@ class ProbeService:
     # Default polling configuration
     DEFAULT_POLL_INTERVAL = PROBE_DEFAULT_POLL_INTERVAL_SECONDS
     DEFAULT_MAX_WAIT = PROBE_DEFAULT_MAX_WAIT_SECONDS
-    
+
+    @staticmethod
+    def create_probe_id() -> str:
+        """Generate a new unique probe ID."""
+        return str(uuid.uuid4())
+
     async def run_probe(
         self,
         probe_id: str,

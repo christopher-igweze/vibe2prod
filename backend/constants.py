@@ -86,3 +86,14 @@ DOMAIN_AUTH_EXPIRY_DAYS: int = 30
 # ------------------------------------------------------------------ #
 
 WEBHOOK_MIN_REPLAY_WINDOW_SECONDS: int = 60
+
+# ------------------------------------------------------------------ #
+# Sandbox
+# ------------------------------------------------------------------ #
+
+SANDBOX_MAX_RETRIES: int = 3
+SANDBOX_RETRY_BACKOFF_MULTIPLIER: int = 5  # delay = multiplier * attempt
+SANDBOX_REPO_PATH: str = "/home/daytona/repo"
+SANDBOX_WORKDIR: str = "/home/daytona"
+SANDBOX_FILE_READ_TIMEOUT: int = 120
+SANDBOX_FILE_TREE_LIMIT: int = 500

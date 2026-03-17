@@ -54,3 +54,49 @@ def server_error(
 ) -> HTTPException:
     """Return a 500 HTTPException with a structured detail payload."""
     return HTTPException(status_code=500, detail={"code": code, "message": message})
+
+
+def bad_gateway(
+    message: str = "Bad gateway", *, code: str = "bad_gateway",
+) -> HTTPException:
+    """Return a 502 HTTPException with a structured detail payload."""
+    return HTTPException(status_code=502, detail={"code": code, "message": message})
+
+
+def github_timeout(
+    context: str = "GitHub API", *, retry_after: int = 30,
+) -> HTTPException:
+    """Return a 503 HTTPException for GitHub timeout errors."""
+    return HTTPException(
+        status_code=503,
+        detail={
+            "code": "github_timeout",
+            "message": f"{context} is temporarily unavailable. Please try again later.",
+            "retry_after": retry_after,
+        },
+        headers={"Retry-After": str(retry_after)},
+    )
+
+
+def github_unreachable(*, retry_after: int = 60) -> HTTPException:
+    """Return a 503 HTTPException for GitHub connection errors."""
+    return HTTPException(
+        status_code=503,
+        detail={
+            "code": "github_unreachable",
+            "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
+            "retry_after": retry_after,
+        },
+        headers={"Retry-After": str(retry_after)},
+    )
+
+
+def forge_disabled() -> HTTPException:
+    """Return a 503 HTTPException when FORGE engine is disabled."""
+    return HTTPException(
+        status_code=503,
+        detail={
+            "code": "forge_disabled",
+            "message": "Auto-fix is not currently available. FORGE engine is disabled.",
+        },
+    )
