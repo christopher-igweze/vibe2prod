@@ -13,6 +13,7 @@ from hashlib import sha256
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from api.middleware.rate_limit import limiter, get_custom_rate_limit
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -161,6 +162,7 @@ async def _register_delivery(delivery_id: str) -> bool:
 
 
 @router.post("/webhook/github", response_model=WebhookResponse)
+@limiter.limit(get_custom_rate_limit(30, 60))
 async def github_webhook(request: Request) -> WebhookResponse:
     signature = request.headers.get("X-Hub-Signature-256", "")
     delivery_id = request.headers.get("X-GitHub-Delivery")
