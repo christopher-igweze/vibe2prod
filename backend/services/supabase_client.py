@@ -1412,6 +1412,21 @@ async def revoke_profile_api_key(user_id: str) -> None:
     ).eq("user_id", user_id).execute()
 
 
+async def has_api_key(user_id: str) -> bool:
+    """Check if a user has an active API key."""
+    client = _client()
+    result = (
+        client.table("profiles")
+        .select("api_key_hash")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    if result.data:
+        return result.data[0].get("api_key_hash") is not None
+    return False
+
+
 async def lookup_user_by_api_key(key_hash: str) -> str | None:
     """Find a user_id by API key hash. Returns None if not found."""
     client = _client()
