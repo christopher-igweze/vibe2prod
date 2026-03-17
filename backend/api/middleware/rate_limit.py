@@ -75,39 +75,65 @@ class RateLimitStorage:
         self._lock = threading.Lock()
     
     def check_rate_limit(
-        self, 
-        key: str, 
-        window_seconds: int = 60, 
+        self,
+        key: str,
+        window_seconds: int = 60,
         max_requests: int = 10
     ) -> tuple[bool, int, int]:
         """Check and update rate limit for a key.
-        
+
         Args:
             key: Unique identifier (user_id or IP)
             window_seconds: Time window in seconds
             max_requests: Maximum requests allowed in window
-            
+
         Returns:
             Tuple of (is_allowed, remaining_requests, reset_timestamp)
         """
-        # Probabilistic cleanup: ~10% chance to clear expired entries on each call
-        # This prevents unbounded memory growth in long-running processes
+        # Deterministic cleanup: evict entries older than the window on every
+        # request so stale keys cannot accumulate between probabilistic sweeps.
+        self._evict_stale(window_seconds)
+
+        # Probabilistic full sweep: ~10% chance to clear all expired entries.
+        # Covers keys with different window sizes that _evict_stale may miss.
         if random.random() < 0.1:
             self.clear_expired()
-        
+
         with self._lock:
             counter = self._counters[key]
             return counter.is_allowed(window_seconds, max_requests)
-    
+
+    def _evict_stale(self, window_seconds: int) -> None:
+        """Deterministic per-request cleanup of counters with no recent activity.
+
+        Only removes counters whose *newest* request is older than
+        ``window_seconds``, so active keys are never evicted.
+        """
+        cutoff = time.time() - window_seconds
+        with self._lock:
+            stale_keys = [
+                k for k, c in self._counters.items()
+                if not c.requests or c.requests[-1] < cutoff
+            ]
+            for k in stale_keys:
+                del self._counters[k]
+
     def clear_expired(self):
-        """Clear expired entries to prevent memory growth."""
+        """Clear expired entries to prevent memory growth.
+
+        Collects stale keys first then deletes, avoiding dict-mutation
+        during iteration.
+        """
         current_time = time.time()
         with self._lock:
+            stale_keys = []
             for key, counter in self._counters.items():
                 with counter._lock:
                     counter.requests = [t for t in counter.requests if t > current_time - 3600]
                     if not counter.requests:
-                        del self._counters[key]
+                        stale_keys.append(key)
+            for key in stale_keys:
+                del self._counters[key]
 
 
 # Global storage instance
