@@ -1,15 +1,11 @@
 "use client";
 
+import { scoreColor } from "@/app/(app)/dashboard/_components/dashboard-utils";
+
 interface ScoreGaugeProps {
   score: number;
   label: string;
   size?: number;
-}
-
-function scoreColor(score: number): string {
-  if (score >= 70) return "#34d399"; // emerald — good
-  if (score >= 40) return "#fbbf24"; // yellow — warning
-  return "#ef4444"; // red — critical
 }
 
 export function ScoreGauge({ score, label, size = 160 }: ScoreGaugeProps) {
