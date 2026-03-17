@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from api.middleware.rate_limit import limiter, rate_limit_string
+from api.middleware.rate_limit import _rate_limit_storage
 from services.github_oauth_service import github_oauth_service
 
 router = APIRouter()
@@ -54,61 +55,86 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
         )
 
     if request_body.action == "exchange_code":
-        if not request_body.code:
-            raise HTTPException(
-                status_code=400,
-                detail={"code": "code_required", "message": "code is required."},
-            )
-        if not request_body.redirect_uri:
-            raise HTTPException(
-                status_code=400,
-                detail={"code": "redirect_uri_required", "message": "redirect_uri is required."},
-            )
-        if not request_body.state:
-            raise HTTPException(
-                status_code=400,
-                detail={"code": "state_required", "message": "state is required."},
-            )
-
-        # Validate redirect_uri origin before proceeding with token exchange
-        github_oauth_service._validate_redirect_uri(request_body.redirect_uri)
-
-        # SECURITY: Validate state BEFORE calling GitHub token exchange.
-        # This prevents CSRF where an attacker's state token could be used by a
-        # victim — validate_oauth_state checks that state.sub == authenticated
-        # user_id (constant-time), verifies redirect_uri, and enforces one-time
-        # use via jti nonce consumption.  (Addresses F-ab5fb4c5)
-        await github_oauth_service.validate_oauth_state(
-            state=request_body.state,
-            expected_user_id=user_id,
-            expected_redirect_uri=request_body.redirect_uri,
-        )
-
-        # Delegate token exchange and profile fetching to service
-        access_token = await github_oauth_service.exchange_code_for_token(
-            code=request_body.code,
-            redirect_uri=request_body.redirect_uri,
-            state=request_body.state,
-        )
-        github_username, avatar_url = await github_oauth_service.fetch_github_profile(access_token)
-        
-        # Delegate connection persistence to service
-        await github_oauth_service.connect_user(
-            user_id=user_id,
-            access_token=access_token,
-            github_username=github_username,
-            avatar_url=avatar_url,
-        )
-        return GithubOAuthResponse(
-            github_username=github_username,
-            avatar_url=avatar_url,
-            connected=True,
-            message="GitHub connected.",
-        )
+        return await _exchange_code(request_body, request, user_id)
 
     raise HTTPException(
         status_code=400,
         detail={"code": "action_invalid", "message": "Unsupported GitHub OAuth action."},
+    )
+
+
+async def _exchange_code(
+    request_body: GithubOAuthRequest,
+    request: Request,
+    user_id: str,
+) -> GithubOAuthResponse:
+    """Handle OAuth code exchange with a strict 5 req/min rate limit (F-7131c06c)."""
+    # Enforce a strict 5 requests/minute rate limit on token exchange to
+    # prevent brute-force and token-stuffing attacks.
+    from slowapi.util import get_remote_address
+    rate_key = f"oauth_exchange:{user_id or get_remote_address(request)}"
+    allowed, _remaining, _reset = _rate_limit_storage.check_rate_limit(
+        rate_key, window_seconds=60, max_requests=5,
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "code": "rate_limit_exceeded",
+                "message": "Too many token exchange attempts. Try again in a minute.",
+            },
+        )
+
+    if not request_body.code:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "code_required", "message": "code is required."},
+        )
+    if not request_body.redirect_uri:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "redirect_uri_required", "message": "redirect_uri is required."},
+        )
+    if not request_body.state:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "state_required", "message": "state is required."},
+        )
+
+    # Validate redirect_uri origin before proceeding with token exchange
+    github_oauth_service._validate_redirect_uri(request_body.redirect_uri)
+
+    # SECURITY: Validate state BEFORE calling GitHub token exchange.
+    # This prevents CSRF where an attacker's state token could be used by a
+    # victim — validate_oauth_state checks that state.sub == authenticated
+    # user_id (constant-time), verifies redirect_uri, and enforces one-time
+    # use via jti nonce consumption.  (Addresses F-ab5fb4c5)
+    await github_oauth_service.validate_oauth_state(
+        state=request_body.state,
+        expected_user_id=user_id,
+        expected_redirect_uri=request_body.redirect_uri,
+    )
+
+    # Delegate token exchange and profile fetching to service
+    access_token = await github_oauth_service.exchange_code_for_token(
+        code=request_body.code,
+        redirect_uri=request_body.redirect_uri,
+        state=request_body.state,
+    )
+    github_username, avatar_url = await github_oauth_service.fetch_github_profile(access_token)
+
+    # Delegate connection persistence to service
+    await github_oauth_service.connect_user(
+        user_id=user_id,
+        access_token=access_token,
+        github_username=github_username,
+        avatar_url=avatar_url,
+    )
+    return GithubOAuthResponse(
+        github_username=github_username,
+        avatar_url=avatar_url,
+        connected=True,
+        message="GitHub connected.",
     )
 
 
