@@ -9,7 +9,7 @@ from cryptography.exceptions import InvalidTag
 
 from config import settings
 from services.repositories._base import _client
-from services.token_encryption import decrypt_token, encrypt_token
+from services.token_encryption import decrypt_token
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +64,16 @@ async def save_github_connection(
     github_username: str | None = None,
     avatar_url: str | None = None,
 ) -> None:
-    """Persist GitHub OAuth credentials and profile metadata for a user."""
-    encrypted = encrypt_token(access_token, settings.github_token_encryption_key)
+    """Persist GitHub OAuth credentials and profile metadata for a user.
+
+    The *access_token* is expected to already be encrypted by the caller
+    (``GitHubOAuthService.connect_user``).  This layer stores it as-is to
+    avoid double-encryption.
+    """
     client = _client()
     client.table("profiles").update(
         {
-            "github_access_token": encrypted,
+            "github_access_token": access_token,
             "github_username": github_username,
             "avatar_url": avatar_url,
         }
