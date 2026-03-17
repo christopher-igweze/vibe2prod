@@ -88,7 +88,9 @@ def validate_redirect_uri(redirect_uri: str) -> None:
     origin = f"{parsed.scheme}://{parsed.hostname}"
     if parsed.port:
         origin += f":{parsed.port}"
-    if origin not in allowed:
+    # Use constant-time comparison against each allowed origin to prevent
+    # timing side-channel attacks that could reveal the allowlist (CWE-208).
+    if not any(hmac.compare_digest(origin, a) for a in allowed):
         raise HTTPException(
             status_code=400,
             detail={
