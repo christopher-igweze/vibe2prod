@@ -397,11 +397,26 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
+# Pre-compiled patterns for redacting sensitive data from exception messages
+_SENSITIVE_PATTERNS = _re.compile(
+    r"(?i)"
+    r"((?:token|key|secret|password|bearer|authorization|api[_-]?key|access[_-]?token)"
+    r"[\s=:\"']+)"  # label followed by separator
+    r"[^\s\"',;}{)]{4,}",  # the actual value (4+ non-whitespace chars)
+)
+
+
+def _redact_exception_message(msg: str) -> str:
+    """Redact tokens, keys, and passwords from an exception message."""
+    return _SENSITIVE_PATTERNS.sub(r"\1***", msg)
+
+
 def _log_exception(request: Request, exc: Exception, http_exc: HTTPException | None):
     """Log exception details with appropriate context.
 
     Only includes user_id in logs when actually authenticated (not None).
     Uses internal request_id for tracing but does not expose it to clients.
+    Exception messages are redacted to remove tokens and keys (CWE-532).
     """
     # Capture request context for better diagnostics
     request_id = getattr(request.state, "request_id", "unknown")
@@ -431,6 +446,7 @@ def _log_exception(request: Request, exc: Exception, http_exc: HTTPException | N
                 f" user_id={user_id}" if user_id else "",
             )
     else:
+        redacted_msg = _redact_exception_message(str(exc))
         if http_exc:
             # Log the underlying exception that was wrapped
             logger.error(
@@ -440,7 +456,7 @@ def _log_exception(request: Request, exc: Exception, http_exc: HTTPException | N
                 request_id,
                 f" user_id={user_id}" if user_id else "",
                 type(exc).__name__,
-                str(exc),
+                redacted_msg,
             )
         else:
             logger.error(
@@ -450,7 +466,7 @@ def _log_exception(request: Request, exc: Exception, http_exc: HTTPException | N
                 request_id,
                 f" user_id={user_id}" if user_id else "",
                 type(exc).__name__,
-                str(exc),
+                redacted_msg,
             )
 
 
