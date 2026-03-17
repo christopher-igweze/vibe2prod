@@ -33,6 +33,14 @@ from uuid import UUID
 from daytona.common.errors import DaytonaError
 
 from config import settings
+from constants import (
+    FORGE_ERROR_LOG_TRUNCATE,
+    FORGE_HTTP_TIMEOUT_SECONDS,
+    FORGE_OUTPUT_PREVIEW_LENGTH,
+    FORGE_POLL_LOG_INTERVAL_SECONDS,
+    FORGE_SANDBOX_STDERR_TRUNCATE,
+    FORGE_TERMINAL_STATUSES,
+)
 from sandbox.manager import SandboxManager
 
 logger = logging.getLogger(__name__)
@@ -74,11 +82,11 @@ def _http_post(url: str, payload: dict, api_key: str = "") -> dict:
 
     req = urllib.request.Request(url, data=data, headers=headers, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=FORGE_HTTP_TIMEOUT_SECONDS) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         body = e.read().decode() if e.fp else ""
-        logger.error("HTTP %d from %s: %s", e.code, url, body[:500])
+        logger.error("HTTP %d from %s: %s", e.code, url, body[:FORGE_ERROR_LOG_TRUNCATE])
         raise
     except urllib.error.URLError as e:
         logger.error("Connection error to %s: %s", url, e.reason)
@@ -93,11 +101,11 @@ def _http_get(url: str, api_key: str = "") -> dict:
 
     req = urllib.request.Request(url, headers=headers, method="GET")
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=FORGE_HTTP_TIMEOUT_SECONDS) as resp:
             return json.loads(resp.read().decode())
     except urllib.error.HTTPError as e:
         body = e.read().decode() if e.fp else ""
-        logger.error("HTTP %d from %s: %s", e.code, url, body[:500])
+        logger.error("HTTP %d from %s: %s", e.code, url, body[:FORGE_ERROR_LOG_TRUNCATE])
         raise
 
 
@@ -128,10 +136,10 @@ async def _poll_until_complete(
             continue
 
         status = str(result.get("status", "")).lower()
-        if elapsed % 30 == 0:
+        if elapsed % FORGE_POLL_LOG_INTERVAL_SECONDS == 0:
             logger.info("FORGE execution %s: status=%s (%ds)", execution_id, status, elapsed)
 
-        if status in ("completed", "succeeded", "failed", "aborted"):
+        if status in FORGE_TERMINAL_STATUSES:
             return result
 
     return {"status": "timeout", "error": f"Timed out after {timeout}s"}
@@ -195,12 +203,12 @@ async def trigger_forge_scan(
         if result.exit_code != 0:
             logger.error(
                 "FORGE scan exited %d for scan %s: %s",
-                result.exit_code, scan_id, result.stderr[:500],
+                result.exit_code, scan_id, result.stderr[:FORGE_SANDBOX_STDERR_TRUNCATE],
             )
             return ForgeRunResult(
                 execution_id=str(scan_id),
                 status="failed",
-                error=f"FORGE scan failed (exit {result.exit_code}): {result.stderr[:500]}",
+                error=f"FORGE scan failed (exit {result.exit_code}): {result.stderr[:FORGE_SANDBOX_STDERR_TRUNCATE]}",
             )
 
         return _parse_sandbox_result(str(scan_id), result.stdout)
@@ -257,7 +265,7 @@ def _parse_sandbox_result(execution_id: str, stdout: str) -> ForgeRunResult:
         return ForgeRunResult(
             execution_id=execution_id,
             status="failed",
-            error=f"Could not parse FORGE output as JSON: {text[:300]}",
+            error=f"Could not parse FORGE output as JSON: {text[:FORGE_OUTPUT_PREVIEW_LENGTH]}",
         )
 
     return ForgeRunResult(
