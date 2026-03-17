@@ -10,6 +10,7 @@ from uuid import UUID
 from fastapi import APIRouter, Query, Request, HTTPException
 from fastapi.responses import Response
 
+from api.errors import forbidden, not_found, server_error
 from api.middleware.rate_limit import limiter, rate_limit_string
 from constants import PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PROJECTS_DEFAULT_LIMIT
 from services import supabase_client as db
@@ -25,9 +26,9 @@ async def get_me(request: Request) -> dict:
     user_id: str = request.state.user_id
     try:
         profile = db.get_user_profile(user_id)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to retrieve user profile for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to retrieve user profile")
+        raise server_error("Failed to retrieve user profile")
     if not profile:
         return {
             "user_id": user_id,
@@ -61,7 +62,7 @@ async def list_scans(
         total = await db.count_user_scans(user_id)
     except Exception:
         logger.exception("Failed to retrieve scans for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to retrieve scans")
+        raise server_error("Failed to retrieve scans")
 
     # Batch fetch all projects to avoid N+1 queries
     project_ids = [UUID(s["project_id"]) for s in scans if s.get("project_id")]
@@ -104,11 +105,11 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
     user_id: str = request.state.user_id
     try:
         scan = await db.get_scan_report(scan_id, user_id)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to retrieve scan %s", scan_id)
-        raise HTTPException(status_code=500, detail="Failed to retrieve scan")
+        raise server_error("Failed to retrieve scan")
     if not scan:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise not_found("Scan not found", code="scan_not_found")
 
     # Enrich with project info and verify ownership
     pid = scan.get("project_id")
@@ -121,7 +122,7 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
         if project:
             # Defense-in-depth: verify the authenticated user owns the project
             if project.get("user_id") != user_id:
-                raise HTTPException(status_code=403, detail="Forbidden")
+                raise forbidden("You do not have access to this scan")
             scan["repo_url"] = project.get("repo_url", "")
             scan["repo_name"] = project.get("repo_name", "")
 
@@ -135,11 +136,11 @@ async def delete_scan(scan_id: UUID, request: Request) -> Response:
     user_id: str = request.state.user_id
     try:
         deleted = await db.delete_scan_report(scan_id, user_id)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to delete scan %s for user %s", scan_id, user_id)
-        raise HTTPException(status_code=500, detail="Failed to delete scan")
+        raise server_error("Failed to delete scan")
     if not deleted:
-        raise HTTPException(status_code=404, detail="Scan not found")
+        raise not_found("Scan not found", code="scan_not_found")
     return Response(status_code=204)
 
 
@@ -150,9 +151,9 @@ async def complete_tour(request: Request) -> dict:
     user_id: str = request.state.user_id
     try:
         await db.mark_tour_completed(user_id)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to complete tour for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to complete tour")
+        raise server_error("Failed to complete tour")
     return {"ok": True}
 
 
@@ -163,9 +164,9 @@ async def reset_tour(request: Request) -> dict:
     user_id: str = request.state.user_id
     try:
         await db.reset_tour(user_id)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to reset tour for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to reset tour")
+        raise server_error("Failed to reset tour")
     return {"ok": True}
 
 
@@ -189,7 +190,7 @@ async def list_projects(
         total = await db.count_user_projects(user_id)
     except Exception:
         logger.exception("Failed to retrieve projects for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to retrieve projects")
+        raise server_error("Failed to retrieve projects")
     return {
         "items": projects,
         "page": page,
@@ -207,13 +208,13 @@ async def get_project_scans(project_id: UUID, request: Request) -> dict:
     try:
         project, scans = await db.get_project_with_scans(project_id, user_id)
         if not project:
-            raise HTTPException(status_code=404, detail="Project not found")
+            raise not_found("Project not found", code="project_not_found")
         return {"project": project, "scans": scans}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to retrieve scans for project %s", project_id)
-        raise HTTPException(status_code=500, detail="Failed to retrieve project scans")
+        raise server_error("Failed to retrieve project scans")
 
 
 @router.get("/user/projects/{project_id}/intake")
@@ -224,14 +225,14 @@ async def get_project_intake(project_id: UUID, request: Request) -> dict:
     try:
         project = await db.get_project(project_id)
         if not project or project.get("user_id") != user_id:
-            raise HTTPException(status_code=404, detail="Project not found")
+            raise not_found("Project not found", code="project_not_found")
         intake = await db.get_latest_project_intake(project_id, user_id)
         return {"project_intake": intake}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to retrieve project intake for project %s", project_id)
-        raise HTTPException(status_code=500, detail="Failed to retrieve project intake")
+        raise server_error("Failed to retrieve project intake")
 
 
 # ------------------------------------------------------------------ #
@@ -248,7 +249,7 @@ async def get_api_key_status(request: Request) -> dict:
         has_key = await db.has_api_key(user_id)
     except Exception:
         logger.exception("Failed to check API key status for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to check API key status")
+        raise server_error("Failed to check API key status")
     return {"has_key": has_key}
 
 
@@ -261,9 +262,9 @@ async def generate_api_key(request: Request) -> dict:
     key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
     try:
         await db.update_profile_api_key(user_id, key_hash)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to generate API key for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to generate API key")
+        raise server_error("Failed to generate API key")
     return {"api_key": raw_key, "message": "Save this key — it won't be shown again."}
 
 
@@ -274,7 +275,7 @@ async def revoke_api_key(request: Request) -> Response:
     user_id: str = request.state.user_id
     try:
         await db.revoke_profile_api_key(user_id)
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to revoke API key for user %s", user_id)
-        raise HTTPException(status_code=500, detail="Failed to revoke API key")
+        raise server_error("Failed to revoke API key")
     return Response(status_code=204)
