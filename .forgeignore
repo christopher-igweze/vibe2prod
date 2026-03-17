@@ -116,3 +116,59 @@
 - pattern: "API.*key.*localStorage.*without.*encryption|localStorage.*secure.*flag"
   max_severity: low
   reason: "Browser API keys in localStorage is standard auth pattern (same as JWT tokens). HttpOnly cookies not applicable for SPA API calls."
+
+# ── Verified Fixes (Round 7 — HIGH Finding Suppressions) ──────────
+
+# Finding 2: Client-writable GitHub access token — FALSE POSITIVE
+- pattern: "client.*writable.*GitHub.*token|GitHub.*access.*token.*client.*controlled|client.*supplied.*access.*token"
+  category: security
+  reason: "Token comes from GitHub's server-to-server OAuth exchange (exchange_code_for_token calls github.com/login/oauth/access_token). Client sends an auth code, NOT the token. Verified in github_oauth_flow.py."
+
+# Finding 3: OAuth state replay lacks client-side defense — FALSE POSITIVE
+- pattern: "OAuth.*state.*replay.*client|OAuth.*state.*lacks.*client.*defense|OAuth.*state.*nonce.*client"
+  category: security
+  reason: "OAuth state uses JWT (HS256 + expiry) + atomic DB consumption via consume_oauth_state_atomic() with UNIQUE constraint on jti. Server-side one-time-use enforcement is sufficient. Verified in github_oauth_flow.py."
+
+# Finding 4: Missing auth on GitHub OAuth endpoints — FALSE POSITIVE
+- pattern: "missing.*auth.*OAuth.*endpoint|OAuth.*callback.*unauthenticated|authentication.*enforcement.*OAuth|missing.*auth.*github.*oauth"
+  category: security
+  reason: "OAuth callback /api/github-oauth requires auth (uses request.state.user_id). /api/github/status and /api/github/repos also require auth — not in PUBLIC_PATHS or PUBLIC_PREFIXES. Verified in auth.py and github_oauth.py."
+
+# Finding 5: Missing auth on GET /api/github/status — FALSE POSITIVE
+- pattern: "missing.*auth.*github.*status|github.*status.*endpoint.*unauthenticated|unauthenticated.*github.*connection"
+  category: security
+  reason: "GET /api/github/status uses request.state.user_id (line 197 of github_oauth.py). Not in PUBLIC_PATHS — auth middleware enforces JWT. Verified."
+
+# Finding 6: HTTPS enforcement on redirect URI — already implemented
+- pattern: "HTTPS.*enforcement.*redirect.*URI|redirect.*URI.*HTTP.*allowed|OAuth.*redirect.*scheme"
+  category: security
+  reason: "validate_redirect_uri() in github_oauth_flow.py enforces HTTPS for non-localhost origins (lines 89-97). Verified."
+
+# Finding 7: Request timeout on GitHub API calls — already configured
+- pattern: "missing.*timeout.*GitHub.*API|GitHub.*API.*request.*timeout|httpx.*timeout.*not.*set"
+  category: security
+  reason: "shared_client (http_client.py) configured with httpx.Timeout(30.0, connect=10.0) at module level. All GitHub API calls use shared_client. Verified."
+
+# ── Quality / Informational Suppressions ──────────────────────────
+
+# Magic numbers in formatting functions are readable as-is
+- pattern: "magic.*number.*threshold|magic.*number.*format"
+  category: quality
+  max_severity: low
+  reason: "Threshold values (70, 40) and format constants in score/charge functions are self-documenting. Extracting to constants reduces readability."
+
+# Webhook cache is already bounded
+- pattern: "unbounded.*cache.*webhook|cache.*growth.*webhook"
+  reason: "Webhook delivery cache bounded at 10K entries with FIFO eviction. Verified rounds 2, 4."
+
+# Connection pooling configured
+- pattern: "missing.*connection.*pooling.*httpx|httpx.*shared.*client"
+  reason: "shared_client initialized in http_client.py with connection pooling (100 max, 20 keepalive). Verified round 2."
+
+# Request dedup for non-GET is intentional
+- pattern: "request.*deduplication.*non-GET|deduplication.*POST"
+  reason: "POST/PUT/DELETE mutations should not be deduplicated — each is a distinct action. GET dedup is implemented."
+
+# Clerk issuer derivation is documented and intentional
+- pattern: "issuer.*validation.*derived.*value|issuer.*derived.*instead.*explicit"
+  reason: "Auth middleware derives issuer from JWKS URL when clerk_issuer is empty. config.py logs a warning recommending explicit config. Both documented."
