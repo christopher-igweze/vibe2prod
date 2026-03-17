@@ -176,6 +176,27 @@ app.add_middleware(SupabaseAuthMiddleware)
 
 
 # ------------------------------------------------------------------ #
+# Security headers middleware (OWASP best practices)
+# ------------------------------------------------------------------ #
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add standard security headers to every response."""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        # X-XSS-Protection: 0 disables the buggy legacy XSS filter in older
+        # browsers; modern CSP is the correct replacement.
+        response.headers["X-XSS-Protection"] = "0"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+
+# ------------------------------------------------------------------ #
 # Request ID middleware for traceability
 # ------------------------------------------------------------------ #
 class RequestIDMiddleware(BaseHTTPMiddleware):
