@@ -25,10 +25,10 @@ export const SEVERITY_COLORS: Record<string, string> = {
   low: "#3b82f6",
 }
 
-/** Score-to-hex-color for PDF/HTML report generation. */
+/** Score-to-hex-color — canonical implementation shared across app and reports. */
 export function scoreColor(score: number): string {
-  if (score >= 70) return "#10b981"
-  if (score >= 40) return "#eab308"
+  if (score >= 70) return "#34d399"
+  if (score >= 40) return "#fbbf24"
   return "#ef4444"
 }
 

@@ -220,6 +220,35 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
+    def _clamp_webhook_replay_window(self) -> "Settings":
+        """Clamp webhook_replay_window_seconds to [60, 3600].
+
+        Values outside this range are corrected to the nearest bound
+        and a warning is logged so operators notice the override.
+        """
+        _min, _max = 60, 3600
+        raw = self.webhook_replay_window_seconds
+        if raw < _min:
+            logging.getLogger(__name__).warning(
+                "webhook_replay_window_seconds=%d is below minimum (%d). "
+                "Clamping to %d.",
+                raw,
+                _min,
+                _min,
+            )
+            self.webhook_replay_window_seconds = _min
+        elif raw > _max:
+            logging.getLogger(__name__).warning(
+                "webhook_replay_window_seconds=%d exceeds maximum (%d). "
+                "Clamping to %d.",
+                raw,
+                _max,
+                _max,
+            )
+            self.webhook_replay_window_seconds = _max
+        return self
+
+    @model_validator(mode="after")
     def _validate_cors_production(self) -> "Settings":
         """Warn if production environment lacks explicit CORS origins."""
         if self.environment == "production" and not self.cors_allowed_origins:

@@ -1,3 +1,8 @@
+import { scoreColor } from "@/lib/utils";
+
+// Re-export for backward compatibility — all consumers can keep importing from here.
+export { scoreColor };
+
 interface ScanSummary {
   id: string;
   repo_url: string;
@@ -44,12 +49,6 @@ export interface DashboardMetrics {
 function avg(nums: number[]): number | null {
   if (nums.length === 0) return null;
   return Math.round(nums.reduce((a, b) => a + b, 0) / nums.length);
-}
-
-export function scoreColor(score: number): string {
-  if (score >= 70) return "#34d399";
-  if (score >= 40) return "#fbbf24";
-  return "#ef4444";
 }
 
 export function scoreColorClass(score: number): string {
