@@ -5,8 +5,8 @@ import type { ScanSummary, ScanDetail } from '@/types/scan-wizard.types'
  * Fetch all scans for the authenticated user.
  */
 export async function fetchScans(token?: string): Promise<ScanSummary[]> {
-  const resp = await apiFetch<{ items: ScanSummary[] }>('/api/user/scans', { token })
-  return resp.items
+  const resp = await apiFetch<ScanSummary[] | { items: ScanSummary[] }>('/api/user/scans', { token })
+  return Array.isArray(resp) ? resp : resp.items ?? []
 }
 
 /**

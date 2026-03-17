@@ -8,8 +8,8 @@ import type { ScanSummary, DashboardData } from '@/types/scan-wizard.types'
  */
 export async function fetchDashboardData(token?: string): Promise<DashboardData> {
   const [scans, projects, probes] = await Promise.all([
-    apiFetch<{ items: ScanSummary[] }>('/api/user/scans', { token }).then(r => r.items).catch(() => [] as ScanSummary[]),
-    apiFetch<{ items: ProjectSummary[] }>('/api/user/projects', { token }).then(r => r.items).catch(() => [] as ProjectSummary[]),
+    apiFetch<ScanSummary[] | { items: ScanSummary[] }>('/api/user/scans', { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ScanSummary[]),
+    apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>('/api/user/projects', { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ProjectSummary[]),
     apiFetch<ProbeSummary[]>('/api/user/probes', { token }).catch(() => [] as ProbeSummary[]),
   ])
   return { scans, projects, probes }

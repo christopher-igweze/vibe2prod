@@ -5,8 +5,8 @@ import type { ProjectSummary, ProjectIntake } from '@/lib/api/types'
  * Fetch all projects for the authenticated user.
  */
 export async function fetchProjects(token?: string): Promise<ProjectSummary[]> {
-  const resp = await apiFetch<{ items: ProjectSummary[] }>('/api/user/projects', { token })
-  return resp.items
+  const resp = await apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>('/api/user/projects', { token })
+  return Array.isArray(resp) ? resp : resp.items ?? []
 }
 
 /**
