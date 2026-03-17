@@ -5,8 +5,9 @@ from __future__ import annotations
 from enum import Enum
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
+from constants import VALID_EFFORT_VALUES
 from models.evolution import EvolutionReport
 
 class Severity(str, Enum):
@@ -71,8 +72,15 @@ class ActionItem(BaseModel):
     category: Category
     severity: Severity
     priority: int = Field(ge=1, description="1 = highest priority")
-    effort: str = "moderate"  # quick | moderate | significant
+    effort: str = "moderate"
     fix_steps: list[str] = Field(default_factory=list)
+
+    @field_validator("effort")
+    @classmethod
+    def validate_effort(cls, v: str) -> str:
+        if v not in VALID_EFFORT_VALUES:
+            raise ValueError(f"effort must be one of {sorted(VALID_EFFORT_VALUES)}, got '{v}'")
+        return v
     dependencies: list[UUID] = Field(default_factory=list)
     file_path: str | None = None
     line_number: int | None = None
