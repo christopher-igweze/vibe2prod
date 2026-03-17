@@ -118,12 +118,17 @@ async def trigger_fix(
     repo_url = project["repo_url"]
     github_token = await db.get_github_access_token(user_id)
 
-    # Pull discovery findings from the scan report to enrich FORGE context
+    # Pull discovery findings from the scan report to enrich FORGE context.
+    # Cap at 500 findings to prevent unbounded memory usage when passing
+    # context to the FORGE engine.
+    _MAX_FINDINGS_FOR_FIX = 500
     scan_report_id = UUID(action_item["scan_report_id"])
     scan_report = await db.get_scan_report(scan_report_id, user_id)
     scan_findings = None
     if scan_report and isinstance(scan_report.get("report_data"), dict):
-        scan_findings = scan_report["report_data"].get("findings")
+        raw_findings = scan_report["report_data"].get("findings")
+        if isinstance(raw_findings, list):
+            scan_findings = raw_findings[:_MAX_FINDINGS_FOR_FIX]
 
     fix_attempt_id = await db.create_fix_attempt(
         action_item_id=request_body.action_item_id,
@@ -243,16 +248,20 @@ async def trigger_scan_fix(
     repo_url = project["repo_url"]
     github_token = await db.get_github_access_token(user_id)
 
-    # Extract findings from scan report data
+    # Extract findings from scan report data.
+    # Cap at 500 findings to prevent unbounded memory usage.
+    _MAX_SCAN_FINDINGS = 500
     scan_findings = None
     report_data = scan.get("report_data")
     if isinstance(report_data, dict):
         # Try top-level findings first, then nested discovery_report
-        scan_findings = report_data.get("findings")
-        if scan_findings is None:
+        raw_findings = report_data.get("findings")
+        if raw_findings is None:
             dr = report_data.get("discovery_report")
             if isinstance(dr, dict):
-                scan_findings = dr.get("findings")
+                raw_findings = dr.get("findings")
+        if isinstance(raw_findings, list):
+            scan_findings = raw_findings[:_MAX_SCAN_FINDINGS]
 
     fix_attempt_id = await db.create_scan_fix_attempt(
         scan_id=scan_id,

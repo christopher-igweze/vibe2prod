@@ -202,11 +202,20 @@ async def list_projects(
 
 @router.get("/user/projects/{project_id}/scans")
 @limiter.limit(rate_limit_string())
-async def get_project_scans(project_id: UUID, request: Request) -> dict:
+async def get_project_scans(
+    project_id: UUID,
+    request: Request,
+    limit: int = Query(
+        PAGINATION_DEFAULT_LIMIT,
+        ge=1,
+        le=PAGINATION_MAX_LIMIT,
+        description="Max scans to return",
+    ),
+) -> dict:
     """Return scan history and score trends for a project."""
     user_id: str = request.state.user_id
     try:
-        project, scans = await db.get_project_with_scans(project_id, user_id)
+        project, scans = await db.get_project_with_scans(project_id, user_id, limit=limit)
         if not project:
             raise not_found("Project not found", code="project_not_found")
         return {"project": project, "scans": scans}
