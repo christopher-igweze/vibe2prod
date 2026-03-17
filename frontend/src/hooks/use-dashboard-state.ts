@@ -84,6 +84,8 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
       if (report) {
         downloadReportJson(report, scan.repo_name || scan.repo_url);
       }
+    } catch {
+      setError("Failed to download report");
     } finally {
       setDownloadingId(null);
     }
@@ -119,6 +121,8 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
         token,
       });
       setScans((prev) => prev.filter((s) => s.id !== scanId));
+    } catch {
+      setError("Failed to delete scan");
     } finally {
       setDeletingId(null);
     }

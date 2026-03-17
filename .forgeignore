@@ -87,6 +87,22 @@
   category: security
   reason: "All /api/github-oauth/* endpoints require auth (not in PUBLIC_PATHS). request.state.user_id used in all handlers."
 
+# URL sanitization — All logging paths redact query params
+- pattern: "query.*param.*logged.*before.*redaction|logged.*before.*sanitiz|raw.*URL.*log|unsanitized.*URL"
+  category: security
+  reason: "Every logging path (AccessLogMiddleware, _log_exception, global error handler) calls _sanitize_url() with allowlist-based redaction. No raw URL is ever logged."
+
+# GitHub get_head_sha — Already wrapped in try/except
+- pattern: "get_head_sha.*try.*catch|get_head_sha.*error.*handling|get_head_sha.*unhandled"
+  category: reliability
+  reason: "get_head_sha() in github_commit_ops.py wraps httpx calls in try/except for HTTPStatusError (404→branch_not_found, other→502) and RequestError (network error). Verified."
+
+# Scan wizard error handling — All async ops have try/catch
+- pattern: "scan.*wizard.*try.*catch|scan.*wizard.*error.*handling|scan.*wizard.*unhandled|prefill.*error"
+  path: "frontend/**"
+  category: reliability
+  reason: "prefillFromProject and handleSubmit in scan-wizard-context.tsx both have try/catch with error state management. Verified."
+
 # ═══════════════════════════════════════════════════════════════════════
 # KNOWN LIMITATIONS — Tracked, not blocking
 # ═══════════════════════════════════════════════════════════════════════
