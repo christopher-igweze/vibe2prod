@@ -85,6 +85,16 @@ def validate_redirect_uri(redirect_uri: str) -> None:
                 "message": "The redirect_uri is not a valid URL.",
             },
         )
+    # Enforce HTTPS in production; allow HTTP only for localhost development
+    is_localhost = parsed.hostname in ("localhost", "127.0.0.1", "::1")
+    if parsed.scheme != "https" and not is_localhost:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "redirect_uri_scheme_invalid",
+                "message": "redirect_uri must use HTTPS for non-localhost origins.",
+            },
+        )
     origin = f"{parsed.scheme}://{parsed.hostname}"
     if parsed.port:
         origin += f":{parsed.port}"
