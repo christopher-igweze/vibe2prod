@@ -1,19 +1,5 @@
 import type { ScanFixStatus } from "@/lib/api/types"
-import { formatDuration, SEVERITY_COLORS } from "@/lib/utils"
-
-function esc(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-}
-
-function scoreColor(score: number): string {
-  if (score >= 70) return "#10b981"
-  if (score >= 40) return "#eab308"
-  return "#ef4444"
-}
+import { formatDuration, SEVERITY_COLORS, scoreColor, esc } from "@/lib/utils"
 
 export function remediationReportToPdfHtml(status: ScanFixStatus): string {
   const title = "FORGE Remediation Report"
