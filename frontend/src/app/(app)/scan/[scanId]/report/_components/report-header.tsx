@@ -17,7 +17,7 @@ import {
 import type { DiscoveryReport } from "@/lib/api/types"
 import { reportToMarkdown } from "@/lib/report/to-markdown"
 import { openPdfReport } from "@/lib/report/to-pdf-html"
-import { apiFetch } from "@/lib/api/client"
+import { apiFetch, sanitizeFilename } from "@/lib/api/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -47,7 +47,7 @@ interface ReportHeaderProps {
 }
 
 function downloadJson(report: DiscoveryReport, repoName?: string) {
-  const slug = (repoName || "repo").replace(/\//g, "-")
+  const slug = sanitizeFilename((repoName || "repo").replace(/\//g, "-"))
   const date = new Date().toISOString().slice(0, 10)
   const filename = `scan-report-${slug}-${date}.json`
 
@@ -63,7 +63,7 @@ function downloadJson(report: DiscoveryReport, repoName?: string) {
 }
 
 function downloadMarkdown(report: DiscoveryReport, repoName?: string) {
-  const slug = (repoName || "repo").replace(/\//g, "-")
+  const slug = sanitizeFilename((repoName || "repo").replace(/\//g, "-"))
   const date = new Date().toISOString().slice(0, 10)
   const filename = `scan-report-${slug}-${date}.md`
 
