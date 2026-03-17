@@ -7,10 +7,11 @@ import logging
 import secrets
 from uuid import UUID
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Query, Request, HTTPException
 from fastapi.responses import Response
 
 from api.middleware.rate_limit import limiter, rate_limit_string
+from constants import PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PROJECTS_DEFAULT_LIMIT
 from services import supabase_client as db
 
 router = APIRouter()
@@ -42,12 +43,23 @@ async def get_me(request: Request) -> dict:
 
 @router.get("/user/scans")
 @limiter.limit(rate_limit_string())
-async def list_scans(request: Request) -> list[dict]:
-    """Return the authenticated user's recent scans."""
+async def list_scans(
+    request: Request,
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(
+        PAGINATION_DEFAULT_LIMIT,
+        ge=1,
+        le=PAGINATION_MAX_LIMIT,
+        description="Items per page",
+    ),
+) -> dict:
+    """Return the authenticated user's scans with pagination."""
     user_id: str = request.state.user_id
+    offset = (page - 1) * limit
     try:
-        scans = await db.list_user_scans(user_id)
-    except Exception as e:
+        scans = await db.list_user_scans(user_id, limit=limit, offset=offset)
+        total = await db.count_user_scans(user_id)
+    except Exception:
         logger.exception("Failed to retrieve scans for user %s", user_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve scans")
 
@@ -57,28 +69,32 @@ async def list_scans(request: Request) -> list[dict]:
     if project_ids:
         try:
             project_cache = await db.get_projects_batch(project_ids)
-        except Exception as e:
+        except Exception:
             logger.exception(
                 "Failed to batch-fetch projects for user %s; returning scans without enrichment",
                 user_id,
             )
-            # Continue without project enrichment if this fails
 
-    # Defense-in-depth: explicitly filter out any scans for projects 
+    # Defense-in-depth: explicitly filter out any scans for projects
     # the user doesn't own (protects against edge cases)
     authorized_scans = []
     for scan in scans:
         pid = scan.get("project_id")
         if pid:
             project = project_cache.get(UUID(pid), {})
-            # Verify project ownership
             if project.get("user_id") != user_id:
                 continue
             scan["repo_url"] = project.get("repo_url", "")
             scan["repo_name"] = project.get("repo_name", "")
         authorized_scans.append(scan)
 
-    return authorized_scans
+    return {
+        "items": authorized_scans,
+        "page": page,
+        "limit": limit,
+        "total": total,
+        "total_pages": (total + limit - 1) // limit if total > 0 else 0,
+    }
 
 
 @router.get("/user/scans/{scan_id}")
@@ -152,14 +168,32 @@ async def reset_tour(request: Request) -> dict:
 
 @router.get("/user/projects")
 @limiter.limit(rate_limit_string())
-async def list_projects(request: Request) -> list[dict]:
-    """Return all projects for the authenticated user."""
+async def list_projects(
+    request: Request,
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    limit: int = Query(
+        PROJECTS_DEFAULT_LIMIT,
+        ge=1,
+        le=PAGINATION_MAX_LIMIT,
+        description="Items per page",
+    ),
+) -> dict:
+    """Return projects for the authenticated user with pagination."""
     user_id: str = request.state.user_id
+    offset = (page - 1) * limit
     try:
-        return await db.list_user_projects(user_id)
-    except Exception as e:
+        projects = await db.list_user_projects(user_id, limit=limit, offset=offset)
+        total = await db.count_user_projects(user_id)
+    except Exception:
         logger.exception("Failed to retrieve projects for user %s", user_id)
         raise HTTPException(status_code=500, detail="Failed to retrieve projects")
+    return {
+        "items": projects,
+        "page": page,
+        "limit": limit,
+        "total": total,
+        "total_pages": (total + limit - 1) // limit if total > 0 else 0,
+    }
 
 
 @router.get("/user/projects/{project_id}/scans")

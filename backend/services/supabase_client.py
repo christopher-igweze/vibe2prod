@@ -89,18 +89,35 @@ async def get_project_by_repo_url(user_id: str, repo_url: str) -> dict | None:
     return row.data[0]
 
 
-async def list_user_projects(user_id: str, limit: int = 50) -> list[dict]:
-    """Return all projects for a user, with latest scan info."""
+async def list_user_projects(
+    user_id: str, *, limit: int = 50, offset: int = 0,
+) -> list[dict]:
+    """Return projects for a user, with latest scan info.
+
+    Supports cursor-free pagination via *offset* and *limit*.
+    """
     client = _client()
     row = (
         client.table("projects")
         .select("id,repo_url,repo_name,scan_count,latest_health_score,latest_scan_tier,created_at,updated_at")
         .eq("user_id", str(user_id))
         .order("updated_at", desc=True)
-        .limit(limit)
+        .range(offset, offset + limit - 1)
         .execute()
     )
     return row.data or []
+
+
+async def count_user_projects(user_id: str) -> int:
+    """Return the total number of projects for a user."""
+    client = _client()
+    row = (
+        client.table("projects")
+        .select("id", count="exact")
+        .eq("user_id", str(user_id))
+        .execute()
+    )
+    return row.count or 0
 
 
 async def get_project_scan_history(
@@ -1014,11 +1031,15 @@ async def get_latest_scan_fix_attempt(scan_id: UUID) -> dict | None:
         return None
 
 
-async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
-    """Return recent scans for a user, newest first.
-    
+async def list_user_scans(
+    user_id: str, *, limit: int = 20, offset: int = 0,
+) -> list[dict]:
+    """Return scans for a user, newest first.
+
     Only returns scans for projects that the user owns. This ensures
     authorization boundaries are enforced at the database level.
+
+    Supports cursor-free pagination via *offset* and *limit*.
     """
     client = _client()
     # Join with projects table to verify project ownership
@@ -1032,10 +1053,10 @@ async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
         .eq("user_id", str(user_id))
         .eq("projects.user_id", str(user_id))
         .order("created_at", desc=True)
-        .limit(limit)
+        .range(offset, offset + limit - 1)
         .execute()
     )
-    
+
     # Extract scan fields from the joined result
     scans = []
     for item in (row.data or []):
@@ -1051,8 +1072,20 @@ async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
             "project_id": item.get("project_id"),
         }
         scans.append(scan)
-    
+
     return scans
+
+
+async def count_user_scans(user_id: str) -> int:
+    """Return the total number of scans for a user."""
+    client = _client()
+    row = (
+        client.table("scan_reports")
+        .select("id", count="exact")
+        .eq("user_id", str(user_id))
+        .execute()
+    )
+    return row.count or 0
 
 
 async def get_scan_report(scan_id: UUID, user_id: str) -> dict | None:
