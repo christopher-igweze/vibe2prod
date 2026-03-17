@@ -1,32 +1,19 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 
 import type { ProjectOrigin, SensitiveDataType } from "@/lib/api/types";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 
 import { FlowTagInput } from "@/components/scan/flow-tag-input";
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const SENSITIVE_DATA_OPTIONS: { value: SensitiveDataType; label: string; description: string }[] = [
-  { value: "payments", label: "Payments", description: "Stripe, billing, transactions" },
-  { value: "pii", label: "PII", description: "Names, emails, addresses" },
-  { value: "health", label: "Health Data", description: "HIPAA-relevant records" },
-  { value: "auth_secrets", label: "Auth Secrets", description: "API keys, tokens, passwords" },
-  { value: "none", label: "None", description: "No sensitive data handled" },
-  { value: "not_sure", label: "Not Sure", description: "I need help identifying this" },
-];
+import { ProjectOriginSelector } from "@/components/scan/intake/project-origin-selector";
+import { SensitiveDataGrid } from "@/components/scan/intake/sensitive-data-grid";
+import { IntakeNavigation } from "@/components/scan/intake/intake-navigation";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -93,45 +80,7 @@ export function IntakeStep({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Project Origin */}
-        <div className="space-y-3">
-          <Label className="text-neutral-300">How was this code created?</Label>
-          <RadioGroup
-            value={projectOrigin}
-            onValueChange={(v) => setProjectOrigin(v as ProjectOrigin)}
-            className="grid grid-cols-2 gap-3"
-          >
-            <label
-              className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
-                projectOrigin === "inspired"
-                  ? "border-forge-emerald/50 bg-forge-emerald/5"
-                  : "border-white/[0.06] hover:border-forge-border-hover"
-              }`}
-            >
-              <RadioGroupItem value="inspired" className="mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-neutral-200">AI-Generated</p>
-                <p className="text-xs text-[#4E586E] mt-0.5">
-                  Built with Cursor, Copilot, v0, Bolt, etc.
-                </p>
-              </div>
-            </label>
-            <label
-              className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
-                projectOrigin === "external"
-                  ? "border-forge-emerald/50 bg-forge-emerald/5"
-                  : "border-white/[0.06] hover:border-forge-border-hover"
-              }`}
-            >
-              <RadioGroupItem value="external" className="mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-neutral-200">Human-Written</p>
-                <p className="text-xs text-[#4E586E] mt-0.5">
-                  Traditional development, external team, etc.
-                </p>
-              </div>
-            </label>
-          </RadioGroup>
-        </div>
+        <ProjectOriginSelector value={projectOrigin} onChange={setProjectOrigin} />
 
         <Separator className="bg-white/[0.06]" />
 
@@ -174,59 +123,7 @@ export function IntakeStep({
         <Separator className="bg-white/[0.06]" />
 
         {/* Sensitive Data */}
-        <div className="space-y-3">
-          <div>
-            <Label className="text-neutral-300">Sensitive data handled</Label>
-            <p className="text-xs text-[#4E586E] mt-0.5">
-              Select all that apply. This affects security severity scoring.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {SENSITIVE_DATA_OPTIONS.map((option) => {
-              const isChecked = sensitiveData.includes(option.value);
-              const isExclusive = option.value === "none" || option.value === "not_sure";
-
-              const toggle = () => {
-                if (!isChecked) {
-                  if (isExclusive) {
-                    setSensitiveData([option.value]);
-                  } else {
-                    setSensitiveData(
-                      [...sensitiveData.filter((d) => d !== "none" && d !== "not_sure"), option.value]
-                    );
-                  }
-                } else {
-                  setSensitiveData(sensitiveData.filter((d) => d !== option.value));
-                }
-              };
-
-              return (
-                <div
-                  key={option.value}
-                  role="button"
-                  tabIndex={0}
-                  onClick={toggle}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } }}
-                  className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
-                    isChecked
-                      ? "border-forge-emerald/50 bg-forge-emerald/5"
-                      : "border-white/[0.06] hover:border-forge-border-hover"
-                  }`}
-                >
-                  <Checkbox
-                    checked={isChecked}
-                    onCheckedChange={() => toggle()}
-                    className="mt-0.5 pointer-events-none"
-                  />
-                  <div>
-                    <p className="text-sm text-neutral-200">{option.label}</p>
-                    <p className="text-xs text-[#4E586E]">{option.description}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <SensitiveDataGrid value={sensitiveData} onChange={setSensitiveData} />
 
         <Separator className="bg-white/[0.06]" />
 
@@ -278,33 +175,12 @@ export function IntakeStep({
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between pt-2">
-          <Button
-            variant="outline"
-            onClick={onBack}
-            className="border-white/[0.08]"
-          >
-            <ArrowLeft className="size-4 mr-1" />
-            Back
-          </Button>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              onClick={onSkip}
-              className="text-[#4E586E] hover:text-[#8692A8]"
-            >
-              Skip for now
-            </Button>
-            <Button
-              onClick={onContinue}
-              disabled={!isValid}
-              className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19]"
-            >
-              Review & Submit
-              <ArrowRight className="size-4 ml-1" />
-            </Button>
-          </div>
-        </div>
+        <IntakeNavigation
+          onBack={onBack}
+          onContinue={onContinue}
+          onSkip={onSkip}
+          isValid={isValid}
+        />
       </CardContent>
     </Card>
   );
