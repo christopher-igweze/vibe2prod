@@ -61,7 +61,7 @@ export default function ScanProgressPage() {
     const poll = async () => {
       try {
         const token = (await getToken()) ?? undefined
-        const data = await apiFetch<ScanPoll>(`/api/user/scans/${scanId}`, { token })
+        const data = await apiFetch<ScanPoll>(`/api/user/scans/${scanId}`, { token, cacheTtl: 0 })
         failures = 0
 
         if (cancelled) return
