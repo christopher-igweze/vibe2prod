@@ -3,39 +3,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { apiFetch } from '@/lib/api/client'
-import type { DiscoveryReport } from '@/lib/api/types'
+import type { ScanSummary, ScanDetail } from '@/types/scan-wizard.types'
 
-// ---------------------------------------------------------------------------
-// Types (mirrors dashboard page local types)
-// ---------------------------------------------------------------------------
-
-export interface ScanSummary {
-  id: string
-  repo_url: string
-  repo_name: string
-  status: string
-  scan_tier: string | null
-  created_at: string
-  project_id: string | null
-  health_score: number | null
-  security_score: number | null
-  reliability_score: number | null
-  scalability_score: number | null
-}
-
-export interface ScanDetail {
-  id: string
-  repo_url: string
-  repo_name: string
-  status: string
-  scan_tier: string | null
-  created_at: string
-  project_id: string | null
-  health_score: number | null
-  report_data?: {
-    discovery_report?: DiscoveryReport
-  }
-}
+// Re-export shared types for backward compatibility
+export type { ScanSummary, ScanDetail } from '@/types/scan-wizard.types'
 
 // ---------------------------------------------------------------------------
 // useScans — list all scans for the current user
