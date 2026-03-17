@@ -4,6 +4,64 @@
 // Only use absolute URL for direct local dev without proxy.
 const API_URL = ''
 
+// ---------------------------------------------------------------------------
+// Sensitive-param protection: strip tokens/keys from URL query strings
+// ---------------------------------------------------------------------------
+const SENSITIVE_PARAM_PATTERN = /[?&](token|api_key|key|secret|password|auth)=[^&]*/gi
+
+function stripSensitiveParams(url: string): string {
+  const cleaned = url.replace(SENSITIVE_PARAM_PATTERN, '')
+  // Fix leading '&' if the first param was stripped (e.g. "?&foo=bar" → "?foo=bar")
+  return cleaned.replace(/\?&/, '?').replace(/\?$/, '')
+}
+
+// ---------------------------------------------------------------------------
+// Simple in-memory GET cache with TTL
+// ---------------------------------------------------------------------------
+interface CacheEntry<T> {
+  data: T
+  expiresAt: number
+}
+
+const cache = new Map<string, CacheEntry<unknown>>()
+const DEFAULT_TTL_MS = 30_000 // 30 seconds
+
+function getCacheKey(path: string, token?: string): string {
+  // Include token in key so different users don't share cached data
+  return `${path}::${token ?? 'anon'}`
+}
+
+export function clearApiCache(): void {
+  cache.clear()
+}
+
+export function invalidateApiCache(pathPrefix: string): void {
+  for (const key of cache.keys()) {
+    if (key.startsWith(pathPrefix)) {
+      cache.delete(key)
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Filename sanitisation for downloads
+// ---------------------------------------------------------------------------
+const UNSAFE_FILENAME_CHARS = /[<>:"/\\|?*\x00-\x1F]/g
+const PATH_TRAVERSAL = /\.\.[\\/]/g
+
+export function sanitizeFilename(name: string): string {
+  return name
+    .replace(PATH_TRAVERSAL, '')
+    .replace(UNSAFE_FILENAME_CHARS, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+|-+$/g, '')
+    || 'download'
+}
+
+// ---------------------------------------------------------------------------
+// API client
+// ---------------------------------------------------------------------------
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -17,9 +75,13 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit & { token?: string } = {},
+  options: RequestInit & { token?: string; cacheTtl?: number } = {},
 ): Promise<T> {
-  const { token, ...fetchOptions } = options
+  const { token, cacheTtl, ...fetchOptions } = options
+
+  // Strip any sensitive params that may have leaked into the URL path
+  const safePath = stripSensitiveParams(path)
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
@@ -28,7 +90,20 @@ export async function apiFetch<T>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  // Check cache for GET requests (or requests with no method, which default to GET)
+  const method = (fetchOptions.method ?? 'GET').toUpperCase()
+  const isGet = method === 'GET'
+  const ttl = cacheTtl ?? (isGet ? DEFAULT_TTL_MS : 0)
+
+  if (isGet && ttl > 0) {
+    const cacheKey = getCacheKey(safePath, token)
+    const entry = cache.get(cacheKey)
+    if (entry && Date.now() < entry.expiresAt) {
+      return entry.data as T
+    }
+  }
+
+  const response = await fetch(`${API_URL}${safePath}`, {
     ...fetchOptions,
     headers,
   })
@@ -40,5 +115,19 @@ export async function apiFetch<T>(
   }
 
   if (response.status === 204) return undefined as T
-  return response.json()
+  const data: T = await response.json()
+
+  // Populate cache for GET requests
+  if (isGet && ttl > 0) {
+    const cacheKey = getCacheKey(safePath, token)
+    cache.set(cacheKey, { data, expiresAt: Date.now() + ttl })
+  }
+
+  // Invalidate related caches on mutations
+  if (!isGet) {
+    const basePath = safePath.split('?')[0]
+    invalidateApiCache(basePath)
+  }
+
+  return data
 }
