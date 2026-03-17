@@ -90,6 +90,10 @@ class Settings(BaseSettings):
     # --- Rate Limiting ---
     rate_limit_per_minute: int = 10
 
+    # --- Supabase Connection Pooling ---
+    supabase_pool_size: int = 10  # Max connections in the httpx pool
+    supabase_pool_timeout: float = 30.0  # Seconds to wait for a pooled connection
+
     # --- FORGE Sandbox ---
     forge_sandbox_cpu: int = 2
     forge_sandbox_memory_gb: int = 4

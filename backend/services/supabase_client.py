@@ -25,8 +25,44 @@ from services.token_encryption import decrypt_token, encrypt_token
 logger = logging.getLogger(__name__)
 
 
+_cached_client: Client | None = None
+
+
 def _client() -> Client:
-    return create_client(settings.supabase_url, settings.supabase_service_key)
+    """Return a reusable Supabase client with connection pooling.
+
+    The supabase-py ``Client`` wraps an ``httpx.Client`` under the hood.
+    By caching the instance we reuse the underlying HTTP connection pool
+    instead of creating (and tearing down) a fresh TCP connection per
+    request.  Pool size and timeout are configured via
+    ``settings.supabase_pool_size`` / ``settings.supabase_pool_timeout``.
+    """
+    global _cached_client
+    if _cached_client is None:
+        import httpx
+        from supabase.lib.client_options import SyncClientOptions
+
+        # Build a pooled httpx client so all Supabase calls share TCP
+        # connections instead of opening a new socket per request.
+        http_client = httpx.Client(
+            transport=httpx.HTTPTransport(
+                limits=httpx.Limits(
+                    max_connections=settings.supabase_pool_size,
+                    max_keepalive_connections=settings.supabase_pool_size,
+                ),
+            ),
+            timeout=httpx.Timeout(settings.supabase_pool_timeout),
+        )
+        options = SyncClientOptions(
+            postgrest_client_timeout=settings.supabase_pool_timeout,
+            httpx_client=http_client,
+        )
+        _cached_client = create_client(
+            settings.supabase_url,
+            settings.supabase_service_key,
+            options=options,
+        )
+    return _cached_client
 
 
 # ------------------------------------------------------------------ #
