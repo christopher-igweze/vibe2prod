@@ -310,7 +310,7 @@ export default function CLIPage() {
           <StepCard
             step={1}
             title="Install"
-            command="pip install vibe2prod"
+            command="pip3 install vibe2prod"
             description="One command. Installs the FORGE engine and MCP server."
             delay={0}
           />
@@ -355,12 +355,12 @@ export default function CLIPage() {
 
             {/* Terminal content */}
             <div className="p-5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] leading-[1.9] relative">
-              <CopyButton text={`pip install vibe2prod\nclaude mcp add forge -e OPENROUTER_API_KEY=your-key -- python -m forge.mcp_server`} />
+              <CopyButton text={`pip3 install vibe2prod\nclaude mcp add forge -e OPENROUTER_API_KEY=your-key -- forge-mcp`} />
 
-              <TerminalLine text='pip install vibe2prod' delay={500} />
-              <TerminalLine text="  Successfully installed vibe2prod-1.2.0" delay={1500} isOutput />
+              <TerminalLine text='pip3 install vibe2prod' delay={500} />
+              <TerminalLine text="  Successfully installed vibe2prod-0.3.1" delay={1500} isOutput />
 
-              <TerminalLine text='claude mcp add forge -e OPENROUTER_API_KEY=sk-or... -- python -m forge.mcp_server' delay={2500} />
+              <TerminalLine text='claude mcp add forge -e OPENROUTER_API_KEY=sk-or... -- forge-mcp' delay={2500} />
               <TerminalLine text="  Added MCP server: forge" delay={3500} isOutput />
 
               <div className="h-3" />
@@ -435,8 +435,8 @@ export default function CLIPage() {
             <div>
               <div className="text-zinc-500 text-xs mb-1">1. Install FORGE</div>
               <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800 relative group">
-                <code className="text-emerald-400">pip install vibe2prod</code>
-                <CopyButton text="pip install vibe2prod" />
+                <code className="text-emerald-400">pip3 install vibe2prod</code>
+                <CopyButton text="pip3 install vibe2prod" />
               </div>
             </div>
             <div>
@@ -446,17 +446,15 @@ export default function CLIPage() {
               <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800 relative group">
                 <pre className="text-emerald-400 text-xs leading-relaxed whitespace-pre-wrap"><code>{`claude mcp add forge \\
   -e OPENROUTER_API_KEY=sk-or-v1-your-key \\
-  -- python -m forge.mcp_server`}</code></pre>
-                <CopyButton text="claude mcp add forge -e OPENROUTER_API_KEY=sk-or-v1-your-key -- python -m forge.mcp_server" />
+  -- forge-mcp`}</code></pre>
+                <CopyButton text="claude mcp add forge -e OPENROUTER_API_KEY=sk-or-v1-your-key -- forge-mcp" />
               </div>
               <div className="text-zinc-600 text-xs mt-2 ml-1">
-                Optional flags you can add before the <code className="text-zinc-500">--</code> separator:
+                Optional: sync scans to your dashboard
               </div>
               <div className="bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800/50 mt-1.5">
-                <pre className="text-zinc-500 text-xs leading-relaxed whitespace-pre-wrap"><code>{`# Sync scan history to dashboard
-  -e VIBE2PROD_API_KEY=v2p_your-key \\
-# Help improve FORGE (anonymized patterns only)
-  -e VIBE2PROD_DATA_SHARING=true \\`}</code></pre>
+                <pre className="text-zinc-500 text-xs leading-relaxed whitespace-pre-wrap"><code>{`# Add these flags before the -- separator:
+  -e VIBE2PROD_API_KEY=v2p_your-key \\`}</code></pre>
               </div>
             </div>
             <div>
@@ -553,7 +551,7 @@ export default function CLIPage() {
                   <pre className="text-emerald-400/80 text-[11px] leading-relaxed whitespace-pre-wrap font-[family-name:var(--font-jetbrains-mono)]"><code>{`claude mcp add forge \\
   -e OPENROUTER_API_KEY=sk-or-... \\
   -e VIBE2PROD_API_KEY=v2p_... \\
-  -- python -m forge.mcp_server`}</code></pre>
+  -- forge-mcp`}</code></pre>
                 </div>
                 <p>CLI scans appear in your dashboard alongside cloud scans, grouped by repo with readiness trends over time.</p>
               </div>
