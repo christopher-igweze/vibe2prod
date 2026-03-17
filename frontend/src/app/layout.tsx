@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Geist, Geist_Mono, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { ErrorBoundary } from "@/components/error-boundary";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -59,7 +60,9 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}
         >
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </body>
       </html>
     </ClerkProvider>
