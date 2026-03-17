@@ -45,7 +45,16 @@ FREE_PROBE_LIMIT = PROBE_FREE_LIMIT
 
 
 def _get_user_id(request: Request) -> str:
-    """Return authenticated user_id or a deterministic anon ID from client IP."""
+    """Return authenticated user_id or a deterministic anon ID from client IP.
+
+    Anonymous access is intentional for the probe flow:
+    - POST /api/probe allows free-tier scanning without sign-up (up to FREE_PROBE_LIMIT).
+    - GET /api/probe/{probe_id} is public because the probe_id (UUID) is unguessable.
+    - GET /api/probe/quota works for both anon and authenticated users.
+
+    Auth-required endpoints (authorize, verify, findings, /user/probes) explicitly
+    check _is_authenticated() and return 401 if the user is not signed in.
+    """
     if hasattr(request.state, "user_id"):
         return request.state.user_id
     ip = request.client.host if request.client else "unknown"
@@ -53,6 +62,7 @@ def _get_user_id(request: Request) -> str:
 
 
 def _is_authenticated(request: Request) -> bool:
+    """Check if the request has a verified Supabase JWT (set by auth middleware)."""
     return hasattr(request.state, "user_id")
 
 
@@ -252,7 +262,11 @@ async def start_probe(
 @router.get("/probe/{probe_id}")
 @limiter.limit(rate_limit_string())
 async def get_probe_status(probe_id: str, request: Request) -> dict:
-    """Return probe status and results. Public — UUID is unguessable."""
+    """Return probe status and results.
+
+    Public endpoint — the probe_id (UUID) acts as a capability token.
+    No auth required because the ID is cryptographically unguessable.
+    """
     probe = await db.get_probe(probe_id)
     if not probe:
         raise HTTPException(status_code=404, detail="Probe not found")
