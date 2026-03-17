@@ -59,6 +59,11 @@ export function sanitizeFilename(name: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// In-flight request deduplication for GET requests
+// ---------------------------------------------------------------------------
+const inflight = new Map<string, Promise<unknown>>()
+
+// ---------------------------------------------------------------------------
 // API client
 // ---------------------------------------------------------------------------
 
@@ -103,31 +108,48 @@ export async function apiFetch<T>(
     }
   }
 
-  const response = await fetch(`${API_URL}${safePath}`, {
-    ...fetchOptions,
-    headers,
-  })
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({ detail: response.statusText }))
-    const detail = body.detail
-    throw new ApiError(response.status, detail ?? response.statusText)
+  // Deduplicate in-flight GET requests: if an identical GET is already pending,
+  // return the same promise instead of making a duplicate network request.
+  const inflightKey = isGet ? getCacheKey(safePath, token) : ''
+  if (isGet && inflight.has(inflightKey)) {
+    return inflight.get(inflightKey) as Promise<T>
   }
 
-  if (response.status === 204) return undefined as T
-  const data: T = await response.json()
+  const request = (async (): Promise<T> => {
+    const response = await fetch(`${API_URL}${safePath}`, {
+      ...fetchOptions,
+      headers,
+    })
 
-  // Populate cache for GET requests
-  if (isGet && ttl > 0) {
-    const cacheKey = getCacheKey(safePath, token)
-    cache.set(cacheKey, { data, expiresAt: Date.now() + ttl })
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({ detail: response.statusText }))
+      const detail = body.detail
+      throw new ApiError(response.status, detail ?? response.statusText)
+    }
+
+    if (response.status === 204) return undefined as T
+    const data: T = await response.json()
+
+    // Populate cache for GET requests
+    if (isGet && ttl > 0) {
+      const cacheKey = getCacheKey(safePath, token)
+      cache.set(cacheKey, { data, expiresAt: Date.now() + ttl })
+    }
+
+    // Invalidate related caches on mutations
+    if (!isGet) {
+      const basePath = safePath.split('?')[0]
+      invalidateApiCache(basePath)
+    }
+
+    return data
+  })()
+
+  // Track in-flight GET requests and clean up when done
+  if (isGet) {
+    inflight.set(inflightKey, request)
+    request.finally(() => inflight.delete(inflightKey))
   }
 
-  // Invalidate related caches on mutations
-  if (!isGet) {
-    const basePath = safePath.split('?')[0]
-    invalidateApiCache(basePath)
-  }
-
-  return data
+  return request
 }
