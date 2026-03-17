@@ -136,7 +136,7 @@ elif _vercel_projects:
     _cors_regex = (
         r"^http://(localhost|127\.0\.0\.1)(:\d+)?$|"
         + _vercel_pattern
-        + r"|^https://(www\.)?vibe2prod\.com$|^https://.*\.verstandai\.site$"
+        + r"|^https://(www\.)?vibe2prod\.com$|^https://(app|staging|preview)\.verstandai\.site$"
     )
     app.add_middleware(
         CORSMiddleware,
@@ -155,7 +155,7 @@ else:
         allow_origin_regex=(
             r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
             r"|^https://(www\.)?vibe2prod\.com$"
-            r"|^https://.*\.verstandai\.site$"
+            r"|^https://(app|staging|preview)\.verstandai\.site$"
         ),
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
