@@ -7,6 +7,7 @@ import logging
 from fastapi import APIRouter, Request, HTTPException
 from svix.webhooks import Webhook, WebhookVerificationError
 
+from api.middleware.rate_limit import limiter, get_custom_rate_limit
 from config import settings
 from services import supabase_client as db
 
@@ -18,6 +19,7 @@ _REQUIRED_SVIX_HEADERS = ("svix-id", "svix-timestamp", "svix-signature")
 
 
 @router.post("/webhook/clerk")
+@limiter.limit(get_custom_rate_limit(30, 60))
 async def handle_clerk_webhook(request: Request):
     """Handle Clerk webhook events (user.created, user.updated).
 
