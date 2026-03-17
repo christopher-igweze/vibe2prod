@@ -10,7 +10,6 @@ configured, for backward compatibility during migration.
 
 from __future__ import annotations
 
-import hmac
 import logging
 
 import jwt
@@ -54,53 +53,6 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
             or any(request.url.path.startswith(prefix) for prefix in PUBLIC_PREFIXES)
             or request.method == "OPTIONS"
         ):
-            return await call_next(request)
-
-        # E2E testing bypass: skip JWT verification and use a synthetic user_id
-        # This is only allowed in development environment with a valid token.
-        # Security: Check environment FIRST to ensure bypass cannot be activated
-        # in production even if e2e_testing is incorrectly configured.
-        if settings.environment != "development":
-            # Production environment: e2e_testing must be disabled (defense in depth)
-            # The config validator should prevent this at startup, but we check here
-            # as an additional safeguard against misconfiguration
-            if settings.e2e_testing:
-                logger.error(
-                    "E2E testing mode is enabled but environment is not 'development'. "
-                    "This should not happen if config validation is working correctly. "
-                    "Authentication bypass attempt blocked as a security precaution."
-                )
-                return JSONResponse(
-                    status_code=403,
-                    content={"detail": "E2E testing is not allowed in production"},
-                )
-            # Normal production flow - proceed to JWT verification
-            pass
-        elif settings.e2e_testing:
-            # Development environment with e2e_testing enabled
-            _token_value = settings.e2e_testing_token.get_secret_value()
-            # Use hmac.compare_digest for constant-time comparison to prevent
-            # timing-based side-channel attacks on the token value (CWE-208).
-            # The emptiness check uses the same path to keep timing uniform.
-            _token_present = hmac.compare_digest(_token_value, _token_value) and bool(_token_value)
-            if not _token_present:
-                logger.error(
-                    "E2E testing enabled but e2e_testing_token is not set. "
-                    "Authentication bypass blocked."
-                )
-                return JSONResponse(
-                    status_code=403,
-                    content={"detail": "E2E testing token is required"},
-                )
-            logger.warning(
-                "E2E testing mode active — JWT verification bypassed. "
-                "This should only be used in development environment."
-            )
-            # Store only a boolean flag in request state; never persist the raw
-            # token itself so it cannot leak through downstream logging or error
-            # responses (CWE-532).
-            request.state.user_id = "e2e_test_user"
-            request.state.e2e_authenticated = True
             return await call_next(request)
 
         is_optional = any(
