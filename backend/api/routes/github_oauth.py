@@ -73,8 +73,11 @@ async def github_oauth(request_body: GithubOAuthRequest, request: Request) -> Gi
         # Validate redirect_uri origin before proceeding with token exchange
         github_oauth_service._validate_redirect_uri(request_body.redirect_uri)
 
-        # Delegate to service for state validation (includes user, redirect_uri,
-        # and one-time-use / replay-prevention checks).
+        # SECURITY: Validate state BEFORE calling GitHub token exchange.
+        # This prevents CSRF where an attacker's state token could be used by a
+        # victim — validate_oauth_state checks that state.sub == authenticated
+        # user_id (constant-time), verifies redirect_uri, and enforces one-time
+        # use via jti nonce consumption.  (Addresses F-ab5fb4c5)
         await github_oauth_service.validate_oauth_state(
             state=request_body.state,
             expected_user_id=user_id,

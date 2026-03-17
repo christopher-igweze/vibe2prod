@@ -1,11 +1,24 @@
 """Probe routes — live application security testing.
 
-POST /api/probe/authorize   — generate verification token for a domain
-POST /api/probe/verify      — verify domain ownership
-POST /api/probe             — start a security probe (background task)
-GET  /api/probe/{probe_id}  — probe status + results
-GET  /api/probe/{probe_id}/findings — findings list
-GET  /api/user/probes       — list user's probes
+POST /api/probe/authorize   — generate verification token for a domain  [AUTH REQUIRED]
+POST /api/probe/verify      — verify domain ownership                   [AUTH REQUIRED]
+POST /api/probe             — start a security probe (background task)  [OPTIONAL AUTH — anon free tier]
+GET  /api/probe/{probe_id}  — probe status + results                   [PUBLIC — UUID is capability token]
+GET  /api/probe/{probe_id}/findings — findings list                    [AUTH REQUIRED]
+GET  /api/probe/quota       — remaining free probes                    [OPTIONAL AUTH]
+GET  /api/user/probes       — list user's probes                       [AUTH REQUIRED]
+
+Auth model (F-2931ffb8):
+  /api/probe is in OPTIONAL_AUTH_PREFIXES so the auth middleware does not
+  reject anonymous requests. Instead, each handler enforces its own auth
+  policy via _is_authenticated() checks:
+
+  - Endpoints that mutate user state or expose sensitive data (authorize,
+    verify, findings, /user/probes) explicitly require auth and return 401.
+  - POST /api/probe allows anonymous access with free-tier limits; the
+    anon identity is derived from a hashed client IP.
+  - GET /api/probe/{probe_id} is public because the probe UUID is
+    cryptographically random (UUIDv4) and acts as a capability token.
 """
 
 from __future__ import annotations
