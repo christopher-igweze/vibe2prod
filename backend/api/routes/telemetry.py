@@ -46,6 +46,7 @@ async def _resolve_api_key(request: Request) -> str | None:
         key_hash = hashlib.sha256(api_key.encode()).hexdigest()
         return await db.lookup_user_by_api_key(key_hash)
     except Exception:
+        logger.exception("Failed to resolve API key to user_id")
         return None
 
 
@@ -59,7 +60,7 @@ async def ingest_telemetry(event: TelemetryEvent, request: Request):
             data["user_id"] = user_id
         await db.store_telemetry_event(data)
     except Exception:
-        pass  # Never fail on telemetry
+        logger.exception("Failed to store telemetry event")
     return {"ok": True}
 
 
@@ -73,5 +74,5 @@ async def ingest_findings(payload: SharedFindings, request: Request):
             data["user_id"] = user_id
         await db.store_shared_findings(data)
     except Exception:
-        pass  # Never fail on telemetry
+        logger.exception("Failed to store shared findings")
     return {"ok": True}
