@@ -17,6 +17,7 @@ from urllib.parse import urlparse
 import httpx
 
 from config import settings
+from constants import DOMAIN_AUTH_EXPIRY_DAYS
 
 logger = logging.getLogger(__name__)
 
