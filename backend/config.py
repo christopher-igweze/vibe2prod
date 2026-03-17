@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import base64
 import logging
+import re
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
@@ -129,6 +131,27 @@ class Settings(BaseSettings):
             logging.getLogger(__name__).warning(
                 "GITHUB_WEBHOOK_SECRET is empty — webhook endpoint will return 503"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_jwt_secret_encoding(self) -> "Settings":
+        """Warn if supabase_jwt_secret looks like base64 but is not valid.
+
+        This is informational only — Supabase JWT secrets may or may not be
+        base64 encoded depending on the project configuration.
+        """
+        secret = self.supabase_jwt_secret
+        if secret and re.fullmatch(r"[A-Za-z0-9+/=\-_]+", secret):
+            try:
+                base64.b64decode(secret, validate=True)
+            except Exception:
+                try:
+                    base64.urlsafe_b64decode(secret + "==")
+                except Exception:
+                    logging.getLogger(__name__).warning(
+                        "SUPABASE_JWT_SECRET looks like base64 but failed to decode. "
+                        "Verify the value is correct."
+                    )
         return self
 
     @model_validator(mode="after")
