@@ -438,3 +438,32 @@ export interface VerifyResponse {
   domain: string
   expires_at: string
 }
+
+// ── API Response Wrappers ─────────────────────────────────────────
+
+/** Generic paginated response envelope */
+export interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  page: number
+  page_size: number
+  has_more: boolean
+}
+
+/** Typed list responses */
+export type ScanListResponse = import('@/types/scan-wizard.types').ScanSummary[]
+export type ScanDetailResponse = import('@/types/scan-wizard.types').ScanDetail
+
+export type ProjectListResponse = ProjectSummary[]
+export type ProjectDetailResponse = ProjectScanHistory
+
+export type ProbeListResponse = ProbeSummary[]
+export type ProbeDetailResponse = ProbeDetail
+
+export type DashboardResponse = import('@/types/scan-wizard.types').DashboardData
+
+/** Standardized API error shape */
+export interface ApiErrorResponse {
+  detail: string | { message?: string; code?: string }
+  status: number
+}
