@@ -56,8 +56,8 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
       try {
         const token = (await getToken()) ?? undefined;
         const [s, p, pr] = await Promise.all([
-          apiFetch<ScanSummary[]>("/api/user/scans", { token }).catch(() => [] as ScanSummary[]),
-          apiFetch<ProjectSummary[]>("/api/user/projects", { token }).catch(() => [] as ProjectSummary[]),
+          apiFetch<{ items: ScanSummary[] }>("/api/user/scans", { token }).then(r => r.items).catch(() => [] as ScanSummary[]),
+          apiFetch<{ items: ProjectSummary[] }>("/api/user/projects", { token }).then(r => r.items).catch(() => [] as ProjectSummary[]),
           apiFetch<ProbeSummary[]>("/api/user/probes", { token }).catch(() => [] as ProbeSummary[]),
         ]);
         setScans(s);
