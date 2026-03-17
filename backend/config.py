@@ -39,6 +39,17 @@ class Settings(BaseSettings):
     # 32-byte AES-256 key encoded as URL-safe base64 (required).
     # Generate with:
     #   python -c "import secrets, base64; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"
+    #
+    # Key rotation procedure:
+    #   1. Generate a new key using the command above.
+    #   2. Set GITHUB_TOKEN_ENCRYPTION_KEY to the new key in .env / secrets.
+    #   3. Deploy the change. New tokens will be encrypted with the new key.
+    #   4. Previously encrypted tokens will fail to decrypt — users will need
+    #      to re-connect GitHub OAuth (disconnect + reconnect) to re-encrypt
+    #      their token with the new key.
+    #   5. For zero-downtime rotation, implement a key-list approach: try
+    #      decrypting with the new key first, fall back to the old key, and
+    #      re-encrypt with the new key on successful fallback decryption.
     github_token_encryption_key: str = Field(
         ...,
         description=(
