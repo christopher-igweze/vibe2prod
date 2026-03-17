@@ -8,33 +8,23 @@ import {
   type ReactNode,
 } from "react";
 
-import { apiFetch, ApiError } from "@/lib/api/client";
 import type {
   PrimerResult,
-  AuditResponse,
   ProjectOrigin,
   SensitiveDataType,
-  ProjectIntake,
-  ProjectSummary,
 } from "@/lib/api/types";
 
-// ---------------------------------------------------------------------------
-// GitHub URL validation
-// ---------------------------------------------------------------------------
+import {
+  validateGitHubUrl,
+  checkStep2Valid,
+  fetchPrefillData,
+  buildAuditBody,
+  submitAudit,
+  classifySubmitError,
+} from "./scan-wizard-helpers";
 
-const GITHUB_URL_REGEX = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/;
-
-export function validateGitHubUrl(url: string): string | null {
-  const trimmed = url.trim();
-  if (!trimmed) return "Please enter a GitHub repository URL";
-  if (!trimmed.startsWith("https://github.com/")) {
-    return "URL must start with https://github.com/";
-  }
-  if (!GITHUB_URL_REGEX.test(trimmed)) {
-    return "Must be a valid GitHub URL (e.g. https://github.com/owner/repo)";
-  }
-  return null;
-}
+// Re-export for consumers that import from this module
+export { validateGitHubUrl } from "./scan-wizard-helpers";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -144,10 +134,6 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
   // Pre-fill
   const [preFilled, setPreFilled] = useState(false);
 
-  // ---------------------------------------------------------------------------
-  // Navigation with validation
-  // ---------------------------------------------------------------------------
-
   const goToStep = useCallback(
     (target: number) => {
       if (target >= 2) {
@@ -163,55 +149,30 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
     [repoUrl],
   );
 
-  // ---------------------------------------------------------------------------
-  // Step 2 validation
-  // ---------------------------------------------------------------------------
-
-  const isStep2Valid = useCallback((): boolean => {
-    return (
-      productSummary.length >= 3 &&
-      productSummary.length <= 800 &&
-      targetUsers.length >= 2 &&
-      targetUsers.length <= 400 &&
-      deploymentTarget.length >= 2 &&
-      deploymentTarget.length <= 200 &&
-      scaleExpectation.length >= 2 &&
-      scaleExpectation.length <= 200
-    );
-  }, [productSummary, targetUsers, deploymentTarget, scaleExpectation]);
-
-  // ---------------------------------------------------------------------------
-  // Pre-fill from previous project
-  // ---------------------------------------------------------------------------
+  const isStep2Valid = useCallback(
+    () =>
+      checkStep2Valid({
+        productSummary,
+        targetUsers,
+        deploymentTarget,
+        scaleExpectation,
+      }),
+    [productSummary, targetUsers, deploymentTarget, scaleExpectation],
+  );
 
   const prefillFromProject = useCallback(
     async (repoParam: string, getToken: () => Promise<string | null>) => {
       setRepoUrl(repoParam);
-
       try {
-        const token = (await getToken()) ?? undefined;
-
-        const projects = await apiFetch<ProjectSummary[]>("/api/user/projects", {
-          token,
-        });
-        const match = projects.find((p) => p.repo_url === repoParam);
-        if (!match) return;
-
-        const intakeResp = await apiFetch<{ project_intake: ProjectIntake | null }>(
-          `/api/user/projects/${match.id}/intake`,
-          { token },
-        );
-
-        const intake = intakeResp.project_intake;
-        if (!intake) return;
-
-        setProjectOrigin(intake.project_origin);
-        setProductSummary(intake.product_summary || "");
-        setTargetUsers(intake.target_users || "");
-        setSensitiveData(intake.sensitive_data || []);
-        setMustNotBreakFlows(intake.must_not_break_flows || []);
-        setDeploymentTarget(intake.deployment_target || "");
-        setScaleExpectation(intake.scale_expectation || "");
+        const data = await fetchPrefillData(repoParam, getToken);
+        if (!data) return;
+        setProjectOrigin(data.projectOrigin);
+        setProductSummary(data.productSummary);
+        setTargetUsers(data.targetUsers);
+        setSensitiveData(data.sensitiveData);
+        setMustNotBreakFlows(data.mustNotBreakFlows);
+        setDeploymentTarget(data.deploymentTarget);
+        setScaleExpectation(data.scaleExpectation);
         setPreFilled(true);
       } catch {
         // Silently fail -- user can still fill manually
@@ -219,10 +180,6 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
-
-  // ---------------------------------------------------------------------------
-  // Submit
-  // ---------------------------------------------------------------------------
 
   const handleSubmit = useCallback(
     async (
@@ -241,67 +198,26 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
       setSubmitError(null);
 
       try {
-        const token = await getToken();
-
-        const body: {
-          repo_url: string;
-          branch?: string;
-          project_intake?: ProjectIntake;
-          primer?: PrimerResult;
-        } = {
-          repo_url: repoUrl.trim(),
-        };
-
-        if (productSummary || targetUsers || deploymentTarget || scaleExpectation) {
-          body.project_intake = {
-            project_origin: projectOrigin,
-            product_summary: productSummary,
-            target_users: targetUsers,
-            sensitive_data: sensitiveData.length > 0 ? sensitiveData : ["not_sure"],
-            must_not_break_flows: mustNotBreakFlows,
-            deployment_target: deploymentTarget,
-            scale_expectation: scaleExpectation,
-          };
-        }
-
-        if (branch) body.branch = branch;
-        if (primerResult) body.primer = primerResult;
-
-        const result = await apiFetch<AuditResponse>("/api/audit", {
-          method: "POST",
-          body: JSON.stringify(body),
-          token: token ?? undefined,
+        const body = buildAuditBody({
+          repoUrl,
+          branch,
+          primerResult,
+          projectOrigin,
+          productSummary,
+          targetUsers,
+          sensitiveData,
+          mustNotBreakFlows,
+          deploymentTarget,
+          scaleExpectation,
         });
-
-        onSuccess(result.scan_id);
+        const scanId = await submitAudit(body, getToken);
+        onSuccess(scanId);
       } catch (err) {
-        if (err instanceof ApiError) {
-          if (err.status === 403) {
-            const detail =
-              typeof err.detail === "object" ? err.detail : { message: err.detail };
-            const code = (detail as { code?: string })?.code;
-
-            if (code === "waitlist_required") {
-              onRedirect("/waitlist");
-              return;
-            }
-            if (code === "onboarding_required") {
-              onRedirect("/onboarding");
-              return;
-            }
-
-            setSubmitError(
-              (detail as { message?: string })?.message ||
-                err.message ||
-                "Access denied",
-            );
-          } else if (err.status === 429) {
-            setSubmitError("Rate limited. Please wait a moment and try again.");
-          } else {
-            setSubmitError(err.message || "Scan failed to start");
-          }
+        const result = classifySubmitError(err);
+        if ("redirect" in result) {
+          onRedirect(result.redirect);
         } else {
-          setSubmitError("An unexpected error occurred. Please try again.");
+          setSubmitError(result.message);
         }
       } finally {
         setSubmitting(false);
@@ -320,10 +236,6 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
       scaleExpectation,
     ],
   );
-
-  // ---------------------------------------------------------------------------
-  // Context value
-  // ---------------------------------------------------------------------------
 
   const value: ScanWizardState = {
     step,
