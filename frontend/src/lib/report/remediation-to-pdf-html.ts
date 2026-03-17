@@ -1,4 +1,5 @@
 import type { ScanFixStatus } from "@/lib/api/types"
+import { formatDuration, SEVERITY_COLORS } from "@/lib/utils"
 
 function esc(text: string): string {
   return text
@@ -6,21 +7,6 @@ function esc(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-}
-
-function formatDuration(seconds: number | null): string {
-  if (seconds === null) return "--"
-  if (seconds < 60) return `${Math.round(seconds)}s`
-  const m = Math.floor(seconds / 60)
-  const s = Math.round(seconds % 60)
-  return s > 0 ? `${m}m ${s}s` : `${m}m`
-}
-
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: "#ef4444",
-  high: "#f97316",
-  medium: "#eab308",
-  low: "#3b82f6",
 }
 
 function scoreColor(score: number): string {

@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
+import { formatDuration } from "@/lib/utils"
 import type { ProbeDetail, ProbeFinding } from "@/lib/api/types"
 import { useUserRole } from "@/hooks/use-user-role"
 import { Button } from "@/components/ui/button"
@@ -45,14 +46,6 @@ function severityBadge(severity: string) {
       {severity}
     </span>
   )
-}
-
-function formatDuration(seconds: number | null): string {
-  if (seconds == null) return "--"
-  if (seconds < 60) return `${Math.round(seconds)}s`
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.round(seconds % 60)
-  return `${mins}m ${secs}s`
 }
 
 // ---------------------------------------------------------------------------
@@ -162,7 +155,7 @@ export default function ProbeResultPage() {
     const poll = async () => {
       try {
         // Probe status is public — no token needed
-        const data = await apiFetch<ProbeDetail>(`/api/probe/${probeId}`)
+        const data = await apiFetch<ProbeDetail>(`/api/probe/${probeId}`, { cacheTtl: 0 })
         failures = 0
         if (cancelled) return
 

@@ -89,12 +89,7 @@ export function tierClasses(tier: number) {
   return TIER_CONFIG[tier] ?? TIER_CONFIG[2]
 }
 
-export function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`
-  const m = Math.floor(seconds / 60)
-  const s = Math.round(seconds % 60)
-  return s > 0 ? `${m}m ${s}s` : `${m}m`
-}
+export { formatDuration } from "@/lib/utils"
 
 export function formatCost(usd: number): string {
   return `$${usd.toFixed(2)}`

@@ -1,4 +1,5 @@
 import type { DiscoveryReport, DiscoveryFinding, Actionability } from "@/lib/api/types"
+import { formatDuration, SEVERITY_COLORS } from "@/lib/utils"
 
 const ACTIONABILITY_ORDER: Actionability[] = [
   "must_fix",
@@ -14,26 +15,12 @@ const ACTIONABILITY_LABELS: Record<Actionability, string> = {
   informational: "Informational",
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  critical: "#ef4444",
-  high: "#f97316",
-  medium: "#eab308",
-  low: "#3b82f6",
-}
-
 function esc(text: string): string {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`
-  const m = Math.floor(seconds / 60)
-  const s = Math.round(seconds % 60)
-  return s > 0 ? `${m}m ${s}s` : `${m}m`
 }
 
 function renderFindingHtml(f: DiscoveryFinding): string {

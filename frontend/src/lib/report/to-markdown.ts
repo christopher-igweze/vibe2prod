@@ -6,6 +6,7 @@ import type {
   RemediationItem,
   CodebaseMap,
 } from "@/lib/api/types"
+import { formatDuration } from "@/lib/utils"
 
 const ACTIONABILITY_ORDER: Actionability[] = [
   "must_fix",
@@ -19,13 +20,6 @@ const ACTIONABILITY_LABELS: Record<Actionability, string> = {
   should_fix: "Should Fix",
   consider: "Consider",
   informational: "Informational",
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${Math.round(seconds)}s`
-  const m = Math.floor(seconds / 60)
-  const s = Math.round(seconds % 60)
-  return s > 0 ? `${m}m ${s}s` : `${m}m`
 }
 
 function escapeMarkdown(text: string): string {
