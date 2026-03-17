@@ -13,7 +13,10 @@ This module bridges the two formats with zero LLM cost.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Union
+
+# Forge context values are strings, lists of strings, or ints — never nested dicts.
+ForgeContextValue = Union[str, int, list[str]]
 
 # Map vibe2prod scale_expectation hints to forge project stages.
 # The frontend provides free-text scale_expectation; we pattern-match
@@ -39,21 +42,22 @@ def intake_to_forge_context(
     *,
     vibe_prompt: str | None = None,
     team_size: int = 1,
-) -> dict[str, Any]:
+) -> dict[str, ForgeContextValue]:
     """Convert a ProjectIntake dict to forge-engine project_context.
 
     Args:
-        intake: ProjectIntake.model_dump() dict.
+        intake: ProjectIntake.model_dump() dict — dynamic shape from Pydantic.
         vibe_prompt: Optional original vibe prompt that generated the codebase.
         team_size: Default 1 (solo vibe-coder).
 
     Returns:
         A dict compatible with forge-engine's build_project_context_string().
+        Values are typed as ``ForgeContextValue`` (str | int | list[str]).
     """
     if not intake:
         return {}
 
-    ctx: dict[str, Any] = {}
+    ctx: dict[str, ForgeContextValue] = {}
 
     # Project stage — inferred from scale_expectation
     scale = intake.get("scale_expectation", "")
