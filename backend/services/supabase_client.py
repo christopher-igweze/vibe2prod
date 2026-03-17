@@ -1029,9 +1029,9 @@ async def list_user_scans(user_id: str, limit: int = 20) -> list[dict]:
             "id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,created_at,project_id,"
             "projects(id,user_id)"
         )
-        .eq("scan_reports.user_id", str(user_id))
+        .eq("user_id", str(user_id))
         .eq("projects.user_id", str(user_id))
-        .order("scan_reports.created_at", desc=True)
+        .order("created_at", desc=True)
         .limit(limit)
         .execute()
     )
