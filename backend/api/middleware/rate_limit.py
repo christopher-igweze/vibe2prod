@@ -64,10 +64,27 @@ class SlidingWindowCounter:
 
 class RateLimitStorage:
     """In-memory rate limit storage with sliding window algorithm.
-    
-    Provides thread-safe rate limiting that can be used across multiple
-    worker processes (each process will have its own limits, which is
-    acceptable for development/single-instance deployments).
+
+    Provides thread-safe rate limiting within a single process.
+
+    LIMITATION: Each worker process maintains its own counters, so the
+    effective rate limit is multiplied by the number of workers.  For
+    example, with 4 Gunicorn workers and a 10/min limit, a client could
+    actually make up to 40 requests/min across all workers.
+
+    UPGRADE PATH: For multi-worker or multi-instance deployments, replace
+    this storage with a Redis-backed implementation.  slowapi supports a
+    Redis backend out of the box:
+
+        from slowapi import Limiter
+        limiter = Limiter(
+            key_func=_get_rate_limit_key,
+            storage_uri="redis://localhost:6379",
+        )
+
+    Alternatively, configure ``RateLimitStorage`` to use a shared Redis
+    counter instead of the per-process ``defaultdict``.  Set the Redis
+    connection via a ``RATE_LIMIT_REDIS_URL`` environment variable.
     """
     
     def __init__(self):
