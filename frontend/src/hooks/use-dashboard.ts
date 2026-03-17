@@ -4,17 +4,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { apiFetch } from '@/lib/api/client'
 import type { ProjectSummary, ProbeSummary } from '@/lib/api/types'
-import type { ScanSummary } from './use-scans'
+import type { ScanSummary, DashboardData } from '@/types/scan-wizard.types'
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export interface DashboardData {
-  scans: ScanSummary[]
-  projects: ProjectSummary[]
-  probes: ProbeSummary[]
-}
+// Re-export shared types for backward compatibility
+export type { DashboardData } from '@/types/scan-wizard.types'
 
 // ---------------------------------------------------------------------------
 // useDashboardData — load scans, projects, and probes in parallel
