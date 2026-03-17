@@ -25,19 +25,13 @@ import {
 import { apiFetch } from "@/lib/api/client"
 import type { ScanFixStatus, FixResponse } from "@/lib/api/types"
 import { openRemediationPdfReport } from "@/lib/report/remediation-to-pdf-html"
+import { formatDuration } from "@/lib/utils"
 import { ScoreGauge } from "@/components/score-gauge"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
 /* ---------- helpers ---------- */
-
-function formatDuration(seconds: number | null): string {
-  if (seconds === null) return "--"
-  const mins = Math.floor(seconds / 60)
-  const secs = Math.round(seconds % 60)
-  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
-}
 
 function formatCost(cost: number | null): string {
   if (cost === null) return "--"
