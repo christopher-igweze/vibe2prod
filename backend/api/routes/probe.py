@@ -35,11 +35,13 @@ from services.target_auth import (
     verify_meta_tag,
 )
 
+from constants import PROBE_FREE_LIMIT, DOMAIN_AUTH_EXPIRY_DAYS
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Non-onboarded / anonymous users get this many free probes.
-FREE_PROBE_LIMIT = 3
+FREE_PROBE_LIMIT = PROBE_FREE_LIMIT
 
 
 def _get_user_id(request: Request) -> str:
@@ -148,7 +150,7 @@ async def verify_domain(body: VerifyRequest, request: Request) -> dict:
         raise HTTPException(status_code=403, detail="Domain verification failed")
 
     # Store authorization (valid for 30 days)
-    expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=DOMAIN_AUTH_EXPIRY_DAYS)).isoformat()
     await db.save_authorized_target(user_id, domain, body.method, expires_at)
 
     return {"verified": True, "domain": domain, "expires_at": expires_at}
@@ -202,7 +204,7 @@ async def start_probe(
     elif role in ("developer", "beta_tester"):
         existing = await db.get_authorized_target(user_id, domain)
         if not existing:
-            expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+            expires_at = (datetime.now(timezone.utc) + timedelta(days=DOMAIN_AUTH_EXPIRY_DAYS)).isoformat()
             await db.save_authorized_target(user_id, domain, "manual_approve", expires_at)
         auth_method = "manual_approve"
     elif not await is_authorized(user_id, domain, db):

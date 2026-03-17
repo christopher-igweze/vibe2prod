@@ -15,6 +15,13 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
+from constants import (
+    PROBE_DEFAULT_MAX_WAIT_SECONDS,
+    PROBE_DEFAULT_POLL_INTERVAL_SECONDS,
+    PROBE_FINDINGS_SUMMARY_LIMIT,
+    PROBE_TERMINAL_STATUSES,
+    STATUS_COMPLETED,
+)
 from services import supabase_client as db
 from services.probe_bridge import probe_bridge
 
@@ -25,8 +32,8 @@ class ProbeService:
     """Service for orchestrating security probes."""
     
     # Default polling configuration
-    DEFAULT_POLL_INTERVAL = 10  # seconds
-    DEFAULT_MAX_WAIT = 4200  # 70 minutes
+    DEFAULT_POLL_INTERVAL = PROBE_DEFAULT_POLL_INTERVAL_SECONDS
+    DEFAULT_MAX_WAIT = PROBE_DEFAULT_MAX_WAIT_SECONDS
     
     async def run_probe(
         self,
@@ -90,8 +97,8 @@ class ProbeService:
                 logger.warning("Poll failed for %s (will retry): %s", job_id, poll_err)
                 continue
 
-            if current_status in ("completed", "failed", "cancelled"):
-                if current_status != "completed":
+            if current_status in PROBE_TERMINAL_STATUSES:
+                if current_status != STATUS_COMPLETED:
                     raise RuntimeError(f"Probe service scan {current_status} after {elapsed}s")
                 return
 
@@ -111,7 +118,7 @@ class ProbeService:
             medium_count=results.get("medium_count", 0),
             low_count=results.get("low_count", 0),
             probe_score=results.get("probe_score", 0),
-            report_data={"findings_summary": results.get("findings", [])[:50]},
+            report_data={"findings_summary": results.get("findings", [])[:PROBE_FINDINGS_SUMMARY_LIMIT]},
         )
 
         # Save individual findings

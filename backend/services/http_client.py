@@ -16,6 +16,13 @@ import logging
 import httpx
 from fastapi import HTTPException
 
+from constants import (
+    HTTP_MAX_CONNECTIONS,
+    HTTP_MAX_KEEPALIVE_CONNECTIONS,
+    HTTP_TIMEOUT_CONNECT_SECONDS,
+    HTTP_TIMEOUT_DEFAULT_SECONDS,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -112,10 +119,10 @@ def get_http_client() -> SharedHttpClient:
     high-traffic endpoints, prefer using this shared client.
     """
     return SharedHttpClient(
-        timeout=httpx.Timeout(30.0, connect=10.0),
+        timeout=httpx.Timeout(HTTP_TIMEOUT_DEFAULT_SECONDS, connect=HTTP_TIMEOUT_CONNECT_SECONDS),
         limits=httpx.Limits(
-            max_connections=100,
-            max_keepalive_connections=20,
+            max_connections=HTTP_MAX_CONNECTIONS,
+            max_keepalive_connections=HTTP_MAX_KEEPALIVE_CONNECTIONS,
         ),
     )
 
