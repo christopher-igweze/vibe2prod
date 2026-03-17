@@ -16,6 +16,7 @@ from __future__ import annotations
 import hmac
 import logging
 import secrets
+import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import urlencode, urlparse, parse_qs
@@ -34,10 +35,15 @@ logger = logging.getLogger(__name__)
 
 class GitHubOAuthService:
     """Service for GitHub OAuth and repository management."""
-    
+
     # GitHub API configuration
     GITHUB_API_BASE = "https://api.github.com"
     GITHUB_OAUTH_BASE = "https://github.com/login/oauth"
+
+    # Simple in-memory TTL cache for repo listings to avoid hammering
+    # GitHub's API on repeated dashboard loads.
+    _REPO_CACHE_TTL_SECONDS = 60
+    _repo_cache: dict[str, tuple[float, Any]] = {}  # key -> (expiry, data)
     
     async def _get_decrypted_token(self, user_id: str) -> str | None:
         """Retrieve and decrypt the stored GitHub access token for a user.
@@ -422,6 +428,12 @@ class GitHubOAuthService:
                 return cursors[0]
         return None
 
+    def _repo_cache_key(
+        self, user_id: str, page: int, per_page: int, cursor: str | None
+    ) -> str:
+        """Build a deterministic cache key for a repo list request."""
+        return f"{user_id}:{page}:{per_page}:{cursor or ''}"
+
     async def list_repos(
         self,
         user_id: str,
@@ -431,9 +443,20 @@ class GitHubOAuthService:
         paginated: bool = False,
     ) -> dict | list[dict]:
         """List user's GitHub repositories.
-        
+
         Supports both page-based and cursor-based pagination.
+        Results are cached in-memory for 60 seconds to reduce GitHub API load.
         """
+        # Check TTL cache
+        cache_key = self._repo_cache_key(user_id, page, per_page, cursor)
+        cached = self._repo_cache.get(cache_key)
+        if cached:
+            expiry, data = cached
+            if time.monotonic() < expiry:
+                return data
+            else:
+                del self._repo_cache[cache_key]
+
         token = await self._get_decrypted_token(user_id)
         if not token:
             raise HTTPException(
@@ -497,17 +520,24 @@ class GitHubOAuthService:
         next_cursor = self._parse_link_header(link_header)
         
         repo_list = self._transform_repos(repos)
-        
+
         if paginated or cursor is not None:
-            return {
+            result: dict | list[dict] = {
                 "repos": repo_list,
                 "pagination": {
                     "next_cursor": next_cursor,
                     "has_more": next_cursor is not None,
                 },
             }
-        
-        return repo_list
+        else:
+            result = repo_list
+
+        # Populate cache
+        self._repo_cache[cache_key] = (
+            time.monotonic() + self._REPO_CACHE_TTL_SECONDS,
+            result,
+        )
+        return result
 
     def _transform_repos(self, repos: list[dict]) -> list[dict]:
         """Transform GitHub repo response to internal format."""
