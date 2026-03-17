@@ -2,42 +2,18 @@
 
 export const dynamic = "force-dynamic";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
-
-import { apiFetch, ApiError } from "@/lib/api/client";
-import type {
-  PrimerResult,
-  AuditResponse,
-  ProjectOrigin,
-  SensitiveDataType,
-  ProjectIntake,
-  ProjectSummary,
-} from "@/lib/api/types";
 
 import { StepIndicator } from "@/components/scan/step-indicator";
 import { RepoStep } from "@/components/scan/repo-step";
 import { IntakeStep } from "@/components/scan/intake-step";
 import { ReviewStep } from "@/components/scan/review-step";
-
-// ---------------------------------------------------------------------------
-// GitHub URL validation
-// ---------------------------------------------------------------------------
-
-const GITHUB_URL_REGEX = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/;
-
-function validateGitHubUrl(url: string): string | null {
-  const trimmed = url.trim();
-  if (!trimmed) return "Please enter a GitHub repository URL";
-  if (!trimmed.startsWith("https://github.com/")) {
-    return "URL must start with https://github.com/";
-  }
-  if (!GITHUB_URL_REGEX.test(trimmed)) {
-    return "Must be a valid GitHub URL (e.g. https://github.com/owner/repo)";
-  }
-  return null;
-}
+import {
+  ScanWizardProvider,
+  useScanWizard,
+} from "@/context/scan-wizard-context";
 
 // ---------------------------------------------------------------------------
 // Inner component (uses useSearchParams, needs Suspense boundary)
@@ -48,199 +24,22 @@ function NewScanInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Wizard state
-  const [step, setStep] = useState(1);
-
-  // Step 1: Repo URL + Branch + Primer
-  const [repoUrl, setRepoUrl] = useState("");
-  const [branch, setBranch] = useState("");
-  const [primerResult, setPrimerResult] = useState<PrimerResult | null>(null);
-  const [suggestedFlows, setSuggestedFlows] = useState<string[]>([]);
-  const [repoSelectorManual, setRepoSelectorManual] = useState(false);
-
-  // Step 2: Project Intake
-  const [projectOrigin, setProjectOrigin] = useState<ProjectOrigin>("inspired");
-  const [productSummary, setProductSummary] = useState("");
-  const [targetUsers, setTargetUsers] = useState("");
-  const [sensitiveData, setSensitiveData] = useState<SensitiveDataType[]>([]);
-  const [mustNotBreakFlows, setMustNotBreakFlows] = useState<string[]>([]);
-  const [deploymentTarget, setDeploymentTarget] = useState("");
-  const [scaleExpectation, setScaleExpectation] = useState("");
-
-  // URL validation
-  const [repoUrlError, setRepoUrlError] = useState<string | null>(null);
-
-  // Step 3: Submit
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  // Pre-fill state
-  const [preFilled, setPreFilled] = useState(false);
+  const wizard = useScanWizard();
 
   // ---------------------------------------------------------------------------
   // Pre-fill from previous scan (when ?repo_url= is present)
   // ---------------------------------------------------------------------------
 
-  const prefillFromProject = useCallback(async () => {
+  const prefill = useCallback(async () => {
     const repoParam = searchParams.get("repo_url");
     if (!repoParam) return;
-
-    setRepoUrl(repoParam);
-
-    try {
-      const token = (await getToken()) ?? undefined;
-
-      // Find matching project
-      const projects = await apiFetch<ProjectSummary[]>("/api/user/projects", { token });
-      const match = projects.find((p) => p.repo_url === repoParam);
-      if (!match) return;
-
-      // Fetch latest intake for this project
-      const intakeResp = await apiFetch<{ project_intake: ProjectIntake | null }>(
-        `/api/user/projects/${match.id}/intake`,
-        { token },
-      );
-
-      const intake = intakeResp.project_intake;
-      if (!intake) return;
-
-      // Populate intake fields
-      setProjectOrigin(intake.project_origin);
-      setProductSummary(intake.product_summary || "");
-      setTargetUsers(intake.target_users || "");
-      setSensitiveData(intake.sensitive_data || []);
-      setMustNotBreakFlows(intake.must_not_break_flows || []);
-      setDeploymentTarget(intake.deployment_target || "");
-      setScaleExpectation(intake.scale_expectation || "");
-      setPreFilled(true);
-    } catch {
-      // Silently fail — user can still fill manually
-    }
-  }, [searchParams, getToken]);
+    await wizard.prefillFromProject(repoParam, getToken);
+  }, [searchParams, getToken, wizard.prefillFromProject]);
 
   useEffect(() => {
-    prefillFromProject();
-  }, [prefillFromProject]);
-
-  // ---------------------------------------------------------------------------
-  // Step 2 validation
-  // ---------------------------------------------------------------------------
-
-  const isStep2Valid = (): boolean => {
-    return (
-      productSummary.length >= 3 &&
-      productSummary.length <= 800 &&
-      targetUsers.length >= 2 &&
-      targetUsers.length <= 400 &&
-      deploymentTarget.length >= 2 &&
-      deploymentTarget.length <= 200 &&
-      scaleExpectation.length >= 2 &&
-      scaleExpectation.length <= 200
-    );
-  };
-
-  // ---------------------------------------------------------------------------
-  // Step 3: Submit
-  // ---------------------------------------------------------------------------
-
-  const handleSubmit = async () => {
-    const urlErr = validateGitHubUrl(repoUrl);
-    if (urlErr) {
-      setRepoUrlError(urlErr);
-      setStep(1);
-      return;
-    }
-    setSubmitting(true);
-    setSubmitError(null);
-
-    try {
-      const token = await getToken();
-
-      const body: {
-        repo_url: string;
-        branch?: string;
-        project_intake?: ProjectIntake;
-        primer?: PrimerResult;
-      } = {
-        repo_url: repoUrl.trim(),
-      };
-
-      // Only send intake if user filled any fields
-      if (productSummary || targetUsers || deploymentTarget || scaleExpectation) {
-        body.project_intake = {
-          project_origin: projectOrigin,
-          product_summary: productSummary,
-          target_users: targetUsers,
-          sensitive_data: sensitiveData.length > 0 ? sensitiveData : ["not_sure"],
-          must_not_break_flows: mustNotBreakFlows,
-          deployment_target: deploymentTarget,
-          scale_expectation: scaleExpectation,
-        };
-      }
-
-      if (branch) {
-        body.branch = branch;
-      }
-
-      if (primerResult) {
-        body.primer = primerResult;
-      }
-
-      const result = await apiFetch<AuditResponse>("/api/audit", {
-        method: "POST",
-        body: JSON.stringify(body),
-        token: token ?? undefined,
-      });
-
-      router.push(`/scan/${result.scan_id}`);
-    } catch (err) {
-      if (err instanceof ApiError) {
-        // Handle structured 403 errors
-        if (err.status === 403) {
-          const detail = typeof err.detail === 'object' ? err.detail : { message: err.detail }
-          const code = (detail as { code?: string })?.code
-
-          if (code === "waitlist_required") {
-            router.replace('/waitlist')
-            return
-          }
-
-          if (code === "onboarding_required") {
-            router.replace('/onboarding')
-            return
-          }
-
-          setSubmitError(
-            (detail as { message?: string })?.message || err.message || "Access denied"
-          );
-        } else if (err.status === 429) {
-          setSubmitError("Rate limited. Please wait a moment and try again.");
-        } else {
-          setSubmitError(err.message || "Scan failed to start");
-        }
-      } else {
-        setSubmitError("An unexpected error occurred. Please try again.");
-      }
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // ---------------------------------------------------------------------------
-  // Step navigation
-  // ---------------------------------------------------------------------------
-
-  const goToStep = (target: number) => {
-    if (target >= 2) {
-      const urlErr = validateGitHubUrl(repoUrl);
-      if (urlErr) {
-        setRepoUrlError(urlErr);
-        return;
-      }
-      setRepoUrlError(null);
-    }
-    setStep(target);
-  };
+    prefill();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ---------------------------------------------------------------------------
   // Render
@@ -254,81 +53,87 @@ function NewScanInner() {
         <p className="text-[#8692A8] text-sm">
           Audit your codebase for security, reliability, and scalability issues.
         </p>
-        {preFilled && (
+        {wizard.preFilled && (
           <p className="text-xs text-forge-emerald mt-1">
             Pre-filled from previous scan
           </p>
         )}
       </div>
 
-      <StepIndicator currentStep={step} />
+      <StepIndicator currentStep={wizard.step} />
 
       {/* Step 1: Repository URL + Primer */}
-      {step === 1 && (
+      {wizard.step === 1 && (
         <div data-tour="repo-input">
         <RepoStep
           getToken={getToken}
-          repoUrl={repoUrl}
-          setRepoUrl={setRepoUrl}
-          branch={branch}
-          setBranch={setBranch}
-          primerResult={primerResult}
-          setPrimerResult={setPrimerResult}
-          setSuggestedFlows={setSuggestedFlows}
-          repoSelectorManual={repoSelectorManual}
-          setRepoSelectorManual={setRepoSelectorManual}
-          onContinue={() => goToStep(2)}
+          repoUrl={wizard.repoUrl}
+          setRepoUrl={wizard.setRepoUrl}
+          branch={wizard.branch}
+          setBranch={wizard.setBranch}
+          primerResult={wizard.primerResult}
+          setPrimerResult={wizard.setPrimerResult}
+          setSuggestedFlows={wizard.setSuggestedFlows}
+          repoSelectorManual={wizard.repoSelectorManual}
+          setRepoSelectorManual={wizard.setRepoSelectorManual}
+          onContinue={() => wizard.goToStep(2)}
         />
         </div>
       )}
 
       {/* Step 2: Project Intake Form */}
-      {step === 2 && (
+      {wizard.step === 2 && (
         <div data-tour="intake-form">
         <IntakeStep
-          projectOrigin={projectOrigin}
-          setProjectOrigin={setProjectOrigin}
-          productSummary={productSummary}
-          setProductSummary={setProductSummary}
-          targetUsers={targetUsers}
-          setTargetUsers={setTargetUsers}
-          sensitiveData={sensitiveData}
-          setSensitiveData={setSensitiveData}
-          mustNotBreakFlows={mustNotBreakFlows}
-          setMustNotBreakFlows={setMustNotBreakFlows}
-          deploymentTarget={deploymentTarget}
-          setDeploymentTarget={setDeploymentTarget}
-          scaleExpectation={scaleExpectation}
-          setScaleExpectation={setScaleExpectation}
-          suggestedFlows={suggestedFlows}
-          onBack={() => setStep(1)}
-          onContinue={() => goToStep(3)}
-          onSkip={() => goToStep(3)}
-          isValid={isStep2Valid()}
+          projectOrigin={wizard.projectOrigin}
+          setProjectOrigin={wizard.setProjectOrigin}
+          productSummary={wizard.productSummary}
+          setProductSummary={wizard.setProductSummary}
+          targetUsers={wizard.targetUsers}
+          setTargetUsers={wizard.setTargetUsers}
+          sensitiveData={wizard.sensitiveData}
+          setSensitiveData={wizard.setSensitiveData}
+          mustNotBreakFlows={wizard.mustNotBreakFlows}
+          setMustNotBreakFlows={wizard.setMustNotBreakFlows}
+          deploymentTarget={wizard.deploymentTarget}
+          setDeploymentTarget={wizard.setDeploymentTarget}
+          scaleExpectation={wizard.scaleExpectation}
+          setScaleExpectation={wizard.setScaleExpectation}
+          suggestedFlows={wizard.suggestedFlows}
+          onBack={() => wizard.setStep(1)}
+          onContinue={() => wizard.goToStep(3)}
+          onSkip={() => wizard.goToStep(3)}
+          isValid={wizard.isStep2Valid()}
         />
         </div>
       )}
 
       {/* Step 3: Review & Submit */}
-      {step === 3 && (
+      {wizard.step === 3 && (
         <div data-tour="submit-review">
         <ReviewStep
-          repoUrl={repoUrl}
-          branch={branch}
-          primerResult={primerResult}
-          projectOrigin={projectOrigin}
-          productSummary={productSummary}
-          targetUsers={targetUsers}
-          sensitiveData={sensitiveData}
-          mustNotBreakFlows={mustNotBreakFlows}
-          deploymentTarget={deploymentTarget}
-          scaleExpectation={scaleExpectation}
-          submitting={submitting}
-          submitError={submitError}
-          onEditRepo={() => setStep(1)}
-          onEditContext={() => setStep(2)}
-          onBack={() => setStep(2)}
-          onSubmit={handleSubmit}
+          repoUrl={wizard.repoUrl}
+          branch={wizard.branch}
+          primerResult={wizard.primerResult}
+          projectOrigin={wizard.projectOrigin}
+          productSummary={wizard.productSummary}
+          targetUsers={wizard.targetUsers}
+          sensitiveData={wizard.sensitiveData}
+          mustNotBreakFlows={wizard.mustNotBreakFlows}
+          deploymentTarget={wizard.deploymentTarget}
+          scaleExpectation={wizard.scaleExpectation}
+          submitting={wizard.submitting}
+          submitError={wizard.submitError}
+          onEditRepo={() => wizard.setStep(1)}
+          onEditContext={() => wizard.setStep(2)}
+          onBack={() => wizard.setStep(2)}
+          onSubmit={() =>
+            wizard.handleSubmit(
+              getToken,
+              (scanId) => router.push(`/scan/${scanId}`),
+              (path) => router.replace(path),
+            )
+          }
         />
         </div>
       )}
@@ -343,13 +148,15 @@ function NewScanInner() {
 
 export default function NewScanPage() {
   return (
-    <Suspense fallback={
-      <div className="max-w-2xl mx-auto">
-        <div className="h-8 w-48 bg-forge-nav rounded animate-pulse mb-6" />
-        <div className="h-64 bg-forge-nav rounded-lg animate-pulse" />
-      </div>
-    }>
-      <NewScanInner />
-    </Suspense>
+    <ScanWizardProvider>
+      <Suspense fallback={
+        <div className="max-w-2xl mx-auto">
+          <div className="h-8 w-48 bg-forge-nav rounded animate-pulse mb-6" />
+          <div className="h-64 bg-forge-nav rounded-lg animate-pulse" />
+        </div>
+      }>
+        <NewScanInner />
+      </Suspense>
+    </ScanWizardProvider>
   );
 }
