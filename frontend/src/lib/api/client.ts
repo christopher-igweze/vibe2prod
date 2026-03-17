@@ -1,8 +1,22 @@
 'use client'
 
+import {
+  retryMiddleware,
+  errorMiddleware,
+  composeMiddleware,
+  type Middleware,
+  type ApiRequest,
+} from './middleware'
+
 // When running through ngrok/vercel, use relative paths (Next.js rewrites proxy to backend).
 // Only use absolute URL for direct local dev without proxy.
 const API_URL = ''
+
+// Composed middleware pipeline: retry network errors, then normalize errors
+const apiMiddleware: Middleware = composeMiddleware(
+  retryMiddleware(),
+  errorMiddleware(),
+)
 
 // ---------------------------------------------------------------------------
 // Sensitive-param protection: strip tokens/keys from URL query strings
@@ -116,16 +130,15 @@ export async function apiFetch<T>(
   }
 
   const request = (async (): Promise<T> => {
-    const response = await fetch(`${API_URL}${safePath}`, {
-      ...fetchOptions,
-      headers,
-    })
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({ detail: response.statusText }))
-      const detail = body.detail
-      throw new ApiError(response.status, detail ?? response.statusText)
+    const apiReq: ApiRequest = {
+      url: `${API_URL}${safePath}`,
+      init: { ...fetchOptions, headers },
     }
+
+    // Run through middleware pipeline (retry + error normalization)
+    const response = await apiMiddleware(apiReq, (req) =>
+      fetch(req.url, req.init),
+    )
 
     if (response.status === 204) return undefined as T
     const data: T = await response.json()
