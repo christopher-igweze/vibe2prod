@@ -27,7 +27,7 @@ import hashlib
 import logging
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 
 from api.middleware.rate_limit import limiter, rate_limit_string
 from config import settings
@@ -48,7 +48,7 @@ from services.target_auth import (
     verify_meta_tag,
 )
 
-from constants import PROBE_FREE_LIMIT, DOMAIN_AUTH_EXPIRY_DAYS
+from constants import DOMAIN_AUTH_EXPIRY_DAYS, PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PROBE_FREE_LIMIT
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -334,9 +334,17 @@ async def probe_quota(request: Request) -> dict:
 
 @router.get("/user/probes")
 @limiter.limit(rate_limit_string())
-async def list_probes(request: Request) -> list[dict]:
+async def list_probes(
+    request: Request,
+    limit: int = Query(
+        PAGINATION_DEFAULT_LIMIT,
+        ge=1,
+        le=PAGINATION_MAX_LIMIT,
+        description="Max probes to return",
+    ),
+) -> list[dict]:
     """Return the authenticated user's probes. Requires auth."""
     if not _is_authenticated(request):
         raise HTTPException(status_code=401, detail="Sign in to view probe history")
     user_id: str = request.state.user_id
-    return await db.list_user_probes(user_id)
+    return await db.list_user_probes(user_id, limit=limit)
