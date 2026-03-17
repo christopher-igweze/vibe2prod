@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@clerk/nextjs'
-import { apiFetch } from '@/lib/api/client'
 import type { ScanSummary, ScanDetail } from '@/types/scan-wizard.types'
+import { fetchScans, fetchScan } from '@/services/scan-service'
 
 // Re-export shared types for backward compatibility
 export type { ScanSummary, ScanDetail } from '@/types/scan-wizard.types'
@@ -18,12 +18,12 @@ export function useScans() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetch = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const token = (await getToken()) ?? undefined
-      const scans = await apiFetch<ScanSummary[]>('/api/user/scans', { token })
+      const scans = await fetchScans(token)
       setData(scans)
     } catch {
       setError('Failed to load scans')
@@ -33,10 +33,10 @@ export function useScans() {
   }, [getToken])
 
   useEffect(() => {
-    fetch()
-  }, [fetch])
+    load()
+  }, [load])
 
-  return { data, loading, error, refetch: fetch }
+  return { data, loading, error, refetch: load }
 }
 
 // ---------------------------------------------------------------------------
@@ -49,7 +49,7 @@ export function useScan(scanId: string | null) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetch = useCallback(async () => {
+  const load = useCallback(async () => {
     if (!scanId) {
       setData(null)
       setLoading(false)
@@ -59,7 +59,7 @@ export function useScan(scanId: string | null) {
     setError(null)
     try {
       const token = (await getToken()) ?? undefined
-      const scan = await apiFetch<ScanDetail>(`/api/user/scans/${scanId}`, { token })
+      const scan = await fetchScan(scanId, token)
       setData(scan)
     } catch {
       setError('Failed to load scan')
@@ -69,8 +69,8 @@ export function useScan(scanId: string | null) {
   }, [getToken, scanId])
 
   useEffect(() => {
-    fetch()
-  }, [fetch])
+    load()
+  }, [load])
 
-  return { data, loading, error, refetch: fetch }
+  return { data, loading, error, refetch: load }
 }
