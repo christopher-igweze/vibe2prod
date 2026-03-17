@@ -195,8 +195,17 @@ async def validate_oauth_state(
             },
         )
 
-    already_consumed = await db.is_oauth_state_consumed(jti)
-    if already_consumed:
+    # Atomic check-and-consume: a single INSERT with a UNIQUE constraint on
+    # jti ensures that concurrent requests cannot both succeed.  If the row
+    # already exists the INSERT raises a unique-violation which we translate
+    # to "already used".  This eliminates the TOCTOU race between the old
+    # SELECT-then-INSERT pattern (F-ac4b695e).
+    consumed = await db.consume_oauth_state_atomic(
+        jti=jti,
+        user_id=expected_user_id,
+        ttl_minutes=settings.github_oauth_state_ttl_minutes,
+    )
+    if not consumed:
         raise HTTPException(
             status_code=400,
             detail={
@@ -205,12 +214,6 @@ async def validate_oauth_state(
                 "Please restart the authorization flow.",
             },
         )
-
-    await db.consume_oauth_state(
-        jti=jti,
-        user_id=expected_user_id,
-        ttl_minutes=settings.github_oauth_state_ttl_minutes,
-    )
 
 
 def build_auth_url(redirect_uri: str, state: str) -> str:

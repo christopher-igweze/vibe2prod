@@ -121,7 +121,10 @@ async def consume_oauth_state(
     user_id: str,
     ttl_minutes: int,
 ) -> None:
-    """Mark an OAuth state nonce as consumed so it cannot be replayed."""
+    """Mark an OAuth state nonce as consumed so it cannot be replayed.
+
+    .. deprecated:: Use :func:`consume_oauth_state_atomic` instead.
+    """
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=ttl_minutes)
     client = _client()
@@ -147,6 +150,49 @@ async def consume_oauth_state(
             logger.warning("OAuth state nonce %s already consumed (race condition suppressed).", jti)
         else:
             raise
+
+
+async def consume_oauth_state_atomic(
+    *,
+    jti: str,
+    user_id: str,
+    ttl_minutes: int,
+) -> bool:
+    """Atomically consume an OAuth state nonce.
+
+    Attempts a single INSERT into oauth_state_nonces.  The table has a
+    UNIQUE constraint on ``jti``, so concurrent requests for the same
+    nonce will fail with a unique-violation — only the first caller wins.
+
+    Returns True if the nonce was successfully consumed (first use),
+    False if it was already consumed (duplicate / replay).
+    """
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(minutes=ttl_minutes)
+    client = _client()
+    try:
+        client.table("oauth_state_nonces").insert(
+            {
+                "jti": jti,
+                "user_id": str(user_id),
+                "consumed_at": now.isoformat(),
+                "expires_at": expires_at.isoformat(),
+            }
+        ).execute()
+        return True
+    except Exception as exc:
+        error_code = getattr(exc, "code", None)
+        error_message = str(exc).lower()
+        is_unique_violation = (
+            error_code == "23505"
+            or "duplicate" in error_message
+            or "unique constraint" in error_message
+            or "already exists" in error_message
+        )
+        if is_unique_violation:
+            logger.warning("OAuth state nonce %s already consumed (atomic reject).", jti)
+            return False
+        raise
 
 
 async def purge_expired_oauth_states() -> int:
