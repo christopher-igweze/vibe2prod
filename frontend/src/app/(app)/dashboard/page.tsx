@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { Download, Trash2, Loader2, Copy, Check, RefreshCw, ChevronRight, Shield } from "lucide-react";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetch, sanitizeFilename } from "@/lib/api/client";
 import { useUserRole } from "@/hooks/use-user-role";
 import { useTour } from "@/components/tour/tour-provider";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ interface ScanDetail {
 }
 
 function downloadReportJson(report: DiscoveryReport, repoName: string) {
-  const slug = (repoName || "repo").replace(/\//g, "-");
+  const slug = sanitizeFilename((repoName || "repo").replace(/\//g, "-"));
   const date = new Date().toISOString().slice(0, 10);
   const filename = `forge-report-${slug}-${date}.json`;
   const blob = new Blob([JSON.stringify(report, null, 2)], {
