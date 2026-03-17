@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -81,10 +81,6 @@ class Settings(BaseSettings):
     # --- Frontend ---
     frontend_url: str = "http://localhost:3000"
 
-    # --- E2E Testing ---
-    e2e_testing: bool = False
-    e2e_testing_token: SecretStr = SecretStr("")  # Required secret token when e2e_testing is enabled
-
     # --- CORS ---
     cors_allowed_origins: str = ""  # Comma-separated explicit origins for production
     cors_vercel_projects: str = ""  # Comma-separated Vercel project names (for preview deployments)
@@ -133,22 +129,6 @@ class Settings(BaseSettings):
             logging.getLogger(__name__).warning(
                 "GITHUB_WEBHOOK_SECRET is empty — webhook endpoint will return 503"
             )
-        return self
-
-    @model_validator(mode="after")
-    def _validate_e2e_testing_environment(self) -> "Settings":
-        """Ensure e2e_testing can only be enabled in development environment with a valid token."""
-        if self.e2e_testing:
-            if self.environment != "development":
-                raise ValueError(
-                    "e2e_testing=True is not allowed in production. "
-                    "Set environment='development' to enable e2e_testing."
-                )
-            if not self.e2e_testing_token.get_secret_value():
-                raise ValueError(
-                    "e2e_testing_token is required when e2e_testing is enabled. "
-                    "Set a secure token value (e.g., E2E_TESTING_TOKEN=your-secret-token)."
-                )
         return self
 
     @model_validator(mode="after")
