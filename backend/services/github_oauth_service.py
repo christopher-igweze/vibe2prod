@@ -63,12 +63,39 @@ class GitHubOAuthService:
         return settings.github_oauth_state_secret
 
     def _validate_redirect_uri(self, redirect_uri: str) -> None:
-        """Validate redirect_uri origin is in allowlist."""
+        """Validate redirect_uri origin is in allowlist.
+
+        Requires ``github_oauth_allowed_redirect_origins`` to be configured.
+        An empty allowlist blocks all redirect URIs to prevent open-redirect
+        abuse (CWE-601).
+        """
         allowed_raw = settings.github_oauth_allowed_redirect_origins
         if not allowed_raw:
-            return
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "redirect_origins_not_configured",
+                    "message": "GitHub OAuth redirect origins are not configured on the backend.",
+                },
+            )
         allowed = {o.strip().rstrip("/") for o in allowed_raw.split(",") if o.strip()}
+        if not allowed:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "code": "redirect_origins_not_configured",
+                    "message": "GitHub OAuth redirect origins are not configured on the backend.",
+                },
+            )
         parsed = urlparse(redirect_uri)
+        if not parsed.scheme or not parsed.hostname:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "redirect_uri_invalid",
+                    "message": "The redirect_uri is not a valid URL.",
+                },
+            )
         origin = f"{parsed.scheme}://{parsed.hostname}"
         if parsed.port:
             origin += f":{parsed.port}"
