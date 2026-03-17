@@ -108,7 +108,15 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
                     audience="authenticated",
                 )
 
-            request.state.user_id = payload["sub"]
+            user_id = payload.get("sub")
+            if not user_id:
+                if is_optional:
+                    return await call_next(request)
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Missing sub claim in token"},
+                )
+            request.state.user_id = user_id
         except jwt.ExpiredSignatureError:
             if is_optional:
                 return await call_next(request)
