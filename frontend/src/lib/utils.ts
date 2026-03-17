@@ -24,3 +24,19 @@ export const SEVERITY_COLORS: Record<string, string> = {
   medium: "#eab308",
   low: "#3b82f6",
 }
+
+/** Score-to-hex-color for PDF/HTML report generation. */
+export function scoreColor(score: number): string {
+  if (score >= 70) return "#10b981"
+  if (score >= 40) return "#eab308"
+  return "#ef4444"
+}
+
+/** HTML-escape a string for safe embedding in HTML. */
+export function esc(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+}
