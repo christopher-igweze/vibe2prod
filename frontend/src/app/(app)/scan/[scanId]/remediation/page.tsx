@@ -110,7 +110,7 @@ export default function RemediationProgressPage() {
         const token = (await getToken()) ?? undefined
         const data = await apiFetch<ScanFixStatus>(
           `/api/fix-scan/${scanId}/status`,
-          { token },
+          { token, cacheTtl: 0 },
         )
         if (cancelled) return
         setStatus(data)
