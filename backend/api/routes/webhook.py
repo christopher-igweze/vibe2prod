@@ -19,8 +19,24 @@ from config import settings
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# TTL-based cache using OrderedDict for efficient FIFO expiration
-# Format: {delivery_id: (timestamp, ttl_seconds)}
+# ---------------------------------------------------------------------------
+# Webhook delivery deduplication cache
+# ---------------------------------------------------------------------------
+# Purpose: Prevent replay attacks by tracking delivery IDs within a TTL window.
+#
+# Bounds & cleanup:
+#   - Hard cap: _MAX_CACHE_ENTRIES (10,000 entries, ~1.2 MB at ~120 bytes each)
+#   - TTL: configurable via settings.webhook_replay_window_seconds (default 600s)
+#   - FIFO eviction: when at capacity, oldest entries are evicted first
+#   - Periodic cleanup: a background asyncio task runs every 60s to expire
+#     stale entries via a min-heap for O(log n) identification
+#   - Heap is also bounded at _MAX_HEAP_ENTRIES to prevent secondary growth
+#
+# This is an in-memory cache, not persistent. Server restarts clear it,
+# which is acceptable because webhook signatures already provide primary
+# authentication. The cache only prevents replay within a single process
+# lifecycle.
+# ---------------------------------------------------------------------------
 _seen_deliveries: OrderedDict[str, tuple[int, int]] = OrderedDict()
 _deliveries_lock = asyncio.Lock()
 _cleanup_task: asyncio.Task | None = None
@@ -31,9 +47,11 @@ _CLEANUP_INTERVAL_SECONDS = 60  # Run cleanup every minute
 _MAX_CACHE_ENTRIES = 10_000
 
 # Min-heap for efficient expiration tracking: (expiration_time, delivery_id)
-# This allows O(1) access to the earliest expiration instead of O(n) scan
+# This allows O(1) access to the earliest expiration instead of O(n) scan.
+# Bounded to _MAX_HEAP_ENTRIES to prevent secondary memory growth from
+# stale heap entries that reference already-evicted cache entries.
 _expiration_heap: list[tuple[int, str]] = []
-_MAX_HEAP_ENTRIES = 10000  # Bound heap size to prevent memory issues
+_MAX_HEAP_ENTRIES = 10_000
 
 
 class WebhookResponse(BaseModel):
