@@ -1,10 +1,9 @@
-"""Shared utilities for the application."""
+"""Shared utilities for the application.
 
-from __future__ import annotations
+Re-exports utc_now from the canonical location in models._utils
+to avoid duplication.
+"""
 
-from datetime import datetime, timezone
+from models._utils import utc_now  # noqa: F401 — single source of truth
 
-
-def utc_now() -> datetime:
-    """Return the current UTC datetime (timezone-aware)."""
-    return datetime.now(timezone.utc)
+__all__ = ["utc_now"]
