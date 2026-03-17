@@ -26,6 +26,10 @@ _deliveries_lock = asyncio.Lock()
 _cleanup_task: asyncio.Task | None = None
 _CLEANUP_INTERVAL_SECONDS = 60  # Run cleanup every minute
 
+# Hard cap on the delivery dedup cache to prevent unbounded memory growth.
+# At ~120 bytes per entry this caps memory at roughly 1.2 MB.
+_MAX_CACHE_ENTRIES = 10_000
+
 # Min-heap for efficient expiration tracking: (expiration_time, delivery_id)
 # This allows O(1) access to the earliest expiration instead of O(n) scan
 _expiration_heap: list[tuple[int, str]] = []
@@ -149,15 +153,19 @@ async def _register_delivery(delivery_id: str) -> bool:
                 return False
             # Entry expired - remove it (heap entry will be cleaned up later)
 
+        # Evict oldest entries if cache is at capacity (FIFO order).
+        while len(_seen_deliveries) >= _MAX_CACHE_ENTRIES:
+            _seen_deliveries.popitem(last=False)
+
         # Add new entry (move to end to maintain order)
         _seen_deliveries[delivery_id] = (now_ts, ttl_seconds)
         _seen_deliveries.move_to_end(delivery_id)
-        
+
         # Track expiration time in heap for efficient cleanup
         expiration_time = now_ts + ttl_seconds
         if len(_expiration_heap) < _MAX_HEAP_ENTRIES:
             heapq.heappush(_expiration_heap, (expiration_time, delivery_id))
-        
+
         return True
 
 
