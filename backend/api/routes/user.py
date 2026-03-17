@@ -202,6 +202,19 @@ async def get_project_intake(project_id: UUID, request: Request) -> dict:
 # ------------------------------------------------------------------ #
 
 
+@router.get("/user/api-key")
+@limiter.limit(rate_limit_string())
+async def get_api_key_status(request: Request) -> dict:
+    """Check whether the user has an active API key."""
+    user_id: str = request.state.user_id
+    try:
+        has_key = await db.has_api_key(user_id)
+    except Exception:
+        logger.exception("Failed to check API key status for user %s", user_id)
+        raise HTTPException(status_code=500, detail="Failed to check API key status")
+    return {"has_key": has_key}
+
+
 @router.post("/user/api-key")
 @limiter.limit(rate_limit_string())
 async def generate_api_key(request: Request) -> dict:

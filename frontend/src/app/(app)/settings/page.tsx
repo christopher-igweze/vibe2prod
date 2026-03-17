@@ -27,20 +27,25 @@ export default function SettingsPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  // API Key state
+  // API Key state: hasExistingKey = persisted key exists, apiKey = freshly generated (visible)
+  const [hasExistingKey, setHasExistingKey] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [apiKeyLoading, setApiKeyLoading] = useState(false);
   const [apiKeyCopied, setApiKeyCopied] = useState(false);
 
-  // Fetch GitHub connection status on mount
+  // Fetch GitHub connection status + API key status on mount
   useEffect(() => {
     async function fetchStatus() {
       try {
         const token = (await getToken()) ?? undefined;
-        const status = await apiFetch<GitHubStatus>("/api/github/status", { token });
-        setGithub(status);
+        const [ghStatus, keyStatus] = await Promise.allSettled([
+          apiFetch<GitHubStatus>("/api/github/status", { token }),
+          apiFetch<{ has_key: boolean }>("/api/user/api-key", { token }),
+        ]);
+        if (ghStatus.status === "fulfilled") setGithub(ghStatus.value);
+        if (keyStatus.status === "fulfilled") setHasExistingKey(keyStatus.value.has_key);
       } catch {
-        // Not connected or error — leave as null
+        // Not connected or error — leave as defaults
       }
     }
     fetchStatus();
@@ -161,6 +166,7 @@ export default function SettingsPage() {
         token,
       });
       setApiKey(result.api_key);
+      setHasExistingKey(true);
       setMessage("API key generated. Copy it now — it won't be shown again.");
     } catch (e) {
       if (e instanceof ApiError) {
@@ -183,6 +189,7 @@ export default function SettingsPage() {
         token,
       });
       setApiKey(null);
+      setHasExistingKey(false);
       setMessage("API key revoked.");
     } catch (e) {
       if (e instanceof ApiError) {
@@ -299,13 +306,14 @@ export default function SettingsPage() {
               Connect the FORGE CLI to your dashboard. Scan history and readiness trends sync automatically.
             </p>
           </div>
-          {apiKey && (
+          {hasExistingKey && (
             <Badge className="bg-forge-emerald/10 text-forge-emerald border-forge-emerald/20">
               Active
             </Badge>
           )}
         </div>
 
+        {/* State 1: Just generated — show the key */}
         {apiKey ? (
           <div className="mt-4 space-y-3">
             <div className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800">
@@ -340,17 +348,69 @@ export default function SettingsPage() {
               Save this key now — it won&apos;t be shown again after you leave this page.
             </p>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={revokeApiKey}
-              disabled={apiKeyLoading}
-              className="border-red-500/30 text-red-400 hover:bg-red-500/10"
-            >
-              Revoke Key
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={generateApiKey}
+                disabled={apiKeyLoading}
+                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+              >
+                Roll New Key
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={revokeApiKey}
+                disabled={apiKeyLoading}
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              >
+                Revoke
+              </Button>
+            </div>
+          </div>
+        ) : hasExistingKey ? (
+          /* State 2: Key exists but not visible (returning user) */
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800">
+              <code className="text-zinc-500 text-sm font-mono flex-1">
+                v2p_••••••••••••••••••••••••••••••••
+              </code>
+            </div>
+
+            <p className="text-xs text-[#4E586E]">
+              You have an active API key. The key value is hidden for security.
+              Roll a new key if you need to see it again.
+            </p>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={generateApiKey}
+                disabled={apiKeyLoading}
+                className="bg-forge-nav hover:bg-forge-surface-hover text-neutral-100"
+              >
+                {apiKeyLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 border-2 border-neutral-500 border-t-neutral-100 rounded-full animate-spin" />
+                    Generating...
+                  </span>
+                ) : (
+                  "Roll New Key"
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={revokeApiKey}
+                disabled={apiKeyLoading}
+                className="border-red-500/30 text-red-400 hover:bg-red-500/10"
+              >
+                Revoke
+              </Button>
+            </div>
           </div>
         ) : (
+          /* State 3: No key at all */
           <div className="mt-4">
             <Button
               onClick={generateApiKey}
