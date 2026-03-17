@@ -1,0 +1,45 @@
+# Vibe2Prod .forgeignore — Intentional design decisions and known limitations
+# See: https://github.com/christopher-igweze/forge-engine docs for rule syntax
+
+# ── Historical / Non-Runtime Files ─────────────────────────────────
+- pattern: ".*"
+  path: "supabase/migrations/**"
+  reason: "Migration SQL is historical DDL — not runtime code. Token storage schema is correct; encryption happens at the application layer."
+
+- pattern: ".*"
+  path: "tasks/**"
+  reason: "Task/plan documents are development artifacts, not production code."
+
+# ── Intentional Auth Design ────────────────────────────────────────
+- pattern: "probe.*authentication|probe.*unauthenticated|unauthenticated.*probe"
+  category: security
+  reason: "Probe endpoints use UUID-as-capability-token pattern. Anonymous access to probe results by ID is intentional — the UUID is the authorization token."
+
+# ── Known Infrastructure Limitations ──────────────────────────────
+- pattern: "rate.limit.*per.process|rate.limit.*worker|rate.limit.*distributed"
+  reason: "Per-process rate limiting is a known limitation. Redis-backed distributed rate limiting tracked in backlog."
+  expires: "2026-09-01"
+
+- pattern: "webhook.*replay.*cache|webhook.*cache.*unbounded|webhook.*cache.*growth"
+  reason: "Webhook delivery cache is bounded at 10K entries with FIFO eviction and periodic cleanup. Memory growth is controlled."
+
+# ── Architecture Opinions ──────────────────────────────────────────
+- category: architecture
+  max_severity: medium
+  reason: "Architecture findings are capped at MEDIUM per team policy. Structural improvements are tracked as tech debt, not blockers."
+
+# ── Config / Debug Observations ────────────────────────────────────
+- pattern: "debug.mode.*bypass|debug.*misconfiguration"
+  category: security
+  reason: "Debug mode is blocked by config validator in non-development environments. The validator raises ValueError at startup."
+
+- pattern: "CORS.*missing.*production|CORS.*misconfiguration"
+  reason: "CORS is configured via CORS_ALLOWED_ORIGINS env var in production. Missing config triggers a startup warning. Fallback is localhost-only."
+
+# ── OAuth Edge Cases Already Addressed ─────────────────────────────
+- pattern: "OAuth.*state.*CSRF|OAuth.*state.*nonce.*HMAC"
+  max_severity: low
+  reason: "OAuth state uses JWT with expiry + atomic DB consumption (UNIQUE constraint). CSRF is mitigated by state parameter validation."
+
+- pattern: "encryption.key.*rotation.*not.documented"
+  reason: "Key rotation procedure documented in config.py docstring for github_token_encryption_key field."
