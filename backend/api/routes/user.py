@@ -111,6 +111,11 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
     if not scan:
         raise not_found("Scan not found", code="scan_not_found")
 
+    # Defense-in-depth: verify the scan belongs to the authenticated user
+    # even though get_scan_report already filters by user_id.
+    if scan.get("user_id") != user_id:
+        raise forbidden("You do not have access to this scan")
+
     # Enrich with project info and verify ownership
     pid = scan.get("project_id")
     if pid:
