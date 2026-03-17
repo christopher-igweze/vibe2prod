@@ -27,6 +27,7 @@ from fastapi import HTTPException
 from config import settings
 from services import supabase_client as db
 from services.http_client import shared_client
+from services.token_encryption import decrypt_token, encrypt_token, is_encrypted
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +39,27 @@ class GitHubOAuthService:
     GITHUB_API_BASE = "https://api.github.com"
     GITHUB_OAUTH_BASE = "https://github.com/login/oauth"
     
+    async def _get_decrypted_token(self, user_id: str) -> str | None:
+        """Retrieve and decrypt the stored GitHub access token for a user.
+
+        Handles legacy plaintext tokens gracefully: if the stored value does
+        not look encrypted it is returned as-is (migration path).
+        """
+        raw = await db.get_github_access_token(user_id)
+        if not raw:
+            return None
+        if is_encrypted(raw):
+            try:
+                return decrypt_token(raw, settings.github_token_encryption_key)
+            except Exception:
+                logger.exception(
+                    "Failed to decrypt GitHub token for user %s — token may be corrupt",
+                    user_id,
+                )
+                return None
+        # Legacy plaintext token — return as-is
+        return raw
+
     def _ensure_oauth_configured(self) -> None:
         """Verify GitHub OAuth is configured."""
         if not settings.github_client_id or not settings.github_client_secret:
@@ -403,7 +425,7 @@ class GitHubOAuthService:
         
         Supports both page-based and cursor-based pagination.
         """
-        token = await db.get_github_access_token(user_id)
+        token = await self._get_decrypted_token(user_id)
         if not token:
             raise HTTPException(
                 status_code=404,
@@ -507,7 +529,7 @@ class GitHubOAuthService:
         
         Validates repository ownership before fetching branches.
         """
-        token = await db.get_github_access_token(user_id)
+        token = await self._get_decrypted_token(user_id)
         if not token:
             raise HTTPException(
                 status_code=404,
@@ -590,7 +612,7 @@ class GitHubOAuthService:
 
     async def get_connection_status(self, user_id: str) -> dict:
         """Check if GitHub is connected and verify token validity."""
-        token = await db.get_github_access_token(user_id)
+        token = await self._get_decrypted_token(user_id)
         if not token:
             return {"connected": False}
 
@@ -640,10 +662,15 @@ class GitHubOAuthService:
         github_username: str | None = None,
         avatar_url: str | None = None,
     ) -> None:
-        """Persist GitHub OAuth credentials for a user."""
+        """Persist GitHub OAuth credentials for a user.
+
+        The access token is encrypted with AES-256-GCM before storage so that
+        a database compromise does not expose usable GitHub tokens.
+        """
+        encrypted = encrypt_token(access_token, settings.github_token_encryption_key)
         await db.save_github_connection(
             user_id=user_id,
-            access_token=access_token,
+            access_token=encrypted,
             github_username=github_username,
             avatar_url=avatar_url,
         )
