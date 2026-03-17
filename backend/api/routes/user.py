@@ -110,15 +110,18 @@ async def get_scan_detail(scan_id: UUID, request: Request) -> dict:
     if not scan:
         raise HTTPException(status_code=404, detail="Scan not found")
 
-    # Enrich with project info
+    # Enrich with project info and verify ownership
     pid = scan.get("project_id")
     if pid:
         try:
             project = await db.get_project(UUID(pid))
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to fetch project for scan %s; returning scan without enrichment", scan_id)
             project = {}
         if project:
+            # Defense-in-depth: verify the authenticated user owns the project
+            if project.get("user_id") != user_id:
+                raise HTTPException(status_code=403, detail="Forbidden")
             scan["repo_url"] = project.get("repo_url", "")
             scan["repo_name"] = project.get("repo_name", "")
 
