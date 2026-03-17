@@ -22,6 +22,24 @@ import { IntakeStep } from "@/components/scan/intake-step";
 import { ReviewStep } from "@/components/scan/review-step";
 
 // ---------------------------------------------------------------------------
+// GitHub URL validation
+// ---------------------------------------------------------------------------
+
+const GITHUB_URL_REGEX = /^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/?$/;
+
+function validateGitHubUrl(url: string): string | null {
+  const trimmed = url.trim();
+  if (!trimmed) return "Please enter a GitHub repository URL";
+  if (!trimmed.startsWith("https://github.com/")) {
+    return "URL must start with https://github.com/";
+  }
+  if (!GITHUB_URL_REGEX.test(trimmed)) {
+    return "Must be a valid GitHub URL (e.g. https://github.com/owner/repo)";
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Inner component (uses useSearchParams, needs Suspense boundary)
 // ---------------------------------------------------------------------------
 
@@ -48,6 +66,9 @@ function NewScanInner() {
   const [mustNotBreakFlows, setMustNotBreakFlows] = useState<string[]>([]);
   const [deploymentTarget, setDeploymentTarget] = useState("");
   const [scaleExpectation, setScaleExpectation] = useState("");
+
+  // URL validation
+  const [repoUrlError, setRepoUrlError] = useState<string | null>(null);
 
   // Step 3: Submit
   const [submitting, setSubmitting] = useState(false);
@@ -123,6 +144,12 @@ function NewScanInner() {
   // ---------------------------------------------------------------------------
 
   const handleSubmit = async () => {
+    const urlErr = validateGitHubUrl(repoUrl);
+    if (urlErr) {
+      setRepoUrlError(urlErr);
+      setStep(1);
+      return;
+    }
     setSubmitting(true);
     setSubmitError(null);
 
@@ -204,7 +231,14 @@ function NewScanInner() {
   // ---------------------------------------------------------------------------
 
   const goToStep = (target: number) => {
-    if (target === 2 && !repoUrl.trim()) return;
+    if (target >= 2) {
+      const urlErr = validateGitHubUrl(repoUrl);
+      if (urlErr) {
+        setRepoUrlError(urlErr);
+        return;
+      }
+      setRepoUrlError(null);
+    }
     setStep(target);
   };
 
