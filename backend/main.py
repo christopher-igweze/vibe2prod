@@ -146,17 +146,13 @@ elif _vercel_projects:
         allow_headers=["Authorization", "Content-Type"],
     )
 else:
-    # Development fallback: only localhost over HTTP (no Vercel wildcard)
-    # WARNING: Without cors_allowed_origins or cors_vercel_projects configured,
-    # Vercel preview deployments will be blocked. Set cors_vercel_projects to
-    # allow specific Vercel projects, or configure cors_allowed_origins for production.
+    # Development fallback: only localhost over HTTP.
+    # Production and staging MUST set CORS_ALLOWED_ORIGINS or CORS_VERCEL_PROJECTS
+    # explicitly. No staging/preview domains in the fallback to prevent
+    # accidental exposure (CWE-346).
     app.add_middleware(
         CORSMiddleware,
-        allow_origin_regex=(
-            r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
-            r"|^https://(www\.)?vibe2prod\.com$"
-            r"|^https://(app|staging|preview)\.verstandai\.site$"
-        ),
+        allow_origin_regex=r"^http://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
