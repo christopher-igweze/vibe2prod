@@ -75,20 +75,28 @@ class SupabaseAuthMiddleware(BaseHTTPMiddleware):
         try:
             jwks = _get_jwks_client()
             if jwks:
-                # Clerk RS256 verification via JWKS + issuer validation
+                # Clerk RS256 verification via JWKS + issuer validation.
+                # Issuer is always verified when using Clerk JWKS — if
+                # clerk_issuer is not explicitly set, derive it from the
+                # JWKS URL (strip the /.well-known/jwks.json suffix).
                 signing_key = jwks.get_signing_key_from_jwt(token)
                 issuer = settings.clerk_issuer or (
                     settings.clerk_jwks_url.removesuffix("/.well-known/jwks.json")
                     if settings.clerk_jwks_url else None
                 )
-                decode_opts: dict = {"verify_aud": False}
                 if not issuer:
-                    decode_opts["verify_iss"] = False
+                    # This should never happen when jwks is non-None (which
+                    # requires clerk_jwks_url to be set), but guard defensively.
+                    return JSONResponse(
+                        status_code=500,
+                        content={"detail": "Clerk issuer could not be determined from configuration"},
+                    )
+                decode_opts: dict = {"verify_aud": False}
                 payload = jwt.decode(
                     token,
                     signing_key.key,
                     algorithms=["RS256"],
-                    issuer=issuer or None,
+                    issuer=issuer,
                     options=decode_opts,
                 )
             else:

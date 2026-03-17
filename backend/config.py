@@ -160,11 +160,62 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_production_security(self) -> "Settings":
-        """Ensure debug mode is never enabled in production."""
-        if self.debug and self.environment == "production":
+        """Ensure debug mode is only enabled in development."""
+        if self.debug and self.environment != "development":
             raise ValueError(
-                "debug=True is not allowed in production. "
+                "debug=True is only allowed when environment='development'. "
+                f"Current environment is '{self.environment}'. "
                 "Set environment='development' or set debug=False."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_clerk_issuer(self) -> "Settings":
+        """Warn if clerk_jwks_url is set but clerk_issuer is empty.
+
+        The auth middleware derives the issuer from the JWKS URL when
+        clerk_issuer is not set, but explicit configuration is preferred
+        for defense-in-depth.
+        """
+        if self.clerk_jwks_url and not self.clerk_issuer:
+            logging.getLogger(__name__).warning(
+                "clerk_jwks_url is set but clerk_issuer is empty. "
+                "The issuer will be derived from the JWKS URL. "
+                "Set CLERK_ISSUER explicitly for stronger validation."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_encryption_key(self) -> "Settings":
+        """Validate github_token_encryption_key is valid base64 and 32 bytes at startup."""
+        key = self.github_token_encryption_key
+        if key:
+            try:
+                key_bytes = base64.urlsafe_b64decode(key + "==")
+            except Exception:
+                raise ValueError(
+                    "GITHUB_TOKEN_ENCRYPTION_KEY is not valid URL-safe base64. "
+                    "Generate a new key with: "
+                    'python -c "import secrets, base64; '
+                    'print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"'
+                )
+            if len(key_bytes) != 32:
+                raise ValueError(
+                    f"GITHUB_TOKEN_ENCRYPTION_KEY must decode to exactly 32 bytes "
+                    f"(got {len(key_bytes)}). Generate a new key with: "
+                    'python -c "import secrets, base64; '
+                    'print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"'
+                )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_cors_production(self) -> "Settings":
+        """Warn if production environment lacks explicit CORS origins."""
+        if self.environment == "production" and not self.cors_allowed_origins:
+            logging.getLogger(__name__).warning(
+                "Running in production without explicit CORS origins. "
+                "Set CORS_ALLOWED_ORIGINS for security. "
+                "Falling back to regex-based matching which is less secure."
             )
         return self
 
