@@ -7,6 +7,7 @@ The discovery report is stored in scan_reports.report_data JSONB.
 from __future__ import annotations
 
 import logging
+import re
 from uuid import UUID, uuid4
 
 import httpx
@@ -17,6 +18,12 @@ from models.scan import AuditRequest, AuditResponse, ScanStatus
 from config import settings
 from services import supabase_client as db
 from services.github import get_repo_info, parse_repo_url
+
+# Strict GitHub URL pattern: only allows https://github.com/owner/repo with
+# safe characters in owner and repo segments.  This provides defense-in-depth
+# against injection attacks even though Pydantic's HttpUrl validator and
+# parse_repo_url() also validate the URL (CWE-89 / CWE-20).
+_GITHUB_URL_RE = re.compile(r"^https://github\.com/[\w.\-]+/[\w.\-]+/?$")
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -125,6 +132,16 @@ async def start_audit(
     """Accept a GitHub URL and kick off a FORGE discovery scan."""
     user_id: str = request.state.user_id
     scan_id = uuid4()
+
+    # Defense-in-depth: validate repo_url format before any downstream use.
+    # Pydantic HttpUrl already validates the URL scheme, but this ensures the
+    # URL strictly matches GitHub's owner/repo pattern (CWE-20).
+    raw_url = str(request_body.repo_url)
+    if not _GITHUB_URL_RE.match(raw_url):
+        raise HTTPException(
+            status_code=400,
+            detail="repo_url must be a valid GitHub URL (https://github.com/owner/repo).",
+        )
 
     # Role check: only developer and beta_tester can scan
     role = db.get_user_role(user_id)
