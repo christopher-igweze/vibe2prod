@@ -77,10 +77,11 @@ export async function fetchPrefillData(
 ): Promise<PrefillResult | null> {
   const token = (await getToken()) ?? undefined;
 
-  const resp = await apiFetch<{ items: ProjectSummary[] }>("/api/user/projects", {
+  const resp = await apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>("/api/user/projects", {
     token,
   });
-  const match = resp.items.find((p) => p.repo_url === repoParam);
+  const projects = Array.isArray(resp) ? resp : resp.items ?? [];
+  const match = projects.find((p) => p.repo_url === repoParam);
   if (!match) return null;
 
   const intakeResp = await apiFetch<{ project_intake: ProjectIntake | null }>(
