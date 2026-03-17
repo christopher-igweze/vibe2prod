@@ -201,6 +201,15 @@ class GitHubOAuthService:
         The state token is marked consumed *after* all field checks pass so
         that a mismatch error does not silently burn the nonce.
         """
+        if not expected_user_id:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "code": "oauth_state_missing_user",
+                    "message": "Cannot validate OAuth state without an authenticated user.",
+                },
+            )
+
         state_payload = self._decode_state(state)
 
         # Use constant-time comparison to prevent timing attacks.
