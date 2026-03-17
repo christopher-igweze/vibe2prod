@@ -20,7 +20,8 @@ export function useProjects() {
     setError(null)
     try {
       const token = (await getToken()) ?? undefined
-      const projects = await apiFetch<ProjectSummary[]>('/api/user/projects', { token })
+      const resp = await apiFetch<{ items: ProjectSummary[] }>('/api/user/projects', { token })
+      const projects = resp.items
       setData(projects)
     } catch {
       setError('Failed to load projects')
