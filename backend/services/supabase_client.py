@@ -1038,8 +1038,15 @@ async def list_user_scans(
 
     Only returns scans for projects that the user owns. This ensures
     authorization boundaries are enforced at the database level.
+    Ownership is enforced via:
+      1. ``scan_reports.user_id = user_id`` — direct scan ownership filter.
+      2. ``projects.user_id = user_id`` — joined project ownership filter.
+    Both filters are applied at the PostgREST level before data is returned.
 
     Supports cursor-free pagination via *offset* and *limit*.
+
+    Note: Returns summary fields only (no findings/report_data) to keep
+    list responses lightweight. Use ``get_scan_report()`` for full detail.
     """
     client = _client()
     # Join with projects table to verify project ownership
