@@ -82,14 +82,24 @@ async def fail_orphaned_scans() -> int:
 async def update_scan_with_discovery(
     scan_id: UUID,
     discovery_report: dict,
+    *,
+    evaluation: dict | None = None,
+    aivss_score: dict | None = None,
 ) -> None:
     """Store FORGE discovery report data and computed scores."""
     scores = _compute_scores_from_discovery(discovery_report)
     client = _client()
+
+    report_data: dict = {"discovery_report": discovery_report}
+    if evaluation:
+        report_data["evaluation"] = evaluation
+    if aivss_score:
+        report_data["aivss_score"] = aivss_score
+
     client.table("scan_reports").update(
         {
             "status": ScanStatus.completed.value,
-            "report_data": {"discovery_report": discovery_report},
+            "report_data": report_data,
             "completed_at": datetime.now(timezone.utc).isoformat(),
             **scores,
         }

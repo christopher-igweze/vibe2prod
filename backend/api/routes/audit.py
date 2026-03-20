@@ -63,6 +63,8 @@ async def _run_forge_audit(
             await db.update_scan_with_discovery(
                 scan_id=scan_id,
                 discovery_report=result.discovery_report,
+                evaluation=result.evaluation or None,
+                aivss_score=result.aivss_score or None,
             )
             # Charge actual cost after successful scan (developers are exempt)
             if user_id and role != "developer":
