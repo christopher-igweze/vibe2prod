@@ -202,60 +202,6 @@ export function getReportTourSteps(level: TechnicalLevel): TourStep[] {
 }
 
 // ---------------------------------------------------------------------------
-// Remediation Tour (3 steps)
-// ---------------------------------------------------------------------------
-
-export function getRemediationTourSteps(level: TechnicalLevel): TourStep[] {
-  return [
-    {
-      element: '[data-tour="progress-section"]',
-      popover: {
-        title: "Remediation Progress",
-        description: {
-          engineer:
-            "FORGE runs 12 specialized agents across 4 phases: discovery confirmation, triage, remediation (with 3-retry inner loop), and validation. Watch the pipeline progress here.",
-          vibe_coder:
-            "FORGE is working through your code, fixing issues one by one. This usually takes a few minutes depending on how many issues were found.",
-          founder:
-            "The AI remediation engine is actively fixing issues in your codebase. Each phase brings your code closer to production readiness.",
-        }[level],
-        side: "bottom",
-      },
-    },
-    {
-      element: '[data-tour="pr-link"]',
-      popover: {
-        title: "Pull Request",
-        description: {
-          engineer:
-            "When remediation completes, a PR is created with all fixes, generated tests, and validation results. Review the diff before merging.",
-          vibe_coder:
-            "Once fixes are done, you'll get a link to a pull request on GitHub. Review the changes and merge when you're happy.",
-          founder:
-            "The deliverable: a pull request with all fixes applied. Your team reviews and merges — no manual coding required for the fixes.",
-        }[level],
-        side: "top",
-      },
-    },
-    {
-      element: '[data-tour="readiness-report"]',
-      popover: {
-        title: "Readiness Report",
-        description: {
-          engineer:
-            "Post-remediation production readiness score with per-category breakdown, deferred items, and remaining tech debt. Compare against the pre-fix discovery scores.",
-          vibe_coder:
-            "After fixes are applied, you get a new readiness score showing how much your code improved. Check what's left to do manually.",
-          founder:
-            "The before-and-after: see exactly how much remediation improved your production readiness. Share this with stakeholders to demonstrate progress.",
-        }[level],
-        side: "top",
-      },
-    },
-  ];
-}
-
-// ---------------------------------------------------------------------------
 // Route matcher
 // ---------------------------------------------------------------------------
 
@@ -266,10 +212,5 @@ export function getTourStepsForPage(
   if (pathname === "/dashboard") return getDashboardTourSteps(level);
   if (pathname === "/scan/new") return getScanCreationTourSteps(level);
   if (pathname.match(/\/scan\/.*\/report/)) return getReportTourSteps(level);
-  if (
-    pathname.match(/\/scan\/.*\/remediation/) ||
-    pathname.match(/\/scan\/.*\/results/)
-  )
-    return getRemediationTourSteps(level);
   return null;
 }
