@@ -122,13 +122,6 @@ class TestForgeBridgeProjectContext(unittest.TestCase):
         sig = inspect.signature(trigger_forge_scan)
         assert "project_context" in sig.parameters
 
-    def test_trigger_forge_remediate_includes_context(self):
-        """Verify project_context param exists on remediate."""
-        from services.forge_bridge import trigger_forge_remediate
-        import inspect
-
-        sig = inspect.signature(trigger_forge_remediate)
-        assert "project_context" in sig.parameters
 
 
 if __name__ == "__main__":

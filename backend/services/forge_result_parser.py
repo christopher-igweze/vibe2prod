@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ForgeRunResult:
-    """Result of a FORGE run triggered via AgentField."""
+    """Result of a FORGE discovery scan."""
 
     execution_id: str = ""
     forge_run_id: str = ""
@@ -31,7 +31,6 @@ class ForgeRunResult:
     pr_url: str = ""
     raw_result: dict = field(default_factory=dict)
     discovery_report: dict = field(default_factory=dict)
-    readiness_report: dict = field(default_factory=dict)
     agent_invocations: int = 0
     cost_usd: float = 0.0
     duration_seconds: float = 0.0
@@ -97,41 +96,9 @@ def _parse_sandbox_result(execution_id: str, stdout: str) -> ForgeRunResult:
         readiness_score=_extract_readiness_score(data),
         raw_result=data,
         discovery_report=data.get("discovery_report") or {},
-        readiness_report=data.get("readiness_report") or {},
         agent_invocations=data.get("agent_invocations", 0),
         cost_usd=data.get("cost_usd", 0.0),
         duration_seconds=data.get("duration_seconds", 0.0),
         evaluation=data.get("evaluation") or {},
         aivss_score=data.get("aivss_score") or {},
-    )
-
-
-def _parse_forge_result(execution_id: str, raw: dict) -> ForgeRunResult:
-    """Parse AgentField execution result into ForgeRunResult."""
-    status = str(raw.get("status", "unknown")).lower()
-    output = raw.get("output", raw.get("result", {}))
-
-    if not isinstance(output, dict):
-        output = {}
-
-    return ForgeRunResult(
-        execution_id=execution_id,
-        forge_run_id=output.get("forge_run_id", ""),
-        status=status,
-        success=output.get("success", status in ("completed", "succeeded")),
-        summary=output.get("summary", ""),
-        error=raw.get("error", output.get("error", "")),
-        total_findings=output.get("total_findings", 0),
-        findings_fixed=output.get("findings_fixed", 0),
-        findings_deferred=output.get("findings_deferred", 0),
-        readiness_score=_extract_readiness_score(output),
-        pr_url=output.get("pr_url", ""),
-        raw_result=raw,
-        discovery_report=output.get("discovery_report") or {},
-        readiness_report=output.get("readiness_report") or {},
-        agent_invocations=output.get("agent_invocations", 0),
-        cost_usd=output.get("cost_usd", 0.0),
-        duration_seconds=output.get("duration_seconds", 0.0),
-        evaluation=output.get("evaluation") or {},
-        aivss_score=output.get("aivss_score") or {},
     )

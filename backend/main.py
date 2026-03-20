@@ -28,7 +28,6 @@ from api.routes import (
     beta,
     cli,
     credits,
-    fix,
     primer,
     onboarding,
     github_oauth,
@@ -248,7 +247,6 @@ app.include_router(audit.router, prefix="/api", tags=["audit"])
 app.include_router(beta.router, prefix="/api", tags=["beta"])
 app.include_router(cli.router, prefix="/api", tags=["cli"])
 app.include_router(credits.router, prefix="/api", tags=["credits"])
-app.include_router(fix.router, prefix="/api", tags=["fix"])
 app.include_router(primer.router, prefix="/api", tags=["primer"])
 app.include_router(onboarding.router, prefix="/api", tags=["onboarding"])
 app.include_router(github_oauth.router, prefix="/api", tags=["github"])

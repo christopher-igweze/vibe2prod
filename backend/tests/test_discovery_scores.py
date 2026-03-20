@@ -1,4 +1,4 @@
-"""Unit tests for _compute_scores_from_discovery — pure function, no DB."""
+"""Unit tests for _compute_scores_from_discovery — v3 dimension mapping."""
 
 from __future__ import annotations
 
@@ -15,9 +15,9 @@ from services.supabase_client import _compute_scores_from_discovery
 
 
 class ComputeScoresTests(unittest.TestCase):
-    """Verify score computation from FORGE discovery reports."""
+    """Verify score computation from FORGE v3 evaluation data."""
 
-    def test_empty_findings_gives_perfect_scores(self) -> None:
+    def test_empty_findings_no_evaluation_gives_perfect_scores(self) -> None:
         scores = _compute_scores_from_discovery({"findings": []})
         self.assertEqual(scores["health_score"], 100)
         self.assertEqual(scores["security_score"], 100)
@@ -28,67 +28,112 @@ class ComputeScoresTests(unittest.TestCase):
         scores = _compute_scores_from_discovery({})
         self.assertEqual(scores["health_score"], 100)
 
-    def test_critical_security_deducts_15(self) -> None:
-        report = {"findings": [
-            {"severity": "critical", "category": "security"},
-        ]}
+    def test_v3_security_dimension(self) -> None:
+        report = {
+            "findings": [],
+            "evaluation": {
+                "scores": {
+                    "composite": 85,
+                    "dimensions": {
+                        "security": {"score": 85},
+                    },
+                },
+            },
+        }
         scores = _compute_scores_from_discovery(report)
         self.assertEqual(scores["security_score"], 85)
-        self.assertEqual(scores["health_score"], 100)  # unaffected
+        self.assertEqual(scores["health_score"], 100)  # unset defaults to 100
 
-    def test_high_reliability_deducts_8(self) -> None:
-        report = {"findings": [
-            {"severity": "high", "category": "reliability"},
-        ]}
+    def test_v3_reliability_dimension(self) -> None:
+        report = {
+            "findings": [],
+            "evaluation": {
+                "scores": {
+                    "composite": 92,
+                    "dimensions": {
+                        "reliability": {"score": 92},
+                    },
+                },
+            },
+        }
         scores = _compute_scores_from_discovery(report)
         self.assertEqual(scores["reliability_score"], 92)
 
-    def test_quality_maps_to_health(self) -> None:
-        report = {"findings": [
-            {"severity": "medium", "category": "quality"},
-        ]}
+    def test_v3_maintainability_maps_to_health(self) -> None:
+        report = {
+            "findings": [],
+            "evaluation": {
+                "scores": {
+                    "composite": 96,
+                    "dimensions": {
+                        "maintainability": {"score": 96},
+                    },
+                },
+            },
+        }
         scores = _compute_scores_from_discovery(report)
         self.assertEqual(scores["health_score"], 96)
 
-    def test_architecture_maps_to_health(self) -> None:
-        report = {"findings": [
-            {"severity": "medium", "category": "architecture"},
-        ]}
-        scores = _compute_scores_from_discovery(report)
-        self.assertEqual(scores["health_score"], 96)
-
-    def test_performance_maps_to_scalability(self) -> None:
-        report = {"findings": [
-            {"severity": "low", "category": "performance"},
-        ]}
+    def test_v3_performance_maps_to_scalability(self) -> None:
+        report = {
+            "findings": [],
+            "evaluation": {
+                "scores": {
+                    "composite": 99,
+                    "dimensions": {
+                        "performance": {"score": 99},
+                    },
+                },
+            },
+        }
         scores = _compute_scores_from_discovery(report)
         self.assertEqual(scores["scalability_score"], 99)
 
-    def test_scores_floor_at_zero(self) -> None:
-        report = {"findings": [
-            {"severity": "critical", "category": "security"},
-        ] * 10}
+    def test_v3_zero_scores_preserved(self) -> None:
+        report = {
+            "findings": [],
+            "evaluation": {
+                "scores": {
+                    "composite": 0,
+                    "dimensions": {
+                        "security": {"score": 0},
+                    },
+                },
+            },
+        }
         scores = _compute_scores_from_discovery(report)
-        self.assertEqual(scores["security_score"], 0)  # 100 - 150 = clamped to 0
+        self.assertEqual(scores["security_score"], 0)
 
-    def test_multiple_categories(self) -> None:
-        report = {"findings": [
-            {"severity": "critical", "category": "security"},
-            {"severity": "high", "category": "quality"},
-            {"severity": "medium", "category": "reliability"},
-            {"severity": "low", "category": "performance"},
-        ]}
+    def test_v3_all_dimensions(self) -> None:
+        report = {
+            "findings": [],
+            "evaluation": {
+                "scores": {
+                    "composite": 70,
+                    "dimensions": {
+                        "security": {"score": 85},
+                        "maintainability": {"score": 92},
+                        "reliability": {"score": 96},
+                        "performance": {"score": 99},
+                    },
+                },
+            },
+        }
         scores = _compute_scores_from_discovery(report)
         self.assertEqual(scores["security_score"], 85)
         self.assertEqual(scores["health_score"], 92)
         self.assertEqual(scores["reliability_score"], 96)
         self.assertEqual(scores["scalability_score"], 99)
 
-    def test_info_severity_no_deduction(self) -> None:
-        report = {"findings": [
-            {"severity": "info", "category": "security"},
-        ]}
+    def test_no_evaluation_returns_all_100(self) -> None:
+        """Without v3 evaluation, all scores default to 100."""
+        report = {
+            "findings": [
+                {"severity": "critical", "category": "security"},
+            ],
+        }
         scores = _compute_scores_from_discovery(report)
+        # v3: findings alone don't deduct — need evaluation data
         self.assertEqual(scores["security_score"], 100)
 
 

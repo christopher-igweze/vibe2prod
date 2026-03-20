@@ -23,10 +23,7 @@ GITHUB_RETRY_AFTER_CONNECT: str = "60"
 # FORGE bridge
 # ------------------------------------------------------------------ #
 
-FORGE_HTTP_TIMEOUT_SECONDS: int = 30
-FORGE_ERROR_LOG_TRUNCATE: int = 500
 FORGE_SANDBOX_STDERR_TRUNCATE: int = 500
-FORGE_POLL_LOG_INTERVAL_SECONDS: int = 30
 FORGE_OUTPUT_PREVIEW_LENGTH: int = 300
 
 # ------------------------------------------------------------------ #
@@ -64,11 +61,6 @@ STATUS_RUNNING: str = "running"
 STATUS_COMPLETED: str = "completed"
 STATUS_FAILED: str = "failed"
 STATUS_CANCELLED: str = "cancelled"
-
-# Terminal statuses used by FORGE polling
-FORGE_TERMINAL_STATUSES: frozenset[str] = frozenset({
-    "completed", "succeeded", "failed", "aborted",
-})
 
 # Terminal statuses used by probe polling
 PROBE_TERMINAL_STATUSES: frozenset[str] = frozenset({
