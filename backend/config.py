@@ -128,12 +128,7 @@ class Settings(BaseSettings):
     # --- FORGE Engine ---
     forge_enabled: bool = False
     forge_agentfield_url: str = "http://localhost:8080"
-    forge_node_id: str = "forge-engine"
-    agentfield_api_key: str = ""
     forge_default_model: str = ""
-    forge_poll_interval_seconds: int = 10
-    forge_remediate_timeout_seconds: int = 2700
-    forge_webhook_base_url: str = ""  # Public URL of backend, e.g. https://api.vibe2prod.com
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

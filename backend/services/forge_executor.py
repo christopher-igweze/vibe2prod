@@ -1,111 +1,24 @@
-"""FORGE execution logic — trigger scan, trigger remediate, polling.
+"""FORGE execution logic — trigger scan in Daytona sandbox.
 
 Extracted from forge_bridge.py for single-responsibility.
 """
 
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
-import urllib.request
-import urllib.error
-from typing import Any, Sequence
 from uuid import UUID
 
 from daytona.common.errors import DaytonaError
 
 from config import settings
-from constants import (
-    FORGE_ERROR_LOG_TRUNCATE,
-    FORGE_HTTP_TIMEOUT_SECONDS,
-    FORGE_POLL_LOG_INTERVAL_SECONDS,
-    FORGE_SANDBOX_STDERR_TRUNCATE,
-    FORGE_TERMINAL_STATUSES,
-)
+from constants import FORGE_SANDBOX_STDERR_TRUNCATE
 from sandbox.manager import SandboxManager
 from services.forge_result_parser import (
     ForgeRunResult,
     _parse_sandbox_result,
-    _parse_forge_result,
 )
 
 logger = logging.getLogger(__name__)
-
-
-# ── HTTP helpers (sync, stdlib — no external deps) ────────────────────
-
-
-def _http_post(url: str, payload: dict, api_key: str = "") -> dict:
-    """POST JSON to AgentField API."""
-    data = json.dumps(payload).encode()
-    headers = {"Content-Type": "application/json"}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
-
-    req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=FORGE_HTTP_TIMEOUT_SECONDS) as resp:
-            return json.loads(resp.read().decode())
-    except urllib.error.HTTPError as e:
-        body = e.read().decode() if e.fp else ""
-        logger.error("HTTP %d from %s: %s", e.code, url, body[:FORGE_ERROR_LOG_TRUNCATE])
-        raise
-    except urllib.error.URLError as e:
-        logger.error("Connection error to %s: %s", url, e.reason)
-        raise
-
-
-def _http_get(url: str, api_key: str = "") -> dict:
-    """GET from AgentField API."""
-    headers = {}
-    if api_key:
-        headers["Authorization"] = f"Bearer {api_key}"
-
-    req = urllib.request.Request(url, headers=headers, method="GET")
-    try:
-        with urllib.request.urlopen(req, timeout=FORGE_HTTP_TIMEOUT_SECONDS) as resp:
-            return json.loads(resp.read().decode())
-    except urllib.error.HTTPError as e:
-        body = e.read().decode() if e.fp else ""
-        logger.error("HTTP %d from %s: %s", e.code, url, body[:FORGE_ERROR_LOG_TRUNCATE])
-        raise
-
-
-async def _poll_until_complete(
-    agentfield_url: str,
-    execution_id: str,
-    api_key: str = "",
-    timeout: int | None = None,
-    poll_interval: int | None = None,
-) -> dict:
-    """Poll AgentField for execution completion."""
-    timeout = timeout or settings.forge_remediate_timeout_seconds
-    poll_interval = poll_interval or settings.forge_poll_interval_seconds
-    url = f"{agentfield_url}/api/v1/executions/{execution_id}"
-    elapsed = 0
-
-    while elapsed < timeout:
-        await asyncio.sleep(poll_interval)
-        elapsed += poll_interval
-
-        try:
-            result = _http_get(url, api_key)
-        except asyncio.TimeoutError as e:
-            logger.warning("Timeout polling FORGE execution %s (will retry): %s", execution_id, e)
-            continue
-        except Exception as e:
-            logger.warning("Poll failed (will retry): %s", e)
-            continue
-
-        status = str(result.get("status", "")).lower()
-        if elapsed % FORGE_POLL_LOG_INTERVAL_SECONDS == 0:
-            logger.info("FORGE execution %s: status=%s (%ds)", execution_id, status, elapsed)
-
-        if status in FORGE_TERMINAL_STATUSES:
-            return result
-
-    return {"status": "timeout", "error": f"Timed out after {timeout}s"}
 
 
 def _authenticated_url(repo_url: str, token: str | None) -> str:
@@ -187,96 +100,3 @@ async def trigger_forge_scan(
         )
     finally:
         await mgr.destroy(scan_id)
-
-
-async def trigger_forge_remediate(
-    repo_url: str,
-    scan_findings: Sequence[Any] | None = None,
-    *,
-    mode: str = "full",
-    model_override: str | None = None,
-    timeout: int | None = None,
-    agentfield_url_override: str | None = None,
-    github_token: str | None = None,
-    project_context: dict | None = None,
-) -> ForgeRunResult:
-    """Trigger a full FORGE remediation run."""
-    agentfield_url = agentfield_url_override or settings.forge_agentfield_url
-    api_key = settings.agentfield_api_key
-
-    config: dict[str, Any] = {"mode": mode}
-    if model_override:
-        config["models"] = {"default": model_override}
-    if project_context:
-        config["project_context"] = project_context
-
-    finding_dicts = None
-    if scan_findings:
-        finding_dicts = [
-            f.model_dump() if hasattr(f, "model_dump") else dict(f)
-            for f in scan_findings
-        ]
-
-    clone_url = _authenticated_url(repo_url, github_token)
-
-    payload = {
-        "input": {
-            "repo_url": clone_url,
-            "config": config,
-            "scan_findings": finding_dicts,
-        }
-    }
-
-    return await _trigger_forge(
-        agentfield_url, api_key, "remediate", payload,
-        timeout or settings.forge_remediate_timeout_seconds,
-    )
-
-
-async def _trigger_forge(
-    agentfield_url: str,
-    api_key: str,
-    reasoner: str,
-    payload: dict,
-    timeout: int,
-) -> ForgeRunResult:
-    """Internal: trigger a FORGE reasoner and wait for result."""
-    node_id = settings.forge_node_id
-    url = f"{agentfield_url}/api/v1/execute/async/{node_id}.{reasoner}"
-
-    logger.info("Triggering FORGE %s at %s", reasoner, url)
-
-    try:
-        resp = _http_post(url, payload, api_key)
-    except asyncio.TimeoutError as e:
-        return ForgeRunResult(
-            status="error",
-            error=f"Timeout triggering FORGE: {e}",
-        )
-    except Exception as e:
-        return ForgeRunResult(
-            status="error",
-            error=f"Failed to trigger FORGE: {e}",
-        )
-
-    execution_id = resp.get("execution_id", resp.get("id", ""))
-    if not execution_id:
-        return ForgeRunResult(
-            status="error",
-            error=f"No execution_id in response: {resp}",
-        )
-
-    logger.info("FORGE execution started: %s", execution_id)
-
-    try:
-        result = await _poll_until_complete(
-            agentfield_url, execution_id, api_key, timeout,
-        )
-    except asyncio.TimeoutError as e:
-        return ForgeRunResult(
-            execution_id=execution_id,
-            status="timeout",
-            error=f"Polling for FORGE result timed out: {e}",
-        )
-
-    return _parse_forge_result(execution_id, result)
