@@ -35,13 +35,18 @@ class ForgeRunResult:
     agent_invocations: int = 0
     cost_usd: float = 0.0
     duration_seconds: float = 0.0
+    # v3: deterministic evaluation framework
+    evaluation: dict = field(default_factory=dict)
+    aivss_score: dict = field(default_factory=dict)
 
 
 def _extract_readiness_score(output: dict) -> int:
-    """Extract the production readiness score from output."""
-    report = output.get("readiness_report")
-    if isinstance(report, dict):
-        return report.get("overall_score", 0)
+    """Extract production readiness score from v3 evaluation."""
+    evaluation = output.get("evaluation")
+    if isinstance(evaluation, dict):
+        scores = evaluation.get("scores")
+        if isinstance(scores, dict):
+            return scores.get("composite", 0)
     return 0
 
 
@@ -96,6 +101,8 @@ def _parse_sandbox_result(execution_id: str, stdout: str) -> ForgeRunResult:
         agent_invocations=data.get("agent_invocations", 0),
         cost_usd=data.get("cost_usd", 0.0),
         duration_seconds=data.get("duration_seconds", 0.0),
+        evaluation=data.get("evaluation") or {},
+        aivss_score=data.get("aivss_score") or {},
     )
 
 
@@ -125,4 +132,6 @@ def _parse_forge_result(execution_id: str, raw: dict) -> ForgeRunResult:
         agent_invocations=output.get("agent_invocations", 0),
         cost_usd=output.get("cost_usd", 0.0),
         duration_seconds=output.get("duration_seconds", 0.0),
+        evaluation=output.get("evaluation") or {},
+        aivss_score=output.get("aivss_score") or {},
     )
