@@ -16,36 +16,39 @@ async def check_database_health() -> bool:
 
 
 def _compute_scores_from_discovery(discovery_report: dict) -> dict[str, int]:
-    """Derive health/security/reliability/scalability scores from findings.
+    """Map v3 evaluation dimension scores to frontend score columns.
 
-    Starts each dimension at 100 and deducts based on finding severity.
-    Maps FORGE categories to frontend score dimensions:
+    Dimension mapping (forge v3 -> frontend):
       security -> security_score
-      quality + architecture -> health_score
+      maintainability -> health_score
       reliability -> reliability_score
       performance -> scalability_score
     """
-    severity_weights = {"critical": 15, "high": 8, "medium": 4, "low": 1, "info": 0}
-    category_map: dict[str, str] = {
-        "security": "security_score",
-        "quality": "health_score",
-        "architecture": "health_score",
-        "reliability": "reliability_score",
-        "performance": "scalability_score",
+    evaluation = discovery_report.get("evaluation")
+    if isinstance(evaluation, dict):
+        scores = evaluation.get("scores")
+        if isinstance(scores, dict):
+            dims = scores.get("dimensions", {})
+            if dims:
+                return {
+                    "security_score": _dim_score(dims, "security"),
+                    "health_score": _dim_score(dims, "maintainability"),
+                    "reliability_score": _dim_score(dims, "reliability"),
+                    "scalability_score": _dim_score(dims, "performance"),
+                }
+
+    # No evaluation data — default all to 100
+    return {
+        "health_score": 100,
+        "security_score": 100,
+        "reliability_score": 100,
+        "scalability_score": 100,
     }
 
-    deductions: dict[str, int] = {
-        "health_score": 0,
-        "security_score": 0,
-        "reliability_score": 0,
-        "scalability_score": 0,
-    }
 
-    for finding in discovery_report.get("findings", []):
-        severity = finding.get("severity", "medium")
-        category = finding.get("category", "quality")
-        weight = severity_weights.get(severity, 4)
-        score_key = category_map.get(category, "health_score")
-        deductions[score_key] += weight
-
-    return {k: max(0, 100 - v) for k, v in deductions.items()}
+def _dim_score(dims: dict, key: str, default: int = 100) -> int:
+    """Extract a dimension score, defaulting to 100 if absent."""
+    dim = dims.get(key)
+    if isinstance(dim, dict):
+        return dim.get("score", default)
+    return default
