@@ -18,7 +18,6 @@ os.environ.setdefault("DAYTONA_API_KEY", "test")
 
 from services.forge_bridge import (
     trigger_forge_scan,
-    trigger_forge_remediate,
     _parse_forge_result,
     _parse_sandbox_result,
     _extract_readiness_score,
@@ -39,7 +38,7 @@ class ParseForgeResultTests(unittest.TestCase):
                 "findings_fixed": 3,
                 "findings_deferred": 2,
                 "pr_url": "https://github.com/user/repo/pull/1",
-                "readiness_report": {"overall_score": 78},
+                "evaluation": {"scores": {"composite": 78}},
             },
         }
         result = _parse_forge_result("exec-abc", raw)
@@ -95,26 +94,13 @@ class ParseForgeResultTests(unittest.TestCase):
         self.assertEqual(result.readiness_score, 0)
 
 
-class ExtractReadinessScoreTests(unittest.TestCase):
-    """Tests for _extract_readiness_score helper."""
-
-    def test_extracts_from_report(self) -> None:
-        output = {"readiness_report": {"overall_score": 85}}
-        self.assertEqual(_extract_readiness_score(output), 85)
-
-    def test_returns_zero_when_no_report(self) -> None:
-        self.assertEqual(_extract_readiness_score({}), 0)
-
-    def test_returns_zero_when_report_not_dict(self) -> None:
-        self.assertEqual(_extract_readiness_score({"readiness_report": "bad"}), 0)
-
-
 class ParseSandboxResultTests(unittest.TestCase):
     """Tests for _parse_sandbox_result — parses CLI JSON stdout."""
 
     def test_clean_json(self) -> None:
         data = {"forge_run_id": "run-1", "success": True, "total_findings": 5,
-                "discovery_report": {"items": []}, "readiness_report": {"overall_score": 72}}
+                "discovery_report": {"items": []},
+                "evaluation": {"scores": {"composite": 72}}}
         result = _parse_sandbox_result("exec-1", json.dumps(data))
         self.assertTrue(result.success)
         self.assertEqual(result.total_findings, 5)
@@ -140,6 +126,70 @@ class ParseSandboxResultTests(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertEqual(result.status, "failed")
         self.assertIn("Could not parse", result.error)
+
+
+class ParseSandboxResultV3Tests(unittest.TestCase):
+    """Tests for v3 evaluation fields in sandbox results."""
+
+    def test_v3_evaluation_extracted(self) -> None:
+        data = {
+            "forge_run_id": "run-v3",
+            "success": True,
+            "total_findings": 12,
+            "evaluation": {
+                "version": "3.0",
+                "scores": {
+                    "composite": 67,
+                    "band": "B",
+                    "dimensions": {
+                        "security": {"score": 72, "checks_passed": 10, "checks_failed": 2},
+                        "reliability": {"score": 55, "checks_passed": 4, "checks_failed": 3},
+                    },
+                },
+                "quality_gate": {"passed": False, "profile": "forge-way"},
+                "compliance": {
+                    "owasp_asvs": {"estimated_level": 0, "level_1_percent": 75.0},
+                    "nist_ssdf": {"practices_evaluated": 7, "practices_passing": 5},
+                },
+            },
+            "aivss_score": {"score": 6.2, "severity": "Medium"},
+            "discovery_report": {"findings": []},
+        }
+        result = _parse_sandbox_result("exec-v3", json.dumps(data))
+        self.assertTrue(result.success)
+        self.assertEqual(result.evaluation["scores"]["composite"], 67)
+        self.assertEqual(result.aivss_score["severity"], "Medium")
+        self.assertEqual(result.readiness_score, 67)
+
+    def test_readiness_score_from_evaluation_composite(self) -> None:
+        data = {
+            "forge_run_id": "run-v3b",
+            "success": True,
+            "evaluation": {"scores": {"composite": 82}},
+        }
+        result = _parse_sandbox_result("exec-v3b", json.dumps(data))
+        self.assertEqual(result.readiness_score, 82)
+
+    def test_missing_evaluation_defaults_to_empty(self) -> None:
+        data = {"forge_run_id": "run-old", "success": True}
+        result = _parse_sandbox_result("exec-old", json.dumps(data))
+        self.assertEqual(result.evaluation, {})
+        self.assertEqual(result.aivss_score, {})
+        self.assertEqual(result.readiness_score, 0)
+
+
+class ExtractReadinessScoreV3Tests(unittest.TestCase):
+    """v3 readiness score comes from evaluation.scores.composite."""
+
+    def test_extracts_from_evaluation(self) -> None:
+        output = {"evaluation": {"scores": {"composite": 67}}}
+        self.assertEqual(_extract_readiness_score(output), 67)
+
+    def test_returns_zero_when_no_evaluation(self) -> None:
+        self.assertEqual(_extract_readiness_score({}), 0)
+
+    def test_returns_zero_when_evaluation_malformed(self) -> None:
+        self.assertEqual(_extract_readiness_score({"evaluation": "bad"}), 0)
 
 
 class TriggerForgeScanTests(unittest.TestCase):
@@ -216,56 +266,6 @@ class TriggerForgeScanTests(unittest.TestCase):
     def test_scan_id_required(self) -> None:
         with self.assertRaises(ValueError):
             asyncio.run(trigger_forge_scan("https://github.com/user/repo"))
-
-
-class TriggerForgeRemediateTests(unittest.TestCase):
-    """Tests for trigger_forge_remediate with mocked HTTP."""
-
-    def test_includes_scan_findings(self) -> None:
-        mock_post = MagicMock(return_value={"execution_id": "exec-2"})
-        mock_get = MagicMock(return_value={
-            "status": "completed",
-            "output": {
-                "forge_run_id": "run-2",
-                "success": True,
-                "findings_fixed": 2,
-            },
-        })
-        findings = [{"title": "No auth", "severity": "critical"}]
-
-        with patch("services.forge_bridge._http_post", mock_post), \
-             patch("services.forge_bridge._http_get", mock_get), \
-             patch("services.forge_bridge.asyncio.sleep", new=AsyncMock()):
-            result = asyncio.run(trigger_forge_remediate(
-                repo_url="https://github.com/user/repo",
-                scan_findings=findings,
-                agentfield_url_override="http://test:8080",
-                timeout=10,
-            ))
-
-        self.assertTrue(result.success)
-        self.assertEqual(result.findings_fixed, 2)
-        payload = mock_post.call_args[0][1]
-        self.assertEqual(payload["input"]["scan_findings"], findings)
-
-    def test_mode_defaults_to_full(self) -> None:
-        mock_post = MagicMock(return_value={"execution_id": "exec-3"})
-        mock_get = MagicMock(return_value={
-            "status": "completed",
-            "output": {"success": True},
-        })
-
-        with patch("services.forge_bridge._http_post", mock_post), \
-             patch("services.forge_bridge._http_get", mock_get), \
-             patch("services.forge_bridge.asyncio.sleep", new=AsyncMock()):
-            asyncio.run(trigger_forge_remediate(
-                repo_url="https://github.com/user/repo",
-                agentfield_url_override="http://test:8080",
-                timeout=10,
-            ))
-
-        payload = mock_post.call_args[0][1]
-        self.assertEqual(payload["input"]["config"]["mode"], "full")
 
 
 if __name__ == "__main__":
