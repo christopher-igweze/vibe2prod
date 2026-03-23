@@ -24,6 +24,18 @@ backend/.env.*
 
 # Generated artifacts
 backend/e2e_*.txt
+.artifacts/
+backend/.artifacts/
+backend/.forge-artifacts/
+
+# Tooling / local
+.playwright-mcp/
+.superpowers/
+*.code-workspace
+
+# Working docs / task plans
+docs/superpowers/
+tasks/
 
 # Local testing
 backend/.local-test/
