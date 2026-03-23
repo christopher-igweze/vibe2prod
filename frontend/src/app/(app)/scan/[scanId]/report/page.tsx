@@ -305,7 +305,7 @@ export default function ReportPage() {
           )}
 
           {/* Findings Table */}
-          {report.findings.length > 0 && (
+          {findings.length > 0 && (
             <section id="findings" data-tour="findings-table">
               <FindingsTable
                 actionableFindings={actionableFindings}
