@@ -100,7 +100,7 @@ export function ApiKeySection({
         <div className="mt-4 space-y-3">
           <div className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-4 py-3 border border-zinc-800">
             <code className="text-zinc-500 text-sm font-mono flex-1">
-              v2p_\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022
+              {"v2p_" + "\u2022".repeat(32)}
             </code>
           </div>
 
