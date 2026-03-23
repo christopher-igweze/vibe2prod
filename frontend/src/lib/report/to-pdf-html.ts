@@ -159,11 +159,12 @@ function renderEvaluationHtml(
   if (comp) {
     lines.push(`<h3>Compliance</h3>`)
     lines.push(`<ul style="font-size:12px;margin:4px 0 8px 16px">`)
-    if (comp.asvs) {
-      lines.push(`<li>OWASP ASVS: Level ${comp.asvs.estimated_level} (${comp.asvs.level_1_percent}% of L1, ${esc(comp.asvs.level_1_coverage)})</li>`)
+    if (comp.asvs && comp.asvs.total_requirements > 0) {
+      const pct = Math.round((comp.asvs.passed / comp.asvs.total_requirements) * 100)
+      lines.push(`<li>OWASP ASVS: Level ${comp.asvs.estimated_level} (${pct}% of L1, ${comp.asvs.passed}/${comp.asvs.total_requirements} checks)</li>`)
     }
-    if (comp.nist) {
-      lines.push(`<li>NIST SSDF: ${comp.nist.practices_passing}/${comp.nist.practices_evaluated} practices passing</li>`)
+    if (comp.nist && comp.nist.total > 0) {
+      lines.push(`<li>NIST SSDF: ${comp.nist.covered}/${comp.nist.total} practices covered</li>`)
     }
     lines.push(`</ul>`)
   }

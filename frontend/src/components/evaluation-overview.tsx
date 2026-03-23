@@ -103,7 +103,7 @@ export function EvaluationOverview({
   // Safe access for compliance
   const asvs = evaluation.compliance?.asvs
   const nist = evaluation.compliance?.nist
-  const hasCompliance = (asvs && asvs.level_1_percent != null) || (nist && nist.practices_evaluated > 0)
+  const hasCompliance = (asvs && asvs.total_requirements > 0) || (nist && nist.total > 0)
 
   // Safe access for failures
   const failures = quality_gate?.failures ?? []
@@ -235,25 +235,23 @@ export function EvaluationOverview({
             <HelpCircle className="size-3 text-[#4E586E]" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {asvs && asvs.level_1_percent != null && (
+            {asvs && asvs.total_requirements > 0 && (
               <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                 <p className="text-xs text-[#8692A8] font-medium mb-1">OWASP ASVS</p>
                 <p className="text-sm text-[#E8ECF4]">
                   Level {asvs.estimated_level ?? 0}
                 </p>
                 <p className="text-xs text-[#4E586E] mt-0.5">
-                  {asvs.level_1_percent}% of Level 1 requirements met
-                  {asvs.level_1_coverage && (
-                    <span> ({asvs.level_1_coverage} checks)</span>
-                  )}
+                  {Math.round((asvs.passed / asvs.total_requirements) * 100)}% of Level 1 requirements met
+                  ({asvs.passed}/{asvs.total_requirements} checks)
                 </p>
               </div>
             )}
-            {nist && nist.practices_evaluated > 0 && (
+            {nist && nist.total > 0 && (
               <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                 <p className="text-xs text-[#8692A8] font-medium mb-1">NIST SSDF</p>
                 <p className="text-sm text-[#E8ECF4]">
-                  {nist.practices_passing}/{nist.practices_evaluated} practices
+                  {nist.covered}/{nist.total} practices
                 </p>
                 <p className="text-xs text-[#4E586E] mt-0.5">
                   Evaluated against Secure Software Development Framework

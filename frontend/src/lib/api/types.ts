@@ -168,9 +168,19 @@ export interface DeterministicChecks {
 }
 
 export interface ComplianceResult {
-  asvs?: { estimated_level: number; level_1_coverage: string; level_1_percent: number }
-  stride?: Record<string, string>
-  nist?: { practices_evaluated: number; practices_passing: number }
+  asvs?: {
+    estimated_level: number
+    total_requirements: number
+    passed: number
+    failed: number
+    categories?: Record<string, unknown>
+  }
+  stride?: Record<string, unknown>
+  nist?: {
+    covered: number
+    total: number
+    practices?: Record<string, unknown>
+  }
 }
 
 export interface EvaluationReport {
