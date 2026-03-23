@@ -169,12 +169,13 @@ export default function ReportPage() {
   const report = scan?.report_data?.discovery_report ?? null
 
   // Split findings: actionable vs intentional/informational
-  const actionableFindings = report?.findings.filter(
+  const findings = report?.findings ?? []
+  const actionableFindings = findings.filter(
     (f) => f.intent_signal !== "intentional" && f.actionability !== "informational"
-  ) ?? []
-  const intentionalFindings = report?.findings.filter(
+  )
+  const intentionalFindings = findings.filter(
     (f) => f.intent_signal === "intentional" || f.actionability === "informational"
-  ) ?? []
+  )
 
   // Recompute severity counts from actionable findings only
   const adjustedSeverity: Record<Severity, number> = { critical: 0, high: 0, medium: 0, low: 0 }
