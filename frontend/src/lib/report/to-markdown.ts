@@ -290,14 +290,15 @@ function renderEvaluationSection(
   if (comp) {
     lines.push("### Compliance")
     lines.push("")
-    if (comp.asvs) {
+    if (comp.asvs && comp.asvs.total_requirements > 0) {
+      const pct = Math.round((comp.asvs.passed / comp.asvs.total_requirements) * 100)
       lines.push(
-        `- OWASP ASVS: Level ${comp.asvs.estimated_level} (${comp.asvs.level_1_percent}% of L1, ${comp.asvs.level_1_coverage})`
+        `- OWASP ASVS: Level ${comp.asvs.estimated_level} (${pct}% of L1, ${comp.asvs.passed}/${comp.asvs.total_requirements} checks)`
       )
     }
-    if (comp.nist) {
+    if (comp.nist && comp.nist.total > 0) {
       lines.push(
-        `- NIST SSDF: ${comp.nist.practices_passing}/${comp.nist.practices_evaluated} practices passing`
+        `- NIST SSDF: ${comp.nist.covered}/${comp.nist.total} practices covered`
       )
     }
     lines.push("")
