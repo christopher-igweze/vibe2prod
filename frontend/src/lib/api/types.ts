@@ -129,6 +129,66 @@ export interface ActionabilitySummary {
   signal_to_noise_ratio: number
 }
 
+// ── v3 Evaluation types ──────────────────────────────────────────
+
+export interface DimensionScore {
+  score: number
+  checks_passed: number
+  checks_failed: number
+  deductions: number
+}
+
+export interface EvaluationScores {
+  composite: number
+  band: string
+  label: string
+  dimensions: Record<string, DimensionScore>
+}
+
+export interface QualityGateResult {
+  passed: boolean
+  profile: string
+  failures: string[]
+}
+
+export interface FailedCheck {
+  check_id: string
+  name: string
+  severity: string
+  deduction: number
+  details: string
+  locations?: { file: string; line: number }[]
+}
+
+export interface DeterministicChecks {
+  total: number
+  passed: number
+  failed: number
+  failed_checks: FailedCheck[]
+}
+
+export interface ComplianceResult {
+  asvs?: { estimated_level: number; level_1_coverage: string; level_1_percent: number }
+  stride?: Record<string, string>
+  nist?: { practices_evaluated: number; practices_passing: number }
+}
+
+export interface EvaluationReport {
+  scores: EvaluationScores
+  quality_gate: QualityGateResult
+  compliance?: ComplianceResult
+  deterministic_checks?: DeterministicChecks
+}
+
+export interface AIVSSScore {
+  score: number
+  severity: string
+  base_score?: number
+  ai_metrics_score?: number
+  aars_score?: number
+  impact_score?: number
+}
+
 export interface DiscoveryReport {
   run_id: string
   generated_at: string
