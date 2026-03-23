@@ -237,25 +237,78 @@ export function EvaluationOverview({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {asvs && asvs.total_requirements > 0 && (
               <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-                <p className="text-xs text-[#8692A8] font-medium mb-1">OWASP ASVS</p>
-                <p className="text-sm text-[#E8ECF4]">
-                  Level {asvs.estimated_level ?? 0}
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-[#8692A8] font-medium">OWASP ASVS</p>
+                  <span className="text-xs font-mono text-[#E8ECF4]">
+                    Level {asvs.estimated_level ?? 0}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden mb-1.5">
+                  <div
+                    className="h-full rounded-full bg-emerald-400 transition-all duration-700"
+                    style={{ width: `${Math.round((asvs.passed / asvs.total_requirements) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-[#4E586E]">
+                  {asvs.passed}/{asvs.total_requirements} Level 1 checks passing
+                  {asvs.failed > 0 && (
+                    <span className="text-red-400/70"> — {asvs.failed} failing</span>
+                  )}
                 </p>
-                <p className="text-xs text-[#4E586E] mt-0.5">
-                  {Math.round((asvs.passed / asvs.total_requirements) * 100)}% of Level 1 requirements met
-                  ({asvs.passed}/{asvs.total_requirements} checks)
-                </p>
+                {/* Show failing ASVS categories */}
+                {asvs.categories && (
+                  <div className="mt-2 space-y-1">
+                    {Object.entries(asvs.categories as Record<string, { passed: number; total: number; details?: Array<{ check_id: string; requirement: string; passed: boolean }> }>)
+                      .filter(([, cat]) => cat.passed < cat.total)
+                      .map(([catName, cat]) => (
+                        <div key={catName} className="text-xs">
+                          <span className="text-red-400/70">{catName}</span>
+                          <span className="text-[#4E586E]"> ({cat.passed}/{cat.total})</span>
+                          {cat.details && (
+                            <span className="text-[#4E586E]">
+                              {" — "}
+                              {cat.details
+                                .filter((d) => !d.passed)
+                                .map((d) => d.requirement)
+                                .join(", ")}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             )}
             {nist && nist.total > 0 && (
               <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-                <p className="text-xs text-[#8692A8] font-medium mb-1">NIST SSDF</p>
-                <p className="text-sm text-[#E8ECF4]">
-                  {nist.covered}/{nist.total} practices
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-[#8692A8] font-medium">NIST SSDF</p>
+                  <span className="text-xs font-mono text-[#E8ECF4]">
+                    {nist.covered}/{nist.total}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-white/[0.06] overflow-hidden mb-1.5">
+                  <div
+                    className="h-full rounded-full bg-emerald-400 transition-all duration-700"
+                    style={{ width: `${Math.round((nist.covered / nist.total) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-[#4E586E]">
+                  {nist.covered} of {nist.total} SSDF practices fully covered
                 </p>
-                <p className="text-xs text-[#4E586E] mt-0.5">
-                  Evaluated against Secure Software Development Framework
-                </p>
+                {/* Show failing NIST practices */}
+                {nist.practices && (
+                  <div className="mt-2 space-y-1">
+                    {Object.entries(nist.practices as Record<string, { name: string; passed: number; total: number }>)
+                      .filter(([, p]) => p.passed < p.total)
+                      .map(([practiceId, p]) => (
+                        <div key={practiceId} className="text-xs">
+                          <span className="text-red-400/70">{practiceId}</span>
+                          <span className="text-[#4E586E]"> {p.name} ({p.passed}/{p.total})</span>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
