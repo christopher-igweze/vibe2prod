@@ -101,7 +101,7 @@ export default function DashboardPage() {
       )}
 
       {scans.length > 0 && (
-        <div data-tour="stats-panel">
+        <div data-tour="stats-panel" className="space-y-4">
           <DashboardStats metrics={metrics} />
           <DashboardInsights metrics={metrics} />
         </div>

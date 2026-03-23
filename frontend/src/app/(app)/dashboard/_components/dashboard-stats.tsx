@@ -1,4 +1,4 @@
-import { Activity, Shield, Heart, GitFork } from "lucide-react";
+import { Activity, Shield, Heart, GitFork, Zap, Gauge } from "lucide-react";
 import { type DashboardMetrics, scoreColorClass, scoreBgClass } from "./dashboard-utils";
 
 function ScoreBar({ score }: { score: number }) {
@@ -19,7 +19,7 @@ interface DashboardStatsProps {
 
 export function DashboardStats({ metrics }: DashboardStatsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
       {/* Total Scans */}
       <div className="forge-glass-card rounded-xl p-4 space-y-1">
         <div className="flex items-center gap-2">
@@ -66,6 +66,44 @@ export function DashboardStats({ metrics }: DashboardStatsProps) {
               <span className="text-sm text-[#4E586E] font-normal">/100</span>
             </p>
             <ScoreBar score={metrics.avgSecurity} />
+          </>
+        ) : (
+          <p className="text-2xl font-bold text-[#4E586E]">--</p>
+        )}
+      </div>
+
+      {/* Avg Reliability */}
+      <div className="forge-glass-card rounded-xl p-4 space-y-1">
+        <div className="flex items-center gap-2">
+          <Zap className="size-4 text-[#4E586E]" />
+          <span className="text-xs text-[#8692A8] uppercase tracking-wider">Reliability</span>
+        </div>
+        {metrics.avgReliability !== null ? (
+          <>
+            <p className={`text-2xl font-bold font-[family-name:var(--font-heading)] ${scoreColorClass(metrics.avgReliability)}`}>
+              {metrics.avgReliability}
+              <span className="text-sm text-[#4E586E] font-normal">/100</span>
+            </p>
+            <ScoreBar score={metrics.avgReliability} />
+          </>
+        ) : (
+          <p className="text-2xl font-bold text-[#4E586E]">--</p>
+        )}
+      </div>
+
+      {/* Avg Scalability */}
+      <div className="forge-glass-card rounded-xl p-4 space-y-1">
+        <div className="flex items-center gap-2">
+          <Gauge className="size-4 text-[#4E586E]" />
+          <span className="text-xs text-[#8692A8] uppercase tracking-wider">Scalability</span>
+        </div>
+        {metrics.avgScalability !== null ? (
+          <>
+            <p className={`text-2xl font-bold font-[family-name:var(--font-heading)] ${scoreColorClass(metrics.avgScalability)}`}>
+              {metrics.avgScalability}
+              <span className="text-sm text-[#4E586E] font-normal">/100</span>
+            </p>
+            <ScoreBar score={metrics.avgScalability} />
           </>
         ) : (
           <p className="text-2xl font-bold text-[#4E586E]">--</p>
