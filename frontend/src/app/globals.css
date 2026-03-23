@@ -207,7 +207,7 @@
 /* ── Visible frosted glass for nav ── */
 
 .forge-glass-nav {
-  background: rgba(11, 15, 25, 0.8);
+  background: rgba(11, 15, 25, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
