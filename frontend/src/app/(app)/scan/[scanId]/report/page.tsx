@@ -53,11 +53,13 @@ function ReportSidebar({
   report: DiscoveryReport
   actionableCount: number
 }) {
-  const formattedDate = new Date(report.generated_at).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  const formattedDate = report.generated_at
+    ? new Date(report.generated_at).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : ""
 
   const scores = [
     { label: "Health", value: scan.health_score },
@@ -82,16 +84,22 @@ function ReportSidebar({
           <Badge variant="outline" className="border-white/[0.08] text-[#8692A8]">
             {actionableCount} findings
           </Badge>
-          <Badge variant="outline" className="border-white/[0.08] text-[#8692A8]">
-            {report.loc_total.toLocaleString()} LOC
-          </Badge>
-          <Badge variant="outline" className="border-white/[0.08] text-[#8692A8]">
-            {report.file_count} files
-          </Badge>
-          <Badge variant="outline" className="border-white/[0.08] text-[#8692A8]">
-            {formatDuration(report.duration_seconds)}
-          </Badge>
-          {report.cost_usd > 0 && (
+          {report.loc_total != null && (
+            <Badge variant="outline" className="border-white/[0.08] text-[#8692A8]">
+              {report.loc_total.toLocaleString()} LOC
+            </Badge>
+          )}
+          {report.file_count != null && (
+            <Badge variant="outline" className="border-white/[0.08] text-[#8692A8]">
+              {report.file_count} files
+            </Badge>
+          )}
+          {report.duration_seconds != null && (
+            <Badge variant="outline" className="border-white/[0.08] text-[#8692A8]">
+              {formatDuration(report.duration_seconds)}
+            </Badge>
+          )}
+          {(report.cost_usd ?? 0) > 0 && (
             <Badge variant="outline" className="border-forge-emerald/30 text-forge-emerald">
               {formatCharge(report.cost_usd)}
             </Badge>

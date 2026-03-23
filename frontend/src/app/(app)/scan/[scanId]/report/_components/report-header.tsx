@@ -139,14 +139,18 @@ export function ReportHeader({ report, repoName, scanId, actionableCount, evalua
         {/* Inline stat badges */}
         <div className="hidden md:flex items-center gap-2 text-xs">
           <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
-            {actionableCount ?? report.total_findings} findings
+            {actionableCount ?? report.total_findings ?? 0} findings
           </Badge>
-          <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
-            {report.loc_total.toLocaleString()} LOC
-          </Badge>
-          <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
-            {formatDuration(report.duration_seconds)}
-          </Badge>
+          {report.loc_total != null && (
+            <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
+              {report.loc_total.toLocaleString()} LOC
+            </Badge>
+          )}
+          {report.duration_seconds != null && (
+            <Badge variant="outline" className="border-white/[0.08] text-[#E8ECF4]">
+              {formatDuration(report.duration_seconds)}
+            </Badge>
+          )}
           {report.cost_usd > 0 && (
             <Badge variant="outline" className="border-forge-emerald/30 text-forge-emerald">
               Cost: {formatCharge(report.cost_usd)}
