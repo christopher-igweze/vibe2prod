@@ -1,4 +1,4 @@
-import type { DiscoveryReport, DiscoveryFinding, Actionability } from "@/lib/api/types"
+import type { DiscoveryReport, DiscoveryFinding, Actionability, EvaluationReport, AIVSSScore } from "@/lib/api/types"
 import { formatDuration, SEVERITY_COLORS, esc } from "@/lib/utils"
 
 const ACTIONABILITY_ORDER: Actionability[] = [
@@ -56,7 +56,127 @@ function renderFindingHtml(f: DiscoveryFinding): string {
   return lines.join("\n")
 }
 
-export function reportToPdfHtml(report: DiscoveryReport, repoName?: string): string {
+const DIMENSION_ORDER = [
+  "security",
+  "reliability",
+  "maintainability",
+  "test_quality",
+  "performance",
+  "documentation",
+  "operations",
+] as const
+
+const DIMENSION_LABELS: Record<string, string> = {
+  security: "Security",
+  reliability: "Reliability",
+  maintainability: "Maintainability",
+  test_quality: "Test Quality",
+  performance: "Performance",
+  documentation: "Documentation",
+  operations: "Operations",
+}
+
+function renderEvaluationHtml(
+  evaluation?: EvaluationReport | null,
+  aivss?: AIVSSScore | null,
+): string {
+  if (!evaluation) return ""
+
+  const lines: string[] = []
+  const scores = evaluation.scores
+  const gate = evaluation.quality_gate
+
+  lines.push(`<h2>Production Readiness</h2>`)
+
+  // Score + gate cards
+  lines.push(`<div class="summary-grid">`)
+  if (scores) {
+    lines.push(`<div class="stat-card">`)
+    lines.push(`<div class="label">Composite Score</div>`)
+    lines.push(`<div class="value">${scores.composite}/100</div>`)
+    lines.push(`<div style="font-size:11px;color:#6b7280;margin-top:2px">${esc(scores.band)} — ${esc(scores.label)}</div>`)
+    lines.push(`</div>`)
+  }
+  if (gate) {
+    const gateColor = gate.passed ? "#059669" : "#dc2626"
+    const gateText = gate.passed ? "PASSED" : "FAILED"
+    lines.push(`<div class="stat-card">`)
+    lines.push(`<div class="label">Quality Gate</div>`)
+    lines.push(`<div class="value" style="color:${gateColor}">${gateText}</div>`)
+    lines.push(`<div style="font-size:11px;color:#6b7280;margin-top:2px">${esc(gate.profile)} profile</div>`)
+    lines.push(`</div>`)
+  }
+  if (aivss) {
+    lines.push(`<div class="stat-card">`)
+    lines.push(`<div class="label">AI Risk (AIVSS)</div>`)
+    lines.push(`<div class="value">${aivss.score}/10</div>`)
+    lines.push(`<div style="font-size:11px;color:#6b7280;margin-top:2px">${esc(aivss.severity)}</div>`)
+    lines.push(`</div>`)
+  }
+  lines.push(`</div>`)
+
+  // Quality gate failure reasons
+  if (gate && !gate.passed && gate.failures?.length > 0) {
+    lines.push(`<div style="margin:8px 0;padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:12px;color:#991b1b">`)
+    lines.push(`<strong>Gate Failures:</strong><ul style="margin:4px 0 0 16px">`)
+    for (const reason of gate.failures) {
+      lines.push(`<li>${esc(reason)}</li>`)
+    }
+    lines.push(`</ul></div>`)
+  }
+
+  // Dimensions
+  if (scores?.dimensions) {
+    lines.push(`<h3>Dimensions</h3>`)
+    lines.push(`<table style="width:100%;border-collapse:collapse;font-size:12px;margin:8px 0">`)
+    lines.push(`<thead><tr style="border-bottom:1px solid #e5e5e5;text-align:left">`)
+    lines.push(`<th style="padding:4px 8px">Dimension</th>`)
+    lines.push(`<th style="padding:4px 8px">Score</th>`)
+    lines.push(`<th style="padding:4px 8px">Progress</th>`)
+    lines.push(`<th style="padding:4px 8px">Checks</th>`)
+    lines.push(`</tr></thead><tbody>`)
+
+    for (const key of DIMENSION_ORDER) {
+      const dim = scores.dimensions[key]
+      if (!dim) continue
+      const label = DIMENSION_LABELS[key] ?? key
+      const total = dim.checks_passed + dim.checks_failed
+      const pct = total > 0 ? Math.round((dim.checks_passed / total) * 100) : 0
+      const barColor = dim.score >= 70 ? "#059669" : dim.score >= 40 ? "#d97706" : "#dc2626"
+
+      lines.push(`<tr style="border-bottom:1px solid #f3f4f6">`)
+      lines.push(`<td style="padding:4px 8px;font-weight:500">${esc(label)}</td>`)
+      lines.push(`<td style="padding:4px 8px">${dim.score}</td>`)
+      lines.push(`<td style="padding:4px 8px"><div style="width:100%;height:8px;background:#f3f4f6;border-radius:4px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:4px"></div></div></td>`)
+      lines.push(`<td style="padding:4px 8px">${dim.checks_passed}/${total}</td>`)
+      lines.push(`</tr>`)
+    }
+    lines.push(`</tbody></table>`)
+  }
+
+  // Compliance
+  const comp = evaluation.compliance
+  if (comp) {
+    lines.push(`<h3>Compliance</h3>`)
+    lines.push(`<ul style="font-size:12px;margin:4px 0 8px 16px">`)
+    if (comp.asvs) {
+      lines.push(`<li>OWASP ASVS: Level ${comp.asvs.estimated_level} (${comp.asvs.level_1_percent}% of L1, ${esc(comp.asvs.level_1_coverage)})</li>`)
+    }
+    if (comp.nist) {
+      lines.push(`<li>NIST SSDF: ${comp.nist.practices_passing}/${comp.nist.practices_evaluated} practices passing</li>`)
+    }
+    lines.push(`</ul>`)
+  }
+
+  return lines.join("\n")
+}
+
+export function reportToPdfHtml(
+  report: DiscoveryReport,
+  repoName?: string,
+  evaluation?: EvaluationReport | null,
+  aivss?: AIVSSScore | null,
+): string {
   const title = repoName ? `Scan Report: ${repoName}` : "Scan Report"
   const date = new Date(report.generated_at).toLocaleString("en-US", {
     year: "numeric", month: "short", day: "numeric",
@@ -186,6 +306,8 @@ export function reportToPdfHtml(report: DiscoveryReport, repoName?: string): str
 
 ${summary ? `<p style="font-size:12px;color:#6b7280;margin:8px 0">Must Fix: ${summary.must_fix_count} &middot; Should Fix: ${summary.should_fix_count} &middot; Consider: ${summary.consider_count} &middot; Informational: ${summary.informational_count}${summary.signal_to_noise_ratio != null ? ` &middot; Signal-to-noise: ${(summary.signal_to_noise_ratio * 100).toFixed(0)}%` : ""}</p>` : ""}
 
+${renderEvaluationHtml(evaluation, aivss)}
+
 ${findingsHtml ? `<h2>Findings</h2>\n${findingsHtml}` : ""}
 
 ${remediationHtml}
@@ -197,8 +319,13 @@ ${remediationHtml}
 </html>`
 }
 
-export function openPdfReport(report: DiscoveryReport, repoName?: string) {
-  const html = reportToPdfHtml(report, repoName)
+export function openPdfReport(
+  report: DiscoveryReport,
+  repoName?: string,
+  evaluation?: EvaluationReport | null,
+  aivss?: AIVSSScore | null,
+) {
+  const html = reportToPdfHtml(report, repoName, evaluation, aivss)
   const blob = new Blob([html], { type: "text/html" })
   const url = URL.createObjectURL(blob)
   const win = window.open(url, "_blank")
