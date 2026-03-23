@@ -14,7 +14,7 @@ import {
   MoreHorizontal,
 } from "lucide-react"
 
-import type { DiscoveryReport } from "@/lib/api/types"
+import type { DiscoveryReport, EvaluationReport, AIVSSScore } from "@/lib/api/types"
 import { reportToMarkdown } from "@/lib/report/to-markdown"
 import { openPdfReport } from "@/lib/report/to-pdf-html"
 import { apiFetch, sanitizeFilename } from "@/lib/api/client"
@@ -44,6 +44,8 @@ interface ReportHeaderProps {
   repoName?: string
   scanId: string
   actionableCount?: number
+  evaluation?: EvaluationReport | null
+  aivss?: AIVSSScore | null
 }
 
 function downloadJson(report: DiscoveryReport, repoName?: string) {
@@ -62,12 +64,17 @@ function downloadJson(report: DiscoveryReport, repoName?: string) {
   URL.revokeObjectURL(url)
 }
 
-function downloadMarkdown(report: DiscoveryReport, repoName?: string) {
+function downloadMarkdown(
+  report: DiscoveryReport,
+  repoName?: string,
+  evaluation?: EvaluationReport | null,
+  aivss?: AIVSSScore | null,
+) {
   const slug = sanitizeFilename((repoName || "repo").replace(/\//g, "-"))
   const date = new Date().toISOString().slice(0, 10)
   const filename = `scan-report-${slug}-${date}.md`
 
-  const md = reportToMarkdown(report, repoName)
+  const md = reportToMarkdown(report, repoName, evaluation, aivss)
   const blob = new Blob([md], { type: "text/markdown" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -77,7 +84,7 @@ function downloadMarkdown(report: DiscoveryReport, repoName?: string) {
   URL.revokeObjectURL(url)
 }
 
-export function ReportHeader({ report, repoName, scanId, actionableCount }: ReportHeaderProps) {
+export function ReportHeader({ report, repoName, scanId, actionableCount, evaluation, aivss }: ReportHeaderProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const [deleting, setDeleting] = useState(false)
@@ -163,11 +170,11 @@ export function ReportHeader({ report, repoName, scanId, actionableCount }: Repo
               <Download className="size-4 mr-2" />
               Download JSON
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => downloadMarkdown(report, repoName)}>
+            <DropdownMenuItem onClick={() => downloadMarkdown(report, repoName, evaluation, aivss)}>
               <FileText className="size-4 mr-2" />
               Download Markdown
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => openPdfReport(report, repoName)}>
+            <DropdownMenuItem onClick={() => openPdfReport(report, repoName, evaluation, aivss)}>
               <Printer className="size-4 mr-2" />
               Save as PDF
             </DropdownMenuItem>
