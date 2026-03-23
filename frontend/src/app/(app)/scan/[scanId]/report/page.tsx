@@ -9,11 +9,13 @@ import Link from "next/link"
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
 
 import { apiFetch } from "@/lib/api/client"
-import type { DiscoveryReport, Severity } from "@/lib/api/types"
+import type { DiscoveryReport, Severity, EvaluationReport, AIVSSScore } from "@/lib/api/types"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ScoreGauge } from "@/components/score-gauge"
+import { EvaluationOverview } from "@/components/evaluation-overview"
+import { FailedChecksTable } from "@/components/failed-checks-table"
 
 import { ReportHeader } from "./_components/report-header"
 import { SeveritySummary } from "./_components/severity-summary"
@@ -35,6 +37,8 @@ interface ScanDetail {
   scalability_score?: number | null
   report_data?: {
     discovery_report?: DiscoveryReport
+    evaluation?: EvaluationReport
+    aivss_score?: AIVSSScore
   }
 }
 
@@ -114,6 +118,7 @@ function ReportSidebar({
         <p className="text-xs text-[#8692A8] uppercase tracking-wider mb-2">Sections</p>
         <nav className="space-y-1">
           {[
+            { id: "evaluation", label: "Evaluation" },
             { id: "summary", label: "Summary" },
             { id: "architecture", label: "Architecture" },
             { id: "findings", label: "Findings" },
@@ -264,6 +269,21 @@ export default function ReportPage() {
 
         {/* Main content */}
         <main className="flex-1 min-w-0 space-y-6">
+          {/* v3 Evaluation Overview */}
+          {scan.report_data?.evaluation && (
+            <section id="evaluation">
+              <EvaluationOverview
+                evaluation={scan.report_data.evaluation}
+                aivss={scan.report_data.aivss_score}
+              />
+            </section>
+          )}
+
+          {/* Failed checks detail */}
+          {scan.report_data?.evaluation?.deterministic_checks && (
+            <FailedChecksTable checks={scan.report_data.evaluation.deterministic_checks} />
+          )}
+
           {/* Actionability summary */}
           <section id="summary">
             <SeveritySummary
