@@ -5,6 +5,8 @@ import type {
   RemediationPlan as RemediationPlanType,
   RemediationItem,
   CodebaseMap,
+  EvaluationReport,
+  AIVSSScore,
 } from "@/lib/api/types"
 import { formatDuration } from "@/lib/utils"
 
@@ -213,9 +215,110 @@ function renderCodebaseMap(map: CodebaseMap): string {
   return lines.join("\n")
 }
 
+const DIMENSION_ORDER = [
+  "security",
+  "reliability",
+  "maintainability",
+  "test_quality",
+  "performance",
+  "documentation",
+  "operations",
+] as const
+
+const DIMENSION_LABELS: Record<string, string> = {
+  security: "Security",
+  reliability: "Reliability",
+  maintainability: "Maintainability",
+  test_quality: "Test Quality",
+  performance: "Performance",
+  documentation: "Documentation",
+  operations: "Operations",
+}
+
+function renderEvaluationSection(
+  evaluation?: EvaluationReport | null,
+  aivss?: AIVSSScore | null,
+): string {
+  if (!evaluation) return ""
+
+  const lines: string[] = []
+  const scores = evaluation.scores
+  const gate = evaluation.quality_gate
+
+  lines.push("## Production Readiness")
+  lines.push("")
+
+  if (scores) {
+    lines.push(
+      `**Composite Score:** ${scores.composite}/100 (${scores.band} — ${scores.label})`
+    )
+  }
+
+  if (gate) {
+    const status = gate.passed ? "PASSED" : "FAILED"
+    lines.push(`**Quality Gate:** ${status} (${gate.profile} profile)`)
+    if (!gate.passed && gate.failures?.length > 0) {
+      for (const reason of gate.failures) {
+        lines.push(`- ${reason}`)
+      }
+    }
+  }
+
+  lines.push("")
+
+  // Dimensions table
+  if (scores?.dimensions) {
+    lines.push("### Dimensions")
+    lines.push("")
+    lines.push("| Dimension | Score | Checks |")
+    lines.push("|-----------|-------|--------|")
+
+    for (const key of DIMENSION_ORDER) {
+      const dim = scores.dimensions[key]
+      if (!dim) continue
+      const label = DIMENSION_LABELS[key] ?? key
+      const total = dim.checks_passed + dim.checks_failed
+      lines.push(
+        `| ${label} | ${dim.score} | ${dim.checks_passed}/${total} passed |`
+      )
+    }
+    lines.push("")
+  }
+
+  // Compliance
+  const comp = evaluation.compliance
+  if (comp) {
+    lines.push("### Compliance")
+    lines.push("")
+    if (comp.asvs) {
+      lines.push(
+        `- OWASP ASVS: Level ${comp.asvs.estimated_level} (${comp.asvs.level_1_percent}% of L1, ${comp.asvs.level_1_coverage})`
+      )
+    }
+    if (comp.nist) {
+      lines.push(
+        `- NIST SSDF: ${comp.nist.practices_passing}/${comp.nist.practices_evaluated} practices passing`
+      )
+    }
+    lines.push("")
+  }
+
+  // AIVSS
+  if (aivss) {
+    lines.push("### AI Risk (AIVSS)")
+    lines.push("")
+    lines.push(`- Score: ${aivss.score}/10 (${aivss.severity})`)
+    lines.push("")
+  }
+
+  return lines.join("\n")
+}
+
 export function reportToMarkdown(
   report: DiscoveryReport,
-  repoName?: string
+  repoName?: string,
+  evaluation?: EvaluationReport | null,
+  aivss?: AIVSSScore | null,
 ): string {
   const lines: string[] = []
 
@@ -253,6 +356,12 @@ export function reportToMarkdown(
     `- **Severity:** Critical: ${sev.critical ?? 0} | High: ${sev.high ?? 0} | Medium: ${sev.medium ?? 0} | Low: ${sev.low ?? 0}`
   )
   lines.push("")
+
+  // Evaluation section
+  const evalSection = renderEvaluationSection(evaluation, aivss)
+  if (evalSection) {
+    lines.push(evalSection)
+  }
 
   // Findings grouped by actionability
   if (report.findings.length > 0) {
