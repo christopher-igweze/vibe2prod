@@ -59,7 +59,7 @@ async def _run_forge_audit(
             project_context=project_context,
         )
 
-        if result.success and result.discovery_report:
+        if result.success:
             await db.update_scan_with_discovery(
                 scan_id=scan_id,
                 discovery_report=result.discovery_report,
