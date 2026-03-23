@@ -255,6 +255,8 @@ export default function ReportPage() {
           repoName={scan.repo_name}
           scanId={scanId}
           actionableCount={actionableFindings.length}
+          evaluation={scan.report_data?.evaluation}
+          aivss={scan.report_data?.aivss_score}
         />
       </div>
 
