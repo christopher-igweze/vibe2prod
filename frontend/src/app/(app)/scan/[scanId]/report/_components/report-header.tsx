@@ -101,7 +101,8 @@ export function ReportHeader({ report, repoName, scanId, actionableCount, evalua
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(report, null, 2))
+      const md = reportToMarkdown(report, repoName, evaluation, aivss)
+      await navigator.clipboard.writeText(md)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
