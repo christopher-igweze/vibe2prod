@@ -158,6 +158,7 @@ export interface FailedCheck {
   deduction: number
   details: string
   locations?: { file: string; line: number }[]
+  fix_guidance?: string
 }
 
 export interface DeterministicChecks {

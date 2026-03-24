@@ -79,6 +79,20 @@ function DomainGroup({ domain, checks }: { domain: string; checks: FailedCheck[]
                 {check.details && (
                   <p className="text-xs text-[#8692A8] mt-0.5">{check.details}</p>
                 )}
+                {check.locations && check.locations.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {check.locations.map((loc, i) => (
+                      <code key={i} className="text-xs text-[#4E586E] bg-white/[0.03] px-1.5 py-0.5 rounded font-mono">
+                        {loc.file}{loc.line ? `:${loc.line}` : ""}
+                      </code>
+                    ))}
+                  </div>
+                )}
+                {check.fix_guidance && (
+                  <p className="text-xs text-emerald-400/70 mt-1">
+                    Fix: {check.fix_guidance}
+                  </p>
+                )}
               </div>
             </div>
           ))}
