@@ -142,6 +142,8 @@ class CreateScanUseCase:
                 await update_scan_with_discovery(
                     scan_id=scan_id,
                     discovery_report=result.discovery_report,
+                    evaluation=result.evaluation or None,
+                    aivss_score=result.aivss_score or None,
                 )
                 if user_id and role != "developer":
                     try:
