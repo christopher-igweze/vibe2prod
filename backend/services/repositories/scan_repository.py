@@ -87,7 +87,7 @@ async def update_scan_with_discovery(
     aivss_score: dict | None = None,
 ) -> None:
     """Store FORGE discovery report data and computed scores."""
-    scores = _compute_scores_from_discovery(discovery_report)
+    scores = _compute_scores_from_discovery(discovery_report, evaluation=evaluation)
     client = _client()
 
     report_data: dict = {"discovery_report": discovery_report}

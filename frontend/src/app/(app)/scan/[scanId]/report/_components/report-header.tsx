@@ -91,13 +91,15 @@ export function ReportHeader({ report, repoName, scanId, actionableCount, evalua
   const [copied, setCopied] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const formattedDate = new Date(report.generated_at).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
+  const formattedDate = report.generated_at
+    ? new Date(report.generated_at).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : ""
 
   async function handleCopy() {
     try {

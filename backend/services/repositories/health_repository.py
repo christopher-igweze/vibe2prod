@@ -15,7 +15,10 @@ async def check_database_health() -> bool:
         return False
 
 
-def _compute_scores_from_discovery(discovery_report: dict) -> dict[str, int]:
+def _compute_scores_from_discovery(
+    discovery_report: dict,
+    evaluation: dict | None = None,
+) -> dict[str, int]:
     """Map v3 evaluation dimension scores to frontend score columns.
 
     Dimension mapping (forge v3 -> frontend):
@@ -23,10 +26,14 @@ def _compute_scores_from_discovery(discovery_report: dict) -> dict[str, int]:
       maintainability -> health_score
       reliability -> reliability_score
       performance -> scalability_score
+
+    Evaluation can come from:
+      1. Passed explicitly as `evaluation` parameter (preferred)
+      2. Nested inside `discovery_report["evaluation"]` (legacy fallback)
     """
-    evaluation = discovery_report.get("evaluation")
-    if isinstance(evaluation, dict):
-        scores = evaluation.get("scores")
+    eval_data = evaluation or discovery_report.get("evaluation")
+    if isinstance(eval_data, dict):
+        scores = eval_data.get("scores")
         if isinstance(scores, dict):
             dims = scores.get("dimensions", {})
             if dims:
