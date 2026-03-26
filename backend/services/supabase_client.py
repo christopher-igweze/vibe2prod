@@ -18,5 +18,6 @@ from services.repositories.onboarding_repository import *  # noqa: F401,F403
 from services.repositories.oauth_repository import *  # noqa: F401,F403
 from services.repositories.primer_repository import *  # noqa: F401,F403
 from services.repositories.telemetry_repository import *  # noqa: F401,F403
+from services.repositories.training_repository import *  # noqa: F401,F403
 from services.repositories.health_repository import *  # noqa: F401,F403
 from services.repositories.health_repository import _compute_scores_from_discovery  # noqa: F401

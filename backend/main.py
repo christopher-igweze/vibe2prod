@@ -33,6 +33,7 @@ from api.routes import (
     github_oauth,
     probe,
     telemetry,
+    training,
     user,
     webhook,
     webhook_clerk,
@@ -251,6 +252,7 @@ app.include_router(primer.router, prefix="/api", tags=["primer"])
 app.include_router(onboarding.router, prefix="/api", tags=["onboarding"])
 app.include_router(github_oauth.router, prefix="/api", tags=["github"])
 app.include_router(telemetry.router, prefix="/api", tags=["telemetry"])
+app.include_router(training.router, prefix="/api", tags=["training"])
 app.include_router(user.router, prefix="/api", tags=["user"])
 app.include_router(probe.router, prefix="/api", tags=["probe"])
 app.include_router(webhook.router, prefix="/api", tags=["webhook"])
