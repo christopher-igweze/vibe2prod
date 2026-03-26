@@ -10,10 +10,6 @@ CREATE INDEX IF NOT EXISTS idx_scan_reports_user_created
 CREATE INDEX IF NOT EXISTS idx_projects_user_created
     ON projects (user_id, created_at DESC);
 
--- Findings: loaded when viewing a specific scan
-CREATE INDEX IF NOT EXISTS idx_findings_scan_id
-    ON findings (scan_id);
-
 -- Probes: /api/user/probes (list_user_probes)
 CREATE INDEX IF NOT EXISTS idx_probes_user_created
     ON probes (user_id, created_at DESC);
