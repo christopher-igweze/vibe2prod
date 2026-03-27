@@ -1,260 +1,402 @@
-# Vibe2Prod .forgeignore — Verified design decisions and known false positives
+# Vibe2Prod .forgeignore v2 — Verified design decisions and known false positives
 # Each rule has been verified against the actual codebase across 10+ FORGE scans.
-# Rules use broad patterns to catch LLM paraphrasing of the same underlying issue.
+# Migrated from v1 to v2 structured suppression format.
 
-# ═══════════════════════════════════════════════════════════════════════
-# NON-RUNTIME FILES — Never scan these
-# ═══════════════════════════════════════════════════════════════════════
+version: 2
+suppressions:
 
-- pattern: ".*"
-  path: "supabase/migrations/**"
-  reason: "Migration SQL is historical DDL, not runtime code."
+  # ═══════════════════════════════════════════════════════════════════════
+  # NON-RUNTIME FILES — Never scan these
+  # ═══════════════════════════════════════════════════════════════════════
 
-- pattern: ".*"
-  path: "tasks/**"
-  reason: "Task/plan documents are development artifacts."
+  - id: sup_001
+    kind: test_fixture
+    match:
+      file: "supabase/migrations/**"
+    reason: "Migration SQL is historical DDL, not runtime code."
 
-- pattern: ".*"
-  path: "tests/**"
-  reason: "Test files contain intentional security test cases, not production vulnerabilities."
+  - id: sup_002
+    kind: test_fixture
+    match:
+      file: "tasks/**"
+    reason: "Task/plan documents are development artifacts."
 
-- pattern: ".*"
-  path: "backend/scripts/**"
-  reason: "Migration/deployment scripts run once, not at runtime."
+  - id: sup_003
+    kind: test_fixture
+    match:
+      file: "tests/**"
+    reason: "Test files contain intentional security test cases, not production vulnerabilities."
 
-- pattern: ".*"
-  path: "frontend/e2e/**"
-  reason: "E2E fixtures contain mock data, not production code."
+  - id: sup_004
+    kind: test_fixture
+    match:
+      file: "backend/scripts/**"
+    reason: "Migration/deployment scripts run once, not at runtime."
 
-# ═══════════════════════════════════════════════════════════════════════
-# VERIFIED SECURITY — Fixes confirmed across 5+ scan iterations
-# ═══════════════════════════════════════════════════════════════════════
+  - id: sup_005
+    kind: test_fixture
+    match:
+      file: "frontend/e2e/**"
+    reason: "E2E fixtures contain mock data, not production code."
 
-# OAuth — All aspects verified and hardened
-- pattern: "OAuth|oauth|redirect.uri|redirect_uri|state.*token|state.*replay|state.*CSRF|state.*nonce|code.*exchange"
-  category: security
-  reason: "OAuth flow fully hardened: validate_redirect_uri() with urlparse+HTTPS enforcement, consume_oauth_state_atomic() with UNIQUE constraint, JWT expiry on state tokens, hmac.compare_digest for timing-safe comparison. Verified rounds 1-8."
+  # ═══════════════════════════════════════════════════════════════════════
+  # VERIFIED SECURITY — Fixes confirmed across 5+ scan iterations
+  # ═══════════════════════════════════════════════════════════════════════
 
-# Token encryption — Implemented and working
-- pattern: "token.*encrypt|encrypt.*token|token.*plaintext|plaintext.*token|token.*storage|unencrypted.*token"
-  category: security
-  reason: "encrypt_token() in github_token_manager.connect_user(), decrypt_token() in oauth_repository.get_github_access_token(). AES-256-GCM with validated 32-byte key. Verified rounds 1-8."
+  # OAuth — All aspects verified and hardened
+  - id: sup_006
+    kind: already_fixed
+    match:
+      rule_family: open-redirect
+      file: "backend/services/repositories/oauth_repository.py"
+    reason: "OAuth flow fully hardened: validate_redirect_uri() with urlparse+HTTPS enforcement, consume_oauth_state_atomic() with UNIQUE constraint, JWT expiry on state tokens, hmac.compare_digest for timing-safe comparison. Verified rounds 1-8."
 
-# IDOR / Ownership — Defense-in-depth implemented
-- pattern: "ownership|IDOR|user_id.*check|missing.*auth.*check|authorization.*check|scan.*ownership"
-  category: security
-  reason: "Triple defense-in-depth: DB query filters by user_id, route handler verifies project.user_id, and explicit scan.user_id guard. Verified rounds 1-8."
+  - id: sup_007
+    kind: already_fixed
+    match:
+      rule_family: open-redirect
+      file: "backend/api/routes/github_oauth.py"
+    reason: "OAuth flow fully hardened: validate_redirect_uri() with urlparse+HTTPS enforcement, consume_oauth_state_atomic() with UNIQUE constraint, JWT expiry on state tokens, hmac.compare_digest for timing-safe comparison. Verified rounds 1-8."
 
-# Probe auth — Intentional UUID-as-capability-token design
-- pattern: "probe.*auth|auth.*probe|unauthenticated.*probe|probe.*ownership"
-  category: security
-  reason: "Probe endpoints use UUID-as-capability-token. Anonymous access by probe ID is intentional. Auth required for list/create operations."
+  # Token encryption — Implemented and working
+  - id: sup_008
+    kind: already_fixed
+    match:
+      rule_family: weak-crypto
+      file: "backend/services/github_token_manager.py"
+    reason: "encrypt_token() in github_token_manager.connect_user(), decrypt_token() in oauth_repository.get_github_access_token(). AES-256-GCM with validated 32-byte key. Verified rounds 1-8."
 
-# CORS — Configured correctly
-- pattern: "CORS"
-  category: security
-  reason: "Production uses CORS_ALLOWED_ORIGINS (explicit). Dev fallback is localhost-only regex. config.py warns in production without explicit origins. Verified rounds 1-8."
+  # IDOR / Ownership — Defense-in-depth implemented
+  - id: sup_009
+    kind: already_fixed
+    match:
+      rule_family: idor
+      file: "backend/api/routes/**"
+    reason: "Triple defense-in-depth: DB query filters by user_id, route handler verifies project.user_id, and explicit scan.user_id guard. Verified rounds 1-8."
 
-# Debug mode — Validator exists
-- pattern: "debug.*mode|debug.*enabled|debug.*production|debug.*bypass"
-  category: security
-  reason: "_validate_production_security raises ValueError if debug=True outside development environment."
+  # Probe auth — Intentional UUID-as-capability-token design
+  - id: sup_010
+    kind: already_fixed
+    match:
+      rule_family: missing-auth-check
+      file: "backend/api/routes/probe.py"
+    reason: "Probe endpoints use UUID-as-capability-token. Anonymous access by probe ID is intentional. Auth required for list/create operations."
 
-# Webhook signatures — Both handlers validate
-- pattern: "webhook.*signature|webhook.*validation|webhook.*verify|webhook.*HMAC"
-  category: security
-  reason: "webhook.py: HMAC-SHA256 validation. webhook_clerk.py: Svix signature verification. Both validated."
+  # CORS — Configured correctly
+  - id: sup_011
+    kind: already_fixed
+    match:
+      rule_family: cors-misconfiguration
+      file: "backend/config.py"
+    reason: "Production uses CORS_ALLOWED_ORIGINS (explicit). Dev fallback is localhost-only regex. config.py warns in production without explicit origins. Verified rounds 1-8."
 
-# Telemetry — Fixed, uses logger.exception
-- pattern: "telemetry.*silent|telemetry.*swallow|telemetry.*error|silent.*telemetry"
-  reason: "All telemetry catch blocks use logger.exception() for full traceback logging. Verified rounds 4-8."
+  # Debug mode — Validator exists
+  - id: sup_012
+    kind: already_fixed
+    match:
+      rule_family: sensitive-data-exposure
+      file: "backend/config.py"
+    reason: "_validate_production_security raises ValueError if debug=True outside development environment."
 
-# Error/exception handling — Redaction implemented
-- pattern: "sensitive.*error|error.*message.*leak|exception.*leak|plaintext.*error|API.*key.*error|stack.*trace.*leak"
-  reason: "_redact_exception_message() with _SENSITIVE_PATTERNS regex in _log_exception(). URL sanitization via _sanitize_url() allowlist."
+  # Webhook signatures — Both handlers validate
+  - id: sup_013
+    kind: already_fixed
+    match:
+      rule_family: missing-input-validation
+      file: "backend/api/routes/webhook.py"
+    reason: "webhook.py: HMAC-SHA256 validation. webhook_clerk.py: Svix signature verification. Both validated."
 
-# JWT / Auth middleware — Properly configured
-- pattern: "JWT.*secret|JWT.*validation|issuer.*validation|issuer.*derived|sub.*claim|algorithm.*confusion|Clerk.*issuer"
-  category: security
-  reason: "Auth middleware: always derives issuer, always verifies signature, null-checks sub claim, config warns if clerk_issuer not explicit."
+  - id: sup_014
+    kind: already_fixed
+    match:
+      rule_family: missing-input-validation
+      file: "backend/api/routes/webhook_clerk.py"
+    reason: "webhook.py: HMAC-SHA256 validation. webhook_clerk.py: Svix signature verification. Both validated."
 
-# Input validation — Implemented
-- pattern: "input.*validation.*repo|repo.*URL.*valid|repository.*URL.*valid|GitHub.*URL.*valid"
-  reason: "_GITHUB_URL_RE regex validates GitHub URL format in audit.py before any downstream use."
+  # Telemetry — Fixed, uses logger.exception
+  - id: sup_015
+    kind: already_fixed
+    match:
+      rule_family: missing-error-handling
+      file: "backend/services/repositories/telemetry_repository.py"
+    reason: "All telemetry catch blocks use logger.exception() for full traceback logging. Verified rounds 4-8."
 
-# GitHub OAuth endpoints — Auth is enforced by middleware
-- pattern: "missing.*auth.*github|github.*endpoint.*unauth|github.*status.*auth"
-  category: security
-  reason: "All /api/github-oauth/* endpoints require auth (not in PUBLIC_PATHS). request.state.user_id used in all handlers."
+  # Error/exception handling — Redaction implemented
+  - id: sup_016
+    kind: already_fixed
+    match:
+      rule_family: error-info-leak
+      file: "backend/**"
+    reason: "_redact_exception_message() with _SENSITIVE_PATTERNS regex in _log_exception(). URL sanitization via _sanitize_url() allowlist."
 
-# URL sanitization — All logging paths redact query params
-- pattern: "query.*param.*logged.*before.*redaction|logged.*before.*sanitiz|raw.*URL.*log|unsanitized.*URL"
-  category: security
-  reason: "Every logging path (AccessLogMiddleware, _log_exception, global error handler) calls _sanitize_url() with allowlist-based redaction. No raw URL is ever logged."
+  # JWT / Auth middleware — Properly configured
+  - id: sup_017
+    kind: already_fixed
+    match:
+      rule_family: weak-crypto
+      file: "backend/middleware/auth.py"
+    reason: "Auth middleware: always derives issuer, always verifies signature, null-checks sub claim, config warns if clerk_issuer not explicit."
 
-# GitHub get_head_sha — Already wrapped in try/except
-- pattern: "get_head_sha.*try.*catch|get_head_sha.*error.*handling|get_head_sha.*unhandled"
-  category: reliability
-  reason: "get_head_sha() in github_commit_ops.py wraps httpx calls in try/except for HTTPStatusError (404→branch_not_found, other→502) and RequestError (network error). Verified."
+  # Input validation — Implemented
+  - id: sup_018
+    kind: already_fixed
+    match:
+      rule_family: missing-input-validation
+      file: "backend/api/routes/audit.py"
+    reason: "_GITHUB_URL_RE regex validates GitHub URL format in audit.py before any downstream use."
 
-# Scan wizard error handling — All async ops have try/catch
-- pattern: "scan.*wizard.*try.*catch|scan.*wizard.*error.*handling|scan.*wizard.*unhandled|prefill.*error"
-  path: "frontend/**"
-  category: reliability
-  reason: "prefillFromProject and handleSubmit in scan-wizard-context.tsx both have try/catch with error state management. Verified."
+  # GitHub OAuth endpoints — Auth is enforced by middleware
+  - id: sup_019
+    kind: already_fixed
+    match:
+      rule_family: missing-auth-check
+      file: "backend/api/routes/github_oauth.py"
+    reason: "All /api/github-oauth/* endpoints require auth (not in PUBLIC_PATHS). request.state.user_id used in all handlers."
 
-# ═══════════════════════════════════════════════════════════════════════
-# KNOWN LIMITATIONS — Tracked, not blocking
-# ═══════════════════════════════════════════════════════════════════════
+  # URL sanitization — All logging paths redact query params
+  - id: sup_020
+    kind: already_fixed
+    match:
+      rule_family: sensitive-data-exposure
+      file: "backend/middleware/**"
+    reason: "Every logging path (AccessLogMiddleware, _log_exception, global error handler) calls _sanitize_url() with allowlist-based redaction. No raw URL is ever logged."
 
-- pattern: "rate.limit.*per.process|rate.limit.*worker|rate.limit.*distributed|rate.limit.*memory"
-  reason: "Per-process rate limiting is a known limitation. Redis upgrade tracked in backlog."
-  expires: "2026-09-01"
+  # GitHub get_head_sha — Already wrapped in try/except
+  - id: sup_021
+    kind: already_fixed
+    match:
+      rule_family: unhandled-exception
+      file: "backend/services/github_commit_ops.py"
+    reason: "get_head_sha() in github_commit_ops.py wraps httpx calls in try/except for HTTPStatusError (404->branch_not_found, other->502) and RequestError (network error). Verified."
 
-- pattern: "webhook.*cache.*unbounded|webhook.*cache.*growth|webhook.*cache.*bound|replay.*cache"
-  reason: "Webhook delivery cache bounded at 10K entries with FIFO eviction."
+  # Scan wizard error handling — All async ops have try/catch
+  - id: sup_022
+    kind: already_fixed
+    match:
+      rule_family: missing-error-handling
+      file: "frontend/contexts/scan-wizard-context.tsx"
+    reason: "prefillFromProject and handleSubmit in scan-wizard-context.tsx both have try/catch with error state management. Verified."
 
-- pattern: "connection.*pooling|httpx.*pool|httpx.*timeout|httpx.*shared"
-  reason: "shared_client in http_client.py configured with connection pooling (100 max, 20 keepalive, 30s timeout)."
+  # ═══════════════════════════════════════════════════════════════════════
+  # KNOWN LIMITATIONS — Tracked, not blocking
+  # ═══════════════════════════════════════════════════════════════════════
 
-# ═══════════════════════════════════════════════════════════════════════
-# ARCHITECTURE — Capped at MEDIUM, tracked as tech debt
-# ═══════════════════════════════════════════════════════════════════════
+  # Rate limiting — Per-process, Redis upgrade tracked
+  - id: sup_023
+    kind: accepted_risk
+    match:
+      rule_family: missing-rate-limit
+    reason: "Per-process rate limiting is a known limitation. Redis upgrade tracked in backlog."
+    expires: "2026-09-01"
 
-- category: architecture
-  max_severity: medium
-  reason: "Architecture findings capped at MEDIUM per team policy."
+  # Webhook cache — Bounded at 10K entries
+  - id: sup_024
+    kind: accepted_risk
+    match:
+      rule_family: resource-leak
+      file: "backend/api/routes/webhook.py"
+    reason: "Webhook delivery cache bounded at 10K entries with FIFO eviction."
 
-# ═══════════════════════════════════════════════════════════════════════
-# QUALITY — Low-severity observations, not actionable
-# ═══════════════════════════════════════════════════════════════════════
+  # Connection pooling — Configured with limits
+  - id: sup_025
+    kind: accepted_risk
+    match:
+      rule_family: missing-timeout
+      file: "backend/services/http_client.py"
+    reason: "shared_client in http_client.py configured with connection pooling (100 max, 20 keepalive, 30s timeout)."
 
-- pattern: "magic.*number|duplicate.*constant|duplicate.*function|duplicate.*export|hardcoded.*pagination|hardcoded.*retry|hardcoded.*timeout|hardcoded.*TTL"
-  category: quality
-  max_severity: low
-  reason: "Code quality observations. Duplicate utils and magic numbers are tracked as tech debt, not blockers."
+  # ═══════════════════════════════════════════════════════════════════════
+  # ARCHITECTURE — Capped at MEDIUM, tracked as tech debt
+  # ═══════════════════════════════════════════════════════════════════════
 
-- pattern: "missing.*type.*annotation|Type.*Any|inconsistent.*naming|inconsistent.*export"
-  category: quality
-  max_severity: low
-  reason: "Type safety improvements tracked as tech debt."
+  - id: sup_026
+    kind: accepted_risk
+    match:
+      category: architecture
+      max_severity: medium
+    reason: "Architecture findings capped at MEDIUM per team policy."
 
-# ═══════════════════════════════════════════════════════════════════════
-# FRONTEND — Standard patterns, not vulnerabilities
-# ═══════════════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════
+  # QUALITY — Low-severity observations, not actionable
+  # ═══════════════════════════════════════════════════════════════════════
 
-- pattern: "localStorage|sessionStorage|build.*time.*exposure|NEXT_PUBLIC|environment.*variable.*bundle"
-  path: "frontend/**"
-  category: security
-  max_severity: low
-  reason: "Standard Next.js/SPA patterns. Only public URLs exposed, not secrets. Backend enforces real security boundaries."
+  # Magic numbers / duplicates
+  - id: sup_027
+    kind: accepted_risk
+    match:
+      category: quality
+      max_severity: low
+    reason: "Code quality observations. Duplicate utils and magic numbers are tracked as tech debt, not blockers."
 
-- pattern: "error.*boundary"
-  reason: "ErrorBoundary component exists in components/error-boundary.tsx, wraps children in layout.tsx."
+  # Type annotations
+  - id: sup_028
+    kind: accepted_risk
+    match:
+      category: quality
+      max_severity: low
+    reason: "Type safety improvements tracked as tech debt."
 
-- pattern: "client.*side.*subscription|client.*side.*feature.*gate|client.*side.*role.*check"
-  path: "frontend/**"
-  reason: "Client-side checks are UX indicators. Backend enforces real gates."
+  # Wildcard imports — intentional re-exports
+  - id: sup_029
+    kind: accepted_risk
+    match:
+      category: quality
+      max_severity: low
+    reason: "Wildcard imports in __init__.py files are intentional re-exports for backward compatibility (supabase_client.py split)."
 
-- pattern: "API.*client.*error|promise.*rejection|error.*middleware|retry.*middleware"
-  path: "frontend/**"
-  reason: "errorMiddleware + retryMiddleware composed in apiFetch pipeline. Verified rounds 3-8."
+  # ═══════════════════════════════════════════════════════════════════════
+  # FRONTEND — Standard patterns, not vulnerabilities
+  # ═══════════════════════════════════════════════════════════════════════
 
-- pattern: "cache.*eviction|cache.*size.*limit|cache.*TTL|request.*dedup"
-  path: "frontend/**"
-  max_severity: low
-  reason: "Frontend caching with 30s TTL and GET deduplication implemented. Non-GET dedup intentionally excluded."
+  # localStorage / NEXT_PUBLIC — Standard SPA patterns
+  - id: sup_030
+    kind: not_applicable
+    match:
+      rule_family: sensitive-data-exposure
+      file: "frontend/**"
+    reason: "Standard Next.js/SPA patterns. Only public URLs exposed, not secrets. Backend enforces real security boundaries."
 
-# ═══════════════════════════════════════════════════════════════════════
-# ENCRYPTION KEY — Validated at startup
-# ═══════════════════════════════════════════════════════════════════════
+  # Error boundary — Component exists
+  - id: sup_031
+    kind: not_applicable
+    match:
+      rule_family: missing-error-handling
+      file: "frontend/**"
+    reason: "ErrorBoundary component exists in components/error-boundary.tsx, wraps children in layout.tsx."
 
-- pattern: "encryption.*key.*rotation|encryption.*key.*valid|encryption.*key.*base64|encryption.*key.*length"
-  reason: "_validate_encryption_key checks base64 + 32 bytes at startup. Rotation procedure documented in config.py docstring."
+  # Client-side subscription/role checks — UX indicators only
+  - id: sup_032
+    kind: intentional
+    match:
+      rule_family: missing-auth-check
+      file: "frontend/**"
+    reason: "Client-side checks are UX indicators. Backend enforces real gates."
 
-# ═══════════════════════════════════════════════════════════════════════
-# PAGINATION — Implemented on all list endpoints
-# ═══════════════════════════════════════════════════════════════════════
+  # API client error handling — Middleware pipeline implemented
+  - id: sup_033
+    kind: not_applicable
+    match:
+      rule_family: missing-error-handling
+      file: "frontend/**"
+    reason: "errorMiddleware + retryMiddleware composed in apiFetch pipeline. Verified rounds 3-8."
 
-- pattern: "missing.*pagination|unbounded.*list|unbounded.*query|N\\+1.*query|eager.*loading"
-  max_severity: low
-  reason: "Pagination implemented on scans (20/page), projects (50/page), probes (20/page), project_scans (20/page). N+1 mitigated by get_projects_batch()."
+  # Cache eviction — TTL and dedup implemented
+  - id: sup_034
+    kind: not_applicable
+    match:
+      rule_family: missing-cache
+      file: "frontend/**"
+    reason: "Frontend caching with 30s TTL and GET deduplication implemented. Non-GET dedup intentionally excluded."
 
-# ═══════════════════════════════════════════════════════════════════════
-# HEALTH CHECK — Enforced at startup
-# ═══════════════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════
+  # ALREADY FIXED — Standalone verified fixes
+  # ═══════════════════════════════════════════════════════════════════════
 
-- pattern: "health.*check.*startup|database.*check.*enforced|health.*check.*missing"
-  reason: "Lifespan function calls check_database_health() and raises RuntimeError on failure. App won't start without DB."
+  # Encryption key — Validated at startup
+  - id: sup_035
+    kind: already_fixed
+    match:
+      rule_family: weak-crypto
+      file: "backend/config.py"
+    reason: "_validate_encryption_key checks base64 + 32 bytes at startup. Rotation procedure documented in config.py docstring."
 
-# ═══════════════════════════════════════════════════════════════════════
-# BROAD CATCH-ALL — Suppress verified categories regardless of phrasing
-# ═══════════════════════════════════════════════════════════════════════
+  # Pagination — Implemented on all list endpoints
+  - id: sup_036
+    kind: already_fixed
+    match:
+      rule_family: missing-pagination
+    reason: "Pagination implemented on scans (20/page), projects (50/page), probes (20/page), project_scans (20/page). N+1 mitigated by get_projects_batch()."
 
-# Rate limiting — all variants
-- pattern: "rate.*limit|in-memory.*rate|per-process.*rate|multi-instance.*rate|multi-worker.*rate"
-  reason: "Per-process rate limiting is a known limitation. Redis tracked in backlog."
-  expires: "2026-09-01"
+  # Health check — Enforced at startup
+  - id: sup_037
+    kind: already_fixed
+    match:
+      rule_family: unhandled-exception
+      file: "backend/main.py"
+    reason: "Lifespan function calls check_database_health() and raises RuntimeError on failure. App won't start without DB."
 
-# Frontend env vars / localStorage / client-side — all variants  
-- pattern: "NEXT_PUBLIC|client.*bundle|localStorage|sessionStorage|frontend.*env|client.*side.*check|subscription.*balance.*client|balance.*check.*frontend|feature.*gate.*frontend"
-  path: "frontend/**"
-  max_severity: low
-  reason: "Standard Next.js/SPA patterns. Backend enforces real security boundaries."
+  # ═══════════════════════════════════════════════════════════════════════
+  # BROAD CATCH-ALL — Verified categories with rule_family targeting
+  # ═══════════════════════════════════════════════════════════════════════
 
-# SSE / streaming logging — Authorization header never logged
-- pattern: "SSE.*log|stream.*log|Authorization.*header.*log|auth.*header.*leak|sensitive.*data.*SSE"
-  reason: "Logging only includes sanitized URLs via _sanitize_url(). Authorization header is never included in log output."
+  # SSE / streaming logging — Authorization header never logged
+  - id: sup_038
+    kind: already_fixed
+    match:
+      rule_family: sensitive-data-exposure
+      file: "backend/middleware/**"
+    reason: "Logging only includes sanitized URLs via _sanitize_url(). Authorization header is never included in log output."
 
-# Server-side enforcement — confirmed in audit.py
-- pattern: "subscription.*not.*enforced.*server|balance.*not.*checked.*server|server.*side.*enforcement"
-  reason: "audit.py checks user balance (lines 147-159) before creating scans. Server-side enforcement confirmed."
+  # Server-side enforcement — confirmed in audit.py
+  - id: sup_039
+    kind: already_fixed
+    match:
+      rule_family: missing-auth-check
+      file: "backend/api/routes/audit.py"
+    reason: "audit.py checks user balance (lines 147-159) before creating scans. Server-side enforcement confirmed."
 
-# Environment validation — all critical secrets validated at startup
-- pattern: "missing.*environment.*validation|critical.*secret.*not.*validated|env.*var.*not.*validated"
-  reason: "config.py has model_validators for: encryption key (base64 + 32 bytes), JWT secret (format), CORS (production warning), debug mode, clerk issuer, webhook secret."
+  # Environment validation — all critical secrets validated at startup
+  - id: sup_040
+    kind: already_fixed
+    match:
+      rule_family: missing-input-validation
+      file: "backend/config.py"
+    reason: "config.py has model_validators for: encryption key (base64 + 32 bytes), JWT secret (format), CORS (production warning), debug mode, clerk issuer, webhook secret."
 
-# PUBLIC_PREFIXES auth boundaries — intentional design
-- pattern: "PUBLIC_PREFIXES.*unauthenticated|unauthenticated.*access.*public.*prefix|authentication.*boundary.*PUBLIC"
-  reason: "PUBLIC_PREFIXES (/api/webhook/, /api/telemetry, /api/cli/) are intentionally unauthenticated — webhooks need to receive external callbacks, telemetry is fire-and-forget, CLI uses API keys."
+  # PUBLIC_PREFIXES auth boundaries — intentional design
+  - id: sup_041
+    kind: intentional
+    match:
+      rule_family: missing-auth-check
+      file: "backend/middleware/auth.py"
+    reason: "PUBLIC_PREFIXES (/api/webhook/, /api/telemetry, /api/cli/) are intentionally unauthenticated — webhooks need to receive external callbacks, telemetry is fire-and-forget, CLI uses API keys."
 
-# Telemetry repository — caller handles errors
-- pattern: "telemetry.*repository.*raises|telemetry.*caller.*handling|telemetry.*exception.*guarantee"
-  reason: "Telemetry repo raises on failure; route handler catches with logger.exception. Separation of concerns is correct."
+  # ═══════════════════════════════════════════════════════════════════════
+  # PERFORMANCE — Premature optimization, apply when profiling shows need
+  # ═══════════════════════════════════════════════════════════════════════
 
-# Wildcard imports in models — intentional for re-export
-- pattern: "wildcard.*import|star.*import|__init__.*import"
-  category: quality
-  max_severity: low
-  reason: "Wildcard imports in __init__.py files are intentional re-exports for backward compatibility (supabase_client.py split)."
+  # React memoization
+  - id: sup_042
+    kind: accepted_risk
+    match:
+      category: performance
+      max_severity: low
+      file: "frontend/**"
+    reason: "React memoization is a premature optimization. Apply when profiling shows re-render performance issues."
 
-# React memoization — premature optimization
-- pattern: "React.*memoization|useMemo.*missing|React.memo.*missing|memoize.*component"
-  category: performance
-  max_severity: low
-  reason: "React memoization is a premature optimization. Apply when profiling shows re-render performance issues."
+  # Lazy loading
+  - id: sup_043
+    kind: accepted_risk
+    match:
+      category: performance
+      max_severity: low
+      file: "frontend/**"
+    reason: "Next.js handles route-level code splitting automatically. Component-level lazy loading applied when profiling shows need."
 
-# Lazy loading — Next.js handles this with dynamic imports when needed
-- pattern: "lazy.*loading.*Next|lazy.*loading.*route|dynamic.*import.*missing"
-  category: performance
-  max_severity: low
-  reason: "Next.js handles route-level code splitting automatically. Component-level lazy loading applied when profiling shows need."
+  # ═══════════════════════════════════════════════════════════════════════
+  # OPENGREP FALSE POSITIVES — Pattern matching without data-flow analysis
+  # ═══════════════════════════════════════════════════════════════════════
 
-# ═══════════════════════════════════════════════════════════════════════
-# OPENGREP FALSE POSITIVES — Pattern matching without data-flow analysis
-# ═══════════════════════════════════════════════════════════════════════
+  # Logger user_id — Opengrep flags logger.exception("...%s", user_id) as
+  # "hardcoded secret in logger." user_id is a Supabase UUID, not a secret.
+  - id: sup_044
+    kind: false_positive
+    match:
+      check_id: "python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure"
+    reason: "False positive: Opengrep flags parameterized logger calls with user_id (Supabase UUID) as 'hardcoded secret'. UUIDs are not secrets — they're standard debug context."
 
-# Logger user_id — Opengrep flags logger.exception("...%s", user_id) as
-# "hardcoded secret in logger." user_id is a Supabase UUID, not a secret.
-# Standard practice to log user IDs for debugging.
-# Added: 2026-03-27
-- pattern: "logger.*hardcoded secret|hardcoded secret.*logger|potential hardcoded secret"
-  reason: "False positive: Opengrep flags parameterized logger calls with user_id (Supabase UUID) as 'hardcoded secret'. UUIDs are not secrets — they're standard debug context."
+  # probe.py instruction strings — Opengrep misidentifies JSON instruction
+  # strings as HTML injection and SQL injection.
+  - id: sup_045
+    kind: false_positive
+    match:
+      check_id: "python.django.security.injection.raw-html-format.raw-html-format"
+      file: "backend/api/routes/probe.py"
+    reason: "False positive: probe.py returns plain-text verification instructions as JSON values (DNS TXT, meta tag, file upload). Not rendered HTML or SQL queries."
 
-# probe.py instruction strings — Opengrep misidentifies JSON instruction
-# strings as HTML injection and SQL injection. These are plain-text
-# instructions returned as JSON values, not rendered HTML or SQL queries.
-# Added: 2026-03-27
-- pattern: "HTML.*string.*probe|XSS.*probe|SQL.*string.*probe|SQL.*injection.*probe|user input.*HTML.*manually|user input.*SQL.*manually"
-  path: "backend/api/routes/probe.py"
-  reason: "False positive: probe.py returns plain-text verification instructions as JSON values (DNS TXT, meta tag, file upload). Not rendered HTML or SQL queries."
+  - id: sup_046
+    kind: false_positive
+    match:
+      check_id: "python.django.security.injection.tainted-sql-string.tainted-sql-string"
+      file: "backend/api/routes/probe.py"
+    reason: "False positive: probe.py returns plain-text verification instructions as JSON values (DNS TXT, meta tag, file upload). Not rendered HTML or SQL queries."
