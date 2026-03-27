@@ -56,12 +56,13 @@ async def ingest_forgeignore(request: Request):
     duplicates = 0
 
     for entry in entries:
-        pattern = entry.get("pattern", "")
-        category = entry.get("category", "")
+        # pattern holds rule_family or check_id or regex pattern
+        pattern = entry.get("pattern", "") or entry.get("rule_family", "")
+        category = entry.get("category", "") or entry.get("type", "")
         entry_type = entry.get("type", "false_positive")
         reason = entry.get("reason", "")
 
-        if not pattern or not category or not reason:
+        if not pattern or not reason:
             continue  # Skip entries missing required fields
 
         # Compute fingerprint for dedup
