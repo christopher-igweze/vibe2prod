@@ -239,3 +239,22 @@
   category: performance
   max_severity: low
   reason: "Next.js handles route-level code splitting automatically. Component-level lazy loading applied when profiling shows need."
+
+# ═══════════════════════════════════════════════════════════════════════
+# OPENGREP FALSE POSITIVES — Pattern matching without data-flow analysis
+# ═══════════════════════════════════════════════════════════════════════
+
+# Logger user_id — Opengrep flags logger.exception("...%s", user_id) as
+# "hardcoded secret in logger." user_id is a Supabase UUID, not a secret.
+# Standard practice to log user IDs for debugging.
+# Added: 2026-03-27
+- pattern: "logger.*hardcoded secret|hardcoded secret.*logger|potential hardcoded secret"
+  reason: "False positive: Opengrep flags parameterized logger calls with user_id (Supabase UUID) as 'hardcoded secret'. UUIDs are not secrets — they're standard debug context."
+
+# probe.py instruction strings — Opengrep misidentifies JSON instruction
+# strings as HTML injection and SQL injection. These are plain-text
+# instructions returned as JSON values, not rendered HTML or SQL queries.
+# Added: 2026-03-27
+- pattern: "HTML.*string.*probe|XSS.*probe|SQL.*string.*probe|SQL.*injection.*probe|user input.*HTML.*manually|user input.*SQL.*manually"
+  path: "backend/api/routes/probe.py"
+  reason: "False positive: probe.py returns plain-text verification instructions as JSON values (DNS TXT, meta tag, file upload). Not rendered HTML or SQL queries."
