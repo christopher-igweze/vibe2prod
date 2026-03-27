@@ -8,12 +8,12 @@ import secrets
 from uuid import UUID
 
 from fastapi import APIRouter, Query, Request, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 
 from api.errors import forbidden, not_found, server_error
 from api.middleware.rate_limit import limiter, rate_limit_string
 from constants import PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PROJECTS_DEFAULT_LIMIT
-from services import supabase_client as db
+from services import openrouter_key_manager, supabase_client as db
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -38,6 +38,7 @@ async def get_me(request: Request) -> dict:
             "lifetime_scan_cap": 5,
             "scan_credits": 1,
             "balance_usd": 0.0,
+            "has_openrouter_key": False,
         }
     return profile
 
@@ -293,3 +294,53 @@ async def revoke_api_key(request: Request) -> Response:
         logger.exception("Failed to revoke API key for user %s", user_id)
         raise server_error("Failed to revoke API key")
     return Response(status_code=204)
+
+
+# ------------------------------------------------------------------ #
+# OpenRouter BYOK key management
+# ------------------------------------------------------------------ #
+
+
+@router.put("/user/openrouter-key")
+@limiter.limit(rate_limit_string())
+async def save_openrouter_key(request: Request) -> dict:
+    """Save or update the user's OpenRouter API key (BYOK)."""
+    user_id: str = request.state.user_id
+    body = await request.json()
+    api_key = body.get("api_key", "").strip()
+    if not api_key:
+        return JSONResponse(status_code=400, content={"detail": "api_key is required"})
+    try:
+        key_hint = openrouter_key_manager.save_key(user_id, api_key)
+    except ValueError as exc:
+        return JSONResponse(status_code=400, content={"detail": str(exc)})
+    except Exception:
+        logger.exception("Failed to save OpenRouter key for user %s", user_id)
+        raise server_error("Failed to save OpenRouter key")
+    return {"ok": True, "key_hint": key_hint}
+
+
+@router.get("/user/openrouter-key")
+@limiter.limit(rate_limit_string())
+async def get_openrouter_key_status(request: Request) -> dict:
+    """Check if the user has a BYOK key saved."""
+    user_id: str = request.state.user_id
+    try:
+        hint = openrouter_key_manager.get_key_hint(user_id)
+    except Exception:
+        logger.exception("Failed to check OpenRouter key status for user %s", user_id)
+        raise server_error("Failed to check OpenRouter key status")
+    return {"has_key": hint is not None, "key_hint": hint}
+
+
+@router.delete("/user/openrouter-key")
+@limiter.limit(rate_limit_string())
+async def remove_openrouter_key(request: Request) -> dict:
+    """Remove the user's OpenRouter API key."""
+    user_id: str = request.state.user_id
+    try:
+        openrouter_key_manager.remove_key(user_id)
+    except Exception:
+        logger.exception("Failed to remove OpenRouter key for user %s", user_id)
+        raise server_error("Failed to remove OpenRouter key")
+    return {"ok": True}
