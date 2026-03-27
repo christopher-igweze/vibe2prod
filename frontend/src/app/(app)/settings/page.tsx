@@ -10,6 +10,7 @@ import { useTour } from "@/components/tour/tour-provider";
 import { Card } from "@/components/ui/card";
 import { GitHubConnection } from "@/components/settings/github-connection";
 import { ApiKeySection } from "@/components/settings/api-key-section";
+import { OpenRouterKeySection } from "@/components/settings/openrouter-key-section";
 import { GuidedTourSection } from "@/components/settings/guided-tour-section";
 
 interface GitHubStatus {
@@ -33,16 +34,25 @@ export default function SettingsPage() {
   const [apiKeyLoading, setApiKeyLoading] = useState(false);
   const [apiKeyCopied, setApiKeyCopied] = useState(false);
 
+  const [hasOpenRouterKey, setHasOpenRouterKey] = useState(false);
+  const [openRouterKeyHint, setOpenRouterKeyHint] = useState<string | null>(null);
+  const [savingOpenRouterKey, setSavingOpenRouterKey] = useState(false);
+
   useEffect(() => {
     async function fetchStatus() {
       try {
         const token = (await getToken()) ?? undefined;
-        const [ghStatus, keyStatus] = await Promise.allSettled([
+        const [ghStatus, keyStatus, orKeyStatus] = await Promise.allSettled([
           apiFetch<GitHubStatus>("/api/github/status", { token }),
           apiFetch<{ has_key: boolean }>("/api/user/api-key", { token }),
+          apiFetch<{ has_key: boolean; key_hint: string | null }>("/api/user/openrouter-key", { token }),
         ]);
         if (ghStatus.status === "fulfilled") setGithub(ghStatus.value);
         if (keyStatus.status === "fulfilled") setHasExistingKey(keyStatus.value.has_key);
+        if (orKeyStatus.status === "fulfilled") {
+          setHasOpenRouterKey(orKeyStatus.value.has_key);
+          setOpenRouterKeyHint(orKeyStatus.value.key_hint);
+        }
       } catch {
         // Not connected or error
       }
@@ -153,6 +163,42 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleSaveOpenRouterKey(key: string) {
+    setSavingOpenRouterKey(true);
+    setError("");
+    try {
+      const token = (await getToken()) ?? undefined;
+      const result = await apiFetch<{ has_key: boolean; key_hint: string | null }>("/api/user/openrouter-key", {
+        method: "PUT",
+        token,
+        body: JSON.stringify({ api_key: key }),
+      });
+      setHasOpenRouterKey(result.has_key);
+      setOpenRouterKeyHint(result.key_hint);
+      setMessage("OpenRouter key saved.");
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Failed to save OpenRouter key");
+    } finally {
+      setSavingOpenRouterKey(false);
+    }
+  }
+
+  async function handleRemoveOpenRouterKey() {
+    setSavingOpenRouterKey(true);
+    setError("");
+    try {
+      const token = (await getToken()) ?? undefined;
+      await apiFetch("/api/user/openrouter-key", { method: "DELETE", token });
+      setHasOpenRouterKey(false);
+      setOpenRouterKeyHint(null);
+      setMessage("OpenRouter key removed.");
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Failed to remove OpenRouter key");
+    } finally {
+      setSavingOpenRouterKey(false);
+    }
+  }
+
   function copyApiKey() {
     if (apiKey) {
       navigator.clipboard.writeText(apiKey);
@@ -192,6 +238,14 @@ export default function SettingsPage() {
         onGenerate={generateApiKey}
         onRevoke={revokeApiKey}
         onCopy={copyApiKey}
+      />
+
+      <OpenRouterKeySection
+        hasKey={hasOpenRouterKey}
+        keyHint={openRouterKeyHint}
+        onSave={handleSaveOpenRouterKey}
+        onRemove={handleRemoveOpenRouterKey}
+        saving={savingOpenRouterKey}
       />
 
       <GuidedTourSection resetting={resettingTour} onRestart={restartTour} />

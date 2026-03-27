@@ -111,6 +111,33 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* BYOK pricing */}
+        <div className="rounded-xl border border-forge-emerald/20 bg-forge-emerald/5 p-4 space-y-3">
+          <p className="text-sm font-medium text-[#E8ECF4]">BYOK pricing <span className="text-xs text-forge-emerald font-normal">(Bring Your Own Key)</span></p>
+          <div className="grid grid-cols-3 gap-3 text-center text-xs">
+            <div className="rounded-lg bg-forge-nav/50 p-3">
+              <div className="text-[#4E586E] mb-1">Small repo</div>
+              <div className="text-lg font-bold text-forge-emerald">~$0.40</div>
+              <div className="text-[#4E586E]">&lt;5k LOC</div>
+            </div>
+            <div className="rounded-lg bg-forge-nav/50 p-3">
+              <div className="text-[#4E586E] mb-1">Medium repo</div>
+              <div className="text-lg font-bold text-forge-emerald">~$1.50</div>
+              <div className="text-[#4E586E]">5k-50k LOC</div>
+            </div>
+            <div className="rounded-lg bg-forge-nav/50 p-3">
+              <div className="text-[#4E586E] mb-1">Large repo</div>
+              <div className="text-lg font-bold text-forge-emerald">~$2.00</div>
+              <div className="text-[#4E586E]">50k+ LOC</div>
+            </div>
+          </div>
+          <p className="text-xs text-[#8692A8] text-center">
+            Save your OpenRouter key in{" "}
+            <a href="/settings" className="text-forge-emerald hover:underline">Settings</a>
+            {" "}to enable BYOK pricing.
+          </p>
+        </div>
+
         {/* Quick deposit buttons */}
         <div className="space-y-3">
           <p className="text-sm font-medium text-[#E8ECF4] text-center">Add funds</p>
