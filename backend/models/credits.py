@@ -34,6 +34,22 @@ def compute_scan_charge(llm_cost_usd: float) -> dict:
     }
 
 
+def compute_byok_scan_info(llm_cost_usd: float) -> dict:
+    """Return cost info for a BYOK scan (no wallet charge).
+
+    The user pays OpenRouter directly; we record the true cost for
+    transparency but deduct nothing from the wallet.
+    """
+    return {
+        "llm_cost": round(llm_cost_usd, 4),
+        "infra_cost": 0.0,
+        "total_raw": round(llm_cost_usd, 4),
+        "markup": 1.0,
+        "charged_amount": 0.0,
+        "byok": True,
+    }
+
+
 class DepositRequest(BaseModel):
     amount_cents: int  # Must be >= MIN_DEPOSIT_CENTS
 
