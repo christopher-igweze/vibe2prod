@@ -400,3 +400,13 @@ suppressions:
       check_id: "python.django.security.injection.tainted-sql-string.tainted-sql-string"
       file: "backend/api/routes/probe.py"
     reason: "False positive: probe.py returns plain-text verification instructions as JSON values (DNS TXT, meta tag, file upload). Not rendered HTML or SQL queries."
+
+  # Default credentials — critical secrets use Field(...) (required), optional
+  # integrations (GitHub, Stripe, Clerk) use str | None = None intentionally
+  # for environments where those integrations aren't configured.
+  - id: sup_047
+    kind: false_positive
+    match:
+      rule_family: sensitive-data-exposure
+      file: "backend/config.py"
+    reason: "False positive: critical secrets (openrouter_api_key, daytona_api_key, encryption_key) use Field(...) and are required. Optional integrations (github_client_id, stripe_secret_key) use None defaults intentionally — they're not deployed as defaults, they're absent until configured."
