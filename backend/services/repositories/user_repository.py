@@ -31,14 +31,17 @@ def get_user_profile(user_id: str) -> dict | None:
     client = _client()
     row = (
         client.table("profiles")
-        .select("user_id,email,display_name,avatar_url,role,onboarding_complete,tour_completed,lifetime_scans_used,lifetime_scan_cap,scan_credits,balance_usd")
+        .select("user_id,email,display_name,avatar_url,role,onboarding_complete,tour_completed,lifetime_scans_used,lifetime_scan_cap,scan_credits,balance_usd,openrouter_key_encrypted")
         .eq("user_id", str(user_id))
         .limit(1)
         .execute()
     )
     if not row.data:
         return None
-    return row.data[0]
+    profile = row.data[0]
+    # Expose boolean flag without leaking ciphertext
+    profile["has_openrouter_key"] = profile.pop("openrouter_key_encrypted", None) is not None
+    return profile
 
 
 async def upgrade_user_role(user_id: str, new_role: str) -> bool:
@@ -157,4 +160,38 @@ async def lookup_user_by_api_key(key_hash: str) -> str | None:
     )
     if result.data:
         return result.data[0]["user_id"]
+    return None
+
+
+# ── OpenRouter BYOK key storage ──────────────────────────────────────
+
+
+async def save_openrouter_key(user_id: str, encrypted_key: str) -> None:
+    """Store the encrypted OpenRouter API key in the user's profile."""
+    client = _client()
+    client.table("profiles").update(
+        {"openrouter_key_encrypted": encrypted_key}
+    ).eq("user_id", user_id).execute()
+
+
+async def remove_openrouter_key(user_id: str) -> None:
+    """Remove the OpenRouter API key from the user's profile."""
+    client = _client()
+    client.table("profiles").update(
+        {"openrouter_key_encrypted": None}
+    ).eq("user_id", user_id).execute()
+
+
+async def get_openrouter_key_encrypted(user_id: str) -> str | None:
+    """Return the raw encrypted OpenRouter key, or None if not set."""
+    client = _client()
+    result = (
+        client.table("profiles")
+        .select("openrouter_key_encrypted")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    if result.data:
+        return result.data[0].get("openrouter_key_encrypted")
     return None
