@@ -39,6 +39,7 @@ async def trigger_forge_scan(
     model_override: str | None = None,
     timeout: int | None = None,
     project_context: dict | None = None,
+    openrouter_api_key: str | None = None,
 ) -> ForgeRunResult:
     """Run a FORGE discovery scan inside an isolated Daytona sandbox."""
     if scan_id is None:
@@ -53,7 +54,7 @@ async def trigger_forge_scan(
         await mgr.provision_forge(
             scan_id,
             clone_url,
-            openrouter_api_key=settings.openrouter_api_key,
+            openrouter_api_key=openrouter_api_key or settings.openrouter_api_key,
             github_token=github_token,
         )
 

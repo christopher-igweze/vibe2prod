@@ -16,8 +16,9 @@ from fastapi import APIRouter, BackgroundTasks, Request, HTTPException
 from api.middleware.rate_limit import limiter, rate_limit_string
 from models.scan import AuditRequest, AuditResponse, ScanStatus
 from config import settings
-from services import supabase_client as db
+from services import openrouter_key_manager, supabase_client as db
 from services.github import get_repo_info, parse_repo_url
+from models.credits import compute_byok_scan_info
 
 # Strict GitHub URL pattern: only allows https://github.com/owner/repo with
 # safe characters in owner and repo segments.  This provides defense-in-depth
@@ -45,6 +46,7 @@ async def _run_forge_audit(
     github_token: str | None = None,
     user_id: str | None = None,
     role: str | None = None,
+    byok_key: str | None = None,
 ) -> None:
     """Background task that runs FORGE discovery scan and stores results."""
     from services.forge_bridge import trigger_forge_scan
@@ -57,6 +59,7 @@ async def _run_forge_audit(
             scan_id=scan_id,
             github_token=github_token,
             project_context=project_context,
+            openrouter_api_key=byok_key,
         )
 
         if result.success:
@@ -69,18 +72,25 @@ async def _run_forge_audit(
             # Charge actual cost after successful scan (developers are exempt)
             if user_id and role != "developer":
                 try:
-                    from models.credits import compute_scan_charge
-                    charge = compute_scan_charge(result.cost_usd)
-                    db.deduct_balance(
-                        user_id,
-                        charge["charged_amount"],
-                        scan_id=str(scan_id),
-                        description=f"Scan: LLM ${charge['llm_cost']:.2f} + Infra ${charge['infra_cost']:.2f} = ${charge['total_raw']:.2f} x {charge['markup']}x",
-                    )
-                    logger.info(
-                        "Charged $%.4f for scan %s (LLM: $%.4f, infra: $%.4f, markup: %.1fx)",
-                        charge["charged_amount"], scan_id, charge["llm_cost"], charge["infra_cost"], charge["markup"],
-                    )
+                    if byok_key:
+                        charge = compute_byok_scan_info(result.cost_usd)
+                        logger.info(
+                            "BYOK scan %s — LLM $%.4f paid to OpenRouter directly (no wallet charge)",
+                            scan_id, charge["llm_cost"],
+                        )
+                    else:
+                        from models.credits import compute_scan_charge
+                        charge = compute_scan_charge(result.cost_usd)
+                        db.deduct_balance(
+                            user_id,
+                            charge["charged_amount"],
+                            scan_id=str(scan_id),
+                            description=f"Scan: LLM ${charge['llm_cost']:.2f} + Infra ${charge['infra_cost']:.2f} = ${charge['total_raw']:.2f} x {charge['markup']}x",
+                        )
+                        logger.info(
+                            "Charged $%.4f for scan %s (LLM: $%.4f, infra: $%.4f, markup: %.1fx)",
+                            charge["charged_amount"], scan_id, charge["llm_cost"], charge["infra_cost"], charge["markup"],
+                        )
                 except ValueError:
                     logger.warning("Insufficient balance for user %s (scan %s) — scan ran but charge failed", user_id, scan_id)
         else:
@@ -153,8 +163,12 @@ async def start_audit(
             "You're on the waitlist. Scan access is not yet available for your account.",
         )
 
-    # Balance check: developers get unlimited scans, everyone else needs funds
-    if role != "developer" and db.get_user_balance(user_id) <= 0:
+    # BYOK: if user has their own OpenRouter key, they bypass balance checks
+    byok_key = await openrouter_key_manager.get_decrypted_key(user_id) if user_id else None
+
+    # Balance check: developers get unlimited scans, BYOK users pay OpenRouter
+    # directly, everyone else needs funds
+    if role != "developer" and not byok_key and db.get_user_balance(user_id) <= 0:
         raise _limit_exception(
             "no_balance",
             "Your wallet balance is $0.00. Add funds to continue scanning.",
@@ -196,6 +210,7 @@ async def start_audit(
             github_token,
             user_id,
             role,
+            byok_key,
         )
 
         return AuditResponse(
