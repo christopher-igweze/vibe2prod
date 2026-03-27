@@ -133,6 +133,11 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
             >
               <Wallet className="size-4" />
               <span className="font-semibold text-forge-emerald">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
+              {profile?.has_openrouter_key && (
+                <span className="text-[10px] bg-forge-emerald/20 text-forge-emerald px-1.5 py-0.5 rounded-full ml-1">
+                  BYOK
+                </span>
+              )}
             </Link>
             <HelpButton />
             <UserButton

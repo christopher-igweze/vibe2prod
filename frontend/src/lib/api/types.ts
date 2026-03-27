@@ -327,6 +327,7 @@ export interface UserProfile {
   lifetime_scan_cap: number
   scan_credits: number
   balance_usd: number
+  has_openrouter_key?: boolean
   email?: string | null
   display_name?: string | null
   avatar_url?: string | null
