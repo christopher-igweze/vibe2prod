@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import re
+from urllib.parse import urlparse
 from uuid import UUID, uuid4
 
 import httpx
@@ -154,6 +155,11 @@ async def start_audit(
             status_code=400,
             detail="repo_url must be a valid GitHub URL (https://github.com/owner/repo).",
         )
+
+    # Server-side GitHub URL validation (defense-in-depth)
+    parsed_url = urlparse(str(request_body.repo_url))
+    if parsed_url.scheme != "https" or "github.com" not in (parsed_url.hostname or ""):
+        raise HTTPException(status_code=400, detail="Only HTTPS GitHub URLs are supported")
 
     # Role check: only developer and beta_tester can scan
     role = db.get_user_role(user_id)

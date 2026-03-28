@@ -20,20 +20,20 @@ class Settings(BaseSettings):
 
     # --- Supabase ---
     supabase_url: str = Field(..., description="Supabase project URL")
-    supabase_service_key: str = Field(..., description="Supabase service role key")
-    supabase_jwt_secret: str = Field(..., description="Supabase JWT secret for token verification")
+    supabase_service_key: str = Field(..., repr=False, description="Supabase service role key")
+    supabase_jwt_secret: str = Field(..., repr=False, description="Supabase JWT secret for token verification")
 
     # --- OpenRouter (LLM routing) ---
-    openrouter_api_key: str = Field(..., description="OpenRouter API key")
+    openrouter_api_key: str = Field(..., repr=False, description="OpenRouter API key")
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
 
     # --- GitHub Integration ---
     github_client_id: str | None = None
-    github_client_secret: str | None = None
+    github_client_secret: str | None = Field(default=None, repr=False)
     github_oauth_scope: str = "repo read:user user:email"
     github_oauth_state_ttl_minutes: int = 15
-    github_oauth_state_secret: str | None = None
-    github_webhook_secret: str | None = None
+    github_oauth_state_secret: str | None = Field(default=None, repr=False)
+    github_webhook_secret: str | None = Field(default=None, repr=False)
     github_oauth_allowed_redirect_origins: str = ""  # Comma-separated, e.g. "https://vibe2prod.com,http://localhost:3000"
     webhook_replay_window_seconds: int = 600
     # 32-byte AES-256 key encoded as URL-safe base64 (required).
@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     #      re-encrypt with the new key on successful fallback decryption.
     github_token_encryption_key: str = Field(
         ...,
+        repr=False,
         description=(
             "URL-safe base64-encoded 32-byte AES-256 key used to encrypt "
             "GitHub OAuth access tokens before storing them in the database."
@@ -59,7 +60,7 @@ class Settings(BaseSettings):
     )
 
     # --- Daytona (sandbox) ---
-    daytona_api_key: str = Field(..., description="Daytona API key")
+    daytona_api_key: str = Field(..., repr=False, description="Daytona API key")
     daytona_api_url: str = "https://app.daytona.io/api"
     daytona_target: str | None = None
 
@@ -78,11 +79,11 @@ class Settings(BaseSettings):
     # --- Clerk Auth ---
     clerk_jwks_url: str = ""  # e.g. https://your-app.clerk.accounts.dev/.well-known/jwks.json
     clerk_issuer: str = ""    # e.g. https://your-app.clerk.accounts.dev — derived from jwks_url if empty
-    clerk_webhook_secret: str = ""
+    clerk_webhook_secret: str = Field(default="", repr=False)
 
     # --- Stripe ---
-    stripe_secret_key: str = ""
-    stripe_webhook_secret: str = ""
+    stripe_secret_key: str = Field(default="", repr=False)
+    stripe_webhook_secret: str = Field(default="", repr=False)
 
     # --- User Defaults ---
     default_user_role: str = "user"
