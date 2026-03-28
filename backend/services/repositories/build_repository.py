@@ -78,14 +78,19 @@ async def create_scan_fix_attempt(
     return UUID(row.data[0]["id"])
 
 
-async def get_active_scan_fix_attempt(scan_id: UUID) -> dict | None:
-    """Return the active (pending/running) fix_attempt for a scan, if any."""
+async def get_active_scan_fix_attempt(scan_id: UUID, user_id: str) -> dict | None:
+    """Return the active (pending/running) fix_attempt for a scan, if any.
+
+    Filters by user_id to prevent IDOR — callers must not be able to
+    query fix attempts belonging to another user's scan.
+    """
     try:
         client = _client()
         row = (
             client.table("fix_attempts")
             .select("*")
             .eq("scan_report_id", str(scan_id))
+            .eq("user_id", str(user_id))
             .in_("status", ["pending", "running"])
             .order("created_at", desc=True)
             .limit(1)
@@ -98,14 +103,19 @@ async def get_active_scan_fix_attempt(scan_id: UUID) -> dict | None:
         return None
 
 
-async def get_latest_scan_fix_attempt(scan_id: UUID) -> dict | None:
-    """Return the most recent fix_attempt for a scan."""
+async def get_latest_scan_fix_attempt(scan_id: UUID, user_id: str) -> dict | None:
+    """Return the most recent fix_attempt for a scan.
+
+    Filters by user_id to prevent IDOR — callers must not be able to
+    query fix attempts belonging to another user's scan.
+    """
     try:
         client = _client()
         row = (
             client.table("fix_attempts")
             .select("*")
             .eq("scan_report_id", str(scan_id))
+            .eq("user_id", str(user_id))
             .order("created_at", desc=True)
             .limit(1)
             .execute()
