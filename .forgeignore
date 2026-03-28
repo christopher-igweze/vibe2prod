@@ -441,3 +441,32 @@ suppressions:
       file: "backend/**"
     expires: "2026-09-01"
     reason: "Accepted risk: backend uses version ranges in requirements.txt. Deployed via Docker with reproducible builds. Consider adding uv.lock when moving to uv."
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # FALSE POSITIVES — Latest scan (2026-03-27)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # Role check on /api/fix — get_user_role() always returns a string
+  - id: sup_051
+    kind: false_positive
+    match:
+      rule_family: missing-auth-check
+      file: "backend/api/routes/fix.py"
+    reason: "False positive: get_user_role() always returns a string ('user' default), never None. Gate 'role != developer' correctly blocks non-developers."
+
+  # SQL injection via Supabase — parameterized queries, no raw SQL
+  - id: sup_052
+    kind: false_positive
+    match:
+      rule_family: sql-injection
+      file: "backend/**"
+    reason: "False positive: Supabase Python client uses parameterized PostgREST queries, not string interpolation. No raw SQL construction."
+
+  # Config validation — optional integration secrets use empty defaults
+  - id: sup_053
+    kind: accepted_risk
+    match:
+      rule_family: hardcoded-secret
+      file: "backend/config.py"
+    reason: "Accepted risk: optional integrations (Clerk, Stripe, GitHub OAuth) use empty defaults. Runtime 503 errors are acceptable — these services are optional per deployment."
+    expires: "2026-09-01"
