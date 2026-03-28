@@ -113,7 +113,7 @@ class ExecuteFixUseCase:
         if scan.get("status") != "completed":
             raise ValueError("scan_not_completed")
 
-        active = await get_active_scan_fix_attempt(scan_id)
+        active = await get_active_scan_fix_attempt(scan_id, user_id)
         if active:
             raise ValueError("fix_already_in_progress")
 
