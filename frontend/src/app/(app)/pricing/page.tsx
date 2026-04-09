@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { useSearchParams } from "next/navigation"
-import { Loader2, Wallet, Plus } from "lucide-react"
+import Link from "next/link"
+import { Loader2, Plus, Coffee } from "lucide-react"
 import { apiFetch } from "@/lib/api/client"
 import { useUserRole } from "@/hooks/use-user-role"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { IconWallet } from "@/components/landing/landing-icons"
 
 const QUICK_AMOUNTS = [
   { cents: 500, label: "$5" },
@@ -61,14 +63,14 @@ export default function PricingPage() {
   const balance = profile?.balance_usd ?? 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-2xl mx-auto">
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Wallet</h1>
         {role === "developer" ? (
           <p className="text-forge-emerald font-medium">Unlimited Scans (Developer)</p>
         ) : (
           <div className="flex items-center justify-center gap-2">
-            <Wallet className="size-5 text-forge-emerald" />
+            <IconWallet className="size-5 text-forge-emerald" />
             <span className="text-2xl font-bold text-forge-emerald">
               ${balance.toFixed(2)}
             </span>
@@ -79,19 +81,57 @@ export default function PricingPage() {
       {success && (
         <div className="mx-auto max-w-md rounded-lg border border-forge-emerald/30 bg-forge-emerald/10 p-4 text-center">
           <p className="text-forge-emerald font-medium">Funds added successfully!</p>
-          <p className="text-sm text-[#8692A8] mt-1">Your wallet has been topped up.</p>
+          <p className="text-sm text-[#8692A8] mt-1">Your wallet has been topped up. Thanks for the coffee ☕</p>
         </div>
       )}
 
-      <div className="mx-auto max-w-lg space-y-6">
+      {/* Honest pricing pitch */}
+      <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 p-5 space-y-3">
+        <div className="flex items-start gap-3">
+          <div className="shrink-0 size-10 rounded-lg bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
+            <Coffee className="size-5 text-amber-300" />
+          </div>
+          <div className="space-y-2">
+            <p className="font-semibold text-[#E8ECF4]">
+              Real talk: paying here is basically buying the maintainer a coffee.
+            </p>
+            <p className="text-sm text-[#8692A8] leading-relaxed">
+              The web UI runs the exact same FORGE engine but with a small markup on the OpenRouter bill to cover sandboxing and a croissant. If you just want the cheapest scans,{" "}
+              <a
+                href="https://openrouter.ai/keys"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-forge-emerald underline hover:text-forge-emerald-light"
+              >
+                grab an OpenRouter API key
+              </a>
+              , drop it in{" "}
+              <Link href="/settings" className="text-forge-emerald underline hover:text-forge-emerald-light">
+                Settings
+              </Link>
+              , and switch to BYOK. LLM calls bill directly to you at cost — no middleman, no markup.
+            </p>
+            <p className="text-sm text-[#8692A8] leading-relaxed">
+              <span className="text-forge-emerald font-semibold">Zero-dollar mode:</span>{" "}
+              don&rsquo;t even have an OpenRouter key? FORGE still runs the 16 Opengrep rules, deterministic scoring, and the Production Readiness Score with no API key at all. You miss the two LLM passes (Codebase Analyst + Security Auditor) but the static scan is free forever — grab the CLI at{" "}
+              <Link href="/#setup" className="text-forge-emerald underline hover:text-forge-emerald-light">
+                Set up in 60 seconds
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-6">
         <div className="text-center space-y-1">
-          <p className="text-[#8692A8]">Pay only for what you use. No subscriptions, no wasted credits.</p>
-          <p className="text-sm text-forge-emerald">$15 free balance included with signup</p>
+          <p className="text-[#8692A8]">Still want to pay for convenience? No judgment.</p>
+          <p className="text-sm text-forge-emerald">$15 free balance included with signup — that&rsquo;s a handful of free scans before you pick a side.</p>
         </div>
 
         {/* Cost estimate table */}
         <div className="rounded-xl border border-white/[0.06] bg-forge-surface/50 p-4 space-y-3">
-          <p className="text-sm font-medium text-[#E8ECF4]">Estimated cost per scan</p>
+          <p className="text-sm font-medium text-[#E8ECF4]">Managed web UI — estimated cost per scan</p>
           <div className="grid grid-cols-3 gap-3 text-center text-xs">
             <div className="rounded-lg bg-forge-nav/50 p-3">
               <div className="text-[#4E586E] mb-1">Small repo</div>
@@ -113,7 +153,7 @@ export default function PricingPage() {
 
         {/* BYOK pricing */}
         <div className="rounded-xl border border-forge-emerald/20 bg-forge-emerald/5 p-4 space-y-3">
-          <p className="text-sm font-medium text-[#E8ECF4]">BYOK pricing <span className="text-xs text-forge-emerald font-normal">(Bring Your Own Key)</span></p>
+          <p className="text-sm font-medium text-[#E8ECF4]">BYOK pricing <span className="text-xs text-forge-emerald font-normal">(Bring Your Own Key — billed directly to OpenRouter, no markup)</span></p>
           <div className="grid grid-cols-3 gap-3 text-center text-xs">
             <div className="rounded-lg bg-forge-nav/50 p-3">
               <div className="text-[#4E586E] mb-1">Small repo</div>
@@ -133,14 +173,14 @@ export default function PricingPage() {
           </div>
           <p className="text-xs text-[#8692A8] text-center">
             Save your OpenRouter key in{" "}
-            <a href="/settings" className="text-forge-emerald hover:underline">Settings</a>
-            {" "}to enable BYOK pricing.
+            <Link href="/settings" className="text-forge-emerald hover:underline">Settings</Link>
+            {" "}to enable BYOK.
           </p>
         </div>
 
         {/* Quick deposit buttons */}
         <div className="space-y-3">
-          <p className="text-sm font-medium text-[#E8ECF4] text-center">Add funds</p>
+          <p className="text-sm font-medium text-[#E8ECF4] text-center">Add funds (or, you know, buy the coffee)</p>
           <div className="grid grid-cols-3 gap-3">
             {QUICK_AMOUNTS.map((opt) => (
               <Button
