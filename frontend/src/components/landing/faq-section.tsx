@@ -16,7 +16,7 @@ export function FAQSection() {
     },
     {
       q: "How do I install FORGE into Claude Code?",
-      a: "Two commands: `pip install forge-engine` then `claude mcp add forge -e OPENROUTER_API_KEY=your-key -- python -m forge.mcp_server`. Restart Claude Code and you'll have four new tools: forge_scan, forge_status, forge_config, and forge_health. Run `/forge` and the skill drives the full audit → triage → fix → rescan loop for you.",
+      a: "Two commands: `pip install vibe2prod` then `vibe2prod setup`. The interactive wizard detects Claude Code, asks for your OpenRouter key, registers the FORGE MCP server (forge_scan, forge_status, forge_config, forge_health) and copies the /forge and /forgeignore slash skills into ~/.claude/commands/. After that, running `/forge` inside any repo drives the full audit → triage → fix → rescan loop. For CI or scripted installs use `vibe2prod setup --no-interactive --api-key sk-or-…` instead.",
     },
     {
       q: "How is this different from CodeQL, Snyk, or Semgrep?",
