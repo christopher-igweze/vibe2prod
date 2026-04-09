@@ -7,10 +7,10 @@ import {
 
 export function SocialProofBar() {
   const stats: { value?: number; display?: string; label: string }[] = [
-    { value: 12, label: "AI Agents Working In Parallel" },
-    { value: 3, label: "Self-Healing Control Loops" },
-    { display: "0\u2013100", label: "Production Readiness Score" },
-    { display: "Auto", label: "Fix, Test & Validate" },
+    { value: 16, label: "Deterministic Opengrep Rules" },
+    { value: 2, label: "Targeted LLM Agents" },
+    { value: 4, label: "MCP Tools In Claude Code" },
+    { display: "0–100", label: "Production Readiness Score" },
   ];
 
   return (
