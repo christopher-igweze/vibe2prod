@@ -10,23 +10,23 @@ export function FeaturesSection() {
   const features = [
     {
       title: "Discover",
-      subtitle: "4 agents. Full-stack analysis.",
+      subtitle: "Opengrep + 4 discovery agents.",
       description:
-        "Security auditors, architecture reviewers, quality analysts, and reliability scanners work in parallel. Context-aware findings classified by actionability, not just severity.",
+        "Deterministic Opengrep static analysis plus a codebase analyst, security auditor, quality auditor, and architecture reviewer running in parallel. Findings scored with AIVSS and deduped against a vulnerability pattern library tuned for AI-generated apps (client-writable Supabase columns, missing RLS, leaked keys).",
       icon: Search,
     },
     {
       title: "Fix",
-      subtitle: "3-loop remediation engine.",
+      subtitle: "Triage + 4-agent remediation swarm.",
       description:
-        "FORGE auto-fixes critical issues with a coder retry loop, escalation loop, and replan loop. Generates tests. Handles edge cases. No manual patching.",
+        "A fix strategist and triage classifier sort findings into complexity tiers, then Tier 2/3 coders, a test generator, and a code reviewer apply fixes through three control loops \u2014 inner retry (max 3), escalation, and replan. Auto-applies patches and reruns until clean.",
       icon: Wrench,
     },
     {
       title: "Validate",
-      subtitle: "Production readiness, quantified.",
+      subtitle: "2 validation agents. 0\u2013100 score.",
       description:
-        "Integration validator confirms fixes don\u2019t break functionality. Get a Production Readiness Score (0\u2013100) with category breakdowns before you ship.",
+        "An integration validator confirms fixes don\u2019t break the build and a debt tracker returns a Production Readiness Score (0\u2013100) with category breakdowns across security, reliability, quality, and operations.",
       icon: ShieldCheck,
     },
   ];
@@ -36,13 +36,13 @@ export function FeaturesSection() {
       <div className="mx-auto max-w-6xl px-6">
         <FadeInWhenVisible>
           <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)]">
-            The Full Pipeline
+            12 agents. 4 phases. One pipeline.
           </h2>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
           <p className="text-center text-[#8692A8] mb-16 max-w-2xl mx-auto">
-            Other tools hand you a PDF of problems. We hand you
-            production-ready code.
+            CodeQL and Snyk hand you a report. Vibe2Prod applies the patches,
+            reruns the scan, and hands you back production-ready code.
           </p>
         </FadeInWhenVisible>
 

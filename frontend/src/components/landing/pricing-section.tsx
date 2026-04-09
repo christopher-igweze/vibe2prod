@@ -22,12 +22,13 @@ export function PricingSection() {
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
           <p className="text-center text-[#8692A8] mb-2">
-            No subscriptions, no wasted credits. You only pay for scans you run.
+            No subscriptions. No seat fees. You pay per scan — or bring your
+            own OpenRouter key and pay roughly 5x less.
           </p>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.15}>
           <p className="text-center text-sm text-forge-emerald mb-12">
-            $15 Free Balance Included With Signup
+            $15 free balance on signup — no credit card required
           </p>
         </FadeInWhenVisible>
         <div className="grid md:grid-cols-3 gap-6">
