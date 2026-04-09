@@ -31,7 +31,7 @@ export function OpenRouterKeySection({
 
   if (hasKey) {
     return (
-      <Card className="p-6">
+      <Card className="p-5">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-lg font-semibold mb-1">OpenRouter API Key</h2>
@@ -77,7 +77,7 @@ export function OpenRouterKeySection({
   }
 
   return (
-    <Card className="p-6">
+    <Card className="p-5">
       <div>
         <h2 className="text-lg font-semibold mb-1">OpenRouter API Key</h2>
         <p className="text-sm text-[#8692A8]">

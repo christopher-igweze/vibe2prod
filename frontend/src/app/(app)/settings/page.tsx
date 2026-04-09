@@ -208,7 +208,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold font-[family-name:var(--font-heading)]">Settings</h1>
 
       {error && (
@@ -223,32 +223,36 @@ export default function SettingsPage() {
         </Card>
       )}
 
-      <GitHubConnection
-        github={github}
-        loading={loading}
-        onConnect={connectGitHub}
-        onDisconnect={disconnectGitHub}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <GitHubConnection
+          github={github}
+          loading={loading}
+          onConnect={connectGitHub}
+          onDisconnect={disconnectGitHub}
+        />
 
-      <ApiKeySection
-        hasExistingKey={hasExistingKey}
-        apiKey={apiKey}
-        apiKeyLoading={apiKeyLoading}
-        apiKeyCopied={apiKeyCopied}
-        onGenerate={generateApiKey}
-        onRevoke={revokeApiKey}
-        onCopy={copyApiKey}
-      />
+        <ApiKeySection
+          hasExistingKey={hasExistingKey}
+          apiKey={apiKey}
+          apiKeyLoading={apiKeyLoading}
+          apiKeyCopied={apiKeyCopied}
+          onGenerate={generateApiKey}
+          onRevoke={revokeApiKey}
+          onCopy={copyApiKey}
+        />
 
-      <OpenRouterKeySection
-        hasKey={hasOpenRouterKey}
-        keyHint={openRouterKeyHint}
-        onSave={handleSaveOpenRouterKey}
-        onRemove={handleRemoveOpenRouterKey}
-        saving={savingOpenRouterKey}
-      />
+        <OpenRouterKeySection
+          hasKey={hasOpenRouterKey}
+          keyHint={openRouterKeyHint}
+          onSave={handleSaveOpenRouterKey}
+          onRemove={handleRemoveOpenRouterKey}
+          saving={savingOpenRouterKey}
+        />
 
-      <GuidedTourSection resetting={resettingTour} onRestart={restartTour} />
+        <div className="lg:col-span-2">
+          <GuidedTourSection resetting={resettingTour} onRestart={restartTour} />
+        </div>
+      </div>
     </div>
   );
 }
