@@ -350,63 +350,6 @@ export interface CreditTransaction {
   created_at: string
 }
 
-// ── Live Probe types ────────────────────────────────────────────
-export type ProbeType = 'security' | 'functionality' | 'performance' | 'accessibility' | 'full'
-export type ProbeStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled'
-
-export interface ProbeSummary {
-  id: string
-  target_url: string
-  status: ProbeStatus
-  probe_type: ProbeType
-  total_findings: number
-  critical_count: number
-  high_count: number
-  medium_count: number
-  low_count: number
-  probe_score: number | null
-  created_at: string
-}
-
-export interface ProbeFinding {
-  id: string
-  title: string
-  description: string
-  category: string
-  severity: string
-  url_tested: string
-  method: string
-  request_summary: string
-  response_summary: string
-  evidence: string
-  owasp_category: string
-  cwe_id: string
-  confidence: number
-  false_positive: boolean
-}
-
-export interface ProbeDetail extends ProbeSummary {
-  config: Record<string, unknown>
-  report_data: Record<string, unknown> | null
-  auth_method: string | null
-  started_at: string | null
-  completed_at: string | null
-  duration_seconds: number | null
-}
-
-export interface AuthorizeResponse {
-  token: string
-  domain: string
-  method: string
-  instructions: string
-}
-
-export interface VerifyResponse {
-  verified: boolean
-  domain: string
-  expires_at: string
-}
-
 // ── API Response Wrappers ─────────────────────────────────────────
 
 /** Generic paginated response envelope */
@@ -424,9 +367,6 @@ export type ScanDetailResponse = import('@/types/scan-wizard.types').ScanDetail
 
 export type ProjectListResponse = ProjectSummary[]
 export type ProjectDetailResponse = ProjectScanHistory
-
-export type ProbeListResponse = ProbeSummary[]
-export type ProbeDetailResponse = ProbeDetail
 
 export type DashboardResponse = import('@/types/scan-wizard.types').DashboardData
 

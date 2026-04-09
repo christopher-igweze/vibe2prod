@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { apiFetch, sanitizeFilename } from "@/lib/api/client";
 import { computeDashboardMetrics } from "@/app/(app)/dashboard/_components/dashboard-utils";
-import type { DiscoveryReport, ProjectSummary, ProbeSummary } from "@/lib/api/types";
+import type { DiscoveryReport, ProjectSummary } from "@/lib/api/types";
 import type { ScanSummary } from "@/components/dashboard/scan-row";
 
 interface ScanDetail {
@@ -31,7 +31,6 @@ function downloadReportJson(report: DiscoveryReport, repoName: string) {
 export function useDashboardState(getToken: () => Promise<string | null>) {
   const [scans, setScans] = useState<ScanSummary[]>([]);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
-  const [probes, setProbes] = useState<ProbeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -55,14 +54,12 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
     async function load() {
       try {
         const token = (await getToken()) ?? undefined;
-        const [s, p, pr] = await Promise.all([
+        const [s, p] = await Promise.all([
           apiFetch<ScanSummary[] | { items: ScanSummary[] }>("/api/user/scans", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ScanSummary[]),
           apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>("/api/user/projects", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ProjectSummary[]),
-          apiFetch<ProbeSummary[]>("/api/user/probes", { token }).catch(() => [] as ProbeSummary[]),
         ]);
         setScans(s);
         setProjects(p);
-        setProbes(pr);
       } catch {
         setError("Failed to load dashboard data");
       } finally {
@@ -131,7 +128,6 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
   return {
     scans,
     projects,
-    probes,
     loading,
     error,
     metrics,

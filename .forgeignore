@@ -74,14 +74,6 @@ suppressions:
       file: "backend/api/routes/**"
     reason: "Triple defense-in-depth: DB query filters by user_id, route handler verifies project.user_id, and explicit scan.user_id guard. Verified rounds 1-8."
 
-  # Probe auth — Intentional UUID-as-capability-token design
-  - id: sup_010
-    kind: already_fixed
-    match:
-      rule_family: missing-auth-check
-      file: "backend/api/routes/probe.py"
-    reason: "Probe endpoints use UUID-as-capability-token. Anonymous access by probe ID is intentional. Auth required for list/create operations."
-
   # CORS — Configured correctly
   - id: sup_011
     kind: already_fixed
@@ -305,7 +297,7 @@ suppressions:
     kind: already_fixed
     match:
       rule_family: missing-pagination
-    reason: "Pagination implemented on scans (20/page), projects (50/page), probes (20/page), project_scans (20/page). N+1 mitigated by get_projects_batch()."
+    reason: "Pagination implemented on scans (20/page), projects (50/page), project_scans (20/page). N+1 mitigated by get_projects_batch()."
 
   # Health check — Enforced at startup
   - id: sup_037
@@ -384,22 +376,6 @@ suppressions:
     match:
       check_id: "python.lang.security.audit.logging.logger-credential-leak.python-logger-credential-disclosure"
     reason: "False positive: Opengrep flags parameterized logger calls with user_id (Supabase UUID) as 'hardcoded secret'. UUIDs are not secrets — they're standard debug context."
-
-  # probe.py instruction strings — Opengrep misidentifies JSON instruction
-  # strings as HTML injection and SQL injection.
-  - id: sup_045
-    kind: false_positive
-    match:
-      check_id: "python.django.security.injection.raw-html-format.raw-html-format"
-      file: "backend/api/routes/probe.py"
-    reason: "False positive: probe.py returns plain-text verification instructions as JSON values (DNS TXT, meta tag, file upload). Not rendered HTML or SQL queries."
-
-  - id: sup_046
-    kind: false_positive
-    match:
-      check_id: "python.django.security.injection.tainted-sql-string.tainted-sql-string"
-      file: "backend/api/routes/probe.py"
-    reason: "False positive: probe.py returns plain-text verification instructions as JSON values (DNS TXT, meta tag, file upload). Not rendered HTML or SQL queries."
 
   # Default credentials — critical secrets use Field(...) (required), optional
   # integrations (GitHub, Stripe, Clerk) use str | None = None intentionally

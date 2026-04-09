@@ -9,7 +9,7 @@ import { fetchDashboardData } from '@/services/dashboard-service'
 export type { DashboardData } from '@/types/scan-wizard.types'
 
 // ---------------------------------------------------------------------------
-// useDashboardData — load scans, projects, and probes in parallel
+// useDashboardData — load scans and projects in parallel
 // ---------------------------------------------------------------------------
 
 export function useDashboardData() {
