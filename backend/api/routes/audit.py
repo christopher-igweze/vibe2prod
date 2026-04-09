@@ -92,6 +92,12 @@ async def _run_forge_audit(
                             "Charged $%.4f for scan %s (LLM: $%.4f, infra: $%.4f, markup: %.1fx)",
                             charge["charged_amount"], scan_id, charge["llm_cost"], charge["infra_cost"], charge["markup"],
                         )
+                    # Persist the charged amount on the scan row so the
+                    # dashboard Usage Stats panel can surface per-scan spend.
+                    try:
+                        await db.update_scan_cost(scan_id, float(charge["charged_amount"]))
+                    except Exception:
+                        logger.exception("Failed to record cost_usd for scan %s", scan_id)
                 except ValueError:
                     logger.warning("Insufficient balance for user %s (scan %s) — scan ran but charge failed", user_id, scan_id)
         else:

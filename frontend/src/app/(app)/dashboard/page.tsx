@@ -15,6 +15,7 @@ import { DashboardInsights } from "./_components/dashboard-insights";
 import { ProjectsSection } from "@/components/dashboard/projects-section";
 import { EmptyScans, FlatScansList } from "@/components/dashboard/scans-section";
 import { InProgressScans } from "@/components/dashboard/in-progress-scans";
+import { UsageStatsPanel } from "@/components/dashboard/usage-stats-panel";
 
 export default function DashboardPage() {
   const { getToken } = useAuth();
@@ -111,6 +112,10 @@ export default function DashboardPage() {
           <DashboardStats metrics={metrics} />
           <DashboardInsights metrics={metrics} />
         </div>
+      )}
+
+      {scans.length > 0 && (
+        <UsageStatsPanel scans={scans} isByok={!!profile?.has_openrouter_key} />
       )}
 
       {scans.length === 0 ? (

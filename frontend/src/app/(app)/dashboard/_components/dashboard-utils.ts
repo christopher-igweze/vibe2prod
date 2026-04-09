@@ -15,6 +15,7 @@ interface ScanSummary {
   security_score: number | null;
   reliability_score: number | null;
   scalability_score: number | null;
+  cost_usd: number | null;
 }
 
 export interface DashboardMetrics {
