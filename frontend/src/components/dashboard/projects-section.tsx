@@ -40,7 +40,11 @@ export function ProjectsSection({
     <div className="space-y-4" data-tour="scan-list">
       <h2 className="text-lg font-semibold">Projects</h2>
       {projects.map((project) => {
-        const projectScans = (projectScanMap.get(project.id) || []).slice(0, 3);
+        const allProjectScans = projectScanMap.get(project.id) || [];
+        const projectScans = allProjectScans.slice(0, 3);
+        // Prefer the live count from the returned scans list; fall back to the
+        // persisted project.scan_count if the page hasn't loaded any scans yet.
+        const projectScanCount = allProjectScans.length || project.scan_count || 0;
         const displayName = project.repo_name || project.repo_url;
         const repoUrlEncoded = encodeURIComponent(project.repo_url);
 
@@ -55,7 +59,7 @@ export function ProjectsSection({
                   <ChevronRight className="size-4 text-[#4E586E] shrink-0 group-hover:text-forge-emerald transition-colors" />
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-[#8692A8]">
-                  <span>{project.scan_count} scan{project.scan_count !== 1 ? "s" : ""}</span>
+                  <span>{projectScanCount} scan{projectScanCount !== 1 ? "s" : ""}</span>
                   {project.latest_health_score !== null && (
                     <span className={scoreColorClass(project.latest_health_score)}>
                       Health: {project.latest_health_score}
