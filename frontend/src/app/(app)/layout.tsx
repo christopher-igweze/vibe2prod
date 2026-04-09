@@ -11,13 +11,21 @@ import { TourProvider, useTour } from "@/components/tour/tour-provider"
 function HelpButton() {
   const { startCurrentPageTour } = useTour()
   return (
-    <button
-      onClick={startCurrentPageTour}
-      className="text-[#4E586E] hover:text-forge-emerald transition-colors"
-      title="Start guided tour"
-    >
-      <HelpCircle className="size-4" />
-    </button>
+    <div className="relative group">
+      <button
+        onClick={startCurrentPageTour}
+        aria-label="Start guided tour"
+        className="text-[#4E586E] hover:text-forge-emerald transition-colors flex items-center"
+      >
+        <HelpCircle className="size-4" />
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute right-0 top-full mt-2 whitespace-nowrap rounded-md border border-white/10 bg-[#0f1420] px-2.5 py-1 text-xs text-[#E8ECF4] opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+      >
+        Start guided tour
+      </span>
+    </div>
   )
 }
 
@@ -110,11 +118,12 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
               data-tour="wallet-link"
             >
               <Wallet className="size-4" />
-              <span className="font-semibold text-forge-emerald">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
-              {profile?.has_openrouter_key && (
-                <span className="text-[10px] bg-forge-emerald/20 text-forge-emerald px-1.5 py-0.5 rounded-full ml-1">
+              {profile?.has_openrouter_key ? (
+                <span className="text-[11px] bg-forge-emerald/20 text-forge-emerald px-2 py-0.5 rounded-full font-semibold">
                   BYOK
                 </span>
+              ) : (
+                <span className="font-semibold text-forge-emerald">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
               )}
             </Link>
             <HelpButton />
