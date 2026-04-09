@@ -34,8 +34,6 @@ async def get_me(request: Request) -> dict:
             "user_id": user_id,
             "role": "user",
             "onboarding_complete": False,
-            "lifetime_scans_used": 0,
-            "lifetime_scan_cap": 5,
             "scan_credits": 1,
             "balance_usd": 0.0,
             "has_openrouter_key": False,
