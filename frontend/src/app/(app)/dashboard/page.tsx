@@ -14,6 +14,7 @@ import { DashboardStats } from "./_components/dashboard-stats";
 import { DashboardInsights } from "./_components/dashboard-insights";
 import { ProjectsSection } from "@/components/dashboard/projects-section";
 import { EmptyScans, FlatScansList } from "@/components/dashboard/scans-section";
+import { InProgressScans } from "@/components/dashboard/in-progress-scans";
 
 export default function DashboardPage() {
   const { getToken } = useAuth();
@@ -70,6 +71,11 @@ export default function DashboardPage() {
 
       {role === "developer" ? (
         <div className="text-sm text-forge-emerald">Unlimited Scans</div>
+      ) : profile?.has_openrouter_key ? (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-[11px] bg-forge-emerald/20 text-forge-emerald px-2 py-0.5 rounded-full font-semibold">BYOK</span>
+          <span className="text-[#8692A8]">Scans bill directly to your OpenRouter account.</span>
+        </div>
       ) : (profile?.balance_usd ?? 0) <= 0 ? (
         <Card className="border-amber-500/30 bg-amber-500/5 p-4">
           <div className="flex items-center justify-between">
@@ -97,6 +103,8 @@ export default function DashboardPage() {
           <p className="text-red-400 text-sm">{error}</p>
         </Card>
       )}
+
+      <InProgressScans scans={scans} />
 
       {scans.length > 0 && (
         <div data-tour="stats-panel" className="space-y-4">
