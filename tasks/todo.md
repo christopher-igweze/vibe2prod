@@ -6,18 +6,6 @@ _(none)_
 
 ## Upcoming
 
-### Vulnerability Pattern Library
-**Spec:** `forge-engine/tasks/vulnerability-pattern-library-spec.md`
-
-Technology-agnostic vulnerability pattern detection with learning loop. Addresses the Supabase RLS bypass class of vulnerabilities without overfitting to specific technologies.
-
-Key deliverables:
-- [ ] Pattern schema + 3 starter patterns (VP-001 through VP-003)
-- [ ] Integration into Tier 1 scanner (deterministic signal scoring)
-- [ ] Integration into FORGE/Hive agents (LLM prompt context injection)
-- [ ] Extraction pipeline (post-scan pattern learning)
-- [ ] Proof benchmark showing VP-001 triggers on frostflow_app
-
 ### Testing Documentation
 - [ ] Add "Analysis Methodology" section to discovery report HTML
 - [ ] Document: FORGE is 100% static analysis + LLM reasoning, no runtime tests
@@ -28,6 +16,12 @@ Key deliverables:
 - [ ] Compare findings vs traditional codebases
 
 ## Done
+
+### Vulnerability Pattern Library (v1, 2026-04-09)
+Shipped in `forge-engine/forge/patterns/` — schema, loader, prompt context injection, extractor, learner. Three starter patterns (VP-001 client-writable server-authority columns, VP-002 client-only premium gating, VP-003 unprotected admin/internal endpoints). Orchestrator + discovery reasoner wired. Deferred: proof benchmark on frostflow_app, proposed-pattern promotion UI.
+
+### security-probe removal (2026-04-09)
+Live vulnerability scanning microservice fully excised from vibe2prod (backend routes/services/models, frontend pages, tests, migrations, config). `DROP TABLE` migration 20260409120000 added. Sibling `security-probe` repo deleted from disk.
 
 ### Dependency Graph Visualization
 - [x] Thread CodeGraph data from hive to report generation
