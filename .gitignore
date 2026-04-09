@@ -65,3 +65,7 @@ benchmarks/**/hive/
 benchmarks/**/scan/
 benchmarks/**/report/
 benchmarks/**/telemetry/
+.playwright-mcp/
+asccli-*.png
+sylph-*.png
+staging-*.png
