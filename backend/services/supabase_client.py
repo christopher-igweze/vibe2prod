@@ -10,7 +10,6 @@ from services.repositories._base import _client  # noqa: F401
 from services.repositories.user_repository import *  # noqa: F401,F403
 from services.repositories.scan_repository import *  # noqa: F401,F403
 from services.repositories.project_repository import *  # noqa: F401,F403
-from services.repositories.probe_repository import *  # noqa: F401,F403
 from services.repositories.findings_repository import *  # noqa: F401,F403
 from services.repositories.credits_repository import *  # noqa: F401,F403
 from services.repositories.build_repository import *  # noqa: F401,F403

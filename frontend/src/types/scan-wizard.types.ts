@@ -42,5 +42,4 @@ export interface ScanDetail {
 export interface DashboardData {
   scans: ScanSummary[]
   projects: import('@/lib/api/types').ProjectSummary[]
-  probes: import('@/lib/api/types').ProbeSummary[]
 }

@@ -28,7 +28,7 @@ PUBLIC_PREFIXES = ("/api/webhook/", "/api/telemetry", "/api/cli/", "/api/trainin
 
 # Paths where auth is attempted but not required — if a valid token is present
 # the user_id is set, otherwise the request proceeds without it.
-OPTIONAL_AUTH_PREFIXES = ("/api/probe",)
+OPTIONAL_AUTH_PREFIXES: tuple[str, ...] = ()
 
 # Cache the JWKS client (fetches and caches signing keys automatically)
 _jwks_client: PyJWKClient | None = None

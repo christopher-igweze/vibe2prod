@@ -27,15 +27,6 @@ FORGE_SANDBOX_STDERR_TRUNCATE: int = 500
 FORGE_OUTPUT_PREVIEW_LENGTH: int = 300
 
 # ------------------------------------------------------------------ #
-# Probe service
-# ------------------------------------------------------------------ #
-
-PROBE_DEFAULT_POLL_INTERVAL_SECONDS: int = 10
-PROBE_DEFAULT_MAX_WAIT_SECONDS: int = 4200  # 70 minutes
-PROBE_FREE_LIMIT: int = 3
-PROBE_FINDINGS_SUMMARY_LIMIT: int = 50
-
-# ------------------------------------------------------------------ #
 # Pagination
 # ------------------------------------------------------------------ #
 
@@ -53,7 +44,7 @@ EFFORT_SIGNIFICANT: str = "significant"
 VALID_EFFORT_VALUES: frozenset[str] = frozenset({EFFORT_QUICK, EFFORT_MODERATE, EFFORT_SIGNIFICANT})
 
 # ------------------------------------------------------------------ #
-# Probe statuses
+# Scan statuses
 # ------------------------------------------------------------------ #
 
 STATUS_PENDING: str = "pending"
@@ -61,11 +52,6 @@ STATUS_RUNNING: str = "running"
 STATUS_COMPLETED: str = "completed"
 STATUS_FAILED: str = "failed"
 STATUS_CANCELLED: str = "cancelled"
-
-# Terminal statuses used by probe polling
-PROBE_TERMINAL_STATUSES: frozenset[str] = frozenset({
-    "completed", "failed", "cancelled",
-})
 
 # ------------------------------------------------------------------ #
 # Domain authorization

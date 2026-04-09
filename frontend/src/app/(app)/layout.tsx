@@ -27,13 +27,8 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded } = useAuth()
   const { role, profile, loading } = useUserRole()
 
-  const isProbeRoute = pathname.startsWith("/probe")
-
   useEffect(() => {
     if (loading || !isLoaded) return
-    // Allow probe pages for anyone (including anonymous)
-    if (isProbeRoute) return
-    // Non-signed-in users shouldn't reach non-probe (app) routes
     if (!isSignedIn) return
     if (role === "user") {
       router.replace("/")
@@ -42,9 +37,9 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     if (profile && !profile.onboarding_complete && pathname !== "/onboarding") {
       router.replace("/onboarding")
     }
-  }, [role, profile, loading, isLoaded, isSignedIn, pathname, router, isProbeRoute])
+  }, [role, profile, loading, isLoaded, isSignedIn, pathname, router])
 
-  if ((loading || !isLoaded) && !isProbeRoute) {
+  if (loading || !isLoaded) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="size-6 animate-spin text-forge-emerald" />
@@ -52,7 +47,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Anonymous users on probe routes, or waitlisted/non-onboarded users: minimal nav
+  // Waitlisted/non-onboarded users: minimal nav
   if (!isSignedIn || role === "user" || (profile && !profile.onboarding_complete)) {
     return (
       <div className="min-h-screen bg-background">
@@ -63,12 +58,6 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
               <span className="text-foreground">2Prod</span>
             </Link>
             <div className="flex items-center gap-6">
-              <Link
-                href="/probe/new"
-                className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
-              >
-                Live Probe
-              </Link>
               {isSignedIn ? (
                 <UserButton
                   appearance={{ elements: { avatarBox: "h-8 w-8" } }}
@@ -111,13 +100,6 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
               data-tour="nav-new-scan"
             >
               New Scan
-            </Link>
-            <Link
-              href="/probe/new"
-              className="text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
-              data-tour="nav-probe"
-            >
-              Live Probe
             </Link>
             <Link
               href="/settings"

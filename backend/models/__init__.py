@@ -3,7 +3,6 @@
 Subdirectories provide grouped imports:
   - models.scanning  — scan, findings, evolution
   - models.execution — builds, runtime, agent logs
-  - models.probing   — probe request/response/finding
   - models.user      — onboarding, credits
 
 All original module-level imports remain valid:

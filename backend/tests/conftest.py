@@ -33,9 +33,7 @@ def mock_config(monkeypatch):
     mock_settings.openrouter_api_key = "test-key"
     mock_settings.openrouter_base_url = "http://localhost:11434"
     mock_settings.model_scanner = "test-model"
-    mock_settings.probe_enabled = True
-    mock_settings.probe_service_url = "http://localhost:8000"
-    
+
     # Patch config module
     import sys
     if 'config' in sys.modules:

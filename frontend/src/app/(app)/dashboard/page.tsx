@@ -14,7 +14,6 @@ import { DashboardStats } from "./_components/dashboard-stats";
 import { DashboardInsights } from "./_components/dashboard-insights";
 import { ProjectsSection } from "@/components/dashboard/projects-section";
 import { EmptyScans, FlatScansList } from "@/components/dashboard/scans-section";
-import { ProbesSection } from "@/components/dashboard/probes-section";
 
 export default function DashboardPage() {
   const { getToken } = useAuth();
@@ -24,7 +23,6 @@ export default function DashboardPage() {
   const {
     scans,
     projects,
-    probes,
     loading,
     error,
     metrics,
@@ -134,8 +132,6 @@ export default function DashboardPage() {
           onDelete={handleDelete}
         />
       )}
-
-      <ProbesSection probes={probes} />
     </div>
   );
 }
