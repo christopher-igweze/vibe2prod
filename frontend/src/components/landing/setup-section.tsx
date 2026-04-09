@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Copy, Terminal, Sparkles, Globe } from "lucide-react";
+import { Check, Copy, Sparkles } from "lucide-react";
 import { FadeInWhenVisible } from "@/components/landing/motion-primitives";
 import { SetupTuiPreview } from "@/components/landing/setup-tui-preview";
 import { MCPToolsStrip } from "@/components/landing/mcp-tools-strip";
 import { ClaudeCodeDemo } from "@/components/landing/claude-code-demo";
+import { IconBrowser, IconPrompt } from "@/components/landing/landing-icons";
 
 interface CodeBlockProps {
   lines: string[];
@@ -23,7 +24,7 @@ function CodeBlock({ lines, label }: CodeBlockProps) {
   return (
     <div className="rounded-lg border border-white/[0.08] bg-[#0a0e17]/90 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-white/[0.06]">
-        <Terminal className="size-3.5 text-[#4E586E]" />
+        <IconPrompt className="size-3.5 text-[#4E586E]" />
         <span className="text-[11px] text-[#4E586E] font-mono">
           {label ?? "terminal"}
         </span>
@@ -162,8 +163,8 @@ export function SetupSection() {
         {/* Alt path — web UI */}
         <FadeInWhenVisible delay={0.45}>
           <div className="mt-10 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10 text-center">
-            <div className="inline-flex items-center justify-center size-12 rounded-xl bg-forge-emerald/10 text-forge-emerald mb-4">
-              <Globe className="size-6" />
+            <div className="inline-flex items-center justify-center size-12 rounded-xl bg-forge-emerald/10 border border-forge-emerald/20 text-forge-emerald mb-4">
+              <IconBrowser className="size-6" />
             </div>
             <h3 className="text-2xl font-bold mb-2 font-[family-name:var(--font-heading)]">
               Not using Claude Code? Use the web UI.

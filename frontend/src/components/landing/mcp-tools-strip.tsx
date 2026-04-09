@@ -1,7 +1,12 @@
 "use client";
 
 import { motion } from "motion/react";
-import { Search, Activity, Settings2, HeartPulse } from "lucide-react";
+import {
+  IconScan,
+  IconStatus,
+  IconConfig,
+  IconHealth,
+} from "@/components/landing/landing-icons";
 
 /**
  * Shows the 4 MCP tools the wizard registers into Claude Code.
@@ -12,22 +17,22 @@ const TOOLS = [
   {
     name: "forge_scan",
     desc: "Run the full discovery pipeline on a repo path. Returns findings + Production Readiness Score.",
-    icon: Search,
+    icon: IconScan,
   },
   {
     name: "forge_status",
     desc: "Live progress of an in-flight scan — phase, active agents, cost, and time.",
-    icon: Activity,
+    icon: IconStatus,
   },
   {
     name: "forge_config",
     desc: "Active vibe2prod URL, forgeignore sharing consent, installed version.",
-    icon: Settings2,
+    icon: IconConfig,
   },
   {
     name: "forge_health",
     desc: "Health check. Reports whether OPENROUTER_API_KEY is set and the MCP server is reachable.",
-    icon: HeartPulse,
+    icon: IconHealth,
   },
 ];
 
