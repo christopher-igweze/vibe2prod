@@ -24,7 +24,7 @@ export function ApiKeySection({
   onCopy,
 }: ApiKeySectionProps) {
   return (
-    <Card className="p-6">
+    <Card className="p-5">
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-lg font-semibold mb-1">CLI API Key</h2>
