@@ -4,6 +4,7 @@ import { LandingNav } from "@/components/landing/landing-nav";
 import { HeroSection } from "@/components/landing/hero-section";
 import { SocialProofBar } from "@/components/landing/social-proof-bar";
 import { FeaturesSection } from "@/components/landing/features-section";
+import { SetupSection } from "@/components/landing/setup-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { ActionabilitySection } from "@/components/landing/actionability-section";
 import { ComparisonSection } from "@/components/landing/comparison-section";
@@ -20,6 +21,7 @@ export default function LandingPage() {
       <HeroSection />
       <SocialProofBar />
       <FeaturesSection />
+      <SetupSection />
       <HowItWorksSection />
       <ActionabilitySection />
       <ComparisonSection />

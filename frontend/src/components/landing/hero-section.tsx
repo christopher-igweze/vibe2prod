@@ -1,10 +1,61 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { SignedOut } from "@clerk/nextjs";
 import { motion, useScroll, useTransform } from "motion/react";
+import { Check, Copy } from "lucide-react";
 import { SignedInCTA } from "@/components/landing/signed-in-cta";
+
+const INSTALL_LINES = [
+  "pip install forge-engine",
+  "claude mcp add forge -e OPENROUTER_API_KEY=sk-or-… -- python -m forge.mcp_server",
+];
+
+function CopyableTerminal() {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(INSTALL_LINES.join("\n"));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 1.1 }}
+      className="mt-10 mx-auto max-w-2xl"
+    >
+      <div className="relative rounded-xl border border-white/[0.08] bg-[#0a0e17]/90 backdrop-blur-sm text-left shadow-[0_0_40px_-12px_rgba(52,211,153,0.15)]">
+        <div className="flex items-center gap-1.5 px-4 py-2 border-b border-white/[0.06]">
+          <span className="size-2.5 rounded-full bg-[#ff5f56]/70" />
+          <span className="size-2.5 rounded-full bg-[#ffbd2e]/70" />
+          <span className="size-2.5 rounded-full bg-[#27c93f]/70" />
+          <span className="ml-auto text-[11px] text-[#4E586E] font-mono">install forge</span>
+          <button
+            type="button"
+            onClick={handleCopy}
+            aria-label="Copy install commands"
+            className="ml-2 p-1 rounded text-[#4E586E] hover:text-forge-emerald hover:bg-white/[0.04] transition-colors"
+          >
+            {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+          </button>
+        </div>
+        <div className="px-5 py-4 font-mono text-[13px] sm:text-sm leading-relaxed text-[#E8ECF4] overflow-x-auto">
+          {INSTALL_LINES.map((line) => (
+            <div key={line} className="whitespace-nowrap">
+              <span className="text-forge-emerald">$</span>{" "}
+              <span>{line}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="mt-3 text-xs text-[#4E586E] text-center">
+        Then run <code className="text-forge-emerald">/forge</code> inside Claude Code — or skip the CLI and use the web UI.
+      </p>
+    </motion.div>
+  );
+}
 
 export function HeroSection() {
   const ref = useRef(null);
@@ -25,7 +76,7 @@ export function HeroSection() {
   return (
     <section
       ref={ref}
-      className="relative min-h-[90vh] flex items-center justify-center overflow-hidden"
+      className="relative min-h-[90vh] flex items-center justify-center overflow-hidden py-20"
     >
       {/* Animated gradient mesh background */}
       <div className="absolute inset-0 forge-mesh-bg" />
@@ -65,7 +116,7 @@ export function HeroSection() {
           className="inline-flex items-center rounded-full border border-forge-emerald/20 bg-forge-emerald/10 px-4 py-1.5 text-sm text-forge-emerald mb-8"
         >
           <span className="w-2 h-2 rounded-full bg-forge-emerald mr-2 animate-pulse" />
-          Plug FORGE into Claude Code. One slash command, one clean repo.
+          Audit &amp; fix AI-generated apps — right inside Claude Code
         </motion.div>
 
         {/* Hero headline — staggered word reveal with blur-to-sharp */}
@@ -95,34 +146,37 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="mt-8 text-lg sm:text-xl text-[#8692A8] max-w-2xl mx-auto leading-relaxed"
         >
-          Install the FORGE MCP server, run <code className="text-forge-emerald">/forge</code> inside Claude Code, and
-          16 Opengrep rules plus two targeted LLM passes audit your repo,
-          triage the noise, apply fixes, and rescan until clean &mdash; built
-          for Supabase-backed apps from Lovable, Bolt, and v0.
+          FORGE is a CLI + MCP server for Claude Code. 16 Opengrep rules plus
+          two targeted LLM agents audit your repo, triage the noise, apply
+          fixes, and rescan until clean. Built for the solo builder shipping
+          Supabase apps from Lovable, Bolt, and v0.
         </motion.p>
+
+        {/* Install command terminal */}
+        <CopyableTerminal />
 
         {/* CTA buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.0 }}
-          className="mt-12 flex items-center justify-center gap-4"
+          transition={{ duration: 0.6, delay: 1.3 }}
+          className="mt-10 flex items-center justify-center gap-4 flex-wrap"
         >
           <SignedOut>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
               <Link
-                href="/sign-up"
+                href="#setup"
                 className="forge-shimmer-cta rounded-xl px-8 py-4 text-lg font-semibold transition-shadow hover:shadow-[0_0_40px_-4px_rgba(52,211,153,0.4)] block"
               >
-                Get Started
+                Install guide
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
               <Link
-                href="/sign-in"
+                href="/sign-up"
                 className="forge-glass-card rounded-xl px-8 py-4 text-lg font-semibold text-[#E8ECF4] block"
               >
-                Sign In
+                Or use the web UI →
               </Link>
             </motion.div>
           </SignedOut>

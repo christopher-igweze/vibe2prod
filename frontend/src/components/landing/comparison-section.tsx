@@ -6,13 +6,13 @@ import { FadeInWhenVisible } from "@/components/landing/motion-primitives";
 
 export function ComparisonSection() {
   const rows = [
-    { name: "Find vulnerabilities", others: true, v2p: true },
-    { name: "Auto-fix critical issues", others: false, v2p: true },
-    { name: "Generate tests for fixes", others: false, v2p: true },
-    { name: "Validate fix correctness", others: false, v2p: true },
-    { name: "Production readiness score", others: false, v2p: true },
-    { name: "Context-aware prioritization", others: false, v2p: true },
-    { name: "12-agent orchestration", others: false, v2p: true },
+    { name: "Deterministic vulnerability scan", others: true, v2p: true },
+    { name: "Runs inside Claude Code (no upload)", others: false, v2p: true },
+    { name: "LLM-reasoned severity + context", others: false, v2p: true },
+    { name: "Auto-applies the fix via /forge", others: false, v2p: true },
+    { name: "Structured false-positive suppression", others: false, v2p: true },
+    { name: "Rescans until the repo is clean", others: false, v2p: true },
+    { name: "Tuned for Supabase / Lovable / Bolt / v0", others: false, v2p: true },
   ];
 
   return (
@@ -20,14 +20,16 @@ export function ComparisonSection() {
       <div className="mx-auto max-w-4xl px-6">
         <FadeInWhenVisible>
           <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)]">
-            Why Teams Switch to Vibe2Prod
+            Why builders pick FORGE
           </h2>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
-          <p className="text-center text-[#8692A8] mb-12">
-            Every other tool stops at detection.{" "}
+          <p className="text-center text-[#8692A8] mb-12 max-w-2xl mx-auto">
+            CodeQL, Snyk, and Semgrep stop at detection and expect you to
+            upload a repo. FORGE lives in your editor, explains what to do,
+            then{" "}
             <span className="text-forge-emerald font-semibold">
-              We go all the way to deployment-ready code.
+              fixes the code for you.
             </span>
           </p>
         </FadeInWhenVisible>
@@ -38,14 +40,14 @@ export function ComparisonSection() {
               <thead>
                 <tr className="border-b border-white/[0.06]">
                   <th className="text-left px-6 py-4 text-sm text-[#8692A8] font-medium">
-                    Feature
+                    Capability
                   </th>
                   <th className="px-6 py-4 text-sm text-[#8692A8] text-center font-medium">
-                    Detection Tools
+                    Other scanners
                   </th>
                   <th className="px-6 py-4 text-sm text-center font-medium">
                     <span className="forge-gradient-text font-bold">
-                      Vibe2Prod
+                      FORGE
                     </span>
                   </th>
                 </tr>
