@@ -30,7 +30,7 @@ export function LandingNav() {
               href="/sign-up"
               className="rounded-xl bg-forge-emerald px-4 py-2 text-sm font-semibold text-[#0B0F19] hover:bg-forge-emerald-light transition-colors"
             >
-              Join Waiting List
+              Sign Up
             </Link>
           </SignedOut>
           <SignedInCTA variant="nav" />

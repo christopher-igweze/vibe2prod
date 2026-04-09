@@ -161,13 +161,7 @@ async def start_audit(
     if parsed_url.scheme != "https" or "github.com" not in (parsed_url.hostname or ""):
         raise HTTPException(status_code=400, detail="Only HTTPS GitHub URLs are supported")
 
-    # Role check: only developer and beta_tester can scan
     role = db.get_user_role(user_id)
-    if role == "user":
-        raise _limit_exception(
-            "waitlist_required",
-            "You're on the waitlist. Scan access is not yet available for your account.",
-        )
 
     # BYOK: if user has their own OpenRouter key, they bypass balance checks
     byok_key = await openrouter_key_manager.get_decrypted_key(user_id) if user_id else None

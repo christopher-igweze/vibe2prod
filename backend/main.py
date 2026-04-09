@@ -25,7 +25,6 @@ from api.middleware.rate_limit import limiter
 from config import settings
 from api.routes import (
     audit,
-    beta,
     cli,
     credits,
     primer,
@@ -246,7 +245,6 @@ app.add_middleware(AccessLogMiddleware)
 # Routers
 # ------------------------------------------------------------------ #
 app.include_router(audit.router, prefix="/api", tags=["audit"])
-app.include_router(beta.router, prefix="/api", tags=["beta"])
 app.include_router(cli.router, prefix="/api", tags=["cli"])
 app.include_router(credits.router, prefix="/api", tags=["credits"])
 app.include_router(primer.router, prefix="/api", tags=["primer"])

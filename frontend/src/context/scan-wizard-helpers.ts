@@ -183,7 +183,6 @@ export function classifySubmitError(
         typeof err.detail === "object" ? err.detail : { message: err.detail };
       const code = (detail as { code?: string })?.code;
 
-      if (code === "waitlist_required") return { redirect: "/waitlist" };
       if (code === "onboarding_required") return { redirect: "/onboarding" };
 
       return {

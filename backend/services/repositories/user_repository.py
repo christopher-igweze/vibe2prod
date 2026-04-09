@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_user_role(user_id: str) -> str:
-    """Return the user's role. Defaults to 'user' (waitlist) if profile missing."""
+    """Return the user's role. Defaults to 'user' if profile missing."""
     client = _client()
     row = (
         client.table("profiles")

@@ -25,19 +25,15 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { isSignedIn, isLoaded } = useAuth()
-  const { role, profile, loading } = useUserRole()
+  const { profile, loading } = useUserRole()
 
   useEffect(() => {
     if (loading || !isLoaded) return
     if (!isSignedIn) return
-    if (role === "user") {
-      router.replace("/")
-      return
-    }
     if (profile && !profile.onboarding_complete && pathname !== "/onboarding") {
       router.replace("/onboarding")
     }
-  }, [role, profile, loading, isLoaded, isSignedIn, pathname, router])
+  }, [profile, loading, isLoaded, isSignedIn, pathname, router])
 
   if (loading || !isLoaded) {
     return (
@@ -47,8 +43,8 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Waitlisted/non-onboarded users: minimal nav
-  if (!isSignedIn || role === "user" || (profile && !profile.onboarding_complete)) {
+  // Non-signed-in or non-onboarded users: minimal nav
+  if (!isSignedIn || (profile && !profile.onboarding_complete)) {
     return (
       <div className="min-h-screen bg-background">
         <nav className="forge-glass-nav sticky top-0 z-50">
