@@ -113,7 +113,7 @@ export function HeroSection() {
                 href="/sign-up"
                 className="forge-shimmer-cta rounded-xl px-8 py-4 text-lg font-semibold transition-shadow hover:shadow-[0_0_40px_-4px_rgba(52,211,153,0.4)] block"
               >
-                Join Waiting List
+                Get Started
               </Link>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>

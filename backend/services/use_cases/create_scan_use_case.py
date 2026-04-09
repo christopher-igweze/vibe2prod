@@ -57,8 +57,6 @@ class CreateScanUseCase:
             raise ValueError("onboarding_required")
 
         role = get_user_role(user_id)
-        if role == "user":
-            raise ValueError("waitlist_required")
 
         if role != "developer" and get_user_balance(user_id) <= 0:
             raise ValueError("no_balance")

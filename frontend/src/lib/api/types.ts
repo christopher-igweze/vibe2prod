@@ -315,7 +315,7 @@ export interface ProjectScanHistory {
 
 // ── User roles & profile ─────────────────────────────────────────
 
-export type UserRole = 'developer' | 'beta_tester' | 'user'
+export type UserRole = 'developer' | 'user'
 
 export interface UserProfile {
   user_id: string

@@ -32,7 +32,7 @@ export function LandingFooter() {
                   href="/sign-up"
                   className="text-sm text-[#4E586E] hover:text-forge-emerald transition-colors block"
                 >
-                  Join Waiting List
+                  Sign Up
                 </Link>
                 <Link
                   href="/sign-in"
@@ -77,7 +77,7 @@ export function LandingFooter() {
                   href="/sign-up"
                   className="text-sm text-forge-emerald hover:text-forge-emerald-light transition-colors"
                 >
-                  Join Waiting List
+                  Sign Up
                 </Link>
               </SignedOut>
               <SignedInCTA variant="footer" />

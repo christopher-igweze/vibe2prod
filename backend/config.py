@@ -87,7 +87,6 @@ class Settings(BaseSettings):
 
     # --- User Defaults ---
     default_user_role: str = "user"
-    beta_access_code: str = ""
 
     # --- Environment ---
     environment: str = "production"  # "development" or "production"
