@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Wrench, ShieldCheck } from "lucide-react";
+import { Terminal, Search, Wrench } from "lucide-react";
 import {
   FadeInWhenVisible,
   TiltCard,
@@ -9,25 +9,25 @@ import {
 export function FeaturesSection() {
   const features = [
     {
-      title: "Discover",
-      subtitle: "Opengrep + 4 discovery agents.",
+      title: "Install",
+      subtitle: "One command inside Claude Code.",
       description:
-        "Deterministic Opengrep static analysis plus a codebase analyst, security auditor, quality auditor, and architecture reviewer running in parallel. Findings scored with AIVSS and deduped against a vulnerability pattern library tuned for AI-generated apps (client-writable Supabase columns, missing RLS, leaked keys).",
+        "Pip install forge-engine, then `claude mcp add forge` to register the MCP server. You get four tools in any Claude Code session: forge_scan, forge_status, forge_config, and forge_health. No web UI required — your repo never leaves your machine.",
+      icon: Terminal,
+    },
+    {
+      title: "Scan",
+      subtitle: "Opengrep + 2 targeted LLM agents.",
+      description:
+        "16 deterministic Opengrep rules run first (secrets, SQL injection, XSS, path traversal, SSRF, auth bypass, CORS, insecure crypto, N+1, silent exceptions, more) at zero LLM cost. Then a Codebase Analyst (Minimax M2.5) maps your architecture and a Security Auditor (Claude Haiku 4.5) reasons over findings for context and severity.",
       icon: Search,
     },
     {
-      title: "Fix",
-      subtitle: "Triage + 4-agent remediation swarm.",
+      title: "Fix with /forge",
+      subtitle: "The slash skill closes the loop.",
       description:
-        "A fix strategist and triage classifier sort findings into complexity tiers, then Tier 2/3 coders, a test generator, and a code reviewer apply fixes through three control loops \u2014 inner retry (max 3), escalation, and replan. Auto-applies patches and reruns until clean.",
+        "Run `/forge` in Claude Code and the skill walks the full cycle: scan, triage findings, update .forgeignore for false positives with structured v2 entries, fix real issues with Claude, then rescan to verify. Autonomous, auditable, and you stay in control of the diff.",
       icon: Wrench,
-    },
-    {
-      title: "Validate",
-      subtitle: "2 validation agents. 0\u2013100 score.",
-      description:
-        "An integration validator confirms fixes don\u2019t break the build and a debt tracker returns a Production Readiness Score (0\u2013100) with category breakdowns across security, reliability, quality, and operations.",
-      icon: ShieldCheck,
     },
   ];
 
@@ -36,13 +36,13 @@ export function FeaturesSection() {
       <div className="mx-auto max-w-6xl px-6">
         <FadeInWhenVisible>
           <h2 className="text-4xl sm:text-5xl font-bold text-center mb-4 font-[family-name:var(--font-heading)]">
-            12 agents. 4 phases. One pipeline.
+            One MCP install. One slash command. Shipped.
           </h2>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
           <p className="text-center text-[#8692A8] mb-16 max-w-2xl mx-auto">
-            CodeQL and Snyk hand you a report. Vibe2Prod applies the patches,
-            reruns the scan, and hands you back production-ready code.
+            CodeQL and Snyk hand you a report. FORGE runs inside Claude Code,
+            applies the fixes, and reruns the scan until it&rsquo;s clean.
           </p>
         </FadeInWhenVisible>
 

@@ -15,23 +15,23 @@ export function HowItWorksSection() {
   const steps = [
     {
       num: "01",
-      title: "Paste your repo URL",
-      desc: "Public or private GitHub repos. Connect GitHub for private access.",
+      title: "Install the MCP server",
+      desc: "pip install forge-engine, then `claude mcp add forge -e OPENROUTER_API_KEY=… -- python -m forge.mcp_server`. Works in any Claude Code session.",
     },
     {
       num: "02",
-      title: "FORGE analyzes",
-      desc: "12 specialized agents scan security, architecture, quality, and reliability.",
+      title: "Run /forge in Claude Code",
+      desc: "The slash skill calls forge_scan: 16 Opengrep rules plus two LLM passes (Codebase Analyst + Security Auditor) audit your repo.",
     },
     {
       num: "03",
-      title: "Review findings",
-      desc: "Actionable findings classified by what to do, not just severity.",
+      title: "Triage + suppress false positives",
+      desc: "The skill walks each finding, you decide — real issues stay, false positives become structured .forgeignore v2 entries that persist across scans.",
     },
     {
       num: "04",
-      title: "Auto-fix & validate",
-      desc: "FORGE remediates critical issues, generates tests, validates results.",
+      title: "Fix + rescan until clean",
+      desc: "Claude applies the fixes against the remaining findings, then reruns the scan to verify. Nothing merges until the report is green.",
     },
   ];
 

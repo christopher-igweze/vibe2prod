@@ -12,31 +12,35 @@ export function FAQSection() {
   const faqs = [
     {
       q: "Who is this for?",
-      a: "Builders shipping AI-generated apps from Lovable, Bolt, v0, Cursor, Replit, and similar tools \u2014 especially Supabase-backed SaaS projects where the generated code tends to leak service keys, skip RLS, or expose client-writable columns. If you vibe-coded it and now need to put real users on it, this is for you.",
+      a: "Builders shipping AI-generated apps from Lovable, Bolt, v0, Cursor, Replit, and similar tools — especially Supabase-backed SaaS projects where the generated code tends to leak service keys, skip RLS, or expose client-writable columns. If you vibe-coded it and now need to put real users on it, this is for you.",
+    },
+    {
+      q: "How do I install FORGE into Claude Code?",
+      a: "Two commands: `pip install forge-engine` then `claude mcp add forge -e OPENROUTER_API_KEY=your-key -- python -m forge.mcp_server`. Restart Claude Code and you'll have four new tools: forge_scan, forge_status, forge_config, and forge_health. Run `/forge` and the skill drives the full audit → triage → fix → rescan loop for you.",
     },
     {
       q: "How is this different from CodeQL, Snyk, or Semgrep?",
-      a: "Those tools stop at detection. Vibe2Prod runs deterministic Opengrep scans, layers a 12-agent LLM swarm on top for context-aware review, then auto-applies fixes through three control loops and reruns the scan until clean. It also ships a vulnerability pattern library (VP-001/002/003\u2026) tuned for failure modes specific to AI-generated apps, not generic CWEs.",
+      a: "Those tools detect and stop. FORGE runs 16 deterministic Opengrep rules, then layers two targeted LLM passes (Codebase Analyst + Security Auditor) on top for context-aware review, then hands the findings to Claude inside your editor to actually apply the fixes. Because it lives as an MCP server in Claude Code, your repo never has to be uploaded anywhere, and the fix loop is auditable line by line.",
+    },
+    {
+      q: "What does an actual scan look like under the hood?",
+      a: "16 Opengrep rules run first at zero LLM cost (hardcoded secrets, SQL injection, XSS, path traversal, command injection, SSRF, auth bypass, CORS, insecure crypto, debug mode, verbose errors, error handling, silent exceptions, N+1, sync-in-async). Then a Codebase Analyst (Minimax M2.5) maps your architecture, and a Security Auditor (Claude Haiku 4.5) reasons over the merged findings for context and severity. Results are deduped, fingerprinted, and given a Production Readiness Score between 0 and 100.",
     },
     {
       q: "What languages and stacks are supported?",
-      a: "Python, TypeScript/JavaScript, and the usual web stack (Next.js, React, FastAPI, Node). Supabase projects get first-class treatment \u2014 RLS policies, service-role-key misuse, and client-writable columns are in the pattern library.",
+      a: "Python, TypeScript/JavaScript, and the usual web stack (Next.js, React, FastAPI, Node). Supabase projects get first-class treatment — RLS policies, service-role-key misuse, and client-writable columns are part of the rule set.",
     },
     {
       q: "How does pricing work?",
-      a: "Pay-per-scan, no subscriptions. You get a $15 balance on signup (enough for several scans). Typical costs: ~$2 for small repos, ~$6 for medium, ~$8 for large. Bring your own OpenRouter key (BYOK) and you pay roughly 5x less because you skip the platform markup and settle LLM costs directly with OpenRouter.",
-    },
-    {
-      q: "What do I actually get back?",
-      a: "A discovery report with AIVSS-scored findings, a Production Readiness Score (0\u2013100) with per-category breakdowns, and \u2014 when you run remediation \u2014 applied fixes, generated tests, and a re-validated diff. Forgeignore v2 lets you suppress known false positives with structured rules that persist across scans.",
+      a: "Two paths. (1) MCP in Claude Code: you bring your own OpenRouter key and pay OpenRouter directly for the two LLM passes — typically pennies per scan. (2) The managed web UI at vibe2prod.net: pay-per-scan with a $15 signup credit, ~$2 small repos, ~$6 medium, ~$8 large. No subscriptions either way, and you can switch on BYOK inside the web UI too.",
     },
     {
       q: "How long does a scan take?",
-      a: "Typically 3\u201315 minutes depending on repository size. Scans run in ephemeral Daytona sandboxes; you can close the tab and check the dashboard later.",
+      a: "Typically 3–15 minutes depending on repo size. Via the MCP server it runs against your local working tree; via the web UI it runs in an ephemeral Daytona sandbox that's torn down after the run.",
     },
     {
       q: "Is my code secure?",
-      a: "Code is cloned into ephemeral sandboxes and torn down after the run. Metadata and reports are stored in Supabase with Row-Level Security. BYOK keys are encrypted at rest and never logged.",
+      a: "The MCP path keeps your code entirely on your machine — Claude Code reads files directly. The managed web path clones into an ephemeral sandbox that's destroyed after the run. Metadata and reports are stored in Supabase behind Row-Level Security, and BYOK keys are encrypted at rest and never logged.",
     },
   ];
 

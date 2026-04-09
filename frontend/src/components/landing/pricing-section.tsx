@@ -22,8 +22,9 @@ export function PricingSection() {
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
           <p className="text-center text-[#8692A8] mb-2">
-            No subscriptions. No seat fees. You pay per scan — or bring your
-            own OpenRouter key and pay roughly 5x less.
+            These prices are for the managed web UI. Install the FORGE MCP in
+            Claude Code with your own OpenRouter key and you pay OpenRouter
+            directly — typically pennies per scan, no markup.
           </p>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.15}>
