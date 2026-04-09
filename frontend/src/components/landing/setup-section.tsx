@@ -50,27 +50,23 @@ export function SetupSection() {
       num: "01",
       title: "Install the CLI",
       description:
-        "One pip install. FORGE ships as a Python package with the MCP server, the /forge skill, and a standalone CLI baked in.",
-      code: ["pip install forge-engine"],
+        "FORGE ships as the vibe2prod package on PyPI. One pip install brings down the CLI, the MCP server, and the bundled /forge and /forgeignore skills.",
+      code: ["pip install vibe2prod"],
       label: "install",
     },
     {
       num: "02",
-      title: "Register the MCP server in Claude Code",
+      title: "Run the interactive setup",
       description:
-        "Adds four tools — forge_scan, forge_status, forge_config, forge_health — to every Claude Code session. Bring your own OpenRouter key and the LLM cost bills directly to you.",
-      code: [
-        "claude mcp add forge \\",
-        "  -e OPENROUTER_API_KEY=sk-or-… \\",
-        "  -- python -m forge.mcp_server",
-      ],
-      label: "mcp setup",
+        "`vibe2prod setup` walks you through a TUI wizard: it prompts for your OpenRouter API key, detects Claude Code, registers the FORGE MCP server (forge_scan, forge_status, forge_config, forge_health), and copies the /forge + /forgeignore skills into ~/.claude/commands/ so they're ready to use in any project.",
+      code: ["vibe2prod setup"],
+      label: "interactive setup",
     },
     {
       num: "03",
-      title: "Run /forge in your repo",
+      title: "Run /forge in any repo",
       description:
-        "Inside Claude Code, from your project directory, invoke the slash skill. It runs forge_scan, walks you through the findings, lets you drop false positives into .forgeignore, fixes the real issues, then reruns the scan until clean.",
+        "Open Claude Code inside your project. The /forge skill drives the full loop — scan with forge_scan, walk each finding, drop false positives into .forgeignore, apply fixes with Claude, then rescan until the report is green. /forgeignore is there to manage suppression entries long-term.",
       code: ["cd ~/my-supabase-app", "claude", "/forge"],
       label: "workflow",
     },
@@ -86,8 +82,9 @@ export function SetupSection() {
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
           <p className="text-center text-[#8692A8] mb-16 max-w-2xl mx-auto">
-            Three commands between you and an audited, auto-fixed repo. No
-            uploads, no CI wiring, no dashboards to babysit.
+            One pip install and an interactive wizard between you and an
+            audited, auto-fixed repo. No uploads, no CI wiring, no dashboards
+            to babysit.
           </p>
         </FadeInWhenVisible>
 
@@ -112,9 +109,31 @@ export function SetupSection() {
           ))}
         </div>
 
-        {/* Alt path — web UI */}
+        {/* Headless alternative */}
         <FadeInWhenVisible delay={0.4}>
-          <div className="mt-20 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10 text-center">
+          <div className="mt-16 rounded-xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8">
+            <div className="flex items-start gap-4 flex-col md:flex-row md:items-center md:justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-bold font-[family-name:var(--font-heading)] mb-1">
+                  CI / scripted install?
+                </h3>
+                <p className="text-sm text-[#8692A8]">
+                  The headless mode skips the TUI and takes your key on the
+                  command line. Useful for Docker images, dotfiles, and AI
+                  agents running the setup themselves.
+                </p>
+              </div>
+            </div>
+            <CodeBlock
+              lines={["vibe2prod setup --no-interactive --api-key sk-or-…"]}
+              label="headless"
+            />
+          </div>
+        </FadeInWhenVisible>
+
+        {/* Alt path — web UI */}
+        <FadeInWhenVisible delay={0.5}>
+          <div className="mt-10 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-10 text-center">
             <div className="inline-flex items-center justify-center size-12 rounded-xl bg-forge-emerald/10 text-forge-emerald mb-4">
               <Globe className="size-6" />
             </div>

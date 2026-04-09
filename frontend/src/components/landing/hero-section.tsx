@@ -8,8 +8,8 @@ import { Check, Copy } from "lucide-react";
 import { SignedInCTA } from "@/components/landing/signed-in-cta";
 
 const INSTALL_LINES = [
-  "pip install forge-engine",
-  "claude mcp add forge -e OPENROUTER_API_KEY=sk-or-… -- python -m forge.mcp_server",
+  "pip install vibe2prod",
+  "vibe2prod setup",
 ];
 
 function CopyableTerminal() {
