@@ -65,7 +65,7 @@ export function HeroSection() {
           className="inline-flex items-center rounded-full border border-forge-emerald/20 bg-forge-emerald/10 px-4 py-1.5 text-sm text-forge-emerald mb-8"
         >
           <span className="w-2 h-2 rounded-full bg-forge-emerald mr-2 animate-pulse" />
-          Built for vibe-coded apps from Lovable, Bolt, and v0
+          Plug FORGE into Claude Code. One slash command, one clean repo.
         </motion.div>
 
         {/* Hero headline — staggered word reveal with blur-to-sharp */}
@@ -95,10 +95,10 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="mt-8 text-lg sm:text-xl text-[#8692A8] max-w-2xl mx-auto leading-relaxed"
         >
-          Opengrep plus a 12-agent FORGE swarm audits your repo for the
-          security holes, Supabase misconfigs, and reliability gaps typical of
-          AI-generated apps&nbsp;&mdash; then auto-applies the fixes and reruns
-          until clean.
+          Install the FORGE MCP server, run <code className="text-forge-emerald">/forge</code> inside Claude Code, and
+          16 Opengrep rules plus two targeted LLM passes audit your repo,
+          triage the noise, apply fixes, and rescan until clean &mdash; built
+          for Supabase-backed apps from Lovable, Bolt, and v0.
         </motion.p>
 
         {/* CTA buttons */}
