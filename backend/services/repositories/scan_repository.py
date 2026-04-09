@@ -67,6 +67,17 @@ async def update_scan_status(
             raise
 
 
+async def update_scan_cost(scan_id: UUID, cost_usd: float) -> None:
+    """Persist the USD amount charged for a scan onto its scan_reports row."""
+    client = _client()
+    try:
+        client.table("scan_reports").update(
+            {"cost_usd": round(float(cost_usd), 4)}
+        ).eq("id", str(scan_id)).execute()
+    except Exception:
+        logger.exception("Failed to persist cost_usd for scan %s", scan_id)
+
+
 async def fail_orphaned_scans() -> int:
     """Mark any scans stuck in 'pending' or 'scanning' as 'failed'."""
     client = _client()
@@ -168,7 +179,7 @@ async def list_user_scans(
     row = (
         client.table("scan_reports")
         .select(
-            "id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,created_at,project_id,"
+            "id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,cost_usd,created_at,project_id,"
             "projects(id,user_id)"
         )
         .eq("user_id", str(user_id))
@@ -188,6 +199,7 @@ async def list_user_scans(
             "security_score": item.get("security_score"),
             "reliability_score": item.get("reliability_score"),
             "scalability_score": item.get("scalability_score"),
+            "cost_usd": item.get("cost_usd"),
             "created_at": item.get("created_at"),
             "project_id": item.get("project_id"),
         }
