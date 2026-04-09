@@ -17,14 +17,31 @@ export function PricingSection() {
       <div className="mx-auto max-w-4xl px-6">
         <FadeInWhenVisible>
           <h2 className="text-4xl sm:text-5xl font-bold text-center mb-2 font-[family-name:var(--font-heading)]">
-            Pay Only For What You Use
+            Pay per scan. Or don&rsquo;t.
           </h2>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.1}>
-          <p className="text-center text-[#8692A8] mb-2">
-            These prices are for the managed web UI. Install the FORGE MCP in
-            Claude Code with your own OpenRouter key and you pay OpenRouter
-            directly — typically pennies per scan, no markup.
+          <p className="text-center text-[#8692A8] mb-2 max-w-2xl mx-auto">
+            These prices are for the managed web UI, and honestly, paying here
+            is basically buying me a coffee — the markup keeps the sandbox
+            running. For the cheapest scans, grab an{" "}
+            <a
+              href="https://openrouter.ai/keys"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-forge-emerald underline hover:text-forge-emerald-light"
+            >
+              OpenRouter key
+            </a>
+            {" "}and switch to BYOK — you pay OpenRouter directly at cost.
+          </p>
+        </FadeInWhenVisible>
+        <FadeInWhenVisible delay={0.12}>
+          <p className="text-center text-sm text-[#8692A8] mb-2 max-w-2xl mx-auto">
+            <span className="text-forge-emerald font-semibold">No key at all?</span>{" "}
+            FORGE still runs the 16 Opengrep rules + deterministic scoring for
+            free, forever. You lose the two LLM passes but the static scan is
+            yours.
           </p>
         </FadeInWhenVisible>
         <FadeInWhenVisible delay={0.15}>
