@@ -28,8 +28,14 @@ function downloadReportJson(report: DiscoveryReport, repoName: string) {
   URL.revokeObjectURL(url);
 }
 
+interface PaginatedScans {
+  items: ScanSummary[];
+  total: number;
+}
+
 export function useDashboardState(getToken: () => Promise<string | null>) {
   const [scans, setScans] = useState<ScanSummary[]>([]);
+  const [totalScans, setTotalScans] = useState(0);
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,7 +44,14 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const metrics = useMemo(() => computeDashboardMetrics(scans), [scans]);
+  const metrics = useMemo(() => {
+    const m = computeDashboardMetrics(scans);
+    // Use the real total from the API, not scans.length (which is
+    // capped by the page limit). Stats like averages still compute
+    // from the loaded page — that's fine for a dashboard summary.
+    m.totalScans = totalScans;
+    return m;
+  }, [scans, totalScans]);
 
   const projectScanMap = useMemo(() => {
     const map = new Map<string, ScanSummary[]>();
@@ -54,15 +67,12 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
     async function load() {
       try {
         const token = (await getToken()) ?? undefined;
-        // Fetch with a high limit so the dashboard stats cover ALL scans,
-        // not just the default page-1 (limit=20). The backend caps at 100
-        // per page so this is safe — and if someone exceeds 500 scans the
-        // stats will still be directionally accurate.
-        const [s, p] = await Promise.all([
-          apiFetch<ScanSummary[] | { items: ScanSummary[] }>("/api/user/scans?limit=100", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ScanSummary[]),
-          apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>("/api/user/projects?limit=100", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ProjectSummary[]),
+        const [scanRes, p] = await Promise.all([
+          apiFetch<PaginatedScans>("/api/user/scans", { token }).catch(() => ({ items: [], total: 0 }) as PaginatedScans),
+          apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>("/api/user/projects", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ProjectSummary[]),
         ]);
-        setScans(s);
+        setScans(scanRes.items ?? []);
+        setTotalScans(scanRes.total ?? (scanRes.items?.length ?? 0));
         setProjects(p);
       } catch {
         setError("Failed to load dashboard data");
