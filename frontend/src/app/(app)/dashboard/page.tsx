@@ -70,13 +70,16 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      {role === "developer" ? (
-        <div className="text-sm text-forge-emerald">Unlimited Scans</div>
-      ) : profile?.has_openrouter_key ? (
+      {profile?.has_openrouter_key ? (
         <div className="flex items-center gap-2 text-sm">
           <span className="text-[11px] bg-forge-emerald/20 text-forge-emerald px-2 py-0.5 rounded-full font-semibold">BYOK</span>
-          <span className="text-[#8692A8]">Scans bill directly to your OpenRouter account.</span>
+          <span className="text-[#8692A8]">
+            Scans bill directly to your OpenRouter account.
+            {role === "developer" && " Unlimited scans (Developer)."}
+          </span>
         </div>
+      ) : role === "developer" ? (
+        <div className="text-sm text-forge-emerald">Unlimited Scans</div>
       ) : (profile?.balance_usd ?? 0) <= 0 ? (
         <Card className="border-amber-500/30 bg-amber-500/5 p-4">
           <div className="flex items-center justify-between">
