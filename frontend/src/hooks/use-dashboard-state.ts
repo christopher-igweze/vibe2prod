@@ -31,6 +31,29 @@ function downloadReportJson(report: DiscoveryReport, repoName: string) {
 interface PaginatedScans {
   items: ScanSummary[];
   total: number;
+  page: number;
+  total_pages: number;
+}
+
+/** Fetch ALL scan pages so metrics cover the full history. */
+async function fetchAllScans(token?: string): Promise<{ items: ScanSummary[]; total: number }> {
+  const first = await apiFetch<PaginatedScans>("/api/user/scans?limit=100", { token });
+  const items = [...(first.items ?? [])];
+  const total = first.total ?? items.length;
+  const totalPages = first.total_pages ?? 1;
+
+  // Fetch remaining pages in parallel if there are more
+  if (totalPages > 1) {
+    const remaining = Array.from({ length: totalPages - 1 }, (_, i) =>
+      apiFetch<PaginatedScans>(`/api/user/scans?limit=100&page=${i + 2}`, { token })
+        .then(r => r.items ?? [])
+        .catch(() => [] as ScanSummary[]),
+    );
+    const pages = await Promise.all(remaining);
+    for (const page of pages) items.push(...page);
+  }
+
+  return { items, total };
 }
 
 export function useDashboardState(getToken: () => Promise<string | null>) {
@@ -44,14 +67,9 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
   const [copyingId, setCopyingId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const metrics = useMemo(() => {
-    const m = computeDashboardMetrics(scans);
-    // Use the real total from the API, not scans.length (which is
-    // capped by the page limit). Stats like averages still compute
-    // from the loaded page — that's fine for a dashboard summary.
-    m.totalScans = totalScans;
-    return m;
-  }, [scans, totalScans]);
+  // scans now contains ALL scans (fetched across pages), so metrics
+  // like averages and trends cover the full history, not just one page.
+  const metrics = useMemo(() => computeDashboardMetrics(scans), [scans]);
 
   const projectScanMap = useMemo(() => {
     const map = new Map<string, ScanSummary[]>();
@@ -68,11 +86,11 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
       try {
         const token = (await getToken()) ?? undefined;
         const [scanRes, p] = await Promise.all([
-          apiFetch<PaginatedScans>("/api/user/scans", { token }).catch(() => ({ items: [], total: 0 }) as PaginatedScans),
+          fetchAllScans(token).catch(() => ({ items: [] as ScanSummary[], total: 0 })),
           apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>("/api/user/projects", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ProjectSummary[]),
         ]);
-        setScans(scanRes.items ?? []);
-        setTotalScans(scanRes.total ?? (scanRes.items?.length ?? 0));
+        setScans(scanRes.items);
+        setTotalScans(scanRes.total);
         setProjects(p);
       } catch {
         setError("Failed to load dashboard data");
