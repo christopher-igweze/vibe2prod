@@ -116,7 +116,7 @@ export function HeroSection() {
           className="inline-flex items-center rounded-full border border-forge-emerald/20 bg-forge-emerald/10 px-4 py-1.5 text-sm text-forge-emerald mb-8"
         >
           <span className="w-2 h-2 rounded-full bg-forge-emerald mr-2 animate-pulse" />
-          Audit and fix AI-generated apps, right inside <span className="text-[#D97757]">Claude Code</span>
+          Audit and fix AI-generated apps, right inside{" "}<span className="text-[#D97757]">Claude Code</span>
         </motion.div>
 
         {/* Hero headline — staggered word reveal with blur-to-sharp */}
