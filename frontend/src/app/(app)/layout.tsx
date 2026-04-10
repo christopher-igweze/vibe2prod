@@ -33,7 +33,7 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const { isSignedIn, isLoaded } = useAuth()
-  const { profile, loading } = useUserRole()
+  const { role, profile, loading } = useUserRole()
 
   useEffect(() => {
     if (loading || !isLoaded) return
@@ -112,20 +112,22 @@ function AppLayoutInner({ children }: { children: React.ReactNode }) {
             >
               Settings
             </Link>
-            <Link
-              href="/pricing"
-              className="flex items-center gap-1.5 text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
-              data-tour="wallet-link"
-            >
-              <Wallet className="size-4" />
-              {profile?.has_openrouter_key ? (
-                <span className="text-[11px] bg-forge-emerald/20 text-forge-emerald px-2 py-0.5 rounded-full font-semibold">
-                  BYOK
-                </span>
-              ) : (
-                <span className="font-semibold text-forge-emerald">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
-              )}
-            </Link>
+            {role !== "developer" && (
+              <Link
+                href="/pricing"
+                className="flex items-center gap-1.5 text-sm text-[#8692A8] hover:text-forge-emerald transition-colors"
+                data-tour="wallet-link"
+              >
+                <Wallet className="size-4" />
+                {profile?.has_openrouter_key ? (
+                  <span className="text-[11px] bg-forge-emerald/20 text-forge-emerald px-2 py-0.5 rounded-full font-semibold">
+                    BYOK
+                  </span>
+                ) : (
+                  <span className="font-semibold text-forge-emerald">${(profile?.balance_usd ?? 0).toFixed(2)}</span>
+                )}
+              </Link>
+            )}
             <HelpButton />
             <UserButton
               appearance={{
