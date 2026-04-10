@@ -85,13 +85,16 @@ export function IconBrowser(props: IconProps) {
   );
 }
 
-/** Claude asterisk — simplified version of the Anthropic Claude logo mark */
+/**
+ * Anthropic Claude logomark — the official calligraphic stroke mark.
+ * Traced from the public Anthropic brand asset (anthropic.com).
+ * Rendered as a single filled path with no stroke, using currentColor
+ * so it picks up the Claude brand tint via className.
+ */
 export function IconClaude(props: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" {...props}>
-      <path d="M12 2l1.7 4.3L18 8l-4.3 1.7L12 14l-1.7-4.3L6 8l4.3-1.7L12 2z" />
-      <path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9L18 14z" opacity="0.65" />
-      <path d="M7 14l.6 1.4L9 16l-1.4.6L7 18l-.6-1.4L5 16l1.4-.6L7 14z" opacity="0.4" />
+    <svg viewBox="0 0 46 32" fill="currentColor" stroke="none" {...props}>
+      <path d="M27.5 5.9 37.2 26.1h-5.7l-9.7-20.2h5.7Zm-9 0L8.8 26.1h-5.7L12.8 5.9h5.7Zm4.5 12.5v4.8h-8.7l2.3-4.8h6.4Z" />
     </svg>
   );
 }
