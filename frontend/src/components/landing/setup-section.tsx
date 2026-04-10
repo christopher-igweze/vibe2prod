@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, Copy, Sparkles } from "lucide-react";
+import { Check, Copy, ArrowRight } from "lucide-react";
 import { FadeInWhenVisible } from "@/components/landing/motion-primitives";
 import { SetupTuiPreview } from "@/components/landing/setup-tui-preview";
 import { MCPToolsStrip } from "@/components/landing/mcp-tools-strip";
@@ -66,7 +66,7 @@ export function SetupSection() {
       num: "03",
       title: "Use /forge",
       command: "claude → /forge",
-      desc: "Audit, triage, fix, and rescan — all inside Claude Code.",
+      desc: "Audit, triage, fix, and rescan. All inside Claude Code.",
     },
   ];
 
@@ -179,7 +179,7 @@ export function SetupSection() {
                 href="/sign-up"
                 className="inline-flex items-center gap-2 rounded-lg bg-forge-emerald px-5 py-2.5 text-sm font-semibold text-[#0B0F19] hover:bg-forge-emerald-light transition-colors"
               >
-                <Sparkles className="size-4" /> Try the web UI
+                <ArrowRight className="size-4" /> Try the web UI
               </Link>
               <Link
                 href="/pricing"

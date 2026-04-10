@@ -12,7 +12,7 @@ export function FAQSection() {
   const faqs = [
     {
       q: "Who is this for?",
-      a: "Builders shipping AI-generated apps from Lovable, Bolt, v0, Cursor, Replit, and similar tools — especially Supabase-backed SaaS projects where the generated code tends to leak service keys, skip RLS, or expose client-writable columns. If you vibe-coded it and now need to put real users on it, this is for you.",
+      a: "Builders shipping AI-generated apps from Lovable, Bolt, v0, Cursor, Replit, and similar tools. Especially Supabase-backed SaaS projects where the generated code tends to leak service keys, skip RLS, or expose client-writable columns. If you vibe-coded it and now need to put real users on it, this is for you.",
     },
     {
       q: "How do I install FORGE into Claude Code?",
@@ -28,11 +28,11 @@ export function FAQSection() {
     },
     {
       q: "What languages and stacks are supported?",
-      a: "Python, TypeScript/JavaScript, and the usual web stack (Next.js, React, FastAPI, Node). Supabase projects get first-class treatment — RLS policies, service-role-key misuse, and client-writable columns are part of the rule set.",
+      a: "Python, TypeScript/JavaScript, and the usual web stack (Next.js, React, FastAPI, Node). Supabase projects get first-class treatment: RLS policies, service-role-key misuse, and client-writable columns are all part of the rule set.",
     },
     {
       q: "How does pricing work?",
-      a: "Two paths. (1) MCP in Claude Code: you bring your own OpenRouter key and pay OpenRouter directly for the two LLM passes — typically pennies per scan. (2) The managed web UI at vibe2prod.net: pay-per-scan with a $15 signup credit, ~$2 small repos, ~$6 medium, ~$8 large. No subscriptions either way, and you can switch on BYOK inside the web UI too.",
+      a: "Two paths. (1) MCP in Claude Code: bring your own OpenRouter key and pay OpenRouter directly for the two LLM passes, typically pennies per scan. (2) Managed web UI at vibe2prod.net: pay-per-scan with a $15 signup credit, roughly $2 for small repos, $6 for medium, $8 for large. No subscriptions either way.",
     },
     {
       q: "How long does a scan take?",
@@ -40,7 +40,7 @@ export function FAQSection() {
     },
     {
       q: "Is my code secure?",
-      a: "The MCP path keeps your code entirely on your machine — Claude Code reads files directly. The managed web path clones into an ephemeral sandbox that's destroyed after the run. Metadata and reports are stored in Supabase behind Row-Level Security, and BYOK keys are encrypted at rest and never logged.",
+      a: "The MCP path keeps your code entirely on your machine; Claude Code reads files directly. The managed web path clones into an ephemeral sandbox that is destroyed after the run. Metadata and reports are stored in Supabase behind Row-Level Security. BYOK keys are encrypted at rest and never logged.",
     },
   ];
 

@@ -12,7 +12,7 @@ export function FeaturesSection() {
       title: "Install",
       subtitle: "One command inside Claude Code.",
       description:
-        "Pip install forge-engine, then `claude mcp add forge` to register the MCP server. You get four tools in any Claude Code session: forge_scan, forge_status, forge_config, and forge_health. No web UI required — your repo never leaves your machine.",
+        "Pip install vibe2prod, run the setup wizard, and four tools land in every Claude Code session: forge_scan, forge_status, forge_config, and forge_health. No web UI needed. Your repo never leaves your machine.",
       icon: Terminal,
     },
     {

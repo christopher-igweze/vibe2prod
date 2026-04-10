@@ -18,7 +18,7 @@ const STEPS = [
   {
     num: "03",
     title: "Run /forge in your repo",
-    desc: "The skill calls forge_scan — 16 Opengrep rules plus two targeted LLM agents — and walks you through every finding.",
+    desc: "The skill calls forge_scan (16 Opengrep rules plus two targeted LLM agents) and walks you through every finding.",
   },
   {
     num: "04",

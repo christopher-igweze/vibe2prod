@@ -51,7 +51,7 @@ function CopyableTerminal() {
         </div>
       </div>
       <p className="mt-3 text-xs text-[#4E586E] text-center">
-        Then run <code className="text-forge-emerald">/forge</code> inside Claude Code — or skip the CLI and use the web UI.
+        Then run <code className="text-forge-emerald">/forge</code> inside Claude Code. Or skip the CLI and use the web UI.
       </p>
     </motion.div>
   );
@@ -116,7 +116,7 @@ export function HeroSection() {
           className="inline-flex items-center rounded-full border border-forge-emerald/20 bg-forge-emerald/10 px-4 py-1.5 text-sm text-forge-emerald mb-8"
         >
           <span className="w-2 h-2 rounded-full bg-forge-emerald mr-2 animate-pulse" />
-          Audit &amp; fix AI-generated apps — right inside Claude Code
+          Audit and fix AI-generated apps, right inside Claude Code
         </motion.div>
 
         {/* Hero headline — staggered word reveal with blur-to-sharp */}
