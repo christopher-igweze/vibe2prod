@@ -54,9 +54,13 @@ export function useDashboardState(getToken: () => Promise<string | null>) {
     async function load() {
       try {
         const token = (await getToken()) ?? undefined;
+        // Fetch with a high limit so the dashboard stats cover ALL scans,
+        // not just the default page-1 (limit=20). The backend caps at 100
+        // per page so this is safe — and if someone exceeds 500 scans the
+        // stats will still be directionally accurate.
         const [s, p] = await Promise.all([
-          apiFetch<ScanSummary[] | { items: ScanSummary[] }>("/api/user/scans", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ScanSummary[]),
-          apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>("/api/user/projects", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ProjectSummary[]),
+          apiFetch<ScanSummary[] | { items: ScanSummary[] }>("/api/user/scans?limit=100", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ScanSummary[]),
+          apiFetch<ProjectSummary[] | { items: ProjectSummary[] }>("/api/user/projects?limit=100", { token }).then(r => Array.isArray(r) ? r : r.items ?? []).catch(() => [] as ProjectSummary[]),
         ]);
         setScans(s);
         setProjects(p);
