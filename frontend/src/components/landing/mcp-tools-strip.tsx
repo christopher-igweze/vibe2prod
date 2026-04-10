@@ -21,7 +21,7 @@ const TOOLS = [
   },
   {
     name: "forge_status",
-    desc: "Live progress of an in-flight scan — phase, active agents, cost, and time.",
+    desc: "Live progress of an in-flight scan: phase, active agents, cost, and time.",
     icon: IconStatus,
   },
   {
