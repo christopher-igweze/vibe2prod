@@ -102,7 +102,7 @@ export function SetupSection() {
         <div className="mt-16">
           <div className="text-center mb-6">
             <p className="text-xs uppercase tracking-[0.25em] text-forge-emerald font-mono mb-2">
-              Then in Claude Code
+              Then in <span className="text-[#D97757]">Claude Code</span>
             </p>
             <h3 className="text-2xl sm:text-3xl font-bold font-[family-name:var(--font-heading)]">
               <span className="text-forge-emerald font-mono">/forge</span> drives the loop

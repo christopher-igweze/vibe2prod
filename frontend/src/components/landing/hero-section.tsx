@@ -116,7 +116,7 @@ export function HeroSection() {
           className="inline-flex items-center rounded-full border border-forge-emerald/20 bg-forge-emerald/10 px-4 py-1.5 text-sm text-forge-emerald mb-8"
         >
           <span className="w-2 h-2 rounded-full bg-forge-emerald mr-2 animate-pulse" />
-          Audit and fix AI-generated apps, right inside Claude Code
+          Audit and fix AI-generated apps, right inside <span className="text-[#D97757]">Claude Code</span>
         </motion.div>
 
         {/* Hero headline — staggered word reveal with blur-to-sharp */}
@@ -146,7 +146,7 @@ export function HeroSection() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="mt-8 text-lg sm:text-xl text-[#8692A8] max-w-2xl mx-auto leading-relaxed"
         >
-          FORGE is a CLI + MCP server for Claude Code. 16 Opengrep rules plus
+          FORGE is a CLI + MCP server for <span className="text-[#D97757]">Claude Code</span>. 16 Opengrep rules plus
           two targeted LLM agents audit your repo, triage the noise, apply
           fixes, and rescan until clean. Built for the solo builder shipping
           Supabase apps from Lovable, Bolt, and v0.
