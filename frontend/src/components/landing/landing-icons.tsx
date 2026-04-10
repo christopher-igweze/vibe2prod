@@ -85,6 +85,17 @@ export function IconBrowser(props: IconProps) {
   );
 }
 
+/** Claude asterisk — simplified version of the Anthropic Claude logo mark */
+export function IconClaude(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" {...props}>
+      <path d="M12 2l1.7 4.3L18 8l-4.3 1.7L12 14l-1.7-4.3L6 8l4.3-1.7L12 2z" />
+      <path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9L18 14z" opacity="0.65" />
+      <path d="M7 14l.6 1.4L9 16l-1.4.6L7 18l-.6-1.4L5 16l1.4-.6L7 14z" opacity="0.4" />
+    </svg>
+  );
+}
+
 /** Terminal prompt — >_ for window chrome labels */
 export function IconPrompt(props: IconProps) {
   return (

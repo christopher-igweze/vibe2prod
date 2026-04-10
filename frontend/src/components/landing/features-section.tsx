@@ -10,7 +10,7 @@ export function FeaturesSection() {
   const features = [
     {
       title: "Install",
-      subtitle: "One command inside Claude Code.",
+      subtitle: "One command inside Claude\u00a0Code.",
       description:
         "Pip install vibe2prod, run the setup wizard, and four tools land in every Claude Code session: forge_scan, forge_status, forge_config, and forge_health. No web UI needed. Your repo never leaves your machine.",
       icon: Terminal,

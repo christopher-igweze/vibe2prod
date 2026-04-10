@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { Wrench, User } from "lucide-react";
-import { IconPrompt } from "@/components/landing/landing-icons";
+import { IconPrompt, IconClaude } from "@/components/landing/landing-icons";
 
 /**
  * Faux Claude Code chat window showing the /forge slash skill in action.
@@ -103,8 +103,8 @@ export function ClaudeCodeDemo() {
         <span className="size-2.5 rounded-full bg-[#ffbd2e]/70" />
         <span className="size-2.5 rounded-full bg-[#27c93f]/70" />
         <div className="mx-auto flex items-center gap-1.5 text-[11px] text-[#4E586E] font-mono">
-          <IconPrompt className="size-3 text-forge-emerald" />
-          <span>Claude Code · my-supabase-app</span>
+          <IconClaude className="size-3 text-[#D97757]" />
+          <span><span className="text-[#D97757]">Claude Code</span> · my-supabase-app</span>
         </div>
       </div>
 

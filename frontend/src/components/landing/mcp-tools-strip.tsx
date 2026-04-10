@@ -57,7 +57,7 @@ export function MCPToolsStrip() {
           MCP server registers
         </p>
         <h3 className="text-2xl sm:text-3xl font-bold font-[family-name:var(--font-heading)]">
-          Four tools, straight into Claude Code
+          Four tools, straight into <span className="text-[#D97757]">Claude Code</span>
         </h3>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
