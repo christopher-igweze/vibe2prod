@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { Wrench, User } from "lucide-react";
-import { IconPrompt, IconClaude } from "@/components/landing/landing-icons";
+import { IconClaude } from "@/components/landing/landing-icons";
 
 /**
  * Faux Claude Code chat window showing the /forge slash skill in action.
@@ -43,8 +43,8 @@ function Bubble({
       className={`flex gap-3 ${side === "user" ? "justify-end" : "justify-start"}`}
     >
       {side === "assistant" && (
-        <div className="shrink-0 mt-1 size-7 rounded-full bg-forge-emerald/10 border border-forge-emerald/20 flex items-center justify-center">
-          <IconPrompt className="size-3.5 text-forge-emerald" />
+        <div className="shrink-0 mt-1 size-7 rounded-full bg-[#D97757]/10 border border-[#D97757]/25 flex items-center justify-center">
+          <IconClaude className="size-3.5 text-[#D97757]" />
         </div>
       )}
       <div
