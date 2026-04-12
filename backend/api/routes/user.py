@@ -309,7 +309,7 @@ async def save_openrouter_key(request: Request) -> dict:
     if not api_key:
         return JSONResponse(status_code=400, content={"detail": "api_key is required"})
     try:
-        key_hint = openrouter_key_manager.save_key(user_id, api_key)
+        key_hint = await openrouter_key_manager.save_key(user_id, api_key)
     except ValueError as exc:
         return JSONResponse(status_code=400, content={"detail": str(exc)})
     except Exception:
@@ -324,7 +324,7 @@ async def get_openrouter_key_status(request: Request) -> dict:
     """Check if the user has a BYOK key saved."""
     user_id: str = request.state.user_id
     try:
-        hint = openrouter_key_manager.get_key_hint(user_id)
+        hint = await openrouter_key_manager.get_key_hint(user_id)
     except Exception:
         logger.exception("Failed to check OpenRouter key status for user %s", user_id)
         raise server_error("Failed to check OpenRouter key status")
@@ -337,7 +337,7 @@ async def remove_openrouter_key(request: Request) -> dict:
     """Remove the user's OpenRouter API key."""
     user_id: str = request.state.user_id
     try:
-        openrouter_key_manager.remove_key(user_id)
+        await openrouter_key_manager.remove_key(user_id)
     except Exception:
         logger.exception("Failed to remove OpenRouter key for user %s", user_id)
         raise server_error("Failed to remove OpenRouter key")
