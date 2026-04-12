@@ -136,7 +136,21 @@ async def trigger_forge_scan(
                 error=f"FORGE scan failed (exit {result.exit_code}): {result.stderr[:FORGE_SANDBOX_STDERR_TRUNCATE]}",
             )
 
-        return _parse_sandbox_result(str(scan_id), result.stdout)
+        parsed = _parse_sandbox_result(str(scan_id), result.stdout)
+
+        # Persist CLI project context to scan_reports.project_intake so the
+        # web UI can pre-fill the intake form on rescans (CLI → DB → web).
+        if parsed.success and project_context:
+            try:
+                from services.repositories.scan_repository import update_scan_project_intake
+                await update_scan_project_intake(scan_id, project_context)
+            except Exception:
+                logger.exception(
+                    "Failed to persist project_context to project_intake for scan %s",
+                    scan_id,
+                )
+
+        return parsed
 
     except DaytonaError as e:
         status_code = getattr(e, "status_code", None)

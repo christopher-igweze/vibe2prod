@@ -90,6 +90,17 @@ async def fail_orphaned_scans() -> int:
     return len(result.data) if result.data else 0
 
 
+async def update_scan_project_intake(scan_id: UUID, project_intake: dict) -> None:
+    """Persist project context (from CLI .forge/context.json or web intake) to a scan."""
+    client = _client()
+    try:
+        client.table("scan_reports").update(
+            {"project_intake": project_intake}
+        ).eq("id", str(scan_id)).execute()
+    except Exception:
+        logger.exception("Failed to persist project_intake for scan %s", scan_id)
+
+
 async def update_scan_with_discovery(
     scan_id: UUID,
     discovery_report: dict,
