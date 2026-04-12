@@ -28,6 +28,49 @@ def _authenticated_url(repo_url: str, token: str | None) -> str:
     return repo_url
 
 
+def _build_scan_context(
+    user_preferences: dict | None,
+    project_context: dict | None,
+) -> dict | None:
+    """Merge user preferences and project context into a FORGE context dict.
+
+    The resulting JSON is uploaded to the sandbox at /home/daytona/forge-context.json
+    and passed to ``vibe2prod scan --context``. FORGE agents read it to:
+
+    - Adjust finding language based on ``technical_level``
+    - Filter noise based on ``shipping_posture``
+    - Tailor fix instructions to ``coding_tool``
+    - Use project charter / vibe prompt for intent-aware analysis
+    """
+    ctx: dict = {}
+
+    if user_preferences:
+        prefs = {}
+        if user_preferences.get("technical_level"):
+            prefs["technical_level"] = user_preferences["technical_level"]
+        if user_preferences.get("explanation_style"):
+            prefs["explanation_style"] = user_preferences["explanation_style"]
+        if user_preferences.get("shipping_posture"):
+            prefs["shipping_posture"] = user_preferences["shipping_posture"]
+        if user_preferences.get("coding_tool"):
+            prefs["coding_tool"] = user_preferences["coding_tool"]
+            if user_preferences.get("coding_tool_other"):
+                prefs["coding_tool_other"] = user_preferences["coding_tool_other"]
+        if prefs:
+            ctx["user"] = prefs
+
+    if project_context:
+        proj = {}
+        for key in ("vibe_prompt", "project_charter", "project_stage",
+                     "team_size", "sensitive_data_types", "beloved_features"):
+            if project_context.get(key):
+                proj[key] = project_context[key]
+        if proj:
+            ctx["project"] = proj
+
+    return ctx or None
+
+
 # ── Public API ────────────────────────────────────────────────────────
 
 
@@ -39,6 +82,7 @@ async def trigger_forge_scan(
     model_override: str | None = None,
     timeout: int | None = None,
     project_context: dict | None = None,
+    user_preferences: dict | None = None,
     openrouter_api_key: str | None = None,
 ) -> ForgeRunResult:
     """Run a FORGE discovery scan inside an isolated Daytona sandbox."""
@@ -58,7 +102,18 @@ async def trigger_forge_scan(
             github_token=github_token,
         )
 
+        # Write scan context file into the sandbox so FORGE agents can
+        # personalize findings based on the user's preferences and any
+        # project context (vibe_prompt, project_charter, etc.)
+        scan_context = _build_scan_context(user_preferences, project_context)
+        if scan_context:
+            import json as _json
+            context_bytes = _json.dumps(scan_context, indent=2).encode()
+            await mgr.upload_file(scan_id, "/home/daytona/forge-context.json", context_bytes)
+
         cmd = "vibe2prod scan /home/daytona/repo --json"
+        if scan_context:
+            cmd += " --context /home/daytona/forge-context.json"
         if model_override:
             cmd += f" --model {model_override}"
 

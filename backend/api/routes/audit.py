@@ -55,11 +55,17 @@ async def _run_forge_audit(
     try:
         await db.update_scan_status(scan_id, ScanStatus.scanning)
 
+        # Fetch user preferences to personalize FORGE output
+        user_preferences = None
+        if user_id:
+            user_preferences = await db.get_user_onboarding_preferences(user_id)
+
         result = await trigger_forge_scan(
             repo_url,
             scan_id=scan_id,
             github_token=github_token,
             project_context=project_context,
+            user_preferences=user_preferences,
             openrouter_api_key=byok_key,
         )
 
