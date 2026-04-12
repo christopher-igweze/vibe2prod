@@ -36,6 +36,9 @@ export interface ScanWizardState {
   setStep: (step: number) => void;
   goToStep: (target: number) => void;
 
+  // Rescan detection
+  hasExistingContext: boolean;
+
   // Step 1: Repository
   repoUrl: string;
   setRepoUrl: (url: string) => void;
@@ -134,6 +137,9 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
   // Pre-fill
   const [preFilled, setPreFilled] = useState(false);
 
+  // Rescan detection — true when a project already has intake data
+  const [hasExistingContext, setHasExistingContext] = useState(false);
+
   const goToStep = useCallback(
     (target: number) => {
       if (target >= 2) {
@@ -174,6 +180,7 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
         setDeploymentTarget(data.deploymentTarget);
         setScaleExpectation(data.scaleExpectation);
         setPreFilled(true);
+        setHasExistingContext(true);
       } catch {
         // Silently fail -- user can still fill manually
       }
@@ -241,6 +248,7 @@ export function ScanWizardProvider({ children }: { children: ReactNode }) {
     step,
     setStep,
     goToStep,
+    hasExistingContext,
     repoUrl,
     setRepoUrl,
     branch,

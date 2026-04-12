@@ -6,6 +6,7 @@ import {
   Loader2,
   AlertTriangle,
   Zap,
+  ChevronRight,
 } from "lucide-react";
 
 import type {
@@ -16,6 +17,7 @@ import type {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { IntakeStep } from "@/components/scan/intake-step";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -38,6 +40,19 @@ export interface ReviewStepProps {
   onEditContext: () => void;
   onBack: () => void;
   onSubmit: () => void;
+
+  // Rescan: collapsed inline intake editor
+  hasExistingContext?: boolean;
+  showIntakeEditor?: boolean;
+  onToggleIntakeEditor?: () => void;
+  setProjectOrigin?: (origin: ProjectOrigin) => void;
+  setProductSummary?: (summary: string) => void;
+  setTargetUsers?: (users: string) => void;
+  setSensitiveData?: (data: SensitiveDataType[]) => void;
+  setMustNotBreakFlows?: (flows: string[]) => void;
+  setDeploymentTarget?: (target: string) => void;
+  setScaleExpectation?: (expectation: string) => void;
+  suggestedFlows?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -61,6 +76,17 @@ export function ReviewStep({
   onEditContext,
   onBack,
   onSubmit,
+  hasExistingContext = false,
+  showIntakeEditor = false,
+  onToggleIntakeEditor,
+  setProjectOrigin,
+  setProductSummary,
+  setTargetUsers,
+  setSensitiveData,
+  setMustNotBreakFlows,
+  setDeploymentTarget,
+  setScaleExpectation,
+  suggestedFlows = [],
 }: ReviewStepProps) {
   // Render helpers
   const primerJson = primerResult?.primer_json;
@@ -126,14 +152,29 @@ export function ReviewStep({
               <p className="text-xs text-[#4E586E] uppercase tracking-wider font-medium">
                 Project Context
               </p>
-              <button
-                type="button"
-                onClick={onEditContext}
-                className="text-xs text-forge-emerald hover:text-forge-emerald-light transition-colors"
-              >
-                Edit
-              </button>
+              {hasExistingContext ? (
+                <button
+                  type="button"
+                  onClick={onToggleIntakeEditor}
+                  className="text-xs text-forge-emerald hover:text-forge-emerald-light transition-colors flex items-center gap-0.5"
+                >
+                  Edit project context
+                  <ChevronRight
+                    className={`size-3 transition-transform ${showIntakeEditor ? "rotate-90" : ""}`}
+                  />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onEditContext}
+                  className="text-xs text-forge-emerald hover:text-forge-emerald-light transition-colors"
+                >
+                  Edit
+                </button>
+              )}
             </div>
+
+            {/* Inline summary — always visible */}
             <div className="grid gap-2 text-sm">
               <div className="flex gap-2">
                 <span className="text-[#4E586E] shrink-0 w-28">Origin:</span>
@@ -172,7 +213,38 @@ export function ReviewStep({
                 <span className="text-neutral-300 line-clamp-1">{scaleExpectation}</span>
               </div>
             </div>
+
+            {hasExistingContext && (
+              <p className="text-xs text-[#4E586E]">
+                Using project context from your previous scan.
+              </p>
+            )}
           </div>
+
+          {/* Expanded inline intake editor for rescan */}
+          {hasExistingContext && showIntakeEditor && setProjectOrigin && setProductSummary && setTargetUsers && setSensitiveData && setMustNotBreakFlows && setDeploymentTarget && setScaleExpectation && (
+            <IntakeStep
+              projectOrigin={projectOrigin}
+              setProjectOrigin={setProjectOrigin}
+              productSummary={productSummary}
+              setProductSummary={setProductSummary}
+              targetUsers={targetUsers}
+              setTargetUsers={setTargetUsers}
+              sensitiveData={sensitiveData}
+              setSensitiveData={setSensitiveData}
+              mustNotBreakFlows={mustNotBreakFlows}
+              setMustNotBreakFlows={setMustNotBreakFlows}
+              deploymentTarget={deploymentTarget}
+              setDeploymentTarget={setDeploymentTarget}
+              scaleExpectation={scaleExpectation}
+              setScaleExpectation={setScaleExpectation}
+              suggestedFlows={suggestedFlows}
+              onBack={() => {}}
+              onContinue={() => onToggleIntakeEditor?.()}
+              onSkip={() => onToggleIntakeEditor?.()}
+              isValid={true}
+            />
+          )}
 
           {submitError && (
             <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-4 flex items-start gap-3">

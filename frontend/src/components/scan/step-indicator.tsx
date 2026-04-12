@@ -18,16 +18,22 @@ const STEPS = [
 
 export interface StepIndicatorProps {
   currentStep: number;
+  /** When true, step 2 (Project Context) is hidden from the indicator */
+  skipStep2?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function StepIndicator({ currentStep }: StepIndicatorProps) {
+export function StepIndicator({ currentStep, skipStep2 = false }: StepIndicatorProps) {
+  const visibleSteps = skipStep2
+    ? STEPS.filter((s) => s.number !== 2)
+    : STEPS;
+
   return (
     <div className="flex items-center gap-2 mb-8">
-      {STEPS.map((step, i) => (
+      {visibleSteps.map((step, i) => (
         <div key={step.number} className="flex items-center gap-2">
           <div
             className={`flex items-center justify-center size-8 rounded-full text-sm font-medium transition-colors ${
@@ -41,7 +47,7 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
             {currentStep > step.number ? (
               <CheckCircle2 className="size-4" />
             ) : (
-              step.number
+              skipStep2 ? i + 1 : step.number
             )}
           </div>
           <span
@@ -51,7 +57,7 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
           >
             {step.label}
           </span>
-          {i < STEPS.length - 1 && (
+          {i < visibleSteps.length - 1 && (
             <div className="w-8 sm:w-12 h-px bg-white/[0.06] mx-1" />
           )}
         </div>

@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { Suspense, useCallback, useEffect } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -25,6 +25,9 @@ function NewScanInner() {
   const searchParams = useSearchParams();
 
   const wizard = useScanWizard();
+
+  // Collapsed intake editor toggle for rescan review step
+  const [showIntakeEditor, setShowIntakeEditor] = useState(false);
 
   // ---------------------------------------------------------------------------
   // Pre-fill from previous scan (when ?repo_url= is present)
@@ -60,7 +63,7 @@ function NewScanInner() {
         )}
       </div>
 
-      <StepIndicator currentStep={wizard.step} />
+      <StepIndicator currentStep={wizard.step} skipStep2={wizard.hasExistingContext} />
 
       {/* Step 1: Repository URL + Primer */}
       {wizard.step === 1 && (
@@ -76,7 +79,7 @@ function NewScanInner() {
           setSuggestedFlows={wizard.setSuggestedFlows}
           repoSelectorManual={wizard.repoSelectorManual}
           setRepoSelectorManual={wizard.setRepoSelectorManual}
-          onContinue={() => wizard.goToStep(2)}
+          onContinue={() => wizard.goToStep(wizard.hasExistingContext ? 3 : 2)}
         />
         </div>
       )}
@@ -126,7 +129,7 @@ function NewScanInner() {
           submitError={wizard.submitError}
           onEditRepo={() => wizard.setStep(1)}
           onEditContext={() => wizard.setStep(2)}
-          onBack={() => wizard.setStep(2)}
+          onBack={() => wizard.setStep(wizard.hasExistingContext ? 1 : 2)}
           onSubmit={() =>
             wizard.handleSubmit(
               getToken,
@@ -134,6 +137,17 @@ function NewScanInner() {
               (path) => router.replace(path),
             )
           }
+          hasExistingContext={wizard.hasExistingContext}
+          showIntakeEditor={showIntakeEditor}
+          onToggleIntakeEditor={() => setShowIntakeEditor((v) => !v)}
+          setProjectOrigin={wizard.setProjectOrigin}
+          setProductSummary={wizard.setProductSummary}
+          setTargetUsers={wizard.setTargetUsers}
+          setSensitiveData={wizard.setSensitiveData}
+          setMustNotBreakFlows={wizard.setMustNotBreakFlows}
+          setDeploymentTarget={wizard.setDeploymentTarget}
+          setScaleExpectation={wizard.setScaleExpectation}
+          suggestedFlows={wizard.suggestedFlows}
         />
         </div>
       )}
