@@ -9,9 +9,17 @@ import { apiFetch, ApiError } from "@/lib/api/client";
 import { useTour } from "@/components/tour/tour-provider";
 import { Card } from "@/components/ui/card";
 import { GitHubConnection } from "@/components/settings/github-connection";
+import { ScanPreferencesSection } from "@/components/settings/scan-preferences-section";
 import { ApiKeySection } from "@/components/settings/api-key-section";
 import { OpenRouterKeySection } from "@/components/settings/openrouter-key-section";
 import { GuidedTourSection } from "@/components/settings/guided-tour-section";
+import type {
+  TechnicalLevel,
+  ExplanationStyle,
+  ShippingPosture,
+  CodingTool,
+  UserProfile,
+} from "@/lib/api/types";
 
 interface GitHubStatus {
   github_username: string | null;
@@ -38,14 +46,18 @@ export default function SettingsPage() {
   const [openRouterKeyHint, setOpenRouterKeyHint] = useState<string | null>(null);
   const [savingOpenRouterKey, setSavingOpenRouterKey] = useState(false);
 
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+
   useEffect(() => {
     async function fetchStatus() {
       try {
         const token = (await getToken()) ?? undefined;
-        const [ghStatus, keyStatus, orKeyStatus] = await Promise.allSettled([
+        const [ghStatus, keyStatus, orKeyStatus, profileStatus] = await Promise.allSettled([
           apiFetch<GitHubStatus>("/api/github/status", { token }),
           apiFetch<{ has_key: boolean }>("/api/user/api-key", { token }),
           apiFetch<{ has_key: boolean; key_hint: string | null }>("/api/user/openrouter-key", { token }),
+          apiFetch<UserProfile>("/api/user/me", { token }),
         ]);
         if (ghStatus.status === "fulfilled") setGithub(ghStatus.value);
         if (keyStatus.status === "fulfilled") setHasExistingKey(keyStatus.value.has_key);
@@ -53,6 +65,7 @@ export default function SettingsPage() {
           setHasOpenRouterKey(orKeyStatus.value.has_key);
           setOpenRouterKeyHint(orKeyStatus.value.key_hint);
         }
+        if (profileStatus.status === "fulfilled") setUserProfile(profileStatus.value);
       } catch {
         // Not connected or error
       }
@@ -199,6 +212,31 @@ export default function SettingsPage() {
     }
   }
 
+  async function handleSavePreferences(prefs: {
+    technical_level: TechnicalLevel;
+    explanation_style: ExplanationStyle;
+    shipping_posture: ShippingPosture;
+    coding_tool: CodingTool;
+    coding_tool_other?: string | null;
+  }) {
+    setSavingPrefs(true);
+    setError("");
+    try {
+      const token = (await getToken()) ?? undefined;
+      const updated = await apiFetch<UserProfile>("/api/user/me", {
+        method: "PATCH",
+        token,
+        body: JSON.stringify(prefs),
+      });
+      setUserProfile(updated);
+      setMessage("Preferences saved. Your next scan will use these settings.");
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Failed to save preferences");
+    } finally {
+      setSavingPrefs(false);
+    }
+  }
+
   function copyApiKey() {
     if (apiKey) {
       navigator.clipboard.writeText(apiKey);
@@ -229,6 +267,12 @@ export default function SettingsPage() {
           loading={loading}
           onConnect={connectGitHub}
           onDisconnect={disconnectGitHub}
+        />
+
+        <ScanPreferencesSection
+          profile={userProfile}
+          onSave={handleSavePreferences}
+          saving={savingPrefs}
         />
 
         <ApiKeySection

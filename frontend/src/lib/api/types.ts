@@ -323,6 +323,10 @@ export interface UserProfile {
   onboarding_complete: boolean
   tour_completed?: boolean
   technical_level?: TechnicalLevel | null
+  explanation_style?: ExplanationStyle | null
+  shipping_posture?: ShippingPosture | null
+  coding_tool?: CodingTool | null
+  coding_tool_other?: string | null
   scan_credits: number
   balance_usd: number
   has_openrouter_key?: boolean
