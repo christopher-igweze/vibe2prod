@@ -13,6 +13,7 @@ from fastapi.responses import JSONResponse, Response
 from api.errors import forbidden, not_found, server_error
 from api.middleware.rate_limit import limiter, rate_limit_string
 from constants import PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT, PROJECTS_DEFAULT_LIMIT
+from models.onboarding import TechnicalLevel, ExplanationStyle, ShippingPosture, CodingTool
 from services import openrouter_key_manager, supabase_client as db
 
 router = APIRouter()
@@ -29,6 +30,62 @@ async def get_me(request: Request) -> dict:
     except Exception:
         logger.exception("Failed to retrieve user profile for user %s", user_id)
         raise server_error("Failed to retrieve user profile")
+    if not profile:
+        return {
+            "user_id": user_id,
+            "role": "user",
+            "onboarding_complete": False,
+            "scan_credits": 1,
+            "balance_usd": 0.0,
+            "has_openrouter_key": False,
+        }
+    return profile
+
+
+# Enum value sets for validation
+_VALID_TECHNICAL_LEVEL = {e.value for e in TechnicalLevel}
+_VALID_EXPLANATION_STYLE = {e.value for e in ExplanationStyle}
+_VALID_SHIPPING_POSTURE = {e.value for e in ShippingPosture}
+_VALID_CODING_TOOL = {e.value for e in CodingTool}
+
+_ENUM_VALIDATORS: dict[str, set[str]] = {
+    "technical_level": _VALID_TECHNICAL_LEVEL,
+    "explanation_style": _VALID_EXPLANATION_STYLE,
+    "shipping_posture": _VALID_SHIPPING_POSTURE,
+    "coding_tool": _VALID_CODING_TOOL,
+}
+
+
+@router.patch("/user/me")
+@limiter.limit(rate_limit_string())
+async def update_me(request: Request) -> dict:
+    """Update editable scan preferences on the authenticated user's profile.
+
+    Accepts a partial dict. Only whitelisted fields are persisted;
+    unknown keys are silently ignored. Enum fields are validated against
+    the same values accepted during onboarding.
+    """
+    user_id: str = request.state.user_id
+    body = await request.json()
+
+    # Validate enum fields that are present in the payload
+    for field, allowed in _ENUM_VALIDATORS.items():
+        value = body.get(field)
+        if value is not None and value not in allowed:
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "detail": f"Invalid value for {field}: '{value}'. "
+                    f"Allowed: {sorted(allowed)}"
+                },
+            )
+
+    try:
+        profile = await db.update_user_preferences(user_id, body)
+    except Exception:
+        logger.exception("Failed to update preferences for user %s", user_id)
+        raise server_error("Failed to update preferences")
+
     if not profile:
         return {
             "user_id": user_id,

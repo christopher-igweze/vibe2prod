@@ -182,6 +182,31 @@ async def remove_openrouter_key(user_id: str) -> None:
     ).eq("user_id", user_id).execute()
 
 
+async def update_user_preferences(user_id: str, updates: dict) -> dict | None:
+    """Update whitelisted preference fields on the user's profile.
+
+    Returns the full profile dict (same shape as get_user_profile) or None
+    if the profile doesn't exist.
+    """
+    client = _client()
+
+    # Only allow whitelisted fields through
+    ALLOWED_FIELDS = {
+        "technical_level",
+        "explanation_style",
+        "shipping_posture",
+        "coding_tool",
+        "coding_tool_other",
+    }
+    filtered = {k: v for k, v in updates.items() if k in ALLOWED_FIELDS}
+    if not filtered:
+        # Nothing to update — return current profile
+        return get_user_profile(user_id)
+
+    client.table("profiles").update(filtered).eq("user_id", str(user_id)).execute()
+    return get_user_profile(user_id)
+
+
 async def get_openrouter_key_encrypted(user_id: str) -> str | None:
     """Return the raw encrypted OpenRouter key, or None if not set."""
     client = _client()
