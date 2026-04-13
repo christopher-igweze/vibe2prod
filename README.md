@@ -2,77 +2,145 @@
 
 AI-powered code audit and production-hardening platform. Turns vibe-coded MVPs into production-ready software.
 
+## What It Does
+
+Vibe2Prod audits code repositories for security, reliability, scalability, and architectural issues using the [FORGE engine](https://github.com/christopher-igweze/forge-engine) — a 3-agent AI pipeline backed by deterministic SAST analysis. It scores repos across multiple dimensions, generates remediation plans, and provides a Production Readiness Score.
+
+## Tech Stack
+
+| Layer | Stack |
+|-------|-------|
+| **Frontend** | Next.js 16, React 19, TypeScript, Tailwind CSS 4, Clerk (auth), TanStack Query, shadcn/ui |
+| **Backend** | FastAPI, Python 3.12, Pydantic v2, httpx (async) |
+| **Database** | Supabase (PostgreSQL + RLS + JWT) |
+| **Auth** | Clerk (frontend) → Supabase JWT (backend) |
+| **LLM Routing** | OpenRouter (model-agnostic) |
+| **FORGE Engine** | Separate repo — called via HTTP bridge |
+| **Payments** | Stripe (wallet-based PAYG + BYOK) |
+
 ## Architecture
 
 ```
-vibe2prod/
-├── backend/
-│   ├── main.py              # FastAPI entry point
-│   ├── config.py            # Pydantic settings (env-driven)
-│   ├── api/
-│   │   ├── routes/          # 7 core route modules
-│   │   └── middleware/      # Auth (Supabase JWT), rate limiting
-│   ├── sandbox/             # Daytona SDK — ephemeral container management
-│   ├── services/            # Supabase, GitHub, OpenRouter, FORGE bridge
-│   └── models/              # Pydantic data models
-├── supabase/                # Database migrations & config
-├── benchmarks/              # FORGE discovery/triage benchmarks
-├── doc/                     # FORGE engine integration context
-└── docker-compose.yml
+frontend/                    # Next.js 16 (App Router, Turbopack)
+├── src/app/
+│   ├── (auth)/              # Sign-in/sign-up (Clerk)
+│   ├── (app)/               # Protected app routes
+│   │   ├── dashboard/       # Scan history, metrics, projects
+│   │   ├── scan/new         # Multi-step audit wizard
+│   │   ├── scan/[id]        # Live scan progress + report
+│   │   ├── settings/        # User preferences, API keys
+│   │   └── pricing/         # Billing & credits
+│   ├── cli/                 # CLI documentation
+│   └── page.tsx             # Landing page
+├── src/components/
+│   ├── landing/             # 17 marketing sections
+│   ├── dashboard/           # Stats, scans, projects
+│   ├── scan/                # Wizard (repo → intake → review)
+│   └── ui/                  # shadcn/ui primitives
+└── src/hooks/               # Dashboard state, repo selection, user role
+
+backend/
+├── main.py                  # FastAPI app + middleware stack
+├── config.py                # Pydantic Settings (strict, extra="forbid")
+├── api/
+│   ├── routes/              # 12 route modules
+│   └── middleware/          # Auth (Supabase JWT), rate limiting
+├── services/
+│   ├── repositories/        # 14 focused data access modules
+│   ├── forge_bridge.py      # HTTP bridge to FORGE engine
+│   ├── forge_executor.py    # Async execution + polling
+│   ├── github_oauth_flow.py # GitHub OAuth (RFC 6749)
+│   ├── github_token_manager.py  # Token encryption (AES-256)
+│   └── openrouter_key_manager.py # BYOK support
+├── sandbox/                 # Daytona SDK — ephemeral containers
+└── models/                  # Pydantic data models
+
+supabase/                    # 27+ migrations
+docker-compose.yml           # 3 services: frontend, api, forge
 ```
 
-## FORGE Discovery & Remediation
+## Features
 
-| Feature | What | How |
-|---------|------|-----|
-| **Discovery** | 12-agent AI audit — security, quality, architecture, performance | `POST /api/audit` → FORGE engine via AgentField |
-| **Remediation** | AI-driven code fixes with PR generation | `POST /api/fix` → FORGE engine via AgentField |
+**Audit Pipeline**
+- Multi-step scan wizard: repo selection → project intake → review & submit
+- FORGE discovery: Opengrep SAST + 3 AI agents (Codebase Analyst, Security Auditor, Fix Strategist)
+- Deterministic evaluation: 47 checks across 7 dimensions (security, reliability, maintainability, test quality, performance, docs, ops)
+- Production Readiness Score with band ratings (A–F)
+- AIVSS scoring for agentic AI projects
+
+**Dashboard**
+- Scan history with status, timing, and cost tracking
+- Project management (group scans by repo)
+- Live SSE updates for in-progress scans
+- Usage stats (LLM cost, infra cost, findings per scan)
+
+**Pricing**
+- Free tier (limited scans)
+- PAYG (wallet-based, Stripe)
+- BYOK (bring-your-own OpenRouter key, no wallet charge)
+- Developer role (unlimited)
+
+**Integrations**
+- GitHub OAuth with encrypted token storage
+- GitHub webhooks (push/PR events)
+- CLI: `pip install vibe2prod && vibe2prod scan ./my-app` (code stays local)
+- MCP server for Claude Code integration
 
 ## Quick Start
 
 ```bash
-# 1. Set up environment
-cp backend/.env.example backend/.env
-# Edit .env with your keys (Supabase, OpenRouter, Daytona)
+# Docker (recommended)
+docker-compose up
 
-# 2. Install dependencies
+# Or manually:
+
+# Backend
+cp backend/.env.example backend/.env   # Add your keys
 cd backend && pip install -r requirements.txt
-
-# 3. Run
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+# Frontend
+cd frontend && npm install
+npm run dev
 ```
 
 ## API Endpoints
 
-| Method | Path | Purpose |
-|--------|------|---------|
-| `POST` | `/api/audit` | Start a FORGE discovery scan |
-| `GET` | `/api/status/{scan_id}` | SSE stream of audit progress |
-| `POST` | `/api/fix` | Trigger FORGE remediation (BackgroundTask, stores results in Supabase) |
-| `POST` | `/api/github/oauth/callback` | GitHub OAuth flow |
-| `POST` | `/api/webhook/github` | GitHub push/PR webhooks |
-| `GET` | `/health` | Health check |
+| Method | Path | Purpose | Auth |
+|--------|------|---------|------|
+| `POST` | `/api/audit` | Start FORGE discovery scan | JWT |
+| `GET` | `/api/status/{scan_id}` | SSE stream of scan progress | JWT |
+| `POST` | `/api/fix` | Trigger FORGE remediation | JWT |
+| `POST` | `/api/primer` | Analyze repo (cached per SHA) | JWT |
+| `GET` | `/api/user/me` | User profile | JWT |
+| `PATCH` | `/api/user/me` | Update preferences | JWT |
+| `POST` | `/api/github/oauth/callback` | GitHub OAuth redirect | Public |
+| `POST` | `/api/webhook/github` | GitHub push/PR webhooks | HMAC |
+| `POST` | `/api/webhook/clerk` | Clerk auth webhooks | HMAC |
+| `GET` | `/health` | Health check | Public |
 
-## FORGE Engine (Separate Repo)
+## FORGE Engine
 
-The 12-agent remediation engine lives at [`christopher-igweze/forge-engine`](https://github.com/christopher-igweze/forge-engine). It runs as an AgentField node in Daytona sandboxes and is called via HTTP from this backend's `forge_bridge` service.
+The audit engine lives at [`christopher-igweze/forge-engine`](https://github.com/christopher-igweze/forge-engine). v3 uses 3 LLM agents + Opengrep SAST + 47 deterministic evaluation checks. Scans cost ~$0.21.
 
-For local CLI usage (code stays on your machine):
 ```bash
+# Local CLI (code stays on your machine)
 pip install vibe2prod
 vibe2prod scan ./my-app
 ```
 
-## Benchmarks
+## Environment Variables
 
-The `benchmarks/` directory contains FORGE discovery + triage benchmarks for measuring finding quality and cost:
+**Backend** — `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `SUPABASE_JWT_SECRET`, `OPENROUTER_API_KEY`, `DAYTONA_API_KEY`, `DAYTONA_API_URL`, plus optional GitHub/Clerk/Stripe/FORGE keys.
 
-- **`discovery_triage_001/`** — 3x3 matrix (9 repos across 3 size groups), 297 total findings, $7.27 total cost
-- **`discovery_triage_002/`** — User-provided repo benchmarks with `run_discovery.py` runner script (auto-loads `OPENROUTER_API_KEY` from `backend/.env`, runs FORGE standalone against any GitHub URL or local path)
+**Frontend** — `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_API_URL`.
+
+See `.env.example` files for the full list.
 
 ## Infrastructure
 
-- **Database**: Supabase (PostgreSQL + RLS + JWT auth)
+- **Frontend**: Vercel (Next.js optimized)
+- **Backend**: Docker (FastAPI + uvicorn)
+- **Database**: Supabase (PostgreSQL + RLS)
 - **Sandboxes**: Daytona (ephemeral Linux containers)
-- **LLM routing**: OpenRouter (model-agnostic)
-- **CI/CD**: GitHub Actions
+- **LLM Routing**: OpenRouter (model-agnostic)
