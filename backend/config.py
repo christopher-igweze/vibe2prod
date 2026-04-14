@@ -113,6 +113,11 @@ class Settings(BaseSettings):
     forge_sandbox_exec_timeout: int = 3600
     forge_package_source: str = "vibe2prod"
     forge_deploy_token: str | None = None  # GitHub PAT for private forge-engine repo access
+    # Pre-built Daytona snapshot (vibe2prod-{version}) to provision FORGE
+    # sandboxes from. Empty string falls back to inline image build (slow,
+    # ~30-60s per scan; only useful for dev). Bumped automatically by the
+    # forge-engine release workflow.
+    forge_sandbox_snapshot: str = ""
 
     # --- FORGE Engine ---
     forge_enabled: bool = False

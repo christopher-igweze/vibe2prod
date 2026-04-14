@@ -18,6 +18,7 @@ from daytona import (
     Daytona,
     DaytonaConfig,
     CreateSandboxFromImageParams,
+    CreateSandboxFromSnapshotParams,
     Image,
     Resources,
     Sandbox,
@@ -174,50 +175,31 @@ class SandboxManager:
         """
         logger.info("Provisioning FORGE sandbox for scan %s", scan_id)
 
+        snapshot_name = settings.forge_sandbox_snapshot
+
+        # Inline-build path needs the latest SHA + token munging; snapshot
+        # path needs neither (the snapshot is already pinned to a published
+        # vibe2prod PyPI version), so skip that work to avoid a needless
+        # GitHub API call.
         forge_source = settings.forge_package_source
+        if not snapshot_name:
+            deploy_token = settings.forge_deploy_token
 
-        # Use dedicated deploy token (not the user's OAuth token) for private repo access.
-        deploy_token = settings.forge_deploy_token
+            # Pin to latest commit SHA so Daytona rebuilds the image on new pushes.
+            sha = await _resolve_forge_sha(forge_source, deploy_token or github_token)
+            if sha and "@" not in forge_source:
+                forge_source = f"{forge_source}@{sha}"
 
-        # Pin to latest commit SHA so Daytona rebuilds the image on new pushes.
-        sha = await _resolve_forge_sha(forge_source, deploy_token or github_token)
-        if sha and "@" not in forge_source:
-            forge_source = f"{forge_source}@{sha}"
-
-        if deploy_token and "github.com" in forge_source:
-            forge_source = forge_source.replace(
-                "https://github.com/",
-                f"https://x-access-token:{deploy_token}@github.com/",
-            )
-        elif github_token and "github.com" in forge_source:
-            forge_source = forge_source.replace(
-                "https://github.com/",
-                f"https://x-access-token:{github_token}@github.com/",
-            )
-
-        # Opengrep ships as a standalone Linux binary (no pip package).
-        # Download it into /usr/local/bin so forge-engine's SAST phase can
-        # invoke `opengrep scan`. Using the pinned v1.19.0 manylinux_x86
-        # build to match Daytona's x86_64 Debian slim base image.
-        opengrep_version = "v1.19.0"
-        opengrep_url = (
-            f"https://github.com/opengrep/opengrep/releases/download/"
-            f"{opengrep_version}/opengrep_manylinux_x86"
-        )
-
-        image = (
-            Image.debian_slim("3.12")
-            .run_commands(
-                "apt-get update && "
-                "apt-get install -y --no-install-recommends git build-essential curl ca-certificates && "
-                "rm -rf /var/lib/apt/lists/* && "
-                f"curl -fsSL {opengrep_url} -o /usr/local/bin/opengrep && "
-                "chmod +x /usr/local/bin/opengrep && "
-                "/usr/local/bin/opengrep --version"
-            )
-            .pip_install([forge_source])
-            .workdir("/home/daytona")
-        )
+            if deploy_token and "github.com" in forge_source:
+                forge_source = forge_source.replace(
+                    "https://github.com/",
+                    f"https://x-access-token:{deploy_token}@github.com/",
+                )
+            elif github_token and "github.com" in forge_source:
+                forge_source = forge_source.replace(
+                    "https://github.com/",
+                    f"https://x-access-token:{github_token}@github.com/",
+                )
 
         env_vars = {
             "SCAN_ID": str(scan_id),
@@ -228,18 +210,60 @@ class SandboxManager:
         # not domain names. Since FORGE needs CDN-backed services
         # (OpenRouter, GitHub, PyPI) with dynamic IPs, we rely on
         # ephemeral containers + command-level NetworkPolicy for safety.
-        params = CreateSandboxFromImageParams(
-            image=image,
-            resources=Resources(
-                cpu=settings.forge_sandbox_cpu,
-                memory=settings.forge_sandbox_memory_gb,
-                disk=settings.forge_sandbox_disk_gb,
-            ),
-            auto_stop_interval=settings.forge_sandbox_timeout_minutes,
-            ephemeral=True,
-            labels={"scan_id": str(scan_id), "type": "forge"},
-            env_vars=env_vars,
-        )
+        if snapshot_name:
+            # Fast path: provision from a pre-built snapshot. The snapshot
+            # bakes in OS deps + Opengrep binary + the pinned vibe2prod
+            # PyPI release, so sandbox start drops from ~30-60s to ~1-2s
+            # and there's no risk of an inline pip/apt step hanging on a
+            # registry fetch (see opengrep --config auto incident).
+            logger.info(
+                "FORGE sandbox using snapshot %s for scan %s",
+                snapshot_name, scan_id,
+            )
+            params = CreateSandboxFromSnapshotParams(
+                snapshot=snapshot_name,
+                auto_stop_interval=settings.forge_sandbox_timeout_minutes,
+                ephemeral=True,
+                labels={"scan_id": str(scan_id), "type": "forge"},
+                env_vars=env_vars,
+            )
+        else:
+            # Fallback: build the image inline. Slow but works in dev /
+            # before the first snapshot has been published. forge-engine's
+            # release workflow auto-PRs the snapshot bump on every PyPI
+            # publish, so production should always have a snapshot set.
+            opengrep_version = "v1.19.0"
+            opengrep_url = (
+                f"https://github.com/opengrep/opengrep/releases/download/"
+                f"{opengrep_version}/opengrep_manylinux_x86"
+            )
+
+            image = (
+                Image.debian_slim("3.12")
+                .run_commands(
+                    "apt-get update && "
+                    "apt-get install -y --no-install-recommends git build-essential curl ca-certificates && "
+                    "rm -rf /var/lib/apt/lists/* && "
+                    f"curl -fsSL {opengrep_url} -o /usr/local/bin/opengrep && "
+                    "chmod +x /usr/local/bin/opengrep && "
+                    "/usr/local/bin/opengrep --version"
+                )
+                .pip_install([forge_source])
+                .workdir("/home/daytona")
+            )
+
+            params = CreateSandboxFromImageParams(
+                image=image,
+                resources=Resources(
+                    cpu=settings.forge_sandbox_cpu,
+                    memory=settings.forge_sandbox_memory_gb,
+                    disk=settings.forge_sandbox_disk_gb,
+                ),
+                auto_stop_interval=settings.forge_sandbox_timeout_minutes,
+                ephemeral=True,
+                labels={"scan_id": str(scan_id), "type": "forge"},
+                env_vars=env_vars,
+            )
 
         for attempt in range(1, _SANDBOX_MAX_RETRIES + 1):
             try:
