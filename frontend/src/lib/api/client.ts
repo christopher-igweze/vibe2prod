@@ -3,6 +3,7 @@
 import {
   retryMiddleware,
   errorMiddleware,
+  authRefreshMiddleware,
   composeMiddleware,
   type Middleware,
   type ApiRequest,
@@ -12,9 +13,14 @@ import {
 // Only use absolute URL for direct local dev without proxy.
 const API_URL = ''
 
-// Composed middleware pipeline: retry network errors, then normalize errors
+// Composed middleware pipeline:
+//   1. retryMiddleware — retry transient network failures
+//   2. authRefreshMiddleware — on 401, refresh Clerk JWT and retry once
+//      (prevents "Lost connection" flashes from the 60s token expiry window)
+//   3. errorMiddleware — turn any remaining non-OK response into an ApiError
 const apiMiddleware: Middleware = composeMiddleware(
   retryMiddleware(),
+  authRefreshMiddleware(),
   errorMiddleware(),
 )
 
