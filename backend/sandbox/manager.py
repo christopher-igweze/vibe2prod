@@ -198,7 +198,11 @@ class SandboxManager:
         image = (
             Image.debian_slim("3.12")
             .run_commands("apt-get update && apt-get install -y --no-install-recommends git build-essential && rm -rf /var/lib/apt/lists/*")
-            .pip_install([forge_source])
+            # Install Opengrep BEFORE forge-engine so the binary is on PATH
+            # when FORGE's deterministic scan phase runs. Without this the
+            # sandbox silently skips the entire SAST pass (~16 rules worth
+            # of findings) and composite scores get wildly inflated.
+            .pip_install(["opengrep", forge_source])
             .workdir("/home/daytona")
         )
 
