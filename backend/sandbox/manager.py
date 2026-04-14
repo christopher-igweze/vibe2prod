@@ -195,14 +195,27 @@ class SandboxManager:
                 f"https://x-access-token:{github_token}@github.com/",
             )
 
+        # Opengrep ships as a standalone Linux binary (no pip package).
+        # Download it into /usr/local/bin so forge-engine's SAST phase can
+        # invoke `opengrep scan`. Using the pinned v1.19.0 manylinux_x86
+        # build to match Daytona's x86_64 Debian slim base image.
+        opengrep_version = "v1.19.0"
+        opengrep_url = (
+            f"https://github.com/opengrep/opengrep/releases/download/"
+            f"{opengrep_version}/opengrep_manylinux_x86"
+        )
+
         image = (
             Image.debian_slim("3.12")
-            .run_commands("apt-get update && apt-get install -y --no-install-recommends git build-essential && rm -rf /var/lib/apt/lists/*")
-            # Install Opengrep BEFORE forge-engine so the binary is on PATH
-            # when FORGE's deterministic scan phase runs. Without this the
-            # sandbox silently skips the entire SAST pass (~16 rules worth
-            # of findings) and composite scores get wildly inflated.
-            .pip_install(["opengrep", forge_source])
+            .run_commands(
+                "apt-get update && "
+                "apt-get install -y --no-install-recommends git build-essential curl ca-certificates && "
+                "rm -rf /var/lib/apt/lists/* && "
+                f"curl -fsSL {opengrep_url} -o /usr/local/bin/opengrep && "
+                "chmod +x /usr/local/bin/opengrep && "
+                "/usr/local/bin/opengrep --version"
+            )
+            .pip_install([forge_source])
             .workdir("/home/daytona")
         )
 
