@@ -62,7 +62,7 @@ export function ScanRow({
         <div className="cursor-pointer flex items-center gap-3">
           <div className="min-w-0">
             <p className="text-sm text-[#E8ECF4] truncate">
-              {new Date(scan.created_at).toLocaleDateString()}
+              {new Date(scan.created_at).toLocaleString()}
               {scan.scan_tier && <span className="text-[#4E586E] ml-2">{scan.scan_tier}</span>}
             </p>
             {scan.health_score !== null && (

@@ -122,7 +122,7 @@ export function UsageStatsPanel({ scans, isByok }: UsageStatsPanelProps) {
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <span className="text-[#8692A8] text-xs w-20 shrink-0">
-                    {new Date(scan.created_at).toLocaleDateString()}
+                    {new Date(scan.created_at).toLocaleString()}
                   </span>
                   <span className="text-[#E8ECF4] truncate">
                     {scan.repo_name || scan.repo_url || "—"}

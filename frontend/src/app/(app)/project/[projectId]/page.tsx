@@ -94,7 +94,7 @@ export default function ProjectDetailPage() {
   const { project, scans } = data
   const displayName = project.repo_name || project.repo_url
   const firstScanDate = scans.length > 0
-    ? new Date(scans[scans.length - 1].created_at).toLocaleDateString()
+    ? new Date(scans[scans.length - 1].created_at).toLocaleString()
     : "N/A"
   const repoUrlEncoded = encodeURIComponent(project.repo_url)
 
@@ -147,7 +147,7 @@ export default function ProjectDetailPage() {
                     return (
                       <tr key={scan.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
                         <td className="px-4 py-2 text-[#E8ECF4]">
-                          {new Date(scan.created_at).toLocaleDateString()}
+                          {new Date(scan.created_at).toLocaleString()}
                         </td>
                         <td className="px-4 py-2 text-center">
                           <span className="inline-flex items-center gap-1">
@@ -199,7 +199,7 @@ export default function ProjectDetailPage() {
                 >
                   <div className="cursor-pointer">
                     <p className="font-medium text-[#E8ECF4]">
-                      {new Date(scan.created_at).toLocaleDateString()} &middot; {scan.scan_tier}
+                      {new Date(scan.created_at).toLocaleString()} &middot; {scan.scan_tier}
                     </p>
                     <div className="flex items-center gap-4 mt-1 text-xs">
                       {scan.health_score !== null && (
