@@ -12,6 +12,7 @@ import httpx
 from fastapi import HTTPException
 
 from services import supabase_client as db
+from services.github_repository_ops import _handle_github_network_error
 from services.github_token_manager import get_decrypted_token
 from services.http_client import shared_client
 
@@ -101,26 +102,8 @@ async def list_repos(
             },
             params=params,
         )
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_timeout",
-                "message": "GitHub API is temporarily unavailable. Please try again later.",
-                "retry_after": 30,
-            },
-            headers={"Retry-After": "30"},
-        )
-    except httpx.ConnectError:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_unreachable",
-                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
-                "retry_after": 60,
-            },
-            headers={"Retry-After": "60"},
-        )
+    except httpx.RequestError as e:
+        raise _handle_github_network_error(e)
 
     if resp.status_code == 401:
         raise HTTPException(
@@ -192,26 +175,8 @@ async def list_repo_branches(
                 "page": page,
             },
         )
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_timeout",
-                "message": "GitHub API is temporarily unavailable. Please try again later.",
-                "retry_after": 30,
-            },
-            headers={"Retry-After": "30"},
-        )
-    except httpx.ConnectError:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_unreachable",
-                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
-                "retry_after": 60,
-            },
-            headers={"Retry-After": "60"},
-        )
+    except httpx.RequestError as e:
+        raise _handle_github_network_error(e)
 
     if resp.status_code == 401:
         raise HTTPException(
@@ -256,26 +221,8 @@ async def get_connection_status(user_id: str) -> dict:
                 "Authorization": f"Bearer {token}",
             },
         )
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_timeout",
-                "message": "GitHub API is temporarily unavailable. Please try again later.",
-                "retry_after": 30,
-            },
-            headers={"Retry-After": "30"},
-        )
-    except httpx.ConnectError:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_unreachable",
-                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
-                "retry_after": 60,
-            },
-            headers={"Retry-After": "60"},
-        )
+    except httpx.RequestError as e:
+        raise _handle_github_network_error(e)
 
     if resp.status_code != 200:
         return {"connected": False, "error": "token_expired"}

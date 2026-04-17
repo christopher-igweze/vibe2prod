@@ -16,6 +16,7 @@ import jwt
 from fastapi import HTTPException
 
 from config import settings
+from services.github_repository_ops import _handle_github_network_error
 from services.http_client import shared_client
 from services import supabase_client as db
 
@@ -269,26 +270,8 @@ async def exchange_code_for_token(
                 "state": state,
             },
         )
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_timeout",
-                "message": "GitHub OAuth service is temporarily unavailable. Please try again later.",
-                "retry_after": 30,
-            },
-            headers={"Retry-After": "30"},
-        )
-    except httpx.ConnectError:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_unreachable",
-                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
-                "retry_after": 60,
-            },
-            headers={"Retry-After": "60"},
-        )
+    except httpx.RequestError as e:
+        raise _handle_github_network_error(e, context="GitHub OAuth service")
 
     if resp.status_code >= 400:
         raise HTTPException(
@@ -323,26 +306,8 @@ async def fetch_github_profile(access_token: str) -> tuple[str | None, str | Non
                 "Authorization": f"Bearer {access_token}",
             },
         )
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_timeout",
-                "message": "GitHub API is temporarily unavailable. Please try again later.",
-                "retry_after": 30,
-            },
-            headers={"Retry-After": "30"},
-        )
-    except httpx.ConnectError:
-        raise HTTPException(
-            status_code=503,
-            detail={
-                "code": "github_unreachable",
-                "message": "Unable to reach GitHub. Please check your connection and try again in a few moments.",
-                "retry_after": 60,
-            },
-            headers={"Retry-After": "60"},
-        )
+    except httpx.RequestError as e:
+        raise _handle_github_network_error(e)
 
     if resp.status_code >= 400:
         raise HTTPException(
