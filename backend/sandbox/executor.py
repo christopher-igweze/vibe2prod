@@ -119,7 +119,7 @@ class SandboxExecutor:
                             if line:
                                 on_output(line)
                 except Exception:
-                    pass  # Log file might not exist yet or sandbox is busy
+                    logger.debug("Log tail failed (file may not exist yet or sandbox busy)")
 
         tail_task = asyncio.create_task(_tail_logs())
 
@@ -153,7 +153,7 @@ class SandboxExecutor:
                     if line:
                         on_output(line)
         except Exception:
-            pass
+            logger.debug("Final log read failed for %s", _LOG_FILE)
 
         # Read full stderr for the result
         stderr = ""
@@ -161,7 +161,7 @@ class SandboxExecutor:
             stderr_resp = sandbox.process.exec(f"cat {_LOG_FILE}", cwd="/tmp", timeout=10)
             stderr = stderr_resp.result or ""
         except Exception:
-            pass
+            logger.debug("Stderr read failed for %s", _LOG_FILE)
 
         return CommandResult(
             command=command,

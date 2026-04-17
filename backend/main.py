@@ -282,7 +282,7 @@ async def health():
         logger.exception("Health check failed with exception")
         return JSONResponse(
             status_code=503,
-            content={"status": "unhealthy", "database": "error", "message": str(e)},
+            content={"status": "unhealthy", "database": "error"},
         )
 
     if not db_healthy:

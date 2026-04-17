@@ -101,7 +101,8 @@ def encrypt_token(plaintext: str, raw_key: str | None = None) -> str:
         ValueError: If the key is missing or invalid.
     """
     if raw_key is None:
-        raw_key = os.environ.get("GITHUB_TOKEN_ENCRYPTION_KEY")
+        from config import settings
+        raw_key = settings.github_token_encryption_key
     key_bytes = _load_key(raw_key)
     aesgcm = AESGCM(key_bytes)
     nonce = os.urandom(_NONCE_BYTES)
@@ -132,7 +133,8 @@ def decrypt_token(ciphertext_field: str, raw_key: str | None = None) -> str:
                     same as a missing token — the stored credential is unusable.
     """
     if raw_key is None:
-        raw_key = os.environ.get("GITHUB_TOKEN_ENCRYPTION_KEY")
+        from config import settings
+        raw_key = settings.github_token_encryption_key
     key_bytes = _load_key(raw_key)
 
     parts = ciphertext_field.split(_SEP, 1)
