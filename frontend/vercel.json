@@ -1,0 +1,3 @@
+{
+  "ignoreCommand": "if [[ \"$VERCEL_GIT_COMMIT_REF\" == bump-snapshot/* ]]; then exit 0; fi; exit 1"
+}
