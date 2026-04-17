@@ -21,6 +21,7 @@ export interface ScanSummary {
   id: string;
   repo_url: string;
   repo_name: string;
+  branch: string | null;
   status: string;
   scan_tier: string | null;
   created_at: string;
@@ -63,6 +64,7 @@ export function ScanRow({
           <div className="min-w-0">
             <p className="text-sm text-[#E8ECF4] truncate">
               {new Date(scan.created_at).toLocaleString()}
+              {scan.branch && <span className="text-[#6B7A99] ml-2">{scan.branch}</span>}
               {scan.scan_tier && <span className="text-[#4E586E] ml-2">{scan.scan_tier}</span>}
             </p>
             {scan.health_score !== null && (

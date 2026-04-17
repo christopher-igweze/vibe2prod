@@ -11,6 +11,7 @@ export interface ScanSummary {
   id: string
   repo_url: string
   repo_name: string
+  branch: string | null
   status: string
   scan_tier: string | null
   created_at: string
@@ -25,6 +26,7 @@ export interface ScanDetail {
   id: string
   repo_url: string
   repo_name: string
+  branch: string | null
   status: string
   scan_tier: string | null
   created_at: string

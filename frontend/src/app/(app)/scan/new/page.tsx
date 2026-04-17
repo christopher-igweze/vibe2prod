@@ -36,8 +36,10 @@ function NewScanInner() {
   const prefill = useCallback(async () => {
     const repoParam = searchParams.get("repo_url");
     if (!repoParam) return;
+    const branchParam = searchParams.get("branch");
+    if (branchParam) wizard.setBranch(branchParam);
     await wizard.prefillFromProject(repoParam, getToken);
-  }, [searchParams, getToken, wizard.prefillFromProject]);
+  }, [searchParams, getToken, wizard.prefillFromProject, wizard.setBranch]);
 
   useEffect(() => {
     prefill();

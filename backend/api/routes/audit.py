@@ -229,6 +229,7 @@ async def start_audit(
             project_intake=request_body.project_intake.model_dump(mode="json"),
             primer_summary=(request_body.primer.summary if request_body.primer else None),
             audit_confidence=(request_body.primer.confidence if request_body.primer else None),
+            branch=request_body.branch,
         )
 
         project_context = request_body.project_intake.model_dump(mode="json")

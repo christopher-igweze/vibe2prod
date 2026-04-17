@@ -97,6 +97,10 @@ export default function ProjectDetailPage() {
     ? new Date(scans[scans.length - 1].created_at).toLocaleString()
     : "N/A"
   const repoUrlEncoded = encodeURIComponent(project.repo_url)
+  const lastBranch = scans.length > 0 ? scans[0].branch : null
+  const rescanQuery = lastBranch
+    ? `/scan/new?repo_url=${repoUrlEncoded}&branch=${encodeURIComponent(lastBranch)}`
+    : `/scan/new?repo_url=${repoUrlEncoded}`
 
   return (
     <div className="space-y-8">
@@ -115,7 +119,7 @@ export default function ProjectDetailPage() {
             {project.scan_count} scan{project.scan_count !== 1 ? "s" : ""} &middot; First scan {firstScanDate}
           </p>
         </div>
-        <Link href={`/scan/new?repo_url=${repoUrlEncoded}`}>
+        <Link href={rescanQuery}>
           <Button className="bg-forge-emerald hover:bg-forge-emerald/90 text-[#0B0F19] gap-2">
             <RefreshCw className="size-4" /> Re-scan
           </Button>

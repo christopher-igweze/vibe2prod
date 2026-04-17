@@ -22,23 +22,25 @@ async def create_scan_report(
     project_intake: dict | None = None,
     primer_summary: str | None = None,
     audit_confidence: int | None = None,
+    branch: str | None = None,
 ) -> UUID:
     """Insert a new scan_reports row using the caller-supplied *scan_id*."""
     client = _client()
+    data = {
+        "id": str(scan_id),
+        "project_id": str(project_id),
+        "user_id": str(user_id),
+        "scan_tier": scan_tier,
+        "status": ScanStatus.pending.value,
+        "project_intake": project_intake,
+        "primer_summary": primer_summary,
+        "audit_confidence": audit_confidence,
+    }
+    if branch:
+        data["branch"] = branch
     row = (
         client.table("scan_reports")
-        .insert(
-            {
-                "id": str(scan_id),
-                "project_id": str(project_id),
-                "user_id": str(user_id),
-                "scan_tier": scan_tier,
-                "status": ScanStatus.pending.value,
-                "project_intake": project_intake,
-                "primer_summary": primer_summary,
-                "audit_confidence": audit_confidence,
-            }
-        )
+        .insert(data)
         .execute()
     )
     return UUID(row.data[0]["id"])
@@ -190,7 +192,7 @@ async def list_user_scans(
     row = (
         client.table("scan_reports")
         .select(
-            "id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,cost_usd,created_at,project_id,"
+            "id,status,scan_tier,health_score,security_score,reliability_score,scalability_score,cost_usd,created_at,project_id,branch,"
             "projects(id,user_id)"
         )
         .eq("user_id", str(user_id))
@@ -213,6 +215,7 @@ async def list_user_scans(
             "cost_usd": item.get("cost_usd"),
             "created_at": item.get("created_at"),
             "project_id": item.get("project_id"),
+            "branch": item.get("branch"),
         }
         scans.append(scan)
 

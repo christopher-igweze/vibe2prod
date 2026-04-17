@@ -31,6 +31,7 @@ interface ScanDetail {
   status: string
   repo_url?: string
   repo_name?: string
+  branch?: string | null
   health_score?: number | null
   security_score?: number | null
   reliability_score?: number | null
@@ -76,6 +77,7 @@ function ReportSidebar({
         <div>
           <p className="text-sm font-medium text-[#E8ECF4] truncate">
             {scan.repo_name || scan.repo_url}
+            {scan.branch && <span className="text-[#6B7A99] font-normal ml-1.5">({scan.branch})</span>}
           </p>
           <p className="text-xs text-[#4E586E] mt-0.5">{formattedDate}</p>
         </div>

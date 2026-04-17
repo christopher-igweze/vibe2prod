@@ -300,6 +300,7 @@ export interface ScanHistoryItem {
   id: string
   status: string
   scan_tier: string
+  branch: string | null
   health_score: number | null
   security_score: number | null
   reliability_score: number | null
