@@ -446,3 +446,88 @@ suppressions:
       file: "backend/config.py"
     reason: "Accepted risk: optional integrations (Clerk, Stripe, GitHub OAuth) use empty defaults. Runtime 503 errors are acceptable — these services are optional per deployment."
     expires: "2026-09-01"
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # FALSE POSITIVES — Scan 2026-04-17
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # "Missing auth on routes" — SupabaseAuthMiddleware applies globally.
+  # PUBLIC_PATHS/PUBLIC_PREFIXES are intentional.
+  - id: sup_054
+    kind: false_positive
+    match:
+      pattern: "missing auth on routes"
+      category: security
+    reason: "False positive: auth enforced via SupabaseAuthMiddleware globally. Routes not in PUBLIC_PATHS require JWT. Scanner checks per-route Depends() but misses middleware."
+
+  # "Debug mode in production" — the flagged line is the validator preventing it.
+  - id: sup_055
+    kind: false_positive
+    match:
+      pattern: "debug mode in production"
+      category: security
+    reason: "False positive: flagged line IS the _validate_production_security validator that raises ValueError if debug=True outside development."
+
+  # HTTP URLs are localhost dev and Docker internal networking.
+  - id: sup_056
+    kind: false_positive
+    match:
+      pattern: "missing HTTPS enforcement"
+      category: security
+    reason: "False positive: http:// URLs are localhost dev defaults (config.py) and Docker internal networking (docker-compose.yml). Production uses HTTPS via Coolify TLS termination."
+
+  # .env.example exists at backend/.env.example
+  - id: sup_057
+    kind: false_positive
+    match:
+      pattern: "no \\.env\\.example"
+      category: quality
+    reason: "False positive: backend/.env.example exists. Scanner did not find it."
+
+  # Pytest runs with module-level config, no separate ini needed
+  - id: sup_058
+    kind: false_positive
+    match:
+      pattern: "no test configuration"
+      category: quality
+    reason: "False positive: tests run via PYTHONPATH=. pytest with module-level defaults. No separate pytest.ini needed."
+
+  # Ruff config exists in pyproject.toml
+  - id: sup_059
+    kind: false_positive
+    match:
+      pattern: "no linter config"
+      category: quality
+    reason: "False positive: [tool.ruff] config in forge-engine pyproject.toml. Backend follows standard Python conventions."
+
+  # Documentation-level, not code defects
+  - id: sup_060
+    kind: accepted_risk
+    match:
+      pattern: "no ADR directory"
+      category: quality
+    reason: "Architecture decisions documented in docs/superpowers/specs/. Formal ADR directory is a nice-to-have."
+
+  - id: sup_061
+    kind: accepted_risk
+    match:
+      pattern: "no CHANGELOG"
+      category: quality
+    reason: "Changes tracked via git history and glassbear commit conventions. Formal CHANGELOG is a nice-to-have."
+
+  # requirements.txt exists — scanner couldn't access it in sandbox
+  - id: sup_062
+    kind: false_positive
+    match:
+      pattern: "ASVS V10\\.1\\.1"
+      category: security
+    reason: "False positive: backend/requirements.txt exists with pinned versions. Scanner could not access the file inside the sandbox."
+
+  # CVE scanning — operational improvement, not code defect
+  - id: sup_063
+    kind: accepted_risk
+    match:
+      pattern: "ASVS V10\\.1\\.2"
+      category: security
+    reason: "No CVE scanning in CI yet. Tracked as operational improvement."
+    expires: "2026-10-01"
