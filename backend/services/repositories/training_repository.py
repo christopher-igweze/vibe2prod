@@ -22,3 +22,19 @@ async def store_forgeignore_entry(data: dict) -> bool:
         .execute()
     )
     return bool(result.data)
+
+
+async def store_forgeignore_entries_batch(rows: list[dict]) -> int:
+    """Batch insert forgeignore entries. Returns count of newly inserted rows.
+
+    Single round-trip instead of N+1 individual inserts.
+    """
+    if not rows:
+        return 0
+    client = _client()
+    result = (
+        client.table("forgeignore_entries")
+        .upsert(rows, on_conflict="fingerprint", ignore_duplicates=True)
+        .execute()
+    )
+    return len(result.data) if result.data else 0

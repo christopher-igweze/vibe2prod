@@ -52,47 +52,42 @@ async def ingest_forgeignore(request: Request):
     if not entries:
         return {"accepted": 0, "duplicates": 0}
 
-    accepted = 0
-    duplicates = 0
-
+    rows = []
     for entry in entries:
-        # pattern holds rule_family or check_id or regex pattern
         pattern = entry.get("pattern", "") or entry.get("rule_family", "")
         category = entry.get("category", "") or entry.get("type", "")
         entry_type = entry.get("type", "false_positive")
         reason = entry.get("reason", "")
 
         if not pattern or not reason:
-            continue  # Skip entries missing required fields
+            continue
 
-        # Compute fingerprint for dedup
         fingerprint = hashlib.sha256(
             f"{pattern}:{category}:{entry_type}".encode()
         ).hexdigest()
 
-        try:
-            inserted = await db.store_forgeignore_entry(
-                {
-                    "fingerprint": fingerprint,
-                    "user_id": user_id,
-                    "repo_hash": repo_hash,
-                    "pattern": pattern,
-                    "category": category,
-                    "reason": reason,
-                    "type": entry_type,
-                    "check_id": entry.get("check_id"),
-                    "path_glob": entry.get("path"),
-                    "max_severity": entry.get("max_severity"),
-                    "scan_mode": scan_mode,
-                    "version": version,
-                }
-            )
-            if inserted:
-                accepted += 1
-            else:
-                duplicates += 1
-        except Exception:
-            logger.exception("Failed to insert forgeignore entry")
-            duplicates += 1
+        rows.append({
+            "fingerprint": fingerprint,
+            "user_id": user_id,
+            "repo_hash": repo_hash,
+            "pattern": pattern,
+            "category": category,
+            "reason": reason,
+            "type": entry_type,
+            "check_id": entry.get("check_id"),
+            "path_glob": entry.get("path"),
+            "max_severity": entry.get("max_severity"),
+            "scan_mode": scan_mode,
+            "version": version,
+        })
 
-    return {"accepted": accepted, "duplicates": duplicates}
+    if not rows:
+        return {"accepted": 0, "duplicates": 0}
+
+    try:
+        accepted = await db.store_forgeignore_entries_batch(rows)
+    except Exception:
+        logger.exception("Failed to batch insert forgeignore entries")
+        accepted = 0
+
+    return {"accepted": accepted, "duplicates": len(rows) - accepted}

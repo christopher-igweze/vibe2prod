@@ -69,60 +69,36 @@ async def _run_forge_audit(
             openrouter_api_key=byok_key,
         )
 
-        if result.success:
-            await db.update_scan_with_discovery(
-                scan_id=scan_id,
-                discovery_report=result.discovery_report,
-                evaluation=result.evaluation or None,
-                aivss_score=result.aivss_score or None,
-            )
-
-            # Persist the raw LLM cost on every successful scan so the
-            # dashboard Usage Stats panel shows per-scan spend regardless
-            # of whether the user was charged (developers are exempt from
-            # wallet deduction but still want visibility into LLM cost).
-            try:
-                await db.update_scan_cost(scan_id, float(result.cost_usd or 0.0))
-            except Exception:
-                logger.exception("Failed to record cost_usd for scan %s", scan_id)
-
-            # Charge actual cost after successful scan (developers are exempt)
-            if user_id and role != "developer":
-                try:
-                    if byok_key:
-                        charge = compute_byok_scan_info(result.cost_usd)
-                        logger.info(
-                            "BYOK scan %s — LLM $%.4f paid to OpenRouter directly (no wallet charge)",
-                            scan_id, charge["llm_cost"],
-                        )
-                    else:
-                        from models.credits import compute_scan_charge
-                        charge = compute_scan_charge(result.cost_usd)
-                        db.deduct_balance(
-                            user_id,
-                            charge["charged_amount"],
-                            scan_id=str(scan_id),
-                            description=f"Scan: LLM ${charge['llm_cost']:.2f} + Infra ${charge['infra_cost']:.2f} = ${charge['total_raw']:.2f} x {charge['markup']}x",
-                        )
-                        logger.info(
-                            "Charged $%.4f for scan %s (LLM: $%.4f, infra: $%.4f, markup: %.1fx)",
-                            charge["charged_amount"], scan_id, charge["llm_cost"], charge["infra_cost"], charge["markup"],
-                        )
-                        # For non-BYOK paid scans, overwrite the persisted
-                        # cost with the charged amount (LLM + infra + markup)
-                        # so the dashboard reflects wallet spend, not raw LLM.
-                        try:
-                            await db.update_scan_cost(scan_id, float(charge["charged_amount"]))
-                        except Exception:
-                            logger.exception("Failed to record charged cost_usd for scan %s", scan_id)
-                except ValueError:
-                    logger.warning("Insufficient balance for user %s (scan %s) — scan ran but charge failed", user_id, scan_id)
-        else:
+        if not result.success:
             error_msg = result.error or "FORGE discovery scan failed."
             logger.error("FORGE audit failed for scan %s: %s", scan_id, error_msg)
             await db.update_scan_status(
                 scan_id, ScanStatus.failed, failure_reason=error_msg
             )
+            return
+
+        await db.update_scan_with_discovery(
+            scan_id=scan_id,
+            discovery_report=result.discovery_report,
+            evaluation=result.evaluation or None,
+            aivss_score=result.aivss_score or None,
+        )
+
+        # Persist raw LLM cost for all successful scans (developers see
+        # actual spend, paid users get overwritten with charged amount below).
+        try:
+            await db.update_scan_cost(scan_id, float(result.cost_usd or 0.0))
+        except Exception:
+            logger.exception("Failed to record cost_usd for scan %s", scan_id)
+
+        # Charge wallet for non-developer, non-BYOK users
+        if not user_id or role == "developer":
+            return
+
+        try:
+            await _charge_scan(scan_id, user_id, result.cost_usd, byok_key)
+        except ValueError:
+            logger.warning("Insufficient balance for user %s (scan %s) — scan ran but charge failed", user_id, scan_id)
     except Exception as exc:
         logger.exception("FORGE audit background task failed for scan %s", scan_id)
         try:
@@ -133,6 +109,37 @@ async def _run_forge_audit(
             )
         except Exception:
             logger.exception("Failed to update scan status after error for scan %s", scan_id)
+
+
+async def _charge_scan(
+    scan_id: UUID, user_id: str, cost_usd: float | None, byok_key: str | None
+) -> None:
+    """Charge user wallet for a completed scan."""
+    if byok_key:
+        charge = compute_byok_scan_info(cost_usd)
+        logger.info(
+            "BYOK scan %s — LLM $%.4f paid to OpenRouter directly (no wallet charge)",
+            scan_id, charge["llm_cost"],
+        )
+        return
+
+    from models.credits import compute_scan_charge
+    charge = compute_scan_charge(cost_usd)
+    db.deduct_balance(
+        user_id,
+        charge["charged_amount"],
+        scan_id=str(scan_id),
+        description=f"Scan: LLM ${charge['llm_cost']:.2f} + Infra ${charge['infra_cost']:.2f} = ${charge['total_raw']:.2f} x {charge['markup']}x",
+    )
+    logger.info(
+        "Charged $%.4f for scan %s (LLM: $%.4f, infra: $%.4f, markup: %.1fx)",
+        charge["charged_amount"], scan_id, charge["llm_cost"], charge["infra_cost"], charge["markup"],
+    )
+    # Overwrite persisted cost with charged amount so dashboard reflects wallet spend
+    try:
+        await db.update_scan_cost(scan_id, float(charge["charged_amount"]))
+    except Exception:
+        logger.exception("Failed to record charged cost_usd for scan %s", scan_id)
 
 
 async def _preflight(
