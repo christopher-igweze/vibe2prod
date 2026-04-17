@@ -76,74 +76,10 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
     scan_id = uuid4()
     sandbox_mgr = SandboxManager()
 
-    primer_json: dict = {}
-    summary = ""
-    confidence = 0
-    failure_reason: str | None = None
-
     try:
-        clone_url = repo_info.clone_url
-        if github_token and "github.com" in clone_url:
-            clone_url = clone_url.replace(
-                "https://github.com/",
-                f"https://x-access-token:{github_token}@github.com/",
-            )
-        await sandbox_mgr.provision(scan_id, clone_url)
-        tree, top_dirs, head = await asyncio.gather(
-            sandbox_mgr.exec(
-                scan_id,
-                "find . -type f -not -path './.git/*' -not -path './node_modules/*' | head -350 | sort",
-                timeout=30,
-            ),
-            sandbox_mgr.exec(scan_id, "ls -1", timeout=15),
-            sandbox_mgr.exec(scan_id, "git rev-parse HEAD", timeout=15),
+        primer_json, summary, confidence, failure_reason = await _extract_primer(
+            sandbox_mgr, scan_id, repo_info, repo_sha, github_token,
         )
-        package_raw = ""
-        try:
-            package_raw = await sandbox_mgr.read_file(scan_id, "/home/daytona/repo/package.json")
-        except Exception:
-            package_raw = ""
-
-        package_data = {}
-        scripts: list[str] = []
-        dependencies: list[str] = []
-        if package_raw:
-            try:
-                package_data = json.loads(package_raw)
-                scripts = sorted(list((package_data.get("scripts") or {}).keys()))[:12]
-                deps = (package_data.get("dependencies") or {}) | (
-                    package_data.get("devDependencies") or {}
-                )
-                dependencies = sorted(list(deps.keys()))[:20]
-            except Exception:
-                package_data = {}
-
-        primer_json = {
-            "repo_full_name": repo_info.full_name,
-            "default_branch": repo_info.default_branch,
-            "repo_sha": (head.stdout or repo_sha).strip(),
-            "is_private": repo_info.private,
-            "file_tree_sample": (tree.stdout or "").splitlines()[:200],
-            "top_level_entries": (top_dirs.stdout or "").splitlines()[:40],
-            "npm_scripts": scripts,
-            "dependency_sample": dependencies,
-        }
-        summary = await _summarize(primer_json)
-        confidence = 85
-    except Exception as exc:
-        failure_reason = f"{type(exc).__name__}: primer extraction incomplete"
-        logger.exception("Primer generation failed")
-        primer_json = {
-            "repo_full_name": repo_info.full_name,
-            "default_branch": repo_info.default_branch,
-            "repo_sha": repo_sha,
-            "is_private": repo_info.private,
-        }
-        summary = (
-            "Primer could not complete all extraction steps. "
-            "Proceeding with fallback intake prompts."
-        )
-        confidence = 35
     finally:
         try:
             await sandbox_mgr.destroy(scan_id)
@@ -174,6 +110,77 @@ async def run_primer(request_body: PrimerRequest, request: Request) -> PrimerRes
         primer=primer,
         suggested_flows=_suggest_flows(primer_json),
     )
+
+
+async def _extract_primer(
+    sandbox_mgr: SandboxManager,
+    scan_id,
+    repo_info,
+    repo_sha: str,
+    github_token: str | None,
+) -> tuple[dict, str, int, str | None]:
+    """Run sandbox extraction and return (primer_json, summary, confidence, failure_reason)."""
+    try:
+        clone_url = repo_info.clone_url
+        if github_token and "github.com" in clone_url:
+            clone_url = clone_url.replace(
+                "https://github.com/",
+                f"https://x-access-token:{github_token}@github.com/",
+            )
+        await sandbox_mgr.provision(scan_id, clone_url)
+
+        tree, top_dirs, head = await asyncio.gather(
+            sandbox_mgr.exec(
+                scan_id,
+                "find . -type f -not -path './.git/*' -not -path './node_modules/*' | head -350 | sort",
+                timeout=30,
+            ),
+            sandbox_mgr.exec(scan_id, "ls -1", timeout=15),
+            sandbox_mgr.exec(scan_id, "git rev-parse HEAD", timeout=15),
+        )
+
+        scripts, dependencies = _parse_package_json(sandbox_mgr, scan_id)
+
+        primer_json = {
+            "repo_full_name": repo_info.full_name,
+            "default_branch": repo_info.default_branch,
+            "repo_sha": (head.stdout or repo_sha).strip(),
+            "is_private": repo_info.private,
+            "file_tree_sample": (tree.stdout or "").splitlines()[:200],
+            "top_level_entries": (top_dirs.stdout or "").splitlines()[:40],
+            "npm_scripts": scripts,
+            "dependency_sample": dependencies,
+        }
+        summary = await _summarize(primer_json)
+        return primer_json, summary, 85, None
+
+    except Exception as exc:
+        logger.exception("Primer generation failed")
+        fallback_json = {
+            "repo_full_name": repo_info.full_name,
+            "default_branch": repo_info.default_branch,
+            "repo_sha": repo_sha,
+            "is_private": repo_info.private,
+        }
+        return (
+            fallback_json,
+            "Primer could not complete all extraction steps. Proceeding with fallback intake prompts.",
+            35,
+            f"{type(exc).__name__}: primer extraction incomplete",
+        )
+
+
+async def _parse_package_json(sandbox_mgr: SandboxManager, scan_id) -> tuple[list[str], list[str]]:
+    """Read and parse package.json from sandbox, returning (scripts, dependencies)."""
+    try:
+        raw = await sandbox_mgr.read_file(scan_id, "/home/daytona/repo/package.json")
+        data = json.loads(raw)
+        scripts = sorted(list((data.get("scripts") or {}).keys()))[:12]
+        deps = (data.get("dependencies") or {}) | (data.get("devDependencies") or {})
+        dependencies = sorted(list(deps.keys()))[:20]
+        return scripts, dependencies
+    except Exception:
+        return [], []
 
 
 _FLOW_PATTERNS: dict[str, list[str]] = {
