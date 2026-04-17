@@ -103,9 +103,11 @@ async def trigger_forge_scan(
             github_token=github_token,
         )
 
-        # Checkout the specified branch (clone defaults to the repo's default branch)
+        # Checkout the specified branch (clone only fetches the default branch)
         if branch:
-            checkout_result = await mgr.exec(scan_id, f"git checkout {branch}", timeout=30)
+            checkout_result = await mgr.exec(
+                scan_id, f"git fetch origin {branch} && git checkout {branch}", timeout=60,
+            )
             if checkout_result.exit_code != 0:
                 logger.warning(
                     "Branch checkout failed for scan %s (branch=%s): %s",
