@@ -32,6 +32,7 @@ interface ScanDetail {
   repo_url?: string
   repo_name?: string
   branch?: string | null
+  cost_usd?: number | null
   health_score?: number | null
   security_score?: number | null
   reliability_score?: number | null
@@ -268,6 +269,7 @@ export default function ReportPage() {
           actionableCount={actionableFindings.length}
           evaluation={scan.report_data?.evaluation}
           aivss={scan.report_data?.aivss_score}
+          costOverride={scan.cost_usd ?? undefined}
         />
       </div>
 

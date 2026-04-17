@@ -46,6 +46,7 @@ interface ReportHeaderProps {
   actionableCount?: number
   evaluation?: EvaluationReport | null
   aivss?: AIVSSScore | null
+  costOverride?: number
 }
 
 function downloadJson(report: DiscoveryReport, repoName?: string) {
@@ -84,7 +85,7 @@ function downloadMarkdown(
   URL.revokeObjectURL(url)
 }
 
-export function ReportHeader({ report, repoName, scanId, actionableCount, evaluation, aivss }: ReportHeaderProps) {
+export function ReportHeader({ report, repoName, scanId, actionableCount, evaluation, aivss, costOverride }: ReportHeaderProps) {
   const router = useRouter()
   const { getToken } = useAuth()
   const [deleting, setDeleting] = useState(false)
@@ -154,9 +155,9 @@ export function ReportHeader({ report, repoName, scanId, actionableCount, evalua
               {formatDuration(report.duration_seconds)}
             </Badge>
           )}
-          {report.cost_usd > 0 && (
+          {(costOverride ?? report.cost_usd) > 0 && (
             <Badge variant="outline" className="border-forge-emerald/30 text-forge-emerald">
-              Cost: {formatCharge(report.cost_usd)}
+              Cost: {formatCharge(costOverride ?? report.cost_usd)}
             </Badge>
           )}
         </div>
