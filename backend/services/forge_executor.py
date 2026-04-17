@@ -84,6 +84,7 @@ async def trigger_forge_scan(
     project_context: dict | None = None,
     user_preferences: dict | None = None,
     openrouter_api_key: str | None = None,
+    branch: str | None = None,
 ) -> ForgeRunResult:
     """Run a FORGE discovery scan inside an isolated Daytona sandbox."""
     if scan_id is None:
@@ -101,6 +102,15 @@ async def trigger_forge_scan(
             openrouter_api_key=openrouter_api_key or settings.openrouter_api_key,
             github_token=github_token,
         )
+
+        # Checkout the specified branch (clone defaults to the repo's default branch)
+        if branch:
+            checkout_result = await mgr.exec(scan_id, f"git checkout {branch}", timeout=30)
+            if checkout_result.exit_code != 0:
+                logger.warning(
+                    "Branch checkout failed for scan %s (branch=%s): %s",
+                    scan_id, branch, checkout_result.stderr,
+                )
 
         # Write scan context file into the sandbox so FORGE agents can
         # personalize findings based on the user's preferences and any

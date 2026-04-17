@@ -48,6 +48,7 @@ async def _run_forge_audit(
     user_id: str | None = None,
     role: str | None = None,
     byok_key: str | None = None,
+    branch: str | None = None,
 ) -> None:
     """Background task that runs FORGE discovery scan and stores results."""
     from services.forge_bridge import trigger_forge_scan
@@ -67,6 +68,7 @@ async def _run_forge_audit(
             project_context=project_context,
             user_preferences=user_preferences,
             openrouter_api_key=byok_key,
+            branch=branch,
         )
 
         if not result.success:
@@ -242,6 +244,7 @@ async def start_audit(
             user_id,
             role,
             byok_key,
+            request_body.branch,
         )
 
         return AuditResponse(
