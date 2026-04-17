@@ -117,7 +117,7 @@ class Settings(BaseSettings):
     # sandboxes from. Empty string falls back to inline image build (slow,
     # ~30-60s per scan; only useful for dev). Bumped automatically by the
     # forge-engine release workflow.
-    forge_sandbox_snapshot: str = "vibe2prod-1.5.4"
+    forge_sandbox_snapshot: str = "vibe2prod-1.5.5"
 
     # --- FORGE Engine ---
     forge_enabled: bool = False
