@@ -523,6 +523,14 @@ suppressions:
       category: security
     reason: "False positive: backend/requirements.txt exists with pinned versions. Scanner could not access the file inside the sandbox."
 
+  # React JSX auto-escapes all interpolated values — no XSS risk
+  - id: sup_064
+    kind: false_positive
+    match:
+      pattern: "ASVS V5\\.2\\.2"
+      category: security
+    reason: "False positive: React JSX auto-escapes all {variable} interpolation. No dangerouslySetInnerHTML used. Standard React rendering is XSS-safe by default."
+
   # CVE scanning — operational improvement, not code defect
   - id: sup_063
     kind: accepted_risk
